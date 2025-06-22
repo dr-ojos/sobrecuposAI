@@ -1,0 +1,67 @@
+/* app/admin/page.module.css */
+
+.container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  
+  /* Anidamos dentro de .container para que el selector sea “puro+local” */
+  .container h1 {
+    text-align: center;
+  }
+  
+  .container .form {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .container .timeRow {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  
+  .container .timeList {
+    list-style: none;
+    padding-left: 0;
+    margin: 0.5rem 0;
+  }
+  
+  .container .timeList li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: #f0f0f0;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+  }
+  
+  /* Botones con clases locales */
+  .container .btn {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: #0070f3;
+    color: white;
+    border-radius: 4px;
+  }
+  .container .btnSecondary {
+    background: #555;
+  }
+  
+  /* Mensajes de estado */
+  .container .error {
+    color: #b00020;
+    background: #fee;
+    padding: 0.5rem;
+    border-radius: 4px;
+  }
+  .container .success {
+    color: #006400;
+    background: #e6ffed;
+    padding: 0.5rem;
+    border-radius: 4px;
+  }
