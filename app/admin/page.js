@@ -263,13 +263,28 @@ export default function AdminSobrecuposPage() {
           font-size: 1rem;
         }
         @media (max-width: 600px) {
+          .main-wrapper {
+            padding: 0vw 0vw;
+            min-height: 100vh;
+          }
           .card {
-            padding: 16vw 2vw 8vw 2vw;
-            max-width: 99vw;
+            padding: 14vw 2vw 7vw 2vw;
+            max-width: 100vw;
+            border-radius: 11px;
           }
           .form-row {
             flex-direction: column;
-            gap: 5px;
+            gap: 0px;
+          }
+          .title {
+            font-size: 1.32rem;
+            margin-bottom: 1.2rem;
+          }
+          .form-group label {
+            font-size: 0.99rem;
+          }
+          .submit-btn {
+            font-size: 1rem;
           }
         }
       `}</style>
