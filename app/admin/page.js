@@ -168,28 +168,33 @@ export default function AdminSobrecuposPage() {
       <style>{`
         .bg-main {
           min-height: 100vh;
+          min-width: 100vw;
           background: linear-gradient(120deg,#e3effe 0%,#d7f3fc 100%);
           font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .main-wrapper {
+          width: 100vw;
+          min-height: 100vh;
           display: flex;
           flex-direction: column;
           justify-content: center;
           align-items: center;
-          min-height: 100vh;
           padding: 4vw 2vw;
         }
         .card {
           width: 100%;
           max-width: 420px;
           background: #fff;
-          border-radius: 20px;
+          border-radius: 18px;
           box-shadow: 0 4px 24px #0002;
-          padding: 36px 6vw 30px 6vw;
+          padding: 34px 5vw 30px 5vw;
           margin: 0 auto;
         }
         .title {
-          font-size: 2rem;
+          font-size: 2.1rem;
           font-weight: 800;
           text-align: center;
           margin-bottom: 28px;
@@ -201,7 +206,7 @@ export default function AdminSobrecuposPage() {
         }
         .form-group label {
           font-weight: 600;
-          font-size: 1rem;
+          font-size: 1.09rem;
           color: #222;
           display: block;
         }
@@ -230,7 +235,7 @@ export default function AdminSobrecuposPage() {
         .submit-btn {
           width: 100%;
           padding: 16px 0;
-          font-size: 1.13rem;
+          font-size: 1.16rem;
           font-weight: 700;
           color: #fff;
           background: #0070f3;
@@ -260,31 +265,36 @@ export default function AdminSobrecuposPage() {
           color: #0070f3;
           text-decoration: underline;
           font-weight: 500;
-          font-size: 1rem;
+          font-size: 1.02rem;
         }
         @media (max-width: 600px) {
           .main-wrapper {
             padding: 0vw 0vw;
             min-height: 100vh;
+            width: 100vw;
           }
           .card {
-            padding: 14vw 2vw 7vw 2vw;
-            max-width: 100vw;
-            border-radius: 11px;
+            padding: 7vw 3vw 7vw 3vw;
+            max-width: 99vw;
+            border-radius: 12px;
+            min-height: 99vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          }
+          .title {
+            font-size: 1.42rem;
+            margin-bottom: 1.1rem;
+          }
+          .form-group label {
+            font-size: 1.02rem;
+          }
+          .submit-btn {
+            font-size: 1.08rem;
           }
           .form-row {
             flex-direction: column;
             gap: 0px;
-          }
-          .title {
-            font-size: 1.32rem;
-            margin-bottom: 1.2rem;
-          }
-          .form-group label {
-            font-size: 0.99rem;
-          }
-          .submit-btn {
-            font-size: 1rem;
           }
         }
       `}</style>
