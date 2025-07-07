@@ -41,11 +41,7 @@ export default function ChatPage() {
       flexDirection: "column",
       fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
     }}>
-      {/* Título siempre visible */}
       <header style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
         padding: "16px 0 4px 0",
         textAlign: "center",
         background: "white",
@@ -53,10 +49,9 @@ export default function ChatPage() {
         fontSize: "2rem",
         letterSpacing: "1px",
         color: "#1274B8",
-        fontWeight: 700,
-        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
+        fontWeight: 700
       }}>
-        Sobrecupos AI chat
+        Sobrecupos Chat Médico
       </header>
       <main style={{
         flex: 1,
