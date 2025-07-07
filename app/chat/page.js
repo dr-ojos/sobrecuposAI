@@ -1,145 +1,134 @@
-'use client';
+"use client";
 import { useState, useRef, useEffect } from "react";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([
-    { from: "bot", text: "¡Hola! 👋 Soy Sobrecupos IA.\n¿En qué puedo ayudarte hoy?" }
+    { from: "bot", text: "¡Hola! 👋 Soy Sobrecupos IA. ¿En qué puedo ayudarte hoy?" }
   ]);
   const [input, setInput] = useState("");
-  const chatEndRef = useRef(null);
+  const [session, setSession] = useState({});
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef(null);
 
-  // Scroll automático al enviar mensaje
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = async (e) => {
+  const sendMessage = async (e) => {
     e.preventDefault();
-    const userMsg = input.trim();
-    if (!userMsg) return;
-    setMessages((msgs) => [...msgs, { from: "user", text: userMsg }]);
+    if (!input.trim() || loading) return;
+    const userMsg = { from: "user", text: input };
+    setMessages((msgs) => [...msgs, userMsg]);
     setInput("");
-    // Envía mensaje al backend (ajusta si tienes API)
+    setLoading(true);
+
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/bot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: userMsg })
+        body: JSON.stringify({ message: input, session }),
       });
       const data = await res.json();
-      setMessages((msgs) => [...msgs, { from: "bot", text: data.text }]);
+      if (Array.isArray(data.text)) {
+        data.text.forEach((t) => {
+          setMessages((msgs) => [...msgs, { from: "bot", text: t }]);
+        });
+      } else if (typeof data.text === "string" && data.text.includes("\n\n")) {
+        data.text.split("\n\n").forEach((t) => {
+          setMessages((msgs) => [...msgs, { from: "bot", text: t }]);
+        });
+      } else {
+        setMessages((msgs) => [...msgs, { from: "bot", text: data.text }]);
+      }
+      setSession(data.session || {});
     } catch {
-      setMessages((msgs) => [...msgs, { from: "bot", text: "Ocurrió un error 😓" }]);
+      setMessages((msgs) =>
+        [...msgs, { from: "bot", text: "❌ Error de conexión. Intenta de nuevo." }]
+      );
     }
+    setLoading(false);
   };
 
   return (
     <div style={{
-      minHeight: "100vh",
-      background: "linear-gradient(135deg, #F9FBFC 60%, #DCF3FA 100%)",
-      display: "flex",
-      flexDirection: "column",
-      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
+      minHeight: "100vh", background: "#f8fafc",
+      display: "flex", flexDirection: "column", alignItems: "center",
+      fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+      padding: "0", margin: "0"
     }}>
-      <header style={{
-        padding: "16px 0 4px 0",
-        textAlign: "center",
-        background: "white",
-        boxShadow: "0 1px 6px #eee",
-        fontSize: "2rem",
-        letterSpacing: "1px",
-        color: "#1274B8",
-        fontWeight: 700
+      <div style={{
+        width: "100%", maxWidth: 430, marginTop: 36, background: "#fff",
+        borderRadius: 20, boxShadow: "0 8px 32px #0002", padding: "24px 0"
       }}>
-        Sobrecupos Chat Médico
-      </header>
-      <main style={{
-        flex: 1,
-        padding: "10px",
-        display: "flex",
-        flexDirection: "column",
-        overflowY: "auto",
-        maxWidth: 480,
-        margin: "0 auto",
-        width: "100%",
-        background: "rgba(255,255,255,0.7)",
-        borderRadius: 16,
-        marginTop: 20,
-        boxShadow: "0 4px 24px #bde2fa2c"
-      }}>
-        {messages.map((msg, i) => (
-          <div
-            key={i}
+        <h2 style={{
+          fontWeight: 800, fontSize: 24, margin: 0, textAlign: "center", color: "#2a3342"
+        }}>Sobrecupos Chat IA</h2>
+        <div style={{
+          maxHeight: "62vh", minHeight: 320, overflowY: "auto",
+          padding: "24px 24px 0", marginTop: 10, marginBottom: 10
+        }}>
+          {messages.map((msg, i) => (
+            <div key={i} style={{
+              margin: "8px 0",
+              textAlign: msg.from === "bot" ? "left" : "right"
+            }}>
+              <span style={{
+                display: "inline-block",
+                background: msg.from === "bot" ? "#f1f5f9" : "#3185fc",
+                color: msg.from === "bot" ? "#333" : "#fff",
+                borderRadius: 14,
+                padding: "10px 16px",
+                maxWidth: "80%",
+                fontSize: 16,
+                fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif'
+              }}>{msg.text}</span>
+            </div>
+          ))}
+          <div ref={endRef} />
+        </div>
+        <form
+          onSubmit={sendMessage}
+          style={{
+            display: "flex", alignItems: "center", padding: "0 24px 0 24px",
+            borderTop: "1px solid #e2e8f0"
+          }}>
+          <input
+            type="text"
+            placeholder="Escribe tu mensaje..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             style={{
-              alignSelf: msg.from === "user" ? "flex-end" : "flex-start",
-              background: msg.from === "user" ? "#1274B8" : "#e3f3fc",
-              color: msg.from === "user" ? "white" : "#222",
-              padding: "10px 14px",
-              borderRadius: "18px",
-              marginBottom: 10,
-              maxWidth: "78%",
-              whiteSpace: "pre-line",
-              fontSize: "1.1rem",
-              wordBreak: "break-word",
-              boxShadow: msg.from === "user"
-                ? "0 2px 8px #1274B855"
-                : "0 1px 6px #bde2fa22"
+              flex: 1,
+              border: "none",
+              outline: "none",
+              fontSize: 16,
+              padding: "12px 14px",
+              borderRadius: 14,
+              fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+              background: "#f1f5f9"
             }}
-          >
-            {msg.text}
-          </div>
-        ))}
-        <div ref={chatEndRef} />
-      </main>
-      <form
-        onSubmit={handleSend}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          padding: "8px",
-          background: "#fff",
-          borderTop: "1px solid #eee",
-          position: "sticky",
-          bottom: 0,
-          maxWidth: 480,
-          margin: "0 auto",
-          width: "100%"
-        }}
-      >
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Escribe tu mensaje..."
-          autoFocus
-          style={{
-            flex: 1,
-            fontSize: "1.15rem",
-            padding: "12px",
-            border: "1px solid #d4d7db",
-            borderRadius: 18,
-            marginRight: 8,
-            fontFamily: "inherit",
-            background: "#f7fafc"
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            background: "#1274B8",
-            color: "#fff",
-            border: "none",
-            borderRadius: 14,
-            padding: "10px 18px",
-            fontSize: "1rem",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 2px 6px #1274b833"
-          }}
-        >
-          Enviar
-        </button>
-      </form>
+            disabled={loading}
+            autoFocus
+            aria-label="Mensaje"
+          />
+          <button
+            type="submit"
+            style={{
+              marginLeft: 12,
+              background: "#3185fc",
+              color: "#fff",
+              border: "none",
+              borderRadius: 14,
+              padding: "10px 16px",
+              fontWeight: 700,
+              cursor: loading ? "wait" : "pointer",
+              fontSize: 16
+            }}
+            disabled={loading || !input.trim()}
+            aria-label="Enviar mensaje"
+          >{loading ? "..." : "Enviar"}</button>
+        </form>
+      </div>
     </div>
   );
 }
