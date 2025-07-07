@@ -53,13 +53,16 @@ export default function ChatPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#f8fafc",
+        minWidth: "100vw",
+        background: "linear-gradient(180deg, #f8fafc 0%, #e0e7ef 100%)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
         padding: 0,
         margin: 0,
+        boxSizing: "border-box",
+        overflow: "hidden"
       }}
     >
       <div
@@ -67,66 +70,81 @@ export default function ChatPage() {
           width: "100%",
           maxWidth: 430,
           margin: "0 auto",
-          marginTop: 24,
           background: "#fff",
-          borderRadius: 20,
+          borderRadius: 22,
           boxShadow: "0 8px 32px #0002",
-          padding: "24px 0 0 0",
+          padding: "0px 0 0 0",
           minHeight: "70vh",
-          height: "80vh",
+          height: "95dvh",
           display: "flex",
           flexDirection: "column",
+          position: "relative",
         }}
       >
-        <h2
+        <header
           style={{
-            fontWeight: 800,
-            fontSize: 24,
-            margin: 0,
+            fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+            fontWeight: 900,
+            fontSize: 28,
+            letterSpacing: "-1px",
             textAlign: "center",
             color: "#2a3342",
             background: "#f8fafc",
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            padding: "16px 12px 8px 12px",
+            borderTopLeftRadius: 22,
+            borderTopRightRadius: 22,
+            padding: "18px 8px 10px 8px",
+            boxShadow: "0 2px 10px #e0e7ef80",
             position: "sticky",
             top: 0,
-            zIndex: 2,
+            zIndex: 10,
+            minHeight: 62,
+            lineHeight: 1.2,
           }}
         >
           Sobrecupos AI chat
-        </h2>
-        <div
+        </header>
+        <main
           style={{
             flex: 1,
             overflowY: "auto",
-            padding: "18px 14px 0 14px",
-            marginBottom: 10,
+            padding: "12px 6vw 0 6vw",
+            marginBottom: 8,
             minHeight: 260,
-            maxHeight: "60vh",
+            maxHeight: "calc(100dvh - 170px)",
+            background: "transparent",
+            scrollbarWidth: "thin",
+            WebkitOverflowScrolling: "touch",
           }}
         >
           {messages.map((msg, i) => (
             <div
               key={i}
               style={{
-                margin: "8px 0",
+                margin: "10px 0",
                 textAlign: msg.from === "bot" ? "left" : "right",
                 display: "flex",
                 justifyContent: msg.from === "bot" ? "flex-start" : "flex-end",
+                width: "100%",
               }}
             >
               <span
                 style={{
                   display: "inline-block",
                   background: msg.from === "bot" ? "#f1f5f9" : "#3185fc",
-                  color: msg.from === "bot" ? "#333" : "#fff",
-                  borderRadius: 14,
-                  padding: "10px 16px",
+                  color: msg.from === "bot" ? "#233" : "#fff",
+                  borderRadius: 16,
+                  padding: "13px 18px",
                   maxWidth: "85vw",
-                  fontSize: 16,
+                  fontSize: 17,
                   fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
                   wordBreak: "break-word",
+                  boxShadow:
+                    msg.from === "bot"
+                      ? "0 2px 7px #e0e7ef80"
+                      : "0 3px 10px #3185fc33",
+                  borderBottomLeftRadius: msg.from === "bot" ? 4 : 16,
+                  borderBottomRightRadius: msg.from === "bot" ? 16 : 4,
+                  transition: "background 0.2s",
                 }}
               >
                 {msg.text}
@@ -134,18 +152,21 @@ export default function ChatPage() {
             </div>
           ))}
           <div ref={endRef} />
-        </div>
+        </main>
         <form
           onSubmit={sendMessage}
           style={{
             display: "flex",
             alignItems: "center",
-            padding: "0 12px 16px 12px",
+            padding: "0 14px 18px 14px",
             borderTop: "1px solid #e2e8f0",
             background: "#fff",
-            borderBottomLeftRadius: 20,
-            borderBottomRightRadius: 20,
+            borderBottomLeftRadius: 22,
+            borderBottomRightRadius: 22,
             gap: 8,
+            position: "sticky",
+            bottom: 0,
+            zIndex: 10,
           }}
         >
           <input
@@ -157,16 +178,18 @@ export default function ChatPage() {
               flex: 1,
               border: "none",
               outline: "none",
-              fontSize: 16,
-              padding: "12px 14px",
-              borderRadius: 14,
+              fontSize: 17,
+              padding: "15px 14px",
+              borderRadius: 16,
               fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
               background: "#f1f5f9",
               minWidth: 0,
+              boxShadow: "0 1px 6px #e0e7ef55",
             }}
             disabled={loading}
             autoFocus
             aria-label="Mensaje"
+            inputMode="text"
           />
           <button
             type="submit"
@@ -174,12 +197,14 @@ export default function ChatPage() {
               background: "#3185fc",
               color: "#fff",
               border: "none",
-              borderRadius: 14,
-              padding: "10px 16px",
+              borderRadius: 16,
+              padding: "13px 20px",
               fontWeight: 700,
               cursor: loading ? "wait" : "pointer",
-              fontSize: 16,
-              minWidth: 70,
+              fontSize: 18,
+              minWidth: 82,
+              boxShadow: "0 2px 6px #3185fc33",
+              transition: "background 0.2s, box-shadow 0.2s",
             }}
             disabled={loading || !input.trim()}
             aria-label="Enviar mensaje"
@@ -192,19 +217,27 @@ export default function ChatPage() {
         @media (max-width: 600px) {
           div[style*="maxWidth: 430"] {
             max-width: 100vw !important;
+            min-width: 100vw !important;
             border-radius: 0 !important;
-            height: 100vh !important;
-            min-height: 100vh !important;
+            height: 100dvh !important;
+            min-height: 100dvh !important;
+            box-shadow: none !important;
           }
-          h2 {
+          header {
             font-size: 21px !important;
-            padding-top: 16px !important;
-            padding-bottom: 8px !important;
+            padding-top: 14px !important;
+            padding-bottom: 6px !important;
           }
           form {
-            padding-bottom: 20px !important;
+            padding-bottom: env(safe-area-inset-bottom, 16px) !important;
+          }
+          main {
+            padding-left: 3vw !important;
+            padding-right: 3vw !important;
           }
         }
+        ::-webkit-input-placeholder { color: #a3a3a3; }
+        ::placeholder { color: #a3a3a3; }
       `}</style>
     </div>
   );
