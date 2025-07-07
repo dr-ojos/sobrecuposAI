@@ -14,6 +14,17 @@ export default function ChatPage() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Fix para scroll en móviles cuando aparece teclado
+  useEffect(() => {
+    const handleFocus = () => {
+      setTimeout(() => {
+        endRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+    };
+    window.addEventListener("focusin", handleFocus);
+    return () => window.removeEventListener("focusin", handleFocus);
+  }, []);
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
@@ -73,9 +84,9 @@ export default function ChatPage() {
           background: "#fff",
           borderRadius: 22,
           boxShadow: "0 8px 32px #0002",
-          padding: "0px 0 0 0",
-          minHeight: "70vh",
-          height: "95dvh",
+          padding: 0,
+          minHeight: 0,
+          height: "100%",
           display: "flex",
           flexDirection: "column",
           position: "relative",
@@ -109,8 +120,8 @@ export default function ChatPage() {
             overflowY: "auto",
             padding: "12px 6vw 0 6vw",
             marginBottom: 8,
-            minHeight: 260,
-            maxHeight: "calc(100dvh - 170px)",
+            minHeight: 0,
+            maxHeight: "100%",
             background: "transparent",
             scrollbarWidth: "thin",
             WebkitOverflowScrolling: "touch",
@@ -215,25 +226,33 @@ export default function ChatPage() {
       </div>
       <style>{`
         @media (max-width: 600px) {
+          html, body {
+            height: 100% !important;
+            min-height: 100% !important;
+            box-sizing: border-box;
+          }
+          body {
+            overflow: hidden !important;
+          }
           div[style*="maxWidth: 430"] {
             max-width: 100vw !important;
             min-width: 100vw !important;
             border-radius: 0 !important;
-            height: 100dvh !important;
-            min-height: 100dvh !important;
+            height: 100vh !important;
+            min-height: 100vh !important;
             box-shadow: none !important;
-          }
-          header {
-            font-size: 21px !important;
-            padding-top: 14px !important;
-            padding-bottom: 6px !important;
-          }
-          form {
-            padding-bottom: env(safe-area-inset-bottom, 16px) !important;
+            display: flex !important;
+            flex-direction: column !important;
           }
           main {
             padding-left: 3vw !important;
             padding-right: 3vw !important;
+            flex: 1 !important;
+            min-height: 0 !important;
+            height: 100%;
+            max-height: 100%;
+            overflow-y: auto !important;
+            box-sizing: border-box !important;
           }
         }
         ::-webkit-input-placeholder { color: #a3a3a3; }
