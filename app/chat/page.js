@@ -19,7 +19,7 @@ export default function ChatPage() {
     const handleFocus = () => {
       setTimeout(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 300);
+      }, 200);
     };
     window.addEventListener("focusin", handleFocus);
     return () => window.removeEventListener("focusin", handleFocus);
@@ -61,202 +61,165 @@ export default function ChatPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        minWidth: "100vw",
-        background: "linear-gradient(180deg, #f8fafc 0%, #e0e7ef 100%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-        padding: 0,
-        margin: 0,
-        boxSizing: "border-box",
-        overflow: "hidden"
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 430,
-          margin: "0 auto",
-          background: "#fff",
-          borderRadius: 22,
-          boxShadow: "0 8px 32px #0002",
-          padding: 0,
-          minHeight: 0,
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-        }}
-      >
-        <header
-          style={{
-            fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-            fontWeight: 900,
-            fontSize: 28,
-            letterSpacing: "-1px",
-            textAlign: "center",
-            color: "#2a3342",
-            background: "#f8fafc",
-            borderTopLeftRadius: 22,
-            borderTopRightRadius: 22,
-            padding: "18px 8px 10px 8px",
-            boxShadow: "0 2px 10px #e0e7ef80",
-            position: "sticky",
-            top: 0,
-            zIndex: 10,
-            minHeight: 62,
-            lineHeight: 1.2,
-          }}
-        >
-          Sobrecupos AI chat
-        </header>
-        <main
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "12px 6vw 0 6vw",
-            marginBottom: 8,
-            minHeight: 0,
-            maxHeight: "100%",
-            background: "transparent",
-            scrollbarWidth: "thin",
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
+    <div className="chat-bg">
+      <header className="chat-header">
+        <span>Sobrecupos AI chat</span>
+      </header>
+      <main className="chat-main">
+        <div className="chat-messages">
           {messages.map((msg, i) => (
             <div
               key={i}
-              style={{
-                margin: "10px 0",
-                textAlign: msg.from === "bot" ? "left" : "right",
-                display: "flex",
-                justifyContent: msg.from === "bot" ? "flex-start" : "flex-end",
-                width: "100%",
-              }}
+              className={`chat-bubble ${msg.from === "bot" ? "bot" : "user"}`}
             >
-              <span
-                style={{
-                  display: "inline-block",
-                  background: msg.from === "bot" ? "#f1f5f9" : "#3185fc",
-                  color: msg.from === "bot" ? "#233" : "#fff",
-                  borderRadius: 16,
-                  padding: "13px 18px",
-                  maxWidth: "85vw",
-                  fontSize: 17,
-                  fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-                  wordBreak: "break-word",
-                  boxShadow:
-                    msg.from === "bot"
-                      ? "0 2px 7px #e0e7ef80"
-                      : "0 3px 10px #3185fc33",
-                  borderBottomLeftRadius: msg.from === "bot" ? 4 : 16,
-                  borderBottomRightRadius: msg.from === "bot" ? 16 : 4,
-                  transition: "background 0.2s",
-                }}
-              >
-                {msg.text}
-              </span>
+              {msg.text}
             </div>
           ))}
           <div ref={endRef} />
-        </main>
-        <form
-          onSubmit={sendMessage}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "0 14px 18px 14px",
-            borderTop: "1px solid #e2e8f0",
-            background: "#fff",
-            borderBottomLeftRadius: 22,
-            borderBottomRightRadius: 22,
-            gap: 8,
-            position: "sticky",
-            bottom: 0,
-            zIndex: 10,
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Escribe tu mensaje..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            style={{
-              flex: 1,
-              border: "none",
-              outline: "none",
-              fontSize: 17,
-              padding: "15px 14px",
-              borderRadius: 16,
-              fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
-              background: "#f1f5f9",
-              minWidth: 0,
-              boxShadow: "0 1px 6px #e0e7ef55",
-            }}
-            disabled={loading}
-            autoFocus
-            aria-label="Mensaje"
-            inputMode="text"
-          />
-          <button
-            type="submit"
-            style={{
-              background: "#3185fc",
-              color: "#fff",
-              border: "none",
-              borderRadius: 16,
-              padding: "13px 20px",
-              fontWeight: 700,
-              cursor: loading ? "wait" : "pointer",
-              fontSize: 18,
-              minWidth: 82,
-              boxShadow: "0 2px 6px #3185fc33",
-              transition: "background 0.2s, box-shadow 0.2s",
-            }}
-            disabled={loading || !input.trim()}
-            aria-label="Enviar mensaje"
-          >
-            {loading ? "..." : "Enviar"}
-          </button>
-        </form>
-      </div>
+        </div>
+      </main>
+      <form className="chat-inputbar" onSubmit={sendMessage}>
+        <input
+          type="text"
+          placeholder="Escribe tu mensaje..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={loading}
+          autoFocus
+          aria-label="Mensaje"
+        />
+        <button type="submit" disabled={loading || !input.trim()}>
+          {loading ? "..." : "Enviar"}
+        </button>
+      </form>
       <style>{`
+        .chat-bg {
+          background: linear-gradient(180deg, #f8fafc 0%, #e0e7ef 100%);
+          min-height: 100vh;
+          min-width: 100vw;
+          display: flex;
+          flex-direction: column;
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          align-items: center;
+          justify-content: flex-start;
+        }
+        .chat-header {
+          position: sticky;
+          top: 0;
+          width: 100vw;
+          background: #f8fafc;
+          font-weight: 900;
+          font-size: 1.7rem;
+          letter-spacing: -1px;
+          text-align: center;
+          color: #2a3342;
+          z-index: 10;
+          padding: 20px 0 12px 0;
+          box-shadow: 0 2px 10px #e0e7ef80;
+        }
+        .chat-main {
+          flex: 1;
+          width: 100vw;
+          max-width: 600px;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          align-items: center;
+          padding-bottom: 82px; /* espacio para inputbar */
+        }
+        .chat-messages {
+          width: 100%;
+          padding: 12px 0 0 0;
+          box-sizing: border-box;
+          overflow-y: auto;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        }
+        .chat-bubble {
+          margin: 7px 14px;
+          max-width: 83vw;
+          font-size: 1.11rem;
+          line-height: 1.5;
+          padding: 13px 17px;
+          border-radius: 19px;
+          word-break: break-word;
+          box-shadow: 0 2px 7px #e0e7ef80;
+          transition: background 0.2s;
+        }
+        .chat-bubble.bot {
+          background: #f1f5f9;
+          color: #233;
+          align-self: flex-start;
+          border-bottom-left-radius: 4px;
+          border-bottom-right-radius: 16px;
+        }
+        .chat-bubble.user {
+          background: #3185fc;
+          color: #fff;
+          align-self: flex-end;
+          border-bottom-left-radius: 16px;
+          border-bottom-right-radius: 4px;
+        }
+        .chat-inputbar {
+          position: fixed;
+          left: 0;
+          bottom: 0;
+          width: 100vw;
+          max-width: 600px;
+          display: flex;
+          align-items: center;
+          background: #fff;
+          padding: 10px 9px 32px 9px;
+          box-shadow: 0 -2px 15px #e0e7ef55;
+          z-index: 12;
+          gap: 9px;
+          border-top: 1px solid #e2e8f0;
+        }
+        .chat-inputbar input {
+          flex: 1;
+          border: none;
+          outline: none;
+          font-size: 1.11rem;
+          padding: 15px 13px;
+          border-radius: 17px;
+          background: #f1f5f9;
+          box-shadow: 0 1px 6px #e0e7ef22;
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+        .chat-inputbar button {
+          background: #3185fc;
+          color: #fff;
+          border: none;
+          border-radius: 17px;
+          padding: 13px 23px;
+          font-weight: 700;
+          font-size: 1.11rem;
+          cursor: pointer;
+          box-shadow: 0 2px 6px #3185fc33;
+          transition: background 0.2s;
+        }
+        .chat-inputbar button:disabled {
+          opacity: 0.65;
+          cursor: wait;
+        }
         @media (max-width: 600px) {
-          html, body {
-            height: 100% !important;
-            min-height: 100% !important;
-            box-sizing: border-box;
+          .chat-main {
+            max-width: 100vw;
+            padding-bottom: 83px;
           }
-          body {
-            overflow: hidden !important;
+          .chat-inputbar {
+            max-width: 100vw;
+            left: 0;
+            right: 0;
+            border-radius: 0;
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
           }
-          div[style*="maxWidth: 430"] {
-            max-width: 100vw !important;
-            min-width: 100vw !important;
-            border-radius: 0 !important;
-            height: 100vh !important;
-            min-height: 100vh !important;
-            box-shadow: none !important;
-            display: flex !important;
-            flex-direction: column !important;
-          }
-          main {
-            padding-left: 3vw !important;
-            padding-right: 3vw !important;
-            flex: 1 !important;
-            min-height: 0 !important;
-            height: 100%;
-            max-height: 100%;
-            overflow-y: auto !important;
-            box-sizing: border-box !important;
+          .chat-header {
+            max-width: 100vw;
           }
         }
-        ::-webkit-input-placeholder { color: #a3a3a3; }
-        ::placeholder { color: #a3a3a3; }
       `}</style>
     </div>
   );
