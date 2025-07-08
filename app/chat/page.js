@@ -14,12 +14,11 @@ export default function ChatPage() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Fix para scroll en móviles cuando aparece teclado
   useEffect(() => {
     const handleFocus = () => {
       setTimeout(() => {
         endRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 200);
+      }, 250);
     };
     window.addEventListener("focusin", handleFocus);
     return () => window.removeEventListener("focusin", handleFocus);
@@ -62,36 +61,38 @@ export default function ChatPage() {
 
   return (
     <div className="chat-bg">
-      <header className="chat-header">
-        <span>Sobrecupos AI chat</span>
-      </header>
-      <main className="chat-main">
-        <div className="chat-messages">
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`chat-bubble ${msg.from === "bot" ? "bot" : "user"}`}
-            >
-              {msg.text}
-            </div>
-          ))}
-          <div ref={endRef} />
-        </div>
-      </main>
-      <form className="chat-inputbar" onSubmit={sendMessage}>
-        <input
-          type="text"
-          placeholder="Escribe tu mensaje..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={loading}
-          autoFocus
-          aria-label="Mensaje"
-        />
-        <button type="submit" disabled={loading || !input.trim()}>
-          {loading ? "..." : "Enviar"}
-        </button>
-      </form>
+      <div className="chat-container">
+        <header className="chat-header">
+          <span>Sobrecupos AI chat</span>
+        </header>
+        <main className="chat-main">
+          <div className="chat-messages">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`chat-bubble ${msg.from === "bot" ? "bot" : "user"}`}
+              >
+                {msg.text}
+              </div>
+            ))}
+            <div ref={endRef} />
+          </div>
+        </main>
+        <form className="chat-inputbar" onSubmit={sendMessage}>
+          <input
+            type="text"
+            placeholder="Escribe tu mensaje..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={loading}
+            autoFocus
+            aria-label="Mensaje"
+          />
+          <button type="submit" disabled={loading || !input.trim()}>
+            {loading ? "..." : "Enviar"}
+          </button>
+        </form>
+      </div>
       <style>{`
         .chat-bg {
           background: linear-gradient(180deg, #f8fafc 0%, #e0e7ef 100%);
@@ -103,10 +104,20 @@ export default function ChatPage() {
           align-items: center;
           justify-content: flex-start;
         }
+        .chat-container {
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+          width: 100vw;
+          max-width: 600px;
+          background: transparent;
+          margin: 0 auto;
+          align-items: stretch;
+        }
         .chat-header {
           position: sticky;
           top: 0;
-          width: 100vw;
+          width: 100%;
           background: #f8fafc;
           font-weight: 900;
           font-size: 1.7rem;
@@ -119,8 +130,7 @@ export default function ChatPage() {
         }
         .chat-main {
           flex: 1;
-          width: 100vw;
-          max-width: 600px;
+          width: 100%;
           display: flex;
           flex-direction: column;
           justify-content: flex-end;
@@ -164,7 +174,8 @@ export default function ChatPage() {
         }
         .chat-inputbar {
           position: fixed;
-          left: 0;
+          left: 50%;
+          transform: translateX(-50%);
           bottom: 0;
           width: 100vw;
           max-width: 600px;
@@ -205,6 +216,12 @@ export default function ChatPage() {
           cursor: wait;
         }
         @media (max-width: 600px) {
+          .chat-container {
+            max-width: 100vw;
+          }
+          .chat-header {
+            max-width: 100vw;
+          }
           .chat-main {
             max-width: 100vw;
             padding-bottom: 83px;
@@ -213,11 +230,9 @@ export default function ChatPage() {
             max-width: 100vw;
             left: 0;
             right: 0;
+            transform: none;
             border-radius: 0;
             padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
-          }
-          .chat-header {
-            max-width: 100vw;
           }
         }
       `}</style>
