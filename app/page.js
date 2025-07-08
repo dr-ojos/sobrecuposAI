@@ -35,7 +35,8 @@ export default function Home() {
           opacity: 0,
           transform: "translateY(-35px)",
           transition: "opacity 0.9s cubic-bezier(.6,.2,0,1), transform 0.8s cubic-bezier(.7,.4,0,1)",
-          marginBottom: '0.8rem'
+          marginTop: '4.5rem', // Más espacio superior
+          marginBottom: '1.2rem'
         }}
       >
         <Image
@@ -53,8 +54,9 @@ export default function Home() {
           fontWeight: 800,
           letterSpacing: '-1.2px',
           color: '#23263b',
-          marginBottom: '1.7rem',
-          textShadow: '0 2px 12px #e6ecf5'
+          marginBottom: '2.1rem',
+          textShadow: '0 2px 12px #e6ecf5',
+          textAlign: 'center'
         }}
       >
         Sobrecupos
@@ -65,8 +67,9 @@ export default function Home() {
           maxWidth: 360,
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.15rem',
-          marginBottom: '2.6rem',
+          gap: '1.25rem',
+          marginBottom: '3rem',
+          alignItems: 'center'
         }}
       >
         <AnimatedButton onClick={() => router.push('/chat')}
@@ -87,12 +90,13 @@ export default function Home() {
       </div>
       <div
         style={{
-          fontSize: '1.01rem',
+          fontSize: '1.05rem',
           color: '#9cabba',
           fontWeight: 400,
           marginTop: 'auto',
           textAlign: 'center',
-          maxWidth: 340
+          maxWidth: 340,
+          marginBottom: '4rem', // Mucho más espacio inferior
         }}
       >
         ¿Tienes alguna duda o síntoma?
