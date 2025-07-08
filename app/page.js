@@ -1,5 +1,4 @@
 'use client';
-import Image from "next/image";
 import { useRouter } from 'next/navigation';
 import { useRef, useEffect } from "react";
 
@@ -28,24 +27,23 @@ export default function Home() {
         padding: '0 1rem'
       }}
     >
-      {/* Logo animado */}
+      {/* Logo animado SVG */}
       <div
         ref={logoRef}
         style={{
           opacity: 0,
           transform: "translateY(-35px)",
           transition: "opacity 0.9s cubic-bezier(.6,.2,0,1), transform 0.8s cubic-bezier(.7,.4,0,1)",
-          marginTop: '4.5rem', // Más espacio superior
-          marginBottom: '1.2rem'
+          marginTop: '6rem',    // Más espacio superior
+          marginBottom: '1.6rem'
         }}
       >
-        <Image
-          src="/sobrecupos (1).png"
+        <img
+          src="/sobrecupos.svg"
           alt="Logo Sobrecupos"
           width={90}
           height={52}
-          priority
-          style={{display:'block'}}
+          style={{ display: 'block' }}
         />
       </div>
       <h1
@@ -96,7 +94,7 @@ export default function Home() {
           marginTop: 'auto',
           textAlign: 'center',
           maxWidth: 340,
-          marginBottom: '4rem', // Mucho más espacio inferior
+          marginBottom: '5.5rem', // Más espacio inferior para mejorar el estilo
         }}
       >
         ¿Tienes alguna duda o síntoma?
