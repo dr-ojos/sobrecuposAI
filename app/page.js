@@ -1,99 +1,134 @@
-"use client";
-import { useRouter } from "next/navigation";
+'use client';
+import Image from "next/image";
+import { useRouter } from 'next/navigation';
+import { useRef, useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
+  const logoRef = useRef();
+
+  useEffect(() => {
+    // Animación inicial del logo
+    if (logoRef.current) {
+      logoRef.current.style.opacity = 1;
+      logoRef.current.style.transform = "translateY(0)";
+    }
+  }, []);
 
   return (
-    <div className="sobrecupos-home">
-      <header className="sobrecupos-header">
-        <h1>Sobrecupos</h1>
-      </header>
-
-      <div className="sobrecupos-buttons">
-        <button className="sobrecupos-btn" onClick={() => router.push("/especialidades")}>
-          <span>Especialidad</span>
-        </button>
-        <button className="sobrecupos-btn" onClick={() => router.push("/medicos")}>
-          <span>Médicos</span>
-        </button>
+    <main
+      style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(120deg, #fafdff 0%, #e8f0fb 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif',
+        padding: '0 1rem'
+      }}
+    >
+      {/* Logo animado */}
+      <div
+        ref={logoRef}
+        style={{
+          opacity: 0,
+          transform: "translateY(-35px)",
+          transition: "opacity 0.9s cubic-bezier(.6,.2,0,1), transform 0.8s cubic-bezier(.7,.4,0,1)",
+          marginBottom: '0.8rem'
+        }}
+      >
+        <Image
+          src="/sobrecupos (1).png"
+          alt="Logo Sobrecupos"
+          width={90}
+          height={52}
+          priority
+          style={{display:'block'}}
+        />
       </div>
-
-      <footer className="sobrecupos-chat-footer">
-        {/* Aquí va el chat flotante abajo */}
-        {/* Puedes importar y reutilizar tu componente de chat si quieres */}
-        <div className="chat-fake-bar">
-          <span>Te ayudo a buscar sobrecupos</span>
-        </div>
-      </footer>
-
-      <style>{`
-        .sobrecupos-home {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          background: #fff;
-          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        }
-        .sobrecupos-header {
-          margin-top: 40px;
-          margin-bottom: 28px;
-        }
-        .sobrecupos-header h1 {
-          font-size: 2.2rem;
-          font-weight: 900;
-          letter-spacing: -1px;
-          color: #222;
-          text-align: center;
-        }
-        .sobrecupos-buttons {
-          display: flex;
-          gap: 18px;
-          justify-content: center;
-          margin-bottom: 80px;
-        }
-        .sobrecupos-btn {
-          background: rgba(49, 133, 252, 0.10); /* azul translúcido */
-          color: #234;
-          border: none;
-          border-radius: 18px;
-          padding: 16px 36px;
-          font-size: 1.12rem;
-          font-weight: 700;
-          box-shadow: 0 2px 12px #e0e7ef33;
-          cursor: pointer;
-          transition: background 0.15s, box-shadow 0.15s;
-        }
-        .sobrecupos-btn:active {
-          background: rgba(49, 133, 252, 0.20);
-          box-shadow: 0 3px 16px #3185fc18;
-        }
-        .sobrecupos-chat-footer {
-          position: fixed;
-          left: 0; right: 0; bottom: 0;
-          display: flex;
-          justify-content: center;
-          background: transparent;
-          z-index: 15;
-          padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-        }
-        .chat-fake-bar {
-          background: #f6f8fa;
-          border-radius: 17px;
-          box-shadow: 0 1px 7px #e0e7ef33;
-          padding: 13px 23px;
-          font-size: 1.1rem;
-          color: #333;
-          font-family: inherit;
-          text-align: center;
-          min-width: 240px;
-        }
-        @media (max-width: 520px) {
-          .sobrecupos-header h1 { font-size: 1.7rem; }
-          .sobrecupos-btn { font-size: 1rem; padding: 13px 15vw; }
-        }
-      `}</style>
-    </div>
+      <h1
+        style={{
+          fontSize: '2.6rem',
+          fontWeight: 800,
+          letterSpacing: '-1.2px',
+          color: '#23263b',
+          marginBottom: '1.7rem',
+          textShadow: '0 2px 12px #e6ecf5'
+        }}
+      >
+        Sobrecupos
+      </h1>
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 360,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.15rem',
+          marginBottom: '2.6rem',
+        }}
+      >
+        <AnimatedButton onClick={() => router.push('/chat')}
+          color="#23263b" bg="#fff" shadow="#23263b33"
+        >
+          💬 Chatea con IA
+        </AnimatedButton>
+        <AnimatedButton onClick={() => router.push('/especialidades')}
+          color="#fff" bg="rgba(33, 150, 243, 0.92)" shadow="#2196f321"
+        >
+          🩺 Especialidades
+        </AnimatedButton>
+        <AnimatedButton onClick={() => router.push('/medicos')}
+          color="#23263b" bg="#fff" shadow="#23263b18" border="#23263b"
+        >
+          👨‍⚕️ Médicos
+        </AnimatedButton>
+      </div>
+      <div
+        style={{
+          fontSize: '1.01rem',
+          color: '#9cabba',
+          fontWeight: 400,
+          marginTop: 'auto',
+          textAlign: 'center',
+          maxWidth: 340
+        }}
+      >
+        ¿Tienes alguna duda o síntoma?
+        <span style={{fontWeight:500}}> Chatea aquí con nuestro asistente IA y recibe ayuda en segundos.</span>
+      </div>
+    </main>
   );
+}
+
+// Botón animado (con animación hover/tap)
+function AnimatedButton({children, onClick, color, bg, shadow, border}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: '100%',
+        padding: '1.07em 0',
+        borderRadius: 20,
+        border: border ? `2px solid ${border}` : 'none',
+        fontSize: '1.22rem',
+        fontWeight: 600,
+        background: bg,
+        color: color,
+        cursor: 'pointer',
+        boxShadow: `0 3px 18px 0 ${shadow}`,
+        transition: 'background 0.17s, color 0.13s, border 0.13s, transform 0.13s',
+        outline: 'none',
+        willChange: 'transform',
+      }}
+      onMouseDown={e => e.currentTarget.style.transform = "scale(0.97)"}
+      onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+      onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+      onTouchStart={e => e.currentTarget.style.transform = "scale(0.97)"}
+      onTouchEnd={e => e.currentTarget.style.transform = "scale(1)"}
+    >
+      {children}
+    </button>
+  )
 }
