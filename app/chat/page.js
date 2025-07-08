@@ -89,7 +89,12 @@ export default function ChatPage() {
             aria-label="Mensaje"
           />
           <button type="submit" disabled={loading || !input.trim()}>
-            {loading ? "..." : "Enviar"}
+            {loading ? "..." : (
+              <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
+                <circle cx="11" cy="11" r="11" fill="#3185fc" />
+                <path d="M7 11H15M15 11L12.5 8.5M15 11L12.5 13.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
           </button>
         </form>
       </div>
@@ -120,12 +125,12 @@ export default function ChatPage() {
           width: 100%;
           background: #f8fafc;
           font-weight: 900;
-          font-size: 1.7rem;
+          font-size: 2rem;
           letter-spacing: -1px;
           text-align: center;
           color: #2a3342;
           z-index: 10;
-          padding: 20px 0 12px 0;
+          padding: 30px 0 18px 0;
           box-shadow: 0 2px 10px #e0e7ef80;
         }
         .chat-main {
@@ -135,7 +140,7 @@ export default function ChatPage() {
           flex-direction: column;
           justify-content: flex-end;
           align-items: center;
-          padding-bottom: 82px; /* espacio para inputbar */
+          padding-bottom: 75px;
         }
         .chat-messages {
           width: 100%;
@@ -150,9 +155,9 @@ export default function ChatPage() {
         .chat-bubble {
           margin: 7px 14px;
           max-width: 83vw;
-          font-size: 1.11rem;
-          line-height: 1.5;
-          padding: 13px 17px;
+          font-size: 1.01rem;
+          line-height: 1.45;
+          padding: 11px 14px;
           border-radius: 19px;
           word-break: break-word;
           box-shadow: 0 2px 7px #e0e7ef80;
@@ -182,31 +187,39 @@ export default function ChatPage() {
           display: flex;
           align-items: center;
           background: #fff;
-          padding: 10px 9px 32px 9px;
+          padding: 7px 5px 15px 5px;
           box-shadow: 0 -2px 15px #e0e7ef55;
           z-index: 12;
-          gap: 9px;
+          gap: 8px;
           border-top: 1px solid #e2e8f0;
         }
         .chat-inputbar input {
           flex: 1;
           border: none;
           outline: none;
-          font-size: 1.11rem;
-          padding: 15px 13px;
-          border-radius: 17px;
+          font-size: 1rem;
+          padding: 10px 14px;
+          border-radius: 18px;
           background: #f1f5f9;
           box-shadow: 0 1px 6px #e0e7ef22;
           font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          margin-right: 4px;
         }
         .chat-inputbar button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
           background: #3185fc;
           color: #fff;
           border: none;
-          border-radius: 17px;
-          padding: 13px 23px;
+          border-radius: 50%;
+          width: 41px;
+          height: 41px;
+          min-width: 41px;
+          min-height: 41px;
+          padding: 0;
+          font-size: 1.1rem;
           font-weight: 700;
-          font-size: 1.11rem;
           cursor: pointer;
           box-shadow: 0 2px 6px #3185fc33;
           transition: background 0.2s;
@@ -221,10 +234,12 @@ export default function ChatPage() {
           }
           .chat-header {
             max-width: 100vw;
+            font-size: 1.25rem;
+            padding: 18px 0 13px 0;
           }
           .chat-main {
             max-width: 100vw;
-            padding-bottom: 83px;
+            padding-bottom: 72px;
           }
           .chat-inputbar {
             max-width: 100vw;
@@ -232,7 +247,17 @@ export default function ChatPage() {
             right: 0;
             transform: none;
             border-radius: 0;
-            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 15px);
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7px);
+          }
+          .chat-inputbar input {
+            font-size: 0.97rem;
+            padding: 9px 10px;
+          }
+          .chat-inputbar button {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
           }
         }
       `}</style>
