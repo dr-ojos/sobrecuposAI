@@ -88,13 +88,11 @@ export default function ChatPage() {
             autoFocus
             aria-label="Mensaje"
           />
-          <button type="submit" disabled={loading || !input.trim()}>
-            {loading ? "..." : (
-              <svg width="26" height="26" viewBox="0 0 22 22" fill="none">
-                <circle cx="11" cy="11" r="11" fill="#3185fc" />
-                <path d="M7 11H15M15 11L12.5 8.5M15 11L12.5 13.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            )}
+          <button type="submit" disabled={loading || !input.trim()} aria-label="Enviar">
+            <svg width="22" height="22" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="12" fill="#3185fc" />
+              <path d="M8.5 12H15.5M15.5 12L13.5 10M15.5 12L13.5 14" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
         </form>
       </div>
@@ -125,13 +123,13 @@ export default function ChatPage() {
           width: 100%;
           background: #f8fafc;
           font-weight: 900;
-          font-size: 2rem;
+          font-size: 1.6rem;
           letter-spacing: -1px;
           text-align: center;
-          color: #2a3342;
+          color: #23272F;
           z-index: 10;
-          padding: 30px 0 18px 0;
-          box-shadow: 0 2px 10px #e0e7ef80;
+          padding: 20px 0 12px 0;
+          box-shadow: 0 2px 10px #e0e7ef70;
         }
         .chat-main {
           flex: 1;
@@ -140,11 +138,11 @@ export default function ChatPage() {
           flex-direction: column;
           justify-content: flex-end;
           align-items: center;
-          padding-bottom: 75px;
+          padding-bottom: 64px;
         }
         .chat-messages {
           width: 100%;
-          padding: 12px 0 0 0;
+          padding: 10px 0 0 0;
           box-sizing: border-box;
           overflow-y: auto;
           flex: 1;
@@ -153,28 +151,28 @@ export default function ChatPage() {
           justify-content: flex-end;
         }
         .chat-bubble {
-          margin: 7px 14px;
-          max-width: 83vw;
-          font-size: 1.01rem;
+          margin: 6px 13px;
+          max-width: 81vw;
+          font-size: 0.99rem;
           line-height: 1.45;
-          padding: 11px 14px;
-          border-radius: 19px;
+          padding: 10px 14px;
+          border-radius: 17px;
           word-break: break-word;
-          box-shadow: 0 2px 7px #e0e7ef80;
+          box-shadow: 0 2px 7px #e0e7ef66;
           transition: background 0.2s;
         }
         .chat-bubble.bot {
           background: #f1f5f9;
-          color: #233;
+          color: #222;
           align-self: flex-start;
           border-bottom-left-radius: 4px;
-          border-bottom-right-radius: 16px;
+          border-bottom-right-radius: 15px;
         }
         .chat-bubble.user {
           background: #3185fc;
           color: #fff;
           align-self: flex-end;
-          border-bottom-left-radius: 16px;
+          border-bottom-left-radius: 15px;
           border-bottom-right-radius: 4px;
         }
         .chat-inputbar {
@@ -187,45 +185,43 @@ export default function ChatPage() {
           display: flex;
           align-items: center;
           background: #fff;
-          padding: 7px 5px 15px 5px;
-          box-shadow: 0 -2px 15px #e0e7ef55;
+          padding: 5px 2px 13px 2px;
+          box-shadow: 0 -2px 14px #e0e7ef40;
           z-index: 12;
-          gap: 8px;
+          gap: 6px;
           border-top: 1px solid #e2e8f0;
         }
         .chat-inputbar input {
           flex: 1;
           border: none;
           outline: none;
-          font-size: 1rem;
-          padding: 10px 14px;
-          border-radius: 18px;
+          font-size: 0.98rem;
+          padding: 10px 12px;
+          border-radius: 15px;
           background: #f1f5f9;
-          box-shadow: 0 1px 6px #e0e7ef22;
+          box-shadow: 0 1px 5px #e0e7ef10;
           font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-          margin-right: 4px;
+          margin-right: 2px;
         }
         .chat-inputbar button {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #3185fc;
-          color: #fff;
+          background: none;
           border: none;
-          border-radius: 50%;
-          width: 41px;
-          height: 41px;
-          min-width: 41px;
-          min-height: 41px;
           padding: 0;
-          font-size: 1.1rem;
-          font-weight: 700;
+          margin-left: 2px;
           cursor: pointer;
-          box-shadow: 0 2px 6px #3185fc33;
-          transition: background 0.2s;
+          width: 36px;
+          height: 36px;
+          min-width: 36px;
+          min-height: 36px;
+        }
+        .chat-inputbar button svg {
+          display: block;
         }
         .chat-inputbar button:disabled {
-          opacity: 0.65;
+          opacity: 0.45;
           cursor: wait;
         }
         @media (max-width: 600px) {
@@ -234,12 +230,12 @@ export default function ChatPage() {
           }
           .chat-header {
             max-width: 100vw;
-            font-size: 1.25rem;
-            padding: 18px 0 13px 0;
+            font-size: 1.17rem;
+            padding: 14px 0 8px 0;
           }
           .chat-main {
             max-width: 100vw;
-            padding-bottom: 72px;
+            padding-bottom: 58px;
           }
           .chat-inputbar {
             max-width: 100vw;
@@ -247,17 +243,17 @@ export default function ChatPage() {
             right: 0;
             transform: none;
             border-radius: 0;
-            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7px);
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
           }
           .chat-inputbar input {
-            font-size: 0.97rem;
-            padding: 9px 10px;
+            font-size: 0.95rem;
+            padding: 8px 8px;
           }
           .chat-inputbar button {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            min-height: 36px;
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            min-height: 30px;
           }
         }
       `}</style>
