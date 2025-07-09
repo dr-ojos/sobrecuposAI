@@ -29,7 +29,6 @@ export default function Chat() {
         input.trim().toLowerCase()
       )
     ) {
-      // Usar OpenAI para hacer la respuesta más empática y humana
       try {
         const aiRes = await fetch("/api/bot", {
           method: "POST",
@@ -75,7 +74,6 @@ export default function Chat() {
       });
       const data = await res.json();
       if (data.text) {
-        // Puede devolver varias líneas, sepáralas
         const parts = data.text.split(/\n{2,}/).filter(Boolean);
         setMessages((msgs) =>
           [...msgs, ...parts.map(text => ({ from: "bot", text }))]
@@ -117,8 +115,20 @@ export default function Chat() {
           disabled={loading}
           style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif' }}
         />
-        <button type="submit" disabled={loading || !input.trim()}>
-          {loading ? "..." : "Enviar"}
+        <button
+          type="submit"
+          disabled={loading || !input.trim()}
+          aria-label="Enviar"
+        >
+          {loading ? (
+            <span style={{ fontSize: 19, color: "#fff" }}>...</span>
+          ) : (
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <circle cx="14" cy="14" r="14" fill="#23cba7" />
+              <path d="M14 8V20" stroke="#fff" strokeWidth="2.3" strokeLinecap="round"/>
+              <path d="M10.5 12L14 8L17.5 12" stroke="#fff" strokeWidth="2.3" strokeLinecap="round"/>
+            </svg>
+          )}
         </button>
       </form>
       <style jsx>{`
@@ -132,12 +142,12 @@ export default function Chat() {
           display: flex;
           flex-direction: column;
           height: 80vh;
-          min-height: 400px;
+          min-height: 420px;
         }
         .chat-header {
           padding: 18px;
           font-weight: 700;
-          font-size: 1.2rem;
+          font-size: 1.27rem;
           border-bottom: 1px solid #eee;
           background: linear-gradient(90deg, #5be0c1 30%, #9bcffb 100%);
           color: #222;
@@ -153,11 +163,11 @@ export default function Chat() {
         }
         .msg {
           margin-bottom: 10px;
-          padding: 10px 14px;
-          border-radius: 18px;
+          padding: 12px 17px;
+          border-radius: 19px;
           max-width: 85%;
-          line-height: 1.5;
-          font-size: 1.05em;
+          line-height: 1.6;
+          font-size: 1.07em;
           word-break: break-word;
           white-space: pre-wrap;
           box-shadow: 0 1px 3px #0001;
@@ -166,45 +176,52 @@ export default function Chat() {
           background: #5be0c1;
           color: #222;
           align-self: flex-end;
-          border-bottom-right-radius: 6px;
+          border-bottom-right-radius: 7px;
         }
         .msg.bot {
           background: #f3f8fd;
           color: #1a212b;
           align-self: flex-start;
-          border-bottom-left-radius: 6px;
+          border-bottom-left-radius: 7px;
         }
         .chat-form {
           display: flex;
           border-top: 1px solid #eee;
-          padding: 12px;
+          padding: 16px 10px;
           background: #f6fafd;
           border-radius: 0 0 16px 16px;
+          align-items: center;
+          gap: 9px;
         }
         .chat-input {
           flex: 1;
           border: none;
-          border-radius: 10px;
-          padding: 11px 16px;
-          font-size: 1em;
-          margin-right: 10px;
+          border-radius: 14px;
+          padding: 18px 17px;
+          font-size: 1.12em;
+          margin-right: 0;
           outline: none;
           background: #fff;
+          min-height: 46px;
           box-shadow: 0 1px 6px #0001;
         }
         .chat-input:disabled {
           background: #f3f3f3;
         }
         button {
-          background: #23cba7;
-          color: #fff;
-          font-weight: bold;
+          background: transparent;
           border: none;
-          border-radius: 8px;
-          padding: 0 18px;
-          font-size: 1em;
+          padding: 0;
+          margin: 0 2px 0 0;
+          border-radius: 50%;
+          width: 46px;
+          height: 46px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: box-shadow 0.2s;
+          box-shadow: none;
         }
         button:disabled {
           opacity: 0.5;
@@ -217,6 +234,9 @@ export default function Chat() {
             box-shadow: none;
             min-height: 100vh;
             max-width: 100vw;
+          }
+          .chat-header {
+            border-radius: 0;
           }
         }
       `}</style>
