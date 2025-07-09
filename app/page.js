@@ -56,7 +56,8 @@ export default function Home() {
           flexDirection: 'column',
           gap: '1.1rem',
           marginBottom: '3rem',
-          alignItems: 'center'
+          alignItems: 'center',
+          justifyContent: 'center'
         }}
       >
         <AnimatedButton onClick={() => router.push('/chat')}
@@ -64,18 +65,6 @@ export default function Home() {
           small
         >
           💬 Chatea con IA
-        </AnimatedButton>
-        <AnimatedButton onClick={() => router.push('/especialidades')}
-          color="#fff" bg="rgba(33, 150, 243, 0.92)" shadow="#2196f321"
-          small
-        >
-          🩺 Especialidades
-        </AnimatedButton>
-        <AnimatedButton onClick={() => router.push('/medicos')}
-          color="#23263b" bg="#fff" shadow="#23263b10" border="#23263b"
-          small
-        >
-          👨‍⚕️ Médicos
         </AnimatedButton>
       </div>
       <div
