@@ -27,15 +27,15 @@ export default function Home() {
         padding: '0 1rem'
       }}
     >
-      {/* Logo animado SVG centrado, más grande */}
+      {/* Logo animado SVG centrado, aún más grande */}
       <div
         ref={logoRef}
         style={{
           opacity: 0,
-          transform: "translateY(-35px)",
+          transform: "translateY(-40px)",
           transition: "opacity 0.9s cubic-bezier(.6,.2,0,1), transform 0.8s cubic-bezier(.7,.4,0,1)",
-          marginTop: '6rem',    // Más espacio superior
-          marginBottom: '2.8rem',
+          marginTop: '5rem',    // Espacio superior
+          marginBottom: '1.8rem',
           display: 'flex',
           justifyContent: 'center'
         }}
@@ -43,11 +43,31 @@ export default function Home() {
         <img
           src="/sobrecupos.svg"
           alt="Logo Sobrecupos"
-          style={{ width: 190, height: "auto", maxWidth: "85vw", display: 'block' }}
+          style={{
+            width: 250,
+            height: "auto",
+            maxWidth: "92vw",
+            display: 'block'
+          }}
         />
       </div>
-      {/* Eliminar <h1> Sobrecupos </h1> */}
 
+      {/* Texto inferior, bajo el logo */}
+      <div
+        style={{
+          fontSize: '1.09rem',
+          color: '#9cabba',
+          fontWeight: 400,
+          marginBottom: '2.5rem', // espacio inferior antes del botón
+          textAlign: 'center',
+          maxWidth: 340
+        }}
+      >
+        ¿Tienes alguna duda o síntoma?
+        <span style={{ fontWeight: 500 }}> Chatea aquí con nuestro asistente IA y recibe ayuda en segundos.</span>
+      </div>
+
+      {/* Botón de chatear */}
       <div
         style={{
           width: '100%',
@@ -55,7 +75,6 @@ export default function Home() {
           display: 'flex',
           flexDirection: 'column',
           gap: '1.1rem',
-          marginBottom: '3rem',
           alignItems: 'center',
           justifyContent: 'center'
         }}
@@ -67,26 +86,12 @@ export default function Home() {
           💬 Chatea con IA
         </AnimatedButton>
       </div>
-      <div
-        style={{
-          fontSize: '1.05rem',
-          color: '#9cabba',
-          fontWeight: 400,
-          marginTop: 'auto',
-          textAlign: 'center',
-          maxWidth: 340,
-          marginBottom: '5.5rem', // Más espacio inferior para mejorar el estilo
-        }}
-      >
-        ¿Tienes alguna duda o síntoma?
-        <span style={{fontWeight:500}}> Chatea aquí con nuestro asistente IA y recibe ayuda en segundos.</span>
-      </div>
     </main>
   );
 }
 
 // Botón animado más estilizado y pequeño
-function AnimatedButton({children, onClick, color, bg, shadow, border, small}) {
+function AnimatedButton({ children, onClick, color, bg, shadow, border, small }) {
   return (
     <button
       onClick={onClick}
