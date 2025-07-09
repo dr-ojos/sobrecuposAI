@@ -47,7 +47,7 @@ export default function Chat() {
             from: "bot",
             text:
               (data.text ||
-                "¡Hola otra vez! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas, el médico o especialidad que buscas y te ayudo a encontrar una hora disponible."),
+                "¡Hola! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas, el médico o especialidad que buscas y te ayudo a encontrar una hora disponible."),
           },
         ]);
         setSession(data.session || {});
@@ -57,7 +57,7 @@ export default function Chat() {
           {
             from: "bot",
             text:
-              "¡Hola otra vez! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas, el médico o especialidad que buscas y te ayudo a encontrar una hora disponible.",
+              "¡Hola! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas, el médico o especialidad que buscas y te ayudo a encontrar una hora disponible.",
           },
         ]);
       }
