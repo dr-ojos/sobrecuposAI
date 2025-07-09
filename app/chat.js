@@ -1,9 +1,10 @@
-
 import { useRef, useState, useEffect } from "react";
+
+const SALUDO_REGEX = /\b(hola|buenas|hello|hey|qué tal|que tal|buenos días|buenos dias|buenas tardes|buenas noches)\b/i;
 
 export default function Chat() {
   const [messages, setMessages] = useState([
-    { from: "bot", text: "¡Hola! 👋 Soy Sobrecupos IA. ¿En qué puedo ayudarte hoy?" }
+    { from: "bot", text: "¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas." }
   ]);
   const [input, setInput] = useState("");
   const [session, setSession] = useState({});
@@ -21,6 +22,51 @@ export default function Chat() {
     setMessages((msgs) => [...msgs, myMsg]);
     setLoading(true);
 
+    // Si solo es saludo sin síntomas/especialidad/médico, responde con un mensaje humanizado
+    if (
+      SALUDO_REGEX.test(input.trim().toLowerCase()) &&
+      !/\b(dolor|siento|busco|especialidad|médico|doctor|ojos|cita|hora|molestia|síntoma|consulta|atención|agendar|oftalmología|pediatría|familiar|dermatología|alergia|asma|resfriado|gripe|cuerpo|cabeza|panza|estómago|enfermo|enferma|reservar|necesito)\b/i.test(
+        input.trim().toLowerCase()
+      )
+    ) {
+      // Usar OpenAI para hacer la respuesta más empática y humana
+      try {
+        const aiRes = await fetch("/api/bot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: `Responde de forma muy humana, cercana y breve a un usuario que solo te ha saludado, e invítalo a contar su problema o pedir un sobrecupo médico.`,
+            session,
+            force_gpt: true
+          }),
+        });
+        const data = await aiRes.json();
+        setMessages((msgs) => [
+          ...msgs,
+          {
+            from: "bot",
+            text:
+              (data.text ||
+                "¡Hola otra vez! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas, el médico o especialidad que buscas y te ayudo a encontrar una hora disponible."),
+          },
+        ]);
+        setSession(data.session || {});
+      } catch {
+        setMessages((msgs) => [
+          ...msgs,
+          {
+            from: "bot",
+            text:
+              "¡Hola otra vez! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas, el médico o especialidad que buscas y te ayudo a encontrar una hora disponible.",
+          },
+        ]);
+      }
+      setInput("");
+      setLoading(false);
+      return;
+    }
+
+    // Flujo normal para mensajes con síntomas/solicitudes
     try {
       const res = await fetch("/api/bot", {
         method: "POST",
@@ -164,7 +210,6 @@ export default function Chat() {
           opacity: 0.5;
           cursor: not-allowed;
         }
-
         @media (max-width: 650px) {
           .chat-outer {
             margin: 0;
