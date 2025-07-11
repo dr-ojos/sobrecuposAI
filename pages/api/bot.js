@@ -234,10 +234,7 @@ export default async function handler(req, res) {
           {
             role: "system",
             content:
-              "Eres Sobrecupos IA, asistente médico empático.\n" +
-              "Responde SOLO con EXACTA una de estas especialidades:\n" +
-              "Oftalmología, Medicina Familiar, Dermatología, Pediatría, Cardiología.\n" +
-              "Si mencionan un niño, elige Pediatría."
+              "Eres Sobrecupos IA, asistente médico empático. Dado un síntoma, responde SOLO con EXACTAMENTE una de las siguientes especialidades (y nada más): Oftalmología, Medicina Familiar, Dermatología, Pediatría, Otorrinolaringología, Neurología, Cardiología. Elige la especialidad que con mayor probabilidad se encarga de ese síntoma. Si mencionan un niño, elige Pediatría."
           },
           { role: "user", content: `Paciente: "${text}"` }
         ]
@@ -287,6 +284,8 @@ export default async function handler(req, res) {
     "medicina familiar": "Medicina Familiar",
     dermatologia: "Dermatología",
     pediatria: "Pediatría",
+    otorrinolaringologia: "Otorrinolaringología",
+    neurologia: "Neurología",
     cardiologia: "Cardiología"
   };
   const specialty = mapSpec[normalize(rawEsp)];
@@ -295,7 +294,7 @@ export default async function handler(req, res) {
       text:
         "Lo siento, no encontré un sobrecupo disponible para esa especialidad en este momento. ¿Quieres dejar tus datos y te avisamos apenas tengamos disponibilidad?\n\n" +
         "Especialidades disponibles:\n" +
-        "• Oftalmología\n• Medicina Familiar\n• Dermatología\n• Pediatría\n• Cardiología"
+        "• Oftalmología\n• Medicina Familiar\n• Dermatología\n• Pediatría\n• Otorrinolaringología\n• Neurología\n• Cardiología"
     });
   }
 
