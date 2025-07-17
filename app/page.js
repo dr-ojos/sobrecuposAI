@@ -231,7 +231,7 @@ export default function Home() {
         }
 
         .tagline {
-          margin-bottom: 3.5rem;
+          margin-bottom: 4.5rem;
           opacity: 0;
           transform: translateY(30px);
           transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
@@ -274,7 +274,7 @@ export default function Home() {
         }
 
         .cta-section {
-          margin-bottom: 4rem;
+          margin-bottom: 5rem;
           opacity: 0;
           transform: translateY(30px);
           transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
@@ -284,6 +284,7 @@ export default function Home() {
           width: 100%;
           text-align: center;
           position: relative;
+          padding: 1.5rem 0;
         }
 
         .cta-section.visible {
@@ -438,6 +439,10 @@ export default function Home() {
             font-size: 3rem;
           }
           
+          .tagline {
+            margin-bottom: 3.5rem;
+          }
+          
           .tagline h2 {
             font-size: 2.2rem;
             line-height: 1.2;
@@ -455,8 +460,8 @@ export default function Home() {
           }
 
           .cta-section {
-            margin-bottom: 3rem;
-            padding: 0 1rem;
+            margin-bottom: 4rem;
+            padding: 1.2rem 1rem;
           }
 
           .trust-stats {
@@ -485,6 +490,10 @@ export default function Home() {
             font-size: 2.5rem;
           }
           
+          .tagline {
+            margin-bottom: 3rem;
+          }
+          
           .tagline h2 {
             font-size: 1.9rem;
             line-height: 1.1;
@@ -496,6 +505,11 @@ export default function Home() {
           
           .cta-text {
             font-size: 1rem;
+          }
+
+          .cta-section {
+            margin-bottom: 3.5rem;
+            padding: 1.5rem 0.5rem;
           }
 
           .testimonial-content {
