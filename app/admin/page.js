@@ -58,23 +58,6 @@ export default function AdminSobrecuposPage() {
     );
   };
 
-  const selectTimeRange = () => {
-    const startHour = prompt("Hora de inicio (ej: 09:00)");
-    const endHour = prompt("Hora de fin (ej: 17:00)");
-    
-    if (startHour && endHour) {
-      const startIndex = availableHours.indexOf(startHour);
-      const endIndex = availableHours.indexOf(endHour);
-      
-      if (startIndex !== -1 && endIndex !== -1 && startIndex <= endIndex) {
-        const rangeHours = availableHours.slice(startIndex, endIndex + 1);
-        setSelectedHours(rangeHours);
-      } else {
-        alert("Horarios inválidos");
-      }
-    }
-  };
-
   const selectAllMorning = () => {
     const morningHours = availableHours.filter(hour => {
       const hourNum = parseInt(hour.split(':')[0]);
@@ -170,309 +153,82 @@ export default function AdminSobrecuposPage() {
 
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('es-CL', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
+      weekday: 'short',
+      month: 'short',
       day: 'numeric'
     });
   };
 
   return (
-    <main style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(120deg, #fafdff 0%, #e8f0fb 100%)',
-      fontFamily: 'Helvetica Neue, Helvetica, Arial, sans-serif',
-      color: '#23272F'
-    }}>
-      {/* Header con logo y navegación */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '1.5rem 2rem',
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(155, 171, 186, 0.2)'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem'
-        }}>
-          <img
-            src="/sobrecupos.svg"
-            alt="Sobrecupos"
-            style={{
-              height: '32px',
-              width: 'auto'
-            }}
-          />
-          <div style={{
-            fontSize: '1.1rem',
-            fontWeight: '600',
-            color: '#23263b'
-          }}>
-            Panel de Administración
-          </div>
-        </div>
-        
+    <main className="admin-container">
+      {/* Header móvil optimizado */}
+      <div className="mobile-header">
         <button
           onClick={() => router.push('/')}
-          style={{
-            background: '#23263b',
-            color: 'white',
-            border: 'none',
-            borderRadius: '12px',
-            padding: '0.75rem 1.5rem',
-            fontSize: '0.9rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.17s',
-            fontFamily: 'inherit'
-          }}
-          onMouseEnter={e => {
-            e.target.style.background = '#1a1d2e';
-            e.target.style.transform = 'translateY(-1px)';
-          }}
-          onMouseLeave={e => {
-            e.target.style.background = '#23263b';
-            e.target.style.transform = 'translateY(0)';
-          }}
+          className="back-button"
         >
-          ← Volver al Inicio
+          ← Inicio
+        </button>
+        <div className="header-title">Admin Panel</div>
+        <div className="header-spacer"></div>
+      </div>
+
+      {/* Navegación por tabs móvil */}
+      <div className="mobile-tabs">
+        <button 
+          className={`tab-button ${activeTab === "crear" ? "active" : ""}`}
+          onClick={() => setActiveTab("crear")}
+        >
+          💼 Crear
+        </button>
+        <button 
+          className={`tab-button ${activeTab === "gestionar" ? "active" : ""}`}
+          onClick={() => setActiveTab("gestionar")}
+        >
+          📋 Gestionar
         </button>
       </div>
 
-      {/* Navegación por tabs */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(155, 171, 186, 0.2)',
-        padding: '0 2rem'
-      }}>
-        <div style={{
-          display: 'flex',
-          gap: '0',
-          maxWidth: '1200px',
-          margin: '0 auto'
-        }}>
-          <button 
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'transparent',
-              color: activeTab === "crear" ? '#23263b' : '#9cabba',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              borderBottom: activeTab === "crear" ? '3px solid #23263b' : '3px solid transparent',
-              fontFamily: 'inherit'
-            }}
-            onClick={() => setActiveTab("crear")}
-          >
-            💼 Crear Sobrecupos
-          </button>
-          <button 
-            style={{
-              padding: '1rem 2rem',
-              border: 'none',
-              background: 'transparent',
-              color: activeTab === "gestionar" ? '#23263b' : '#9cabba',
-              fontSize: '1rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              borderBottom: activeTab === "gestionar" ? '3px solid #23263b' : '3px solid transparent',
-              fontFamily: 'inherit'
-            }}
-            onClick={() => setActiveTab("gestionar")}
-          >
-            📋 Gestionar Existentes
-          </button>
-        </div>
-      </div>
-
-      <div style={{
-        maxWidth: '1000px',
-        margin: '0 auto',
-        padding: '3rem 2rem'
-      }}>
-        {/* Mensajes de estado */}
+      <div className="content-container">
+        {/* Mensajes de estado móvil */}
         {msg && (
-          <div style={{
-            padding: '1rem 1.5rem',
-            borderRadius: '18px',
-            marginBottom: '2rem',
-            background: msg.includes("✅") ? '#e6ffed' : msg.includes("❌") ? '#fee' : '#fff3cd',
-            color: msg.includes("✅") ? '#006400' : msg.includes("❌") ? '#b00020' : '#856404',
-            border: `1px solid ${msg.includes("✅") ? '#c3e6cb' : msg.includes("❌") ? '#f5c6cb' : '#ffeaa7'}`,
-            fontSize: '1rem',
-            fontWeight: '500',
-            textAlign: 'center',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
-          }}>
+          <div className={`mobile-message ${msg.includes("✅") ? "success" : msg.includes("❌") ? "error" : "warning"}`}>
             {msg}
           </div>
         )}
 
         {/* Tab de Crear Sobrecupos */}
         {activeTab === "crear" && (
-          <div>
+          <div className="mobile-form-container">
             {!showPreview ? (
-              <div style={{
-                background: 'white',
-                borderRadius: '24px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                overflow: 'hidden'
-              }}>
-                {/* Header del formulario */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #23263b 0%, #1a1d2e 100%)',
-                  color: 'white',
-                  padding: '2.5rem 2rem',
-                  textAlign: 'center'
-                }}>
-                  <h1 style={{
-                    fontSize: '2rem',
-                    fontWeight: '700',
-                    margin: '0 0 0.5rem',
-                    letterSpacing: '-0.02em'
-                  }}>
-                    Crear Sobrecupos
-                  </h1>
-                  <p style={{
-                    fontSize: '1.1rem',
-                    opacity: '0.9',
-                    margin: '0',
-                    fontWeight: '400'
-                  }}>
-                    Agrega horarios disponibles de forma rápida y eficiente
-                  </p>
-                </div>
-
+              <div className="form-steps">
                 {/* Paso 1: Médico */}
-                <div style={{ padding: '2.5rem 2rem' }}>
-                  <div style={{ marginBottom: '2rem' }}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      marginBottom: '1rem'
-                    }}>
-                      <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        background: '#23263b',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.9rem',
-                        fontWeight: '700'
-                      }}>
-                        1
-                      </div>
-                      <h2 style={{
-                        fontSize: '1.4rem',
-                        fontWeight: '700',
-                        margin: '0',
-                        color: '#23272F'
-                      }}>
-                        Seleccionar Médico
-                      </h2>
-                    </div>
-                    <p style={{
-                      fontSize: '1rem',
-                      color: '#9cabba',
-                      margin: '0',
-                      paddingLeft: '2.75rem'
-                    }}>
-                      Elige el profesional para crear sobrecupos
-                    </p>
+                <div className="step-section">
+                  <div className="step-header">
+                    <div className="step-number">1</div>
+                    <h2 className="step-title">Seleccionar Médico</h2>
                   </div>
                   
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                    gap: '1.2rem'
-                  }}>
+                  <div className="doctors-grid">
                     {doctors.map(doctor => (
                       <div 
                         key={doctor.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: '1.5rem',
-                          border: `2px solid ${selectedDoctor?.id === doctor.id ? '#23263b' : '#f1f5f9'}`,
-                          borderRadius: '18px',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease',
-                          background: selectedDoctor?.id === doctor.id ? '#f8faff' : 'white',
-                          boxShadow: selectedDoctor?.id === doctor.id ? '0 8px 32px rgba(35, 38, 59, 0.15)' : '0 2px 8px rgba(0,0,0,0.04)'
-                        }}
+                        className={`doctor-card ${selectedDoctor?.id === doctor.id ? "selected" : ""}`}
                         onClick={() => setSelectedDoctor(doctor)}
-                        onMouseEnter={e => {
-                          if (selectedDoctor?.id !== doctor.id) {
-                            e.target.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
-                            e.target.style.transform = 'translateY(-2px)';
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          if (selectedDoctor?.id !== doctor.id) {
-                            e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
-                            e.target.style.transform = 'translateY(0)';
-                          }
-                        }}
                       >
-                        <div style={{
-                          width: '56px',
-                          height: '56px',
-                          borderRadius: '16px',
-                          background: selectedDoctor?.id === doctor.id ? '#23263b' : '#e8f0fb',
-                          color: selectedDoctor?.id === doctor.id ? 'white' : '#23263b',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: '700',
-                          fontSize: '1.1rem',
-                          marginRight: '1rem',
-                          flexShrink: '0'
-                        }}>
+                        <div className="doctor-avatar">
                           {doctor.fields.Name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                         </div>
-                        <div style={{ flex: '1', minWidth: '0' }}>
-                          <div style={{
-                            fontSize: '1.1rem',
-                            fontWeight: '700',
-                            color: '#23272F',
-                            marginBottom: '0.25rem',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
+                        <div className="doctor-info">
+                          <div className="doctor-name">
                             Dr. {doctor.fields.Name}
                           </div>
-                          <div style={{
-                            fontSize: '0.95rem',
-                            color: '#9cabba',
-                            fontWeight: '500',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
+                          <div className="doctor-specialty">
                             {doctor.fields.Especialidad}
                           </div>
                         </div>
                         {selectedDoctor?.id === doctor.id && (
-                          <div style={{
-                            color: '#23263b',
-                            fontSize: '1.4rem',
-                            marginLeft: '0.75rem'
-                          }}>
-                            ✓
-                          </div>
+                          <div className="selected-check">✓</div>
                         )}
                       </div>
                     ))}
@@ -481,498 +237,177 @@ export default function AdminSobrecuposPage() {
 
                 {selectedDoctor && (
                   <>
-                    <div style={{
-                      height: '1px',
-                      background: 'linear-gradient(90deg, transparent, #e8f0fb, transparent)',
-                      margin: '0 2rem'
-                    }}></div>
-
                     {/* Paso 2: Ubicación */}
-                    <div style={{ padding: '2.5rem 2rem' }}>
-                      <div style={{ marginBottom: '2rem' }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.75rem',
-                          marginBottom: '1rem'
-                        }}>
-                          <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: '#23263b',
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.9rem',
-                            fontWeight: '700'
-                          }}>
-                            2
-                          </div>
-                          <h2 style={{
-                            fontSize: '1.4rem',
-                            fontWeight: '700',
-                            margin: '0',
-                            color: '#23272F'
-                          }}>
-                            Información de la Consulta
-                          </h2>
-                        </div>
-                        <p style={{
-                          fontSize: '1rem',
-                          color: '#9cabba',
-                          margin: '0',
-                          paddingLeft: '2.75rem'
-                        }}>
-                          Datos del lugar donde se realizará la atención
-                        </p>
+                    <div className="step-section">
+                      <div className="step-header">
+                        <div className="step-number">2</div>
+                        <h2 className="step-title">Ubicación</h2>
                       </div>
                       
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '1.5rem'
-                      }}>
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            color: '#23272F',
-                            marginBottom: '0.75rem'
-                          }}>
-                            Clínica o Centro Médico
-                          </label>
+                      <div className="form-inputs">
+                        <div className="input-group">
+                          <label className="input-label">Clínica</label>
                           <input
                             type="text"
                             value={clinica}
                             onChange={e => setClinica(e.target.value)}
                             placeholder="Ej: Clínica Las Condes"
-                            style={{
-                              width: '100%',
-                              padding: '1rem 1.25rem',
-                              border: '2px solid #e8f0fb',
-                              borderRadius: '12px',
-                              fontSize: '1rem',
-                              fontFamily: 'inherit',
-                              transition: 'all 0.2s ease',
-                              background: 'white',
-                              boxSizing: 'border-box'
-                            }}
-                            onFocus={e => {
-                              e.target.style.borderColor = '#23263b';
-                              e.target.style.boxShadow = '0 0 0 3px rgba(35, 38, 59, 0.1)';
-                            }}
-                            onBlur={e => {
-                              e.target.style.borderColor = '#e8f0fb';
-                              e.target.style.boxShadow = 'none';
-                            }}
+                            className="form-input"
                           />
                         </div>
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            color: '#23272F',
-                            marginBottom: '0.75rem'
-                          }}>
-                            Dirección
-                          </label>
+                        <div className="input-group">
+                          <label className="input-label">Dirección</label>
                           <input
                             type="text"
                             value={direccion}
                             onChange={e => setDireccion(e.target.value)}
                             placeholder="Ej: Av. Las Condes 123"
-                            style={{
-                              width: '100%',
-                              padding: '1rem 1.25rem',
-                              border: '2px solid #e8f0fb',
-                              borderRadius: '12px',
-                              fontSize: '1rem',
-                              fontFamily: 'inherit',
-                              transition: 'all 0.2s ease',
-                              background: 'white',
-                              boxSizing: 'border-box'
-                            }}
-                            onFocus={e => {
-                              e.target.style.borderColor = '#23263b';
-                              e.target.style.boxShadow = '0 0 0 3px rgba(35, 38, 59, 0.1)';
-                            }}
-                            onBlur={e => {
-                              e.target.style.borderColor = '#e8f0fb';
-                              e.target.style.boxShadow = 'none';
-                            }}
+                            className="form-input"
                           />
                         </div>
                       </div>
                     </div>
-
-                    <div style={{
-                      height: '1px',
-                      background: 'linear-gradient(90deg, transparent, #e8f0fb, transparent)',
-                      margin: '0 2rem'
-                    }}></div>
 
                     {/* Paso 3: Fecha y Horarios */}
-                    <div style={{ padding: '2.5rem 2rem' }}>
-                      <div style={{ marginBottom: '2rem' }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.75rem',
-                          marginBottom: '1rem'
-                        }}>
-                          <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: '#23263b',
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.9rem',
-                            fontWeight: '700'
-                          }}>
-                            3
-                          </div>
-                          <h2 style={{
-                            fontSize: '1.4rem',
-                            fontWeight: '700',
-                            margin: '0',
-                            color: '#23272F'
-                          }}>
-                            Fecha y Horarios
-                          </h2>
-                        </div>
-                        <p style={{
-                          fontSize: '1rem',
-                          color: '#9cabba',
-                          margin: '0',
-                          paddingLeft: '2.75rem'
-                        }}>
-                          Selecciona el día y los horarios disponibles
-                        </p>
+                    <div className="step-section">
+                      <div className="step-header">
+                        <div className="step-number">3</div>
+                        <h2 className="step-title">Fecha y Horarios</h2>
                       </div>
                       
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'auto 1fr',
-                        gap: '3rem',
-                        alignItems: 'start'
-                      }}>
-                        <div>
-                          <label style={{
-                            display: 'block',
-                            fontSize: '1rem',
-                            fontWeight: '600',
-                            color: '#23272F',
-                            marginBottom: '0.75rem'
-                          }}>
-                            Fecha
-                          </label>
-                          <input
-                            type="date"
-                            value={fecha}
-                            onChange={e => setFecha(e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
-                            style={{
-                              padding: '1rem 1.25rem',
-                              border: '2px solid #e8f0fb',
-                              borderRadius: '12px',
-                              fontSize: '1rem',
-                              fontFamily: 'inherit',
-                              background: 'white'
-                            }}
-                          />
+                      <div className="date-section">
+                        <label className="input-label">Fecha</label>
+                        <input
+                          type="date"
+                          value={fecha}
+                          onChange={e => setFecha(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="form-input date-input"
+                        />
+                      </div>
+                      
+                      <div className="hours-section">
+                        <div className="hours-header">
+                          <label className="input-label">Horarios</label>
+                          <div className="quick-select">
+                            <button
+                              onClick={selectAllMorning}
+                              className="quick-btn"
+                              type="button"
+                            >
+                              🌅 Mañana
+                            </button>
+                            <button
+                              onClick={selectAllAfternoon}
+                              className="quick-btn"
+                              type="button"
+                            >
+                              🌆 Tarde
+                            </button>
+                            <button
+                              onClick={() => setSelectedHours([])}
+                              className="quick-btn clear"
+                              type="button"
+                            >
+                              🗑️
+                            </button>
+                          </div>
                         </div>
                         
-                        <div>
-                          <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            marginBottom: '1.5rem'
-                          }}>
-                            <label style={{
-                              fontSize: '1rem',
-                              fontWeight: '600',
-                              color: '#23272F'
-                            }}>
-                              Horarios disponibles
-                            </label>
-                            <div style={{
-                              display: 'flex',
-                              gap: '0.75rem',
-                              flexWrap: 'wrap'
-                            }}>
-                              <AnimatedButton
-                                onClick={selectAllMorning}
-                                color="#23263b" bg="#fff" shadow="#23263b22"
-                                small
-                              >
-                                🌅 Mañana (8-12)
-                              </AnimatedButton>
-                              <AnimatedButton
-                                onClick={selectAllAfternoon}
-                                color="#23263b" bg="#fff" shadow="#23263b22"
-                                small
-                              >
-                                🌆 Tarde (13-19)
-                              </AnimatedButton>
-                              <AnimatedButton
-                                onClick={selectTimeRange}
-                                color="#23263b" bg="#fff" shadow="#23263b22"
-                                small
-                              >
-                                ⚙️ Personalizado
-                              </AnimatedButton>
-                              <AnimatedButton
-                                onClick={() => setSelectedHours([])}
-                                color="#dc3545" bg="#fff" shadow="#dc354522"
-                                small
-                              >
-                                🗑️ Limpiar
-                              </AnimatedButton>
-                            </div>
-                          </div>
-                          
-                          <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(95px, 1fr))',
-                            gap: '0.75rem'
-                          }}>
-                            {availableHours.map(hour => (
-                              <button
-                                key={hour}
-                                style={{
-                                  padding: '0.75rem 0.5rem',
-                                  border: `2px solid ${selectedHours.includes(hour) ? '#23263b' : '#e8f0fb'}`,
-                                  borderRadius: '12px',
-                                  background: selectedHours.includes(hour) ? '#23263b' : 'white',
-                                  color: selectedHours.includes(hour) ? 'white' : '#23272F',
-                                  fontSize: '0.9rem',
-                                  fontWeight: '600',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.2s ease',
-                                  fontFamily: 'inherit'
-                                }}
-                                onClick={() => toggleHour(hour)}
-                                onMouseEnter={e => {
-                                  if (!selectedHours.includes(hour)) {
-                                    e.target.style.borderColor = '#23263b';
-                                    e.target.style.background = '#f8faff';
-                                  }
-                                }}
-                                onMouseLeave={e => {
-                                  if (!selectedHours.includes(hour)) {
-                                    e.target.style.borderColor = '#e8f0fb';
-                                    e.target.style.background = 'white';
-                                  }
-                                }}
-                              >
-                                {hour}
-                              </button>
-                            ))}
-                          </div>
-                          
-                          <div style={{
-                            marginTop: '1.5rem',
-                            fontSize: '1rem',
-                            color: '#9cabba',
-                            fontWeight: '500'
-                          }}>
-                            <span style={{
-                              fontWeight: '700',
-                              color: '#23263b'
-                            }}>
-                              {selectedHours.length}
-                            </span> horarios seleccionados
-                          </div>
+                        <div className="hours-grid">
+                          {availableHours.map(hour => (
+                            <button
+                              key={hour}
+                              type="button"
+                              className={`hour-button ${selectedHours.includes(hour) ? "selected" : ""}`}
+                              onClick={() => toggleHour(hour)}
+                            >
+                              {hour}
+                            </button>
+                          ))}
+                        </div>
+                        
+                        <div className="selected-count">
+                          {selectedHours.length} horarios seleccionados
                         </div>
                       </div>
                     </div>
 
-                    <div style={{
-                      padding: '2rem',
-                      background: '#f8faff',
-                      textAlign: 'center'
-                    }}>
-                      <AnimatedButton 
+                    <div className="submit-section">
+                      <button 
                         onClick={handleSubmit}
                         disabled={loading || !clinica.trim() || !direccion.trim() || !fecha || selectedHours.length === 0}
-                        color="#fff" bg="#23263b" shadow="#23263b44"
+                        className="submit-button"
                       >
-                        {loading ? "⏳ Procesando..." : "👁️ Vista Previa y Confirmar"}
-                      </AnimatedButton>
+                        {loading ? "⏳ Procesando..." : "👁️ Vista Previa"}
+                      </button>
                     </div>
                   </>
                 )}
               </div>
             ) : (
-              /* Vista Previa */
-              <div style={{
-                background: 'white',
-                borderRadius: '24px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-                  color: 'white',
-                  padding: '2.5rem 2rem',
-                  textAlign: 'center'
-                }}>
-                  <h2 style={{
-                    fontSize: '2rem',
-                    fontWeight: '700',
-                    margin: '0 0 0.5rem'
-                  }}>
-                    Confirmar Sobrecupos
-                  </h2>
-                  <p style={{
-                    fontSize: '1.1rem',
-                    opacity: '0.9',
-                    margin: '0'
-                  }}>
-                    Revisa la información antes de crear los sobrecupos
-                  </p>
+              /* Vista Previa Móvil */
+              <div className="preview-container">
+                <div className="preview-header">
+                  <h2 className="preview-title">Confirmar Sobrecupos</h2>
+                  <p className="preview-subtitle">Revisa antes de crear</p>
                 </div>
                 
-                <div style={{ padding: '2.5rem 2rem' }}>
-                  <div style={{
-                    background: '#f8faff',
-                    borderRadius: '18px',
-                    padding: '2rem',
-                    marginBottom: '2rem'
-                  }}>
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr 1fr',
-                      gap: '2.5rem'
-                    }}>
+                <div className="preview-content">
+                  <div className="preview-section">
+                    <h3 className="preview-section-title">Médico</h3>
+                    <div className="preview-doctor">
+                      <div className="preview-doctor-avatar">
+                        {selectedDoctor.fields.Name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      </div>
                       <div>
-                        <h3 style={{
-                          fontSize: '0.9rem',
-                          fontWeight: '700',
-                          color: '#9cabba',
-                          marginBottom: '1rem',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.1em'
-                        }}>
-                          Médico
-                        </h3>
-                        <div style={{
-                          fontSize: '1.2rem',
-                          fontWeight: '700',
-                          color: '#23272F',
-                          marginBottom: '0.5rem'
-                        }}>
+                        <div className="preview-doctor-name">
                           Dr. {selectedDoctor.fields.Name}
                         </div>
-                        <div style={{
-                          fontSize: '1rem',
-                          color: '#9cabba',
-                          fontWeight: '500'
-                        }}>
+                        <div className="preview-doctor-specialty">
                           {selectedDoctor.fields.Especialidad}
                         </div>
                       </div>
-                      
-                      <div>
-                        <h3 style={{
-                          fontSize: '0.9rem',
-                          fontWeight: '700',
-                          color: '#9cabba',
-                          marginBottom: '1rem',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.1em'
-                        }}>
-                          Ubicación
-                        </h3>
-                        <div style={{
-                          fontSize: '1.2rem',
-                          fontWeight: '700',
-                          color: '#23272F',
-                          marginBottom: '0.5rem'
-                        }}>
-                          {clinica}
-                        </div>
-                        <div style={{
-                          fontSize: '1rem',
-                          color: '#9cabba',
-                          fontWeight: '500'
-                        }}>
-                          📍 {direccion}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div style={{
-                      marginTop: '2.5rem',
-                      paddingTop: '2rem',
-                      borderTop: '2px solid #e8f0fb'
-                    }}>
-                      <h3 style={{
-                        fontSize: '0.9rem',
-                        fontWeight: '700',
-                        color: '#9cabba',
-                        marginBottom: '1rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em'
-                      }}>
-                        Fecha y Horarios ({selectedHours.length})
-                      </h3>
-                      <div style={{
-                        fontSize: '1.2rem',
-                        fontWeight: '700',
-                        color: '#23272F',
-                        marginBottom: '1.5rem'
-                      }}>
-                        📅 {formatDate(fecha)}
-                      </div>
-                      <div style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '0.75rem'
-                      }}>
-                        {selectedHours.map(hour => (
-                          <span key={hour} style={{
-                            background: '#23263b',
-                            color: 'white',
-                            padding: '0.5rem 1rem',
-                            borderRadius: '20px',
-                            fontSize: '0.9rem',
-                            fontWeight: '600'
-                          }}>
-                            🕐 {hour}
-                          </span>
-                        ))}
-                      </div>
                     </div>
                   </div>
+                  
+                  <div className="preview-section">
+                    <h3 className="preview-section-title">Ubicación</h3>
+                    <div className="preview-location">
+                      <div className="preview-clinic">{clinica}</div>
+                      <div className="preview-address">📍 {direccion}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="preview-section">
+                    <h3 className="preview-section-title">Fecha y Horarios ({selectedHours.length})</h3>
+                    <div className="preview-date">
+                      📅 {formatDate(fecha)}
+                    </div>
+                    <div className="preview-hours">
+                      {selectedHours.map(hour => (
+                        <span key={hour} className="preview-hour">
+                          {hour}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-                  <div style={{
-                    display: 'flex',
-                    gap: '1rem',
-                    justifyContent: 'center'
-                  }}>
-                    <AnimatedButton 
-                      onClick={() => setShowPreview(false)}
-                      color="#23263b" bg="#fff" shadow="#23263b22"
-                    >
-                      ← Editar
-                    </AnimatedButton>
-                    <AnimatedButton 
-                      onClick={handleSubmit}
-                      disabled={loading}
-                      color="#fff" bg="#16a34a" shadow="#16a34a44"
-                    >
-                      {loading ? "⏳ Creando..." : `✅ Crear ${selectedHours.length} Sobrecupos`}
-                    </AnimatedButton>
-                  </div>
+                <div className="preview-actions">
+                  <button 
+                    onClick={() => setShowPreview(false)}
+                    className="preview-button secondary"
+                  >
+                    ← Editar
+                  </button>
+                  <button 
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="preview-button primary"
+                  >
+                    {loading ? "⏳ Creando..." : `✅ Crear ${selectedHours.length}`}
+                  </button>
                 </div>
               </div>
             )}
@@ -981,187 +416,860 @@ export default function AdminSobrecuposPage() {
 
         {/* Tab de Gestionar Existentes */}
         {activeTab === "gestionar" && (
-          <div style={{
-            background: 'white',
-            borderRadius: '24px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #23263b 0%, #1a1d2e 100%)',
-              color: 'white',
-              padding: '2.5rem 2rem',
-              textAlign: 'center'
-            }}>
-              <h2 style={{
-                fontSize: '2rem',
-                fontWeight: '700',
-                margin: '0 0 0.5rem'
-              }}>
-                Sobrecupos Existentes
-              </h2>
-              <p style={{
-                fontSize: '1.1rem',
-                opacity: '0.9',
-                margin: '0'
-              }}>
-                Gestiona y elimina sobrecupos ya creados
-              </p>
+          <div className="manage-container">
+            <div className="manage-header">
+              <h2 className="manage-title">Sobrecupos Existentes</h2>
             </div>
             
-            <div style={{ padding: '2.5rem 2rem' }}>
-              {existingSobrecupos.length === 0 ? (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '4rem 2rem',
-                  color: '#9cabba'
-                }}>
-                  <div style={{
-                    fontSize: '4rem',
-                    marginBottom: '1.5rem',
-                    opacity: '0.6'
-                  }}>
-                    📋
-                  </div>
-                  <h3 style={{
-                    fontSize: '1.5rem',
-                    fontWeight: '600',
-                    color: '#23272F',
-                    margin: '0 0 1rem'
-                  }}>
-                    No hay sobrecupos registrados
-                  </h3>
-                  <p style={{
-                    fontSize: '1.1rem',
-                    margin: '0 0 2rem',
-                    maxWidth: '400px',
-                    marginLeft: 'auto',
-                    marginRight: 'auto'
-                  }}>
-                    Ve a "Crear Sobrecupos" para comenzar a agregar horarios disponibles
-                  </p>
-                  <AnimatedButton
-                    onClick={() => setActiveTab("crear")}
-                    color="#fff" bg="#23263b" shadow="#23263b44"
-                  >
-                    💼 Crear Primer Sobrecupo
-                  </AnimatedButton>
-                </div>
-              ) : (
-                <div style={{
-                  display: 'grid',
-                  gap: '1rem'
-                }}>
-                  {existingSobrecupos.map((sobrecupo, index) => (
-                    <div key={index} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '1.5rem',
-                      border: '2px solid #f1f5f9',
-                      borderRadius: '18px',
-                      background: '#fafbff',
-                      transition: 'all 0.2s ease'
-                    }}>
-                      <div style={{ flex: '1' }}>
-                        <div style={{
-                          fontSize: '1.1rem',
-                          fontWeight: '700',
-                          color: '#23272F',
-                          marginBottom: '0.5rem'
-                        }}>
-                          {sobrecupo.fields?.MedicoNombre || `Dr. ${sobrecupo.fields?.Médico?.[0] || 'Desconocido'}`}
-                        </div>
-                        <div style={{
-                          fontSize: '0.95rem',
-                          color: '#23263b',
-                          fontWeight: '600',
-                          marginBottom: '0.5rem'
-                        }}>
-                          🏥 {sobrecupo.fields?.Especialidad}
-                        </div>
-                        <div style={{
-                          fontSize: '0.95rem',
-                          color: '#16a34a',
-                          fontWeight: '600',
-                          marginBottom: '0.5rem'
-                        }}>
-                          📅 {sobrecupo.fields?.Fecha} • 🕐 {sobrecupo.fields?.Hora}
-                        </div>
-                        <div style={{
-                          fontSize: '0.9rem',
-                          color: '#9cabba',
-                          fontWeight: '500'
-                        }}>
-                          📍 {sobrecupo.fields?.Clínica} - {sobrecupo.fields?.Dirección}
-                        </div>
+            {existingSobrecupos.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">📋</div>
+                <h3 className="empty-title">No hay sobrecupos</h3>
+                <p className="empty-text">Crea tu primer sobrecupo</p>
+                <button
+                  onClick={() => setActiveTab("crear")}
+                  className="empty-button"
+                >
+                  💼 Crear Sobrecupo
+                </button>
+              </div>
+            ) : (
+              <div className="sobrecupos-list">
+                {existingSobrecupos.map((sobrecupo, index) => (
+                  <div key={index} className="sobrecupo-card">
+                    <div className="sobrecupo-info">
+                      <div className="sobrecupo-doctor">
+                        {sobrecupo.fields?.MedicoNombre || `Dr. ${sobrecupo.fields?.Médico?.[0] || 'Desconocido'}`}
                       </div>
-                      <button 
-                        onClick={() => deleteSobrecupo(sobrecupo.id)}
-                        style={{
-                          background: '#dc3545',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '12px',
-                          padding: '0.75rem 1rem',
-                          cursor: 'pointer',
-                          fontSize: '0.9rem',
-                          fontWeight: '600',
-                          transition: 'all 0.2s ease',
-                          marginLeft: '1rem'
-                        }}
-                        title="Eliminar sobrecupo"
-                        onMouseEnter={e => {
-                          e.target.style.background = '#c82333';
-                          e.target.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={e => {
-                          e.target.style.background = '#dc3545';
-                          e.target.style.transform = 'scale(1)';
-                        }}
-                      >
-                        🗑️ Eliminar
-                      </button>
+                      <div className="sobrecupo-specialty">
+                        {sobrecupo.fields?.Especialidad}
+                      </div>
+                      <div className="sobrecupo-datetime">
+                        📅 {formatDate(sobrecupo.fields?.Fecha)} • 🕐 {sobrecupo.fields?.Hora}
+                      </div>
+                      <div className="sobrecupo-location">
+                        📍 {sobrecupo.fields?.Clínica}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    <button 
+                      onClick={() => deleteSobrecupo(sobrecupo.id)}
+                      className="delete-button"
+                      title="Eliminar"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
-    </main>
-  );
-}
 
-// Botón animado como en la página principal
-function AnimatedButton({ children, onClick, color, bg, shadow, disabled, small }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        padding: small ? '0.6rem 1.2rem' : '1rem 2rem',
-        borderRadius: small ? '12px' : '18px',
-        border: 'none',
-        fontSize: small ? '0.9rem' : '1rem',
-        fontWeight: '600',
-        background: disabled ? '#9cabba' : bg,
-        color: disabled ? '#fff' : color,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        boxShadow: disabled ? 'none' : `0 4px 16px ${shadow}`,
-        transition: 'all 0.17s',
-        outline: 'none',
-        fontFamily: 'inherit',
-        opacity: disabled ? '0.6' : '1'
-      }}
-      onMouseDown={e => !disabled && (e.currentTarget.style.transform = "scale(0.97)")}
-      onMouseUp={e => !disabled && (e.currentTarget.style.transform = "scale(1)")}
-      onMouseLeave={e => !disabled && (e.currentTarget.style.transform = "scale(1)")}
-      onTouchStart={e => !disabled && (e.currentTarget.style.transform = "scale(0.97)")}
-      onTouchEnd={e => !disabled && (e.currentTarget.style.transform = "scale(1)")}
-    >
-      {children}
-    </button>
+      <style jsx>{`
+        .admin-container {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          color: #1a1a1a;
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* Header Móvil */
+        .mobile-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          height: 56px;
+          box-sizing: border-box;
+        }
+
+        .back-button {
+          background: none;
+          border: none;
+          color: #007aff;
+          font-size: 15px;
+          font-weight: 600;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+
+        .header-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: #1a1a1a;
+        }
+
+        .header-spacer {
+          width: 64px;
+        }
+
+        /* Tabs Móvil */
+        .mobile-tabs {
+          display: flex;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 56px;
+          z-index: 99;
+        }
+
+        .tab-button {
+          flex: 1;
+          padding: 12px 8px;
+          border: none;
+          background: transparent;
+          color: #8e8e93;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 2px solid transparent;
+        }
+
+        .tab-button.active {
+          color: #007aff;
+          border-bottom-color: #007aff;
+        }
+
+        /* Container Principal */
+        .content-container {
+          padding: 16px;
+          max-width: 100vw;
+          box-sizing: border-box;
+        }
+
+        /* Mensajes Móvil */
+        .mobile-message {
+          padding: 12px 16px;
+          border-radius: 12px;
+          margin-bottom: 16px;
+          font-size: 13px;
+          font-weight: 500;
+          text-align: center;
+        }
+
+        .mobile-message.success {
+          background: #e6ffed;
+          color: #006400;
+          border: 1px solid #c3e6cb;
+        }
+
+        .mobile-message.error {
+          background: #fee;
+          color: #b00020;
+          border: 1px solid #f5c6cb;
+        }
+
+        .mobile-message.warning {
+          background: #fff3cd;
+          color: #856404;
+          border: 1px solid #ffeaa7;
+        }
+
+        /* Formulario Móvil */
+        .mobile-form-container {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-steps {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .step-section {
+          padding: 20px 16px;
+          border-bottom: 1px solid #f0f0f0;
+        }
+
+        .step-section:last-child {
+          border-bottom: none;
+        }
+
+        .step-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 16px;
+        }
+
+        .step-number {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: #007aff;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
+
+        .step-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin: 0;
+        }
+
+        /* Grid de Médicos Móvil */
+        .doctors-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .doctor-card {
+          display: flex;
+          align-items: center;
+          padding: 12px;
+          border: 1.5px solid #f0f0f0;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          background: white;
+        }
+
+        .doctor-card.selected {
+          border-color: #007aff;
+          background: #f8faff;
+        }
+
+        .doctor-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: 700;
+          margin-right: 12px;
+          flex-shrink: 0;
+        }
+
+        .doctor-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .doctor-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 2px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .doctor-specialty {
+          font-size: 12px;
+          color: #8e8e93;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .selected-check {
+          color: #007aff;
+          font-size: 16px;
+          font-weight: 700;
+          margin-left: 8px;
+        }
+
+        /* Inputs Móvil */
+        .form-inputs {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .input-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+
+        .form-input {
+          padding: 12px 14px;
+          border: 1.5px solid #e5e5e7;
+          border-radius: 10px;
+          font-size: 15px;
+          background: white;
+          transition: all 0.2s ease;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+
+        .form-input:focus {
+          outline: none;
+          border-color: #007aff;
+          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .date-input {
+          color-scheme: light;
+        }
+
+        /* Sección de Horarios */
+        .date-section {
+          margin-bottom: 20px;
+        }
+
+        .hours-section {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .hours-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .quick-select {
+          display: flex;
+          gap: 6px;
+        }
+
+        .quick-btn {
+          padding: 6px 10px;
+          border: 1px solid #e5e5e7;
+          border-radius: 8px;
+          background: white;
+          font-size: 11px;
+          font-weight: 600;
+          color: #007aff;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .quick-btn.clear {
+          color: #ff3b30;
+        }
+
+        .quick-btn:active {
+          transform: scale(0.95);
+        }
+
+        .hours-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 8px;
+        }
+
+        .hour-button {
+          padding: 10px 6px;
+          border: 1.5px solid #e5e5e7;
+          border-radius: 8px;
+          background: white;
+          font-size: 12px;
+          font-weight: 600;
+          color: #1a1a1a;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .hour-button.selected {
+          border-color: #007aff;
+          background: #007aff;
+          color: white;
+        }
+
+        .hour-button:active {
+          transform: scale(0.95);
+        }
+
+        .selected-count {
+          font-size: 12px;
+          color: #8e8e93;
+          font-weight: 500;
+          text-align: center;
+        }
+
+        /* Botón Submit */
+        .submit-section {
+          padding: 20px 16px;
+          background: #f8faff;
+        }
+
+        .submit-button {
+          width: 100%;
+          padding: 14px;
+          border: none;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .submit-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .submit-button:not(:disabled):active {
+          transform: scale(0.98);
+        }
+
+        /* Vista Previa Móvil */
+        .preview-container {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .preview-header {
+          background: linear-gradient(135deg, #34c759, #30a14e);
+          color: white;
+          padding: 20px 16px;
+          text-align: center;
+        }
+
+        .preview-title {
+          font-size: 18px;
+          font-weight: 700;
+          margin: 0 0 4px;
+        }
+
+        .preview-subtitle {
+          font-size: 13px;
+          opacity: 0.9;
+          margin: 0;
+        }
+
+        .preview-content {
+          padding: 20px 16px;
+        }
+
+        .preview-section {
+          margin-bottom: 20px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid #f0f0f0;
+        }
+
+        .preview-section:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+        }
+
+        .preview-section-title {
+          font-size: 11px;
+          font-weight: 700;
+          color: #8e8e93;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin: 0 0 8px;
+        }
+
+        .preview-doctor {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .preview-doctor-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .preview-doctor-name {
+          font-size: 15px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin-bottom: 2px;
+        }
+
+        .preview-doctor-specialty {
+          font-size: 12px;
+          color: #8e8e93;
+          font-weight: 500;
+        }
+
+        .preview-location {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .preview-clinic {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+
+        .preview-address {
+          font-size: 12px;
+          color: #8e8e93;
+          font-weight: 500;
+        }
+
+        .preview-date {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 12px;
+        }
+
+        .preview-hours {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .preview-hour {
+          background: #007aff;
+          color: white;
+          padding: 4px 8px;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        /* Acciones de Vista Previa */
+        .preview-actions {
+          display: flex;
+          gap: 8px;
+          padding: 16px;
+          background: #f8faff;
+        }
+
+        .preview-button {
+          flex: 1;
+          padding: 12px;
+          border: none;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .preview-button.secondary {
+          background: white;
+          color: #007aff;
+          border: 1.5px solid #007aff;
+        }
+
+        .preview-button.primary {
+          background: linear-gradient(135deg, #34c759, #30a14e);
+          color: white;
+        }
+
+        .preview-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .preview-button:not(:disabled):active {
+          transform: scale(0.98);
+        }
+
+        /* Gestionar Existentes Móvil */
+        .manage-container {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .manage-header {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          padding: 20px 16px;
+          text-align: center;
+        }
+
+        .manage-title {
+          font-size: 18px;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        /* Estado Vacío */
+        .empty-state {
+          padding: 40px 20px;
+          text-align: center;
+          color: #8e8e93;
+        }
+
+        .empty-icon {
+          font-size: 48px;
+          margin-bottom: 16px;
+          opacity: 0.6;
+        }
+
+        .empty-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin: 0 0 8px;
+        }
+
+        .empty-text {
+          font-size: 14px;
+          margin: 0 0 24px;
+          color: #8e8e93;
+        }
+
+        .empty-button {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .empty-button:active {
+          transform: scale(0.95);
+        }
+
+        /* Lista de Sobrecupos */
+        .sobrecupos-list {
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          max-height: 60vh;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .sobrecupo-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px;
+          border: 1px solid #f0f0f0;
+          border-radius: 12px;
+          background: #fafbff;
+          transition: all 0.2s ease;
+        }
+
+        .sobrecupo-card:active {
+          transform: scale(0.98);
+        }
+
+        .sobrecupo-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .sobrecupo-doctor {
+          font-size: 14px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin-bottom: 2px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .sobrecupo-specialty {
+          font-size: 12px;
+          color: #007aff;
+          font-weight: 600;
+          margin-bottom: 4px;
+        }
+
+        .sobrecupo-datetime {
+          font-size: 11px;
+          color: #34c759;
+          font-weight: 600;
+          margin-bottom: 2px;
+        }
+
+        .sobrecupo-location {
+          font-size: 11px;
+          color: #8e8e93;
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .delete-button {
+          background: #ff3b30;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 8px 10px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          margin-left: 12px;
+          flex-shrink: 0;
+        }
+
+        .delete-button:active {
+          transform: scale(0.95);
+          background: #d70015;
+        }
+
+        /* Responsive específico para iPhone */
+        @media (max-width: 430px) {
+          .content-container {
+            padding: 12px;
+          }
+          
+          .step-section {
+            padding: 16px 12px;
+          }
+          
+          .hours-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+          }
+          
+          .hour-button {
+            padding: 8px 4px;
+            font-size: 11px;
+          }
+          
+          .doctor-name {
+            font-size: 13px;
+          }
+          
+          .doctor-specialty {
+            font-size: 11px;
+          }
+        }
+
+        @media (max-width: 375px) {
+          .mobile-header {
+            padding: 10px 12px;
+          }
+          
+          .header-title {
+            font-size: 15px;
+          }
+          
+          .tab-button {
+            font-size: 12px;
+            padding: 10px 6px;
+          }
+          
+          .step-title {
+            font-size: 15px;
+          }
+          
+          .form-input {
+            font-size: 14px;
+            padding: 10px 12px;
+          }
+          
+          .sobrecupo-card {
+            padding: 12px;
+          }
+          
+          .sobrecupo-doctor {
+            font-size: 13px;
+          }
+        }
+
+        @media (max-width: 320px) {
+          .content-container {
+            padding: 8px;
+          }
+          
+          .step-section {
+            padding: 12px 8px;
+          }
+          
+          .hours-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+          }
+          
+          .hour-button {
+            padding: 6px 2px;
+            font-size: 10px;
+          }
+          
+          .quick-btn {
+            padding: 4px 6px;
+            font-size: 10px;
+          }
+        }
+
+        /* Mejoras para iOS Safari */
+        @supports (-webkit-touch-callout: none) {
+          .form-input {
+            -webkit-appearance: none;
+            -webkit-border-radius: 10px;
+          }
+          
+          .submit-button, .preview-button, .delete-button {
+            -webkit-appearance: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+          }
+        }
+
+        /* Prevenir zoom en inputs */
+        @media (max-width: 768px) {
+          .form-input {
+            font-size: 16px;
+          }
+        }
+
+        /* Smooth scrolling para toda la página */
+        * {
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Fix para el notch de iPhone */
+        @supports (padding: max(0px)) {
+          .mobile-header {
+            padding-top: max(12px, env(safe-area-inset-top));
+          }
+          
+          .admin-container {
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
+          }
+        }
+      `}</style>
+    </main>
   );
 }
