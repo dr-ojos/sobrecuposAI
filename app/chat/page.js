@@ -228,11 +228,6 @@ export default function ChatPage() {
       <footer className="chat-input-container">
         <div className="chat-form">
           <div className="input-wrapper">
-            <button type="button" className="attach-button">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M21.44 11.05L12.25 20.24C11.84 20.65 11.84 21.28 12.25 21.69C12.66 22.1 13.29 22.1 13.7 21.69L22.89 12.5C24.84 10.55 24.84 7.37 22.89 5.42C20.94 3.47 17.76 3.47 15.81 5.42L6.62 14.61C5.66 15.57 5.66 17.1 6.62 18.06C7.58 19.02 9.11 19.02 10.07 18.06L18.36 9.77" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
             <input
               ref={inputRef}
               type="text"
@@ -585,8 +580,8 @@ export default function ChatPage() {
           background: rgba(255, 255, 255, 0.9);
           border: 1px solid rgba(0, 0, 0, 0.08);
           border-radius: 24px;
-          padding: 0.5rem;
-          gap: 0.5rem;
+          padding: 0.5rem 0.75rem;
+          gap: 0.75rem;
           box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
           transition: all 0.2s ease;
         }
@@ -594,24 +589,6 @@ export default function ChatPage() {
         .input-wrapper:focus-within {
           border-color: rgba(0, 122, 255, 0.3);
           box-shadow: 0 2px 16px rgba(0, 122, 255, 0.15);
-        }
-
-        .attach-button {
-          background: none;
-          border: none;
-          color: #6e6e73;
-          padding: 8px;
-          border-radius: 50%;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .attach-button:hover {
-          background: rgba(0, 0, 0, 0.05);
-          color: #007aff;
         }
 
         .message-input {
@@ -623,6 +600,7 @@ export default function ChatPage() {
           padding: 0.75rem 0.5rem;
           color: #1d1d1f;
           font-family: inherit;
+          min-width: 0;
         }
 
         .message-input::placeholder {
