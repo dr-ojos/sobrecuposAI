@@ -772,6 +772,7 @@ export default function ChatPage() {
             overflow-wrap: break-word;
             hyphens: auto;
             font-size: 0.9rem;
+            min-width: 55px;
           }
 
           .message-bubble p {
@@ -871,6 +872,7 @@ export default function ChatPage() {
             overflow-wrap: break-word;
             hyphens: auto;
             border-radius: 16px;
+            min-width: 50px;
           }
 
           .message-bubble p {
@@ -947,6 +949,7 @@ export default function ChatPage() {
             padding: 0.6rem 0.7rem;
             font-size: 0.8rem;
             border-radius: 14px;
+            min-width: 45px;
           }
 
           .message-bubble p {
