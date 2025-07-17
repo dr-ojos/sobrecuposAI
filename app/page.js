@@ -282,7 +282,8 @@ export default function Home() {
           justify-content: center;
           align-items: center;
           width: 100%;
-          padding: 0;
+          text-align: center;
+          position: relative;
         }
 
         .cta-section.visible {
@@ -540,52 +541,6 @@ function AnimatedButton({ children, onClick, primary = false }) {
           transform: scale(1);
           min-width: 280px;
           justify-content: center;
-          margin: 0 auto;
-          left: 50%;
-          transform: translateX(-50%);
-          position: relative;
-        }
-
-        @media (max-width: 480px) {
-          .animated-btn {
-            width: 85vw;
-            max-width: 320px;
-            min-width: 280px;
-            padding: 1.2rem 2rem;
-            font-size: 1.2rem;
-            border-radius: 25px;
-            gap: 0.8rem;
-            margin: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            position: relative;
-          }
-        }
-
-        @media (max-width: 375px) {
-          .animated-btn {
-            width: 82vw;
-            max-width: 300px;
-            min-width: 260px;
-            padding: 1.1rem 1.8rem;
-            font-size: 1.1rem;
-            border-radius: 23px;
-            left: 50%;
-            transform: translateX(-50%);
-          }
-        }
-
-        @media (max-width: 320px) {
-          .animated-btn {
-            width: 80vw;
-            max-width: 280px;
-            min-width: 240px;
-            padding: 1rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-          }
         }
 
         .animated-btn::before {
@@ -599,6 +554,62 @@ function AnimatedButton({ children, onClick, primary = false }) {
           transition: left 0.6s ease;
         }
 
+        /* Desktop: centrado normal */
+        @media (min-width: 769px) {
+          .animated-btn {
+            margin: 0 auto;
+            display: inline-flex;
+          }
+        }
+
+        /* Tablet */
+        @media (max-width: 768px) and (min-width: 481px) {
+          .animated-btn {
+            margin: 0 auto;
+            display: inline-flex;
+            width: auto;
+          }
+        }
+
+        /* Mobile: centrado absoluto */
+        @media (max-width: 480px) {
+          .animated-btn {
+            width: 85vw;
+            max-width: 320px;
+            min-width: 280px;
+            padding: 1.2rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            gap: 0.8rem;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            margin: 0;
+          }
+        }
+
+        @media (max-width: 375px) {
+          .animated-btn {
+            width: 82vw;
+            max-width: 300px;
+            min-width: 260px;
+            padding: 1.1rem 1.8rem;
+            font-size: 1.1rem;
+            border-radius: 23px;
+          }
+        }
+
+        @media (max-width: 320px) {
+          .animated-btn {
+            width: 80vw;
+            max-width: 280px;
+            min-width: 240px;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 20px;
+          }
+        }
+
         .animated-btn:hover {
           transform: translateY(-4px) scale(1.02);
           box-shadow: 0 12px 40px rgba(0, 122, 255, 0.4);
@@ -610,6 +621,17 @@ function AnimatedButton({ children, onClick, primary = false }) {
 
         .animated-btn:active {
           transform: translateY(-2px) scale(0.98);
+        }
+
+        /* Hover específico para móvil */
+        @media (max-width: 480px) {
+          .animated-btn:hover {
+            transform: translateX(-50%) translateY(-4px) scale(1.02);
+          }
+
+          .animated-btn:active {
+            transform: translateX(-50%) translateY(-2px) scale(0.98);
+          }
         }
 
         .button-icon, .button-arrow {
