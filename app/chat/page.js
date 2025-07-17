@@ -581,6 +581,7 @@ export default function ChatPage() {
           color: #6e6e73;
           margin-bottom: 0.75rem;
           font-weight: 500;
+          padding-left: 0.25rem;
         }
 
         .suggestions-grid {
@@ -784,6 +785,10 @@ export default function ChatPage() {
             gap: 0.75rem;
           }
 
+          .suggestions-title {
+            padding-left: 0.75rem;
+          }
+
           .suggestion-chip {
             margin: 0 0.25rem;
             word-break: break-word;
@@ -893,6 +898,10 @@ export default function ChatPage() {
           .quick-suggestions {
             margin-top: 1rem;
             padding: 0 0.15rem;
+          }
+
+          .suggestions-title {
+            padding-left: 0.4rem;
           }
 
           .suggestion-chip {
