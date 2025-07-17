@@ -123,8 +123,7 @@ export default function ChatPage() {
   const quickSuggestions = [
     "Necesito oftalmólogo urgente",
     "Dolor de cabeza fuerte",
-    "Chequeo médico general",
-    "Especialista en pediatría"
+    "Chequeo médico general"
   ];
 
   const handleSuggestionClick = (suggestion) => {
@@ -274,11 +273,13 @@ export default function ChatPage() {
           display: flex;
           flex-direction: column;
           height: 100vh;
+          width: 100vw;
           max-width: 100vw;
           background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
           font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           position: relative;
           overflow: hidden;
+          box-sizing: border-box;
         }
 
         /* Header */
@@ -463,6 +464,10 @@ export default function ChatPage() {
           line-height: 1.4;
           font-size: 0.95rem;
           white-space: pre-wrap;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          hyphens: auto;
+          max-width: 100%;
         }
 
         .message.bot .message-bubble p {
@@ -642,11 +647,12 @@ export default function ChatPage() {
         /* Mobile optimizations */
         @media (max-width: 768px) {
           .chat-header {
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 0.75rem;
           }
 
           .header-content {
             gap: 0.75rem;
+            padding: 0 0.25rem;
           }
 
           .bot-avatar {
@@ -664,43 +670,187 @@ export default function ChatPage() {
           }
 
           .messages-container {
-            padding: 0 1rem;
+            padding: 0 0.25rem;
+          }
+
+          .message-wrapper {
+            padding: 0 0.25rem;
           }
 
           .message {
-            max-width: 85%;
+            max-width: calc(100% - 0.5rem);
+            gap: 0.5rem;
+          }
+
+          .message-content {
+            max-width: calc(100% - 2.5rem);
+          }
+
+          .message-bubble {
+            padding: 0.75rem 0.875rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            font-size: 0.9rem;
+          }
+
+          .message-bubble p {
+            font-size: 0.9rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
           }
 
           .suggestions-grid {
             grid-template-columns: 1fr;
+            padding: 0 0.5rem;
+            gap: 0.75rem;
+          }
+
+          .suggestion-chip {
+            margin: 0 0.25rem;
+            word-break: break-word;
+            font-size: 0.9rem;
+            padding: 0.875rem 1rem;
           }
 
           .chat-input-container {
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 0.5rem;
             padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
           }
 
           .input-wrapper {
             border-radius: 20px;
+            padding: 0.4rem 0.75rem;
+            gap: 0.5rem;
           }
 
           .message-input {
             font-size: 16px; /* Prevents zoom on iOS */
+            padding: 0.6rem 0.25rem;
+          }
+
+          .send-button {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
           }
         }
 
         @media (max-width: 480px) {
+          .chat-container {
+            overflow-x: hidden;
+            width: 100vw;
+            box-sizing: border-box;
+          }
+
+          .messages-container {
+            padding: 0 0.15rem;
+            overflow-x: hidden;
+            box-sizing: border-box;
+          }
+
+          .message-wrapper {
+            padding: 0 0.15rem;
+            box-sizing: border-box;
+          }
+
+          .message {
+            max-width: calc(100% - 0.3rem);
+            gap: 0.4rem;
+          }
+
+          .message-content {
+            max-width: calc(100% - 2rem);
+          }
+
           .message-bubble {
-            padding: 0.75rem 1rem;
+            padding: 0.65rem 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            border-radius: 16px;
           }
 
           .message-bubble p {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.4;
           }
 
           .send-button {
             width: 36px;
             height: 36px;
+          }
+
+          .chat-input-container {
+            padding: 0.6rem 0.4rem;
+            padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+          }
+
+          .input-wrapper {
+            padding: 0.35rem 0.6rem;
+          }
+
+          .message-input {
+            font-size: 16px;
+            padding: 0.55rem 0.2rem;
+          }
+
+          .quick-suggestions {
+            margin-top: 1rem;
+            padding: 0 0.15rem;
+          }
+
+          .suggestion-chip {
+            font-size: 0.8rem;
+            padding: 0.75rem 0.875rem;
+            word-break: break-word;
+            margin: 0 0.15rem;
+          }
+        }
+
+        @media (max-width: 375px) {
+          .message-wrapper {
+            padding: 0 0.1rem;
+          }
+
+          .message {
+            max-width: calc(100% - 0.2rem);
+            gap: 0.35rem;
+          }
+
+          .message-content {
+            max-width: calc(100% - 1.75rem);
+          }
+
+          .message-bubble {
+            padding: 0.6rem 0.7rem;
+            font-size: 0.8rem;
+            border-radius: 14px;
+          }
+
+          .message-bubble p {
+            font-size: 0.8rem;
+            line-height: 1.35;
+          }
+
+          .chat-input-container {
+            padding: 0.5rem 0.3rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+          }
+        }
+
+        @media (max-width: 320px) {
+          .message-bubble {
+            padding: 0.55rem 0.65rem;
+            font-size: 0.78rem;
+          }
+
+          .message-bubble p {
+            font-size: 0.78rem;
           }
         }
       `}</style>
