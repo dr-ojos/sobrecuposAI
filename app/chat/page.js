@@ -513,6 +513,7 @@ export default function ChatPage() {
           overflow-wrap: break-word;
           hyphens: auto;
           max-width: 100%;
+          word-break: normal;
         }
 
         .message.bot .message-bubble p {
@@ -767,7 +768,7 @@ export default function ChatPage() {
 
           .message-bubble {
             padding: 0.75rem 0.875rem;
-            word-break: break-word;
+            word-break: normal;
             overflow-wrap: break-word;
             hyphens: auto;
             font-size: 0.9rem;
@@ -775,7 +776,7 @@ export default function ChatPage() {
 
           .message-bubble p {
             font-size: 0.9rem;
-            word-break: break-word;
+            word-break: normal;
             overflow-wrap: break-word;
           }
 
@@ -866,7 +867,7 @@ export default function ChatPage() {
             padding: 0.65rem 0.75rem;
             font-size: 0.85rem;
             line-height: 1.4;
-            word-break: break-word;
+            word-break: normal;
             overflow-wrap: break-word;
             hyphens: auto;
             border-radius: 16px;
@@ -874,7 +875,7 @@ export default function ChatPage() {
 
           .message-bubble p {
             font-size: 0.85rem;
-            word-break: break-word;
+            word-break: normal;
             overflow-wrap: break-word;
             line-height: 1.4;
           }
