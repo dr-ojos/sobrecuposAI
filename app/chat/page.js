@@ -23,21 +23,54 @@ export default function ChatPage() {
   // Fix para scroll en móviles cuando aparece teclado
   useEffect(() => {
     const handleFocus = () => {
+      // Prevenir scroll automático
       setTimeout(() => {
-        endRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 300);
-    };
-    const handleResize = () => {
-      setTimeout(() => {
-        endRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (endRef.current) {
+          endRef.current.scrollIntoView({ 
+            behavior: "smooth", 
+            block: "end",
+            inline: "nearest"
+          });
+        }
       }, 100);
+    };
+
+    const handleResize = () => {
+      // Mantener posición al cambiar tamaño de ventana
+      setTimeout(() => {
+        if (endRef.current) {
+          endRef.current.scrollIntoView({ 
+            behavior: "auto", 
+            block: "end" 
+          });
+        }
+      }, 50);
+    };
+
+    // Prevenir zoom en iOS
+    const preventZoom = (e) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+
+    const preventViewportChange = () => {
+      const viewport = document.querySelector('meta[name=viewport]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+      }
     };
     
     window.addEventListener("focusin", handleFocus);
     window.addEventListener("resize", handleResize);
+    window.addEventListener("touchstart", preventZoom, { passive: false });
+    
+    preventViewportChange();
+    
     return () => {
       window.removeEventListener("focusin", handleFocus);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("touchstart", preventZoom);
     };
   }, []);
 
@@ -273,13 +306,17 @@ export default function ChatPage() {
           display: flex;
           flex-direction: column;
           height: 100vh;
+          height: 100dvh; /* Dynamic viewport height for mobile */
           width: 100vw;
           max-width: 100vw;
           background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
           font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          position: relative;
+          position: fixed;
+          top: 0;
+          left: 0;
           overflow: hidden;
           box-sizing: border-box;
+          touch-action: manipulation;
         }
 
         /* Header */
@@ -288,10 +325,14 @@ export default function ChatPage() {
           backdrop-filter: blur(20px);
           border-bottom: 1px solid rgba(0, 0, 0, 0.06);
           padding: 1rem 1.5rem;
-          position: sticky;
+          position: fixed;
           top: 0;
-          z-index: 100;
+          left: 0;
+          right: 0;
+          z-index: 1000;
           box-shadow: 0 1px 10px rgba(0, 0, 0, 0.05);
+          height: 70px;
+          box-sizing: border-box;
         }
 
         .header-content {
@@ -380,9 +421,13 @@ export default function ChatPage() {
         .chat-messages {
           flex: 1;
           overflow-y: auto;
-          padding: 1rem 0;
+          overflow-x: hidden;
+          padding-top: 70px;
+          padding-bottom: 80px;
           display: flex;
           flex-direction: column;
+          position: relative;
+          -webkit-overflow-scrolling: touch;
         }
 
         .messages-container {
@@ -572,6 +617,13 @@ export default function ChatPage() {
           border-top: 1px solid rgba(0, 0, 0, 0.06);
           padding: 1rem 1.5rem;
           padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          min-height: 80px;
+          box-sizing: border-box;
         }
 
         .chat-form {
@@ -606,10 +658,17 @@ export default function ChatPage() {
           color: #1d1d1f;
           font-family: inherit;
           min-width: 0;
+          resize: none;
+          -webkit-appearance: none;
+          -webkit-user-select: text;
         }
 
         .message-input::placeholder {
           color: #8e8e93;
+        }
+
+        .message-input:focus {
+          -webkit-user-select: text;
         }
 
         .send-button {
@@ -646,8 +705,27 @@ export default function ChatPage() {
 
         /* Mobile optimizations */
         @media (max-width: 768px) {
+          .chat-container {
+            height: 100vh;
+            height: 100dvh;
+            position: fixed;
+            overflow: hidden;
+          }
+
           .chat-header {
             padding: 0.75rem 0.75rem;
+            height: 65px;
+          }
+
+          .chat-messages {
+            padding-top: 65px;
+            padding-bottom: 85px;
+          }
+
+          .chat-input-container {
+            padding: 0.75rem 0.5rem;
+            padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+            min-height: 85px;
           }
 
           .header-content {
@@ -670,7 +748,7 @@ export default function ChatPage() {
           }
 
           .messages-container {
-            padding: 0 0.25rem;
+            padding: 1rem 0.25rem;
           }
 
           .message-wrapper {
@@ -713,11 +791,6 @@ export default function ChatPage() {
             padding: 0.875rem 1rem;
           }
 
-          .chat-input-container {
-            padding: 0.75rem 0.5rem;
-            padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-          }
-
           .input-wrapper {
             border-radius: 20px;
             padding: 0.4rem 0.75rem;
@@ -727,6 +800,8 @@ export default function ChatPage() {
           .message-input {
             font-size: 16px; /* Prevents zoom on iOS */
             padding: 0.6rem 0.25rem;
+            -webkit-appearance: none;
+            -webkit-user-select: text;
           }
 
           .send-button {
@@ -741,10 +816,29 @@ export default function ChatPage() {
             overflow-x: hidden;
             width: 100vw;
             box-sizing: border-box;
+            position: fixed;
+            height: 100vh;
+            height: 100dvh;
+          }
+
+          .chat-header {
+            height: 60px;
+            padding: 0.6rem 0.5rem;
+          }
+
+          .chat-messages {
+            padding-top: 60px;
+            padding-bottom: 90px;
+          }
+
+          .chat-input-container {
+            padding: 0.6rem 0.4rem;
+            padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+            min-height: 90px;
           }
 
           .messages-container {
-            padding: 0 0.15rem;
+            padding: 1rem 0.15rem;
             overflow-x: hidden;
             box-sizing: border-box;
           }
@@ -785,11 +879,6 @@ export default function ChatPage() {
             height: 36px;
           }
 
-          .chat-input-container {
-            padding: 0.6rem 0.4rem;
-            padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
-          }
-
           .input-wrapper {
             padding: 0.35rem 0.6rem;
           }
@@ -797,6 +886,8 @@ export default function ChatPage() {
           .message-input {
             font-size: 16px;
             padding: 0.55rem 0.2rem;
+            -webkit-appearance: none;
+            -webkit-user-select: text;
           }
 
           .quick-suggestions {
@@ -813,6 +904,22 @@ export default function ChatPage() {
         }
 
         @media (max-width: 375px) {
+          .chat-header {
+            height: 58px;
+            padding: 0.55rem 0.4rem;
+          }
+
+          .chat-messages {
+            padding-top: 58px;
+            padding-bottom: 92px;
+          }
+
+          .chat-input-container {
+            min-height: 92px;
+            padding: 0.5rem 0.3rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+          }
+
           .message-wrapper {
             padding: 0 0.1rem;
           }
@@ -835,11 +942,6 @@ export default function ChatPage() {
           .message-bubble p {
             font-size: 0.8rem;
             line-height: 1.35;
-          }
-
-          .chat-input-container {
-            padding: 0.5rem 0.3rem;
-            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
           }
         }
 
