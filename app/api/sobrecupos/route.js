@@ -100,7 +100,36 @@ export async function POST(req) {
   }
 }
 
-// GET: obtener lista de sobrecupos existentes
+// Helper function para obtener nombre del médico
+async function getDoctorName(doctorId) {
+  try {
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
+
+    const response = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`❌ Error obteniendo médico ${doctorId}:`, response.status);
+      return doctorId; // Fallback al ID si no se puede obtener el nombre
+    }
+
+    const data = await response.json();
+    return data.fields?.Name || doctorId;
+  } catch (error) {
+    console.error(`❌ Error obteniendo nombre del médico ${doctorId}:`, error);
+    return doctorId; // Fallback al ID en caso de error
+  }
+}
+
+// GET: obtener lista de sobrecupos existentes CON nombres de médicos
 export async function GET() {
   try {
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
@@ -114,6 +143,7 @@ export async function GET() {
       );
     }
 
+    // 1. Obtener sobrecupos de Airtable
     const res = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100&sort[0][field]=Fecha&sort[0][direction]=desc`,
       {
@@ -124,7 +154,33 @@ export async function GET() {
     );
     
     const data = await res.json();
-    return NextResponse.json(data.records || []);
+    const sobrecupos = data.records || [];
+
+    // 2. Para cada sobrecupo, obtener el nombre real del médico
+    const sobrecuposWithDoctorNames = await Promise.all(
+      sobrecupos.map(async (sobrecupo) => {
+        const medicoIds = sobrecupo.fields?.Médico;
+        
+        if (Array.isArray(medicoIds) && medicoIds.length > 0) {
+          // Obtener nombre del primer médico (normalmente solo hay uno)
+          const doctorName = await getDoctorName(medicoIds[0]);
+          
+          return {
+            ...sobrecupo,
+            fields: {
+              ...sobrecupo.fields,
+              MedicoNombre: doctorName // Agregar campo con nombre real
+            }
+          };
+        }
+        
+        return sobrecupo;
+      })
+    );
+
+    console.log('✅ Sobrecupos obtenidos con nombres de médicos:', sobrecuposWithDoctorNames.length);
+    
+    return NextResponse.json(sobrecuposWithDoctorNames);
   } catch (err) {
     console.error('❌ Error obteniendo sobrecupos:', err);
     return NextResponse.json([], { status: 500 });
@@ -160,6 +216,8 @@ export async function DELETE(req) {
     if (data.error) {
       return NextResponse.json({ error: data.error }, { status: 500 });
     }
+    
+    console.log('✅ Sobrecupo eliminado:', id);
     
     return NextResponse.json({ 
       success: true, 

@@ -1070,7 +1070,7 @@ export default function AdminSobrecuposPage() {
                           color: '#23272F',
                           marginBottom: '0.5rem'
                         }}>
-                          Dr. {sobrecupo.fields?.["Médico"] || "N/A"}
+                          {sobrecupo.fields?.MedicoNombre || `Dr. ${sobrecupo.fields?.Médico?.[0] || 'Desconocido'}`}
                         </div>
                         <div style={{
                           fontSize: '0.95rem',
