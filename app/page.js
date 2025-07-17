@@ -282,6 +282,7 @@ export default function Home() {
           justify-content: center;
           align-items: center;
           width: 100%;
+          padding: 0;
         }
 
         .cta-section.visible {
@@ -539,40 +540,51 @@ function AnimatedButton({ children, onClick, primary = false }) {
           transform: scale(1);
           min-width: 280px;
           justify-content: center;
+          margin: 0 auto;
+          left: 50%;
+          transform: translateX(-50%);
+          position: relative;
         }
 
         @media (max-width: 480px) {
           .animated-btn {
-            width: 90vw;
+            width: 85vw;
             max-width: 320px;
             min-width: 280px;
             padding: 1.2rem 2rem;
             font-size: 1.2rem;
             border-radius: 25px;
             gap: 0.8rem;
-            margin: 0 auto;
+            margin: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            position: relative;
           }
         }
 
         @media (max-width: 375px) {
           .animated-btn {
-            width: 88vw;
+            width: 82vw;
             max-width: 300px;
             min-width: 260px;
             padding: 1.1rem 1.8rem;
             font-size: 1.1rem;
             border-radius: 23px;
+            left: 50%;
+            transform: translateX(-50%);
           }
         }
 
         @media (max-width: 320px) {
           .animated-btn {
-            width: 85vw;
+            width: 80vw;
             max-width: 280px;
             min-width: 240px;
             padding: 1rem 1.5rem;
             font-size: 1rem;
             border-radius: 20px;
+            left: 50%;
+            transform: translateX(-50%);
           }
         }
 
