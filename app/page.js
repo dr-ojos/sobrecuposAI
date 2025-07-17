@@ -278,6 +278,10 @@ export default function Home() {
           opacity: 0;
           transform: translateY(30px);
           transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
         }
 
         .cta-section.visible {
@@ -434,23 +438,70 @@ export default function Home() {
           
           .tagline h2 {
             font-size: 2.2rem;
+            line-height: 1.2;
+            margin-bottom: 1.2rem;
           }
           
           .subtitle {
             font-size: 1.2rem;
+            margin-bottom: 1.2rem;
           }
           
           .cta-text {
             font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+          }
+
+          .cta-section {
+            margin-bottom: 3rem;
+            padding: 0 1rem;
           }
 
           .trust-stats {
             flex-direction: column;
             gap: 1rem;
+            margin: 0 1rem;
+            padding: 1.2rem 1.5rem;
           }
 
           .stat-divider {
             display: none;
+          }
+
+          .testimonial-content {
+            margin: 0 1rem;
+            padding: 2rem 1.5rem;
+          }
+
+          .content-wrapper {
+            padding: 1rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .logo-text {
+            font-size: 2.5rem;
+          }
+          
+          .tagline h2 {
+            font-size: 1.9rem;
+            line-height: 1.1;
+          }
+          
+          .subtitle {
+            font-size: 1.1rem;
+          }
+          
+          .cta-text {
+            font-size: 1rem;
+          }
+
+          .testimonial-content {
+            padding: 1.8rem 1.2rem;
+          }
+
+          .trust-stats {
+            padding: 1rem 1.2rem;
           }
         }
       `}</style>
@@ -486,6 +537,43 @@ function AnimatedButton({ children, onClick, primary = false }) {
           text-decoration: none;
           font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
           transform: scale(1);
+          min-width: 280px;
+          justify-content: center;
+        }
+
+        @media (max-width: 480px) {
+          .animated-btn {
+            width: 90vw;
+            max-width: 320px;
+            min-width: 280px;
+            padding: 1.2rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            gap: 0.8rem;
+            margin: 0 auto;
+          }
+        }
+
+        @media (max-width: 375px) {
+          .animated-btn {
+            width: 88vw;
+            max-width: 300px;
+            min-width: 260px;
+            padding: 1.1rem 1.8rem;
+            font-size: 1.1rem;
+            border-radius: 23px;
+          }
+        }
+
+        @media (max-width: 320px) {
+          .animated-btn {
+            width: 85vw;
+            max-width: 280px;
+            min-width: 240px;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 20px;
+          }
         }
 
         .animated-btn::before {
