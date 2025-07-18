@@ -32,6 +32,8 @@ export default function DoctorsAdminPage() {
   const [activeTab, setActiveTab] = useState("agregar");
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showDoctorModal, setShowDoctorModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editingDoctor, setEditingDoctor] = useState(null);
   const [showAddClinicaModal, setShowAddClinicaModal] = useState(false);
   const [newClinicaForm, setNewClinicaForm] = useState({
     Nombre: "",
@@ -227,13 +229,24 @@ export default function DoctorsAdminPage() {
       // Remover campo temporal
       delete dataToSend.EspecialidadOtra;
       
-      const res = await fetch("/api/doctors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend),
-      });
+      let res;
+      if (editMode && editingDoctor) {
+        // Actualizar médico existente
+        res = await fetch("/api/doctors", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingDoctor.id, ...dataToSend }),
+        });
+      } else {
+        // Crear nuevo médico
+        res = await fetch("/api/doctors", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dataToSend),
+        });
+      }
       
-      if (!res.ok) throw new Error("Error registrando médico");
+      if (!res.ok) throw new Error(`Error ${editMode ? 'actualizando' : 'registrando'} médico`);
       
       setForm({ 
         Name: "", 
@@ -245,17 +258,19 @@ export default function DoctorsAdminPage() {
         Seguros: [],
         Clinicas: []
       });
+      setEditMode(false);
+      setEditingDoctor(null);
       fetchDoctors();
-      setMsg("✅ Médico registrado exitosamente");
+      setMsg(`✅ Médico ${editMode ? 'actualizado' : 'registrado'} exitosamente`);
       
-      // Cambiar a tab de gestión después de agregar
+      // Cambiar a tab de gestión después de agregar/editar
       setTimeout(() => {
         setActiveTab("gestionar");
         setMsg("");
       }, 2000);
       
     } catch {
-      setMsg("❌ Error registrando médico");
+      setMsg(`❌ Error ${editMode ? 'actualizando' : 'registrando'} médico`);
     } finally {
       setLoading(false);
     }
@@ -286,6 +301,48 @@ export default function DoctorsAdminPage() {
   const openDoctorModal = (doctor) => {
     setSelectedDoctor(doctor);
     setShowDoctorModal(true);
+  };
+
+  const startEdit = (doctor) => {
+    // Preparar datos del médico para edición
+    const segurosArray = doctor.fields?.Seguros 
+      ? doctor.fields.Seguros.split(", ").filter(Boolean)
+      : [];
+    
+    const clinicasArray = doctor.fields?.Clinicas || [];
+    
+    setForm({
+      Name: doctor.fields?.Name || "",
+      Especialidad: doctor.fields?.Especialidad || "",
+      EspecialidadOtra: "",
+      WhatsApp: doctor.fields?.WhatsApp || "",
+      Email: doctor.fields?.Email || "",
+      Atiende: doctor.fields?.Atiende || "",
+      Seguros: segurosArray,
+      Clinicas: clinicasArray
+    });
+    
+    setEditingDoctor(doctor);
+    setEditMode(true);
+    setActiveTab("agregar");
+    setShowDoctorModal(false);
+    setMsg("");
+  };
+
+  const cancelEdit = () => {
+    setForm({ 
+      Name: "", 
+      Especialidad: "", 
+      EspecialidadOtra: "", 
+      WhatsApp: "", 
+      Email: "", 
+      Atiende: "", 
+      Seguros: [],
+      Clinicas: []
+    });
+    setEditMode(false);
+    setEditingDoctor(null);
+    setMsg("");
   };
 
   // Filtrado mejorado
@@ -336,9 +393,12 @@ export default function DoctorsAdminPage() {
       <div className="mobile-tabs">
         <button 
           className={`tab-button ${activeTab === "agregar" ? "active" : ""}`}
-          onClick={() => setActiveTab("agregar")}
+          onClick={() => {
+            setActiveTab("agregar");
+            if (editMode) cancelEdit();
+          }}
         >
-          👨‍⚕️ Agregar
+          👨‍⚕️ {editMode ? "Editar" : "Agregar"}
         </button>
         <button 
           className={`tab-button ${activeTab === "gestionar" ? "active" : ""}`}
@@ -360,11 +420,28 @@ export default function DoctorsAdminPage() {
         {activeTab === "agregar" && (
           <div className="form-container">
             <div className="form-header">
-              <h2 className="form-title">Nuevo Médico</h2>
-              <p className="form-subtitle">Completa todos los campos</p>
+              <h2 className="form-title">
+                {editMode ? `Editar: Dr. ${editingDoctor?.fields?.Name}` : "Nuevo Médico"}
+              </h2>
+              <p className="form-subtitle">
+                {editMode ? "Modifica los datos del médico" : "Completa todos los campos"}
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="doctor-form">
+              {editMode && (
+                <div className="edit-notice">
+                  <span className="edit-icon">✏️</span>
+                  <span className="edit-text">Editando médico existente</span>
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="cancel-edit-btn"
+                  >
+                    ✕ Cancelar
+                  </button>
+                </div>
+              )}
               <div className="input-group">
                 <label className="input-label">Nombre Completo</label>
                 <input
@@ -539,7 +616,7 @@ export default function DoctorsAdminPage() {
                 disabled={loading}
                 className="submit-button"
               >
-                {loading ? "⏳ Guardando..." : "✅ Agregar Médico"}
+                {loading ? "⏳ Guardando..." : editMode ? "✅ Actualizar Médico" : "✅ Agregar Médico"}
               </button>
             </form>
           </div>
@@ -767,7 +844,14 @@ export default function DoctorsAdminPage() {
                 <div className="contact-item">
                   <div className="contact-label">🏥 Clínicas</div>
                   <div className="contact-value">
-                    {selectedDoctor.fields?.Clinicas?.length || 0} clínica{selectedDoctor.fields?.Clinicas?.length !== 1 ? 's' : ''} registrada{selectedDoctor.fields?.Clinicas?.length !== 1 ? 's' : ''}
+                    {selectedDoctor.fields?.Clinicas?.length ? (
+                      <div className="clinicas-list-modal">
+                        {/* Aquí mostraremos las clínicas del médico */}
+                        {selectedDoctor.fields.Clinicas.length} clínica{selectedDoctor.fields.Clinicas.length !== 1 ? 's' : ''} registrada{selectedDoctor.fields.Clinicas.length !== 1 ? 's' : ''}
+                      </div>
+                    ) : (
+                      "Sin clínicas registradas"
+                    )}
                   </div>
                 </div>
                 <div className="contact-item">
@@ -787,6 +871,12 @@ export default function DoctorsAdminPage() {
                 className="modal-button secondary"
               >
                 Cerrar
+              </button>
+              <button
+                onClick={() => startEdit(selectedDoctor)}
+                className="modal-button primary"
+              >
+                ✏️ Editar
               </button>
               <button
                 onClick={() => handleDelete(selectedDoctor)}
@@ -1036,6 +1126,73 @@ export default function DoctorsAdminPage() {
 
         .submit-button:not(:disabled):active {
           transform: scale(0.98);
+        }
+
+        /* Estilos para modo edición */
+        .edit-notice {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px;
+          background: #fff3cd;
+          border: 1px solid #ffeaa7;
+          border-radius: 10px;
+          margin-bottom: 16px;
+        }
+
+        .edit-icon {
+          font-size: 16px;
+        }
+
+        .edit-text {
+          flex: 1;
+          font-size: 13px;
+          font-weight: 600;
+          color: #856404;
+        }
+
+        .cancel-edit-btn {
+          background: #ff3b30;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .cancel-edit-btn:active {
+          transform: scale(0.95);
+        }
+
+        /* Botón de editar en tarjetas */
+        .doctor-actions {
+          margin-top: 8px;
+        }
+
+        .edit-doctor-btn {
+          background: #007aff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 4px 8px;
+          font-size: 10px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .edit-doctor-btn:active {
+          transform: scale(0.95);
+        }
+
+        /* Lista de clínicas en modal */
+        .clinicas-list-modal {
+          font-size: 13px;
+          color: #34c759;
+          font-weight: 600;
         }
 
         /* Campo de otra especialidad */

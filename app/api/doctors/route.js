@@ -47,6 +47,50 @@ export async function POST(req) {
   }
 }
 
+// PUT: actualizar médico existente
+export async function PUT(req) {
+  try {
+    const body = await req.json();
+    const { id, ...updateData } = body;
+    
+    if (!id) {
+      return NextResponse.json({ error: "ID requerido" }, { status: 400 });
+    }
+    
+    console.log('📝 Actualizando médico:', id, updateData);
+    
+    const res = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          records: [{
+            id: id,
+            fields: updateData
+          }]
+        }),
+      }
+    );
+    
+    const data = await res.json();
+    
+    if (data.error) {
+      console.error('❌ Error actualizando médico:', data.error);
+      return NextResponse.json({ error: data.error }, { status: 500 });
+    }
+    
+    console.log('✅ Médico actualizado:', id);
+    return NextResponse.json(data.records[0]);
+  } catch (err) {
+    console.error('❌ Error en PUT médicos:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
 // DELETE: eliminar médico por id
 export async function DELETE(req) {
   const { searchParams } = new URL(req.url);
