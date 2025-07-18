@@ -15,6 +15,7 @@ function groupBySpecialty(doctors) {
 
 export default function DoctorsAdminPage() {
   const [doctors, setDoctors] = useState([]);
+  const [clinicas, setClinicas] = useState([]);
   const [msg, setMsg] = useState("");
   const [filter, setFilter] = useState("");
   const [form, setForm] = useState({
@@ -25,11 +26,19 @@ export default function DoctorsAdminPage() {
     Email: "",
     Atiende: "",
     Seguros: [],
+    Clinicas: [],
   });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("agregar");
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showDoctorModal, setShowDoctorModal] = useState(false);
+  const [showAddClinicaModal, setShowAddClinicaModal] = useState(false);
+  const [newClinicaForm, setNewClinicaForm] = useState({
+    Nombre: "",
+    Direccion: "",
+    Comuna: "",
+    Telefono: ""
+  });
 
   const router = useRouter();
 
@@ -49,8 +58,20 @@ export default function DoctorsAdminPage() {
     "Fonasa", "Isapres", "Particular"
   ];
 
+  // Comunas principales
+  const comunas = [
+    "Las Condes", "Providencia", "Vitacura", "Ñuñoa", "Santiago Centro",
+    "La Reina", "Lo Barnechea", "Macul", "San Miguel", "La Florida",
+    "Maipú", "Pudahuel", "Quilicura", "Renca", "Independencia",
+    "Recoleta", "Conchalí", "Huechuraba", "Estación Central",
+    "Pedro Aguirre Cerda", "San Joaquín", "San Ramón", "El Bosque",
+    "La Cisterna", "Lo Espejo", "San Bernardo", "Puente Alto",
+    "La Pintana", "Peñalolén", "Cerrillos"
+  ];
+
   useEffect(() => {
     fetchDoctors();
+    fetchClinicas();
   }, []);
 
   const fetchDoctors = async () => {
@@ -61,6 +82,16 @@ export default function DoctorsAdminPage() {
       setDoctors(Array.isArray(data) ? data : []);
     } catch {
       setMsg("No se pudieron cargar los médicos.");
+    }
+  };
+
+  const fetchClinicas = async () => {
+    try {
+      const res = await fetch("/api/clinicas");
+      const data = await res.json();
+      setClinicas(Array.isArray(data) ? data : []);
+    } catch {
+      console.error("Error cargando clínicas");
     }
   };
 
@@ -81,6 +112,61 @@ export default function DoctorsAdminPage() {
         ? prev.Seguros.filter(s => s !== seguro)
         : [...prev.Seguros, seguro]
     }));
+  };
+
+  const handleClinicaChange = (clinicaId) => {
+    setForm(prev => ({
+      ...prev,
+      Clinicas: prev.Clinicas.includes(clinicaId)
+        ? prev.Clinicas.filter(c => c !== clinicaId)
+        : [...prev.Clinicas, clinicaId]
+    }));
+  };
+
+  const handleNewClinicaInput = (e) => {
+    setNewClinicaForm({ ...newClinicaForm, [e.target.name]: e.target.value });
+  };
+
+  const handleAddNewClinica = async (e) => {
+    e.preventDefault();
+    
+    if (!newClinicaForm.Nombre.trim() || !newClinicaForm.Direccion.trim() || !newClinicaForm.Comuna) {
+      setMsg("❌ Completa todos los campos de la clínica");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/clinicas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newClinicaForm),
+      });
+      
+      if (!res.ok) throw new Error("Error creando clínica");
+      
+      const newClinica = await res.json();
+      
+      // Actualizar lista de clínicas
+      await fetchClinicas();
+      
+      // Agregar automáticamente la nueva clínica al médico
+      setForm(prev => ({
+        ...prev,
+        Clinicas: [...prev.Clinicas, newClinica.id]
+      }));
+      
+      // Limpiar formulario y cerrar modal
+      setNewClinicaForm({ Nombre: "", Direccion: "", Comuna: "", Telefono: "" });
+      setShowAddClinicaModal(false);
+      setMsg("✅ Clínica creada y agregada al médico");
+      
+      setTimeout(() => setMsg(""), 3000);
+    } catch {
+      setMsg("❌ Error creando clínica");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async e => {
@@ -118,6 +204,10 @@ export default function DoctorsAdminPage() {
       setMsg("❌ Debes seleccionar al menos un tipo de seguro");
       return;
     }
+    if (form.Clinicas.length === 0) {
+      setMsg("❌ Debes seleccionar al menos una clínica");
+      return;
+    }
 
     setLoading(true);
     setMsg("");
@@ -127,7 +217,8 @@ export default function DoctorsAdminPage() {
       const dataToSend = {
         ...form,
         Especialidad: especialidadFinal,
-        Seguros: form.Seguros.join(", ") // Convertir array a string
+        Seguros: form.Seguros.join(", "), // Convertir array a string
+        Clinicas: form.Clinicas // Enviar como array de IDs
       };
       
       // Remover campo temporal
@@ -148,7 +239,8 @@ export default function DoctorsAdminPage() {
         WhatsApp: "", 
         Email: "", 
         Atiende: "", 
-        Seguros: [] 
+        Seguros: [],
+        Clinicas: []
       });
       fetchDoctors();
       setMsg("✅ Médico registrado exitosamente");
@@ -359,6 +451,61 @@ export default function DoctorsAdminPage() {
                     </label>
                   ))}
                 </div>
+
+                <div className="input-group">
+                  <label className="input-label">Clínicas donde atiende</label>
+                  <div className="clinicas-section">
+                    <div className="clinicas-header">
+                      <span className="clinicas-title">Selecciona clínicas</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddClinicaModal(true)}
+                        className="add-clinica-btn"
+                      >
+                        ➕ Nueva
+                      </button>
+                    </div>
+                    
+                    {clinicas.length === 0 ? (
+                      <div className="no-clinicas">
+                        <p>No hay clínicas registradas</p>
+                        <button
+                          type="button"
+                          onClick={() => setShowAddClinicaModal(true)}
+                          className="add-first-clinica"
+                        >
+                          🏥 Agregar primera clínica
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="clinicas-grid">
+                        {clinicas.map(clinica => (
+                          <label key={clinica.id} className="clinica-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={form.Clinicas.includes(clinica.id)}
+                              onChange={() => handleClinicaChange(clinica.id)}
+                              className="checkbox-input"
+                            />
+                            <span className="checkbox-custom"></span>
+                            <div className="clinica-info">
+                              <span className="clinica-name">{clinica.fields?.Nombre}</span>
+                              <span className="clinica-location">📍 {clinica.fields?.Comuna}</span>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {form.Clinicas.length > 0 && (
+                      <div className="clinicas-selected">
+                        <span className="selected-count">
+                          ✓ {form.Clinicas.length} clínica{form.Clinicas.length !== 1 ? 's' : ''} seleccionada{form.Clinicas.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <div className="seguros-selected">
                   {form.Seguros.length > 0 && (
                     <span className="selected-count">
@@ -450,6 +597,9 @@ export default function DoctorsAdminPage() {
                               <div className="doctor-seguros">
                                 💳 {doctor.fields?.Seguros || "No especificado"}
                               </div>
+                              <div className="doctor-clinicas">
+                                🏥 {doctor.fields?.Clinicas?.length || 0} clínica{doctor.fields?.Clinicas?.length !== 1 ? 's' : ''}
+                              </div>
                               <div className="doctor-contact">
                                 📱 {doctor.fields?.WhatsApp}
                               </div>
@@ -466,6 +616,100 @@ export default function DoctorsAdminPage() {
           </div>
         )}
       </div>
+
+      {/* Modal para Agregar Nueva Clínica */}
+      {showAddClinicaModal && (
+        <div className="modal-overlay" onClick={() => setShowAddClinicaModal(false)}>
+          <div className="modal-content add-clinica-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-clinica-icon">🏥</div>
+              <div className="modal-clinica-info">
+                <h3 className="modal-clinica-name">Nueva Clínica</h3>
+                <p className="modal-clinica-specialty">Agregar al registro</p>
+              </div>
+              <button 
+                onClick={() => setShowAddClinicaModal(false)}
+                className="modal-close"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddNewClinica} className="add-clinica-form">
+              <div className="input-group">
+                <label className="input-label">Nombre de la Clínica</label>
+                <input
+                  type="text"
+                  name="Nombre"
+                  placeholder="Clínica Ejemplo"
+                  value={newClinicaForm.Nombre}
+                  onChange={handleNewClinicaInput}
+                  required
+                  className="form-input"
+                />
+              </div>
+              
+              <div className="input-group">
+                <label className="input-label">Dirección</label>
+                <input
+                  type="text"
+                  name="Direccion"
+                  placeholder="Av. Ejemplo 123"
+                  value={newClinicaForm.Direccion}
+                  onChange={handleNewClinicaInput}
+                  required
+                  className="form-input"
+                />
+              </div>
+              
+              <div className="input-group">
+                <label className="input-label">Comuna</label>
+                <select
+                  name="Comuna"
+                  value={newClinicaForm.Comuna}
+                  onChange={handleNewClinicaInput}
+                  required
+                  className="form-select"
+                >
+                  <option value="">Selecciona comuna</option>
+                  {comunas.map(comuna => (
+                    <option key={comuna} value={comuna}>{comuna}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="input-group">
+                <label className="input-label">Teléfono (Opcional)</label>
+                <input
+                  type="tel"
+                  name="Telefono"
+                  placeholder="+56 2 2345 6789"
+                  value={newClinicaForm.Telefono}
+                  onChange={handleNewClinicaInput}
+                  className="form-input"
+                />
+              </div>
+              
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowAddClinicaModal(false)}
+                  className="modal-button secondary"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="modal-button primary"
+                >
+                  {loading ? "⏳ Creando..." : "✅ Crear y Agregar"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Detalle del Médico */}
       {showDoctorModal && selectedDoctor && (
@@ -500,6 +744,12 @@ export default function DoctorsAdminPage() {
                 <div className="contact-item">
                   <div className="contact-label">💳 Seguros</div>
                   <div className="contact-value">{selectedDoctor.fields?.Seguros || "No especificado"}</div>
+                </div>
+                <div className="contact-item">
+                  <div className="contact-label">🏥 Clínicas</div>
+                  <div className="contact-value">
+                    {selectedDoctor.fields?.Clinicas?.length || 0} clínica{selectedDoctor.fields?.Clinicas?.length !== 1 ? 's' : ''} registrada{selectedDoctor.fields?.Clinicas?.length !== 1 ? 's' : ''}
+                  </div>
                 </div>
                 <div className="contact-item">
                   <div className="contact-label">📱 WhatsApp</div>
@@ -1018,6 +1268,141 @@ export default function DoctorsAdminPage() {
 
         .doctor-seguros {
           color: #34c759;
+        }
+
+        .doctor-clinicas {
+          color: #ff9500;
+          font-weight: 600;
+        }
+
+        /* Sección de Clínicas */
+        .clinicas-section {
+          border: 1.5px solid #e5e5e7;
+          border-radius: 12px;
+          padding: 12px;
+          background: #f8faff;
+          margin-top: 4px;
+        }
+
+        .clinicas-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 12px;
+        }
+
+        .clinicas-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+
+        .add-clinica-btn {
+          background: #007aff;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 4px 8px;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .add-clinica-btn:active {
+          transform: scale(0.95);
+        }
+
+        .no-clinicas {
+          text-align: center;
+          padding: 20px 10px;
+          color: #8e8e93;
+        }
+
+        .no-clinicas p {
+          margin: 0 0 12px;
+          font-size: 13px;
+        }
+
+        .add-first-clinica {
+          background: linear-gradient(135deg, #34c759, #30a14e);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 8px 16px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .add-first-clinica:active {
+          transform: scale(0.95);
+        }
+
+        .clinicas-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          max-height: 200px;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .clinica-checkbox {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 8px;
+          transition: all 0.2s ease;
+          background: white;
+          border: 1px solid #f0f0f0;
+        }
+
+        .clinica-checkbox:hover {
+          background: #f0f4fa;
+        }
+
+        .clinica-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .clinica-name {
+          display: block;
+          font-size: 13px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 2px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .clinica-location {
+          font-size: 11px;
+          color: #8e8e93;
+          font-weight: 500;
+        }
+
+        .clinicas-selected {
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px solid #e5e5e7;
+        }
+
+        /* Modal de Agregar Clínica */
+        .add-clinica-modal {
+          max-width: 450px;
+        }
+
+        .add-clinica-form {
+          padding: 20px 16px 0;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
 
         .card-arrow {
