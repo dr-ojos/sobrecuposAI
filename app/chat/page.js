@@ -149,84 +149,17 @@ export default function ChatPage() {
     });
   };
 
-  // Sugerencias mejoradas con más categorías
-  const suggestionCategories = [
-    {
-      title: "🚨 Urgencias",
-      suggestions: [
-        {
-          text: "Necesito oftalmólogo urgente",
-          subtitle: "Problema visual que requiere atención inmediata"
-        },
-        {
-          text: "Dolor de pecho fuerte",
-          subtitle: "Molestia torácica que necesita evaluación"
-        },
-        {
-          text: "Fiebre alta que no baja",
-          subtitle: "Temperatura elevada persistente"
-        }
-      ]
-    },
-    {
-      title: "🩺 Especialidades",
-      suggestions: [
-        {
-          text: "Consulta con cardiólogo",
-          subtitle: "Especialista del corazón"
-        },
-        {
-          text: "Necesito dermatólogo",
-          subtitle: "Problemas de piel"
-        },
-        {
-          text: "Cita con ginecólogo",
-          subtitle: "Salud femenina"
-        },
-        {
-          text: "Consulta neurológica",
-          subtitle: "Sistema nervioso"
-        }
-      ]
-    },
-    {
-      title: "💊 Síntomas Comunes",
-      suggestions: [
-        {
-          text: "Dolor de cabeza frecuente",
-          subtitle: "Cefaleas recurrentes"
-        },
-        {
-          text: "Problemas para dormir",
-          subtitle: "Trastornos del sueño"
-        },
-        {
-          text: "Dolor de espalda",
-          subtitle: "Molestias lumbares o cervicales"
-        }
-      ]
-    },
-    {
-      title: "✅ Chequeos",
-      suggestions: [
-        {
-          text: "Chequeo médico general",
-          subtitle: "Examen preventivo completo"
-        },
-        {
-          text: "Control de presión arterial",
-          subtitle: "Monitoreo cardiovascular"
-        },
-        {
-          text: "Exámenes de laboratorio",
-          subtitle: "Análisis de sangre y orina"
-        }
-      ]
-    }
+  // Sugerencias simples - solo 5 ejemplos
+  const quickSuggestions = [
+    "Necesito oftalmólogo urgente",
+    "Consulta con cardiólogo", 
+    "Dolor de cabeza frecuente",
+    "Chequeo médico general",
+    "Necesito dermatólogo"
   ];
 
   const handleSuggestionClick = (suggestion) => {
-    setInput(suggestion.text);
+    setInput(suggestion);
     inputRef.current?.focus();
   };
 
@@ -303,48 +236,29 @@ export default function ChatPage() {
           <div ref={endRef} />
         </div>
 
-        {/* Sugerencias mejoradas tipo ChatGPT */}
-        {messages.length === 1 && (
-          <div className="suggestions-section">
-            <div className="suggestions-header">
-              <h3 className="suggestions-main-title">¿En qué te puedo ayudar?</h3>
-              <p className="suggestions-subtitle">Selecciona una opción o escribe tu consulta</p>
-            </div>
-            
-            <div className="suggestions-categories">
-              {suggestionCategories.map((category, categoryIndex) => (
-                <div key={categoryIndex} className="suggestion-category">
-                  <h4 className="category-title">{category.title}</h4>
-                  <div className="suggestions-carousel">
-                    <div className="suggestions-scroll">
-                      {category.suggestions.map((suggestion, index) => (
-                        <div
-                          key={index}
-                          className="suggestion-card"
-                          onClick={() => handleSuggestionClick(suggestion)}
-                        >
-                          <div className="suggestion-content">
-                            <h5 className="suggestion-title">{suggestion.text}</h5>
-                            <p className="suggestion-description">{suggestion.subtitle}</p>
-                          </div>
-                          <div className="suggestion-arrow">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                              <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
       </main>
 
       {/* Input mejorado */}
       <footer className="chat-input-container">
+        {/* Sugerencias simples arriba del input */}
+        {messages.length === 1 && (
+          <div className="simple-suggestions">
+            <p className="suggestions-label">Prueba preguntando</p>
+            <div className="suggestions-carousel">
+              {quickSuggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  className="suggestion-chip"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="chat-form">
           <div className="input-wrapper">
             <input
@@ -658,173 +572,60 @@ export default function ChatPage() {
           }
         }
 
-        /* Sugerencias mejoradas */
-        .suggestions-section {
-          margin-top: 2rem;
-          padding: 0 1.5rem;
-          animation: slideIn 0.6s ease-out;
+        /* Sugerencias simples */
+        .simple-suggestions {
+          margin-bottom: 1rem;
+          max-width: 800px;
+          margin-left: auto;
+          margin-right: auto;
         }
 
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .suggestions-header {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-
-        .suggestions-main-title {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1d1d1f;
+        .suggestions-label {
+          font-size: 0.8rem;
+          color: #8e8e93;
           margin: 0 0 0.5rem;
-          background: linear-gradient(135deg, #1d1d1f 0%, #007aff 50%, #5856d6 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .suggestions-subtitle {
-          font-size: 0.9rem;
-          color: #6e6e73;
-          margin: 0;
           font-weight: 400;
-        }
-
-        .suggestions-categories {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .suggestion-category {
-          margin-bottom: 0.5rem;
-        }
-
-        .category-title {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #1d1d1f;
-          margin: 0 0 0.75rem;
-          padding-left: 0.25rem;
+          text-align: center;
         }
 
         .suggestions-carousel {
-          position: relative;
-          overflow: hidden;
-        }
-
-        .suggestions-scroll {
           display: flex;
-          gap: 1rem;
+          gap: 0.5rem;
           overflow-x: auto;
+          padding: 0.25rem 0;
           scroll-behavior: smooth;
-          padding-bottom: 0.5rem;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           -ms-overflow-style: none;
         }
 
-        .suggestions-scroll::-webkit-scrollbar {
+        .suggestions-carousel::-webkit-scrollbar {
           display: none;
         }
 
-        .suggestion-card {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(0, 0, 0, 0.06);
+        .suggestion-chip {
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.1);
           border-radius: 16px;
-          padding: 1.25rem;
-          min-width: 280px;
-          max-width: 320px;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          position: relative;
-          overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-          flex-shrink: 0;
-        }
-
-        .suggestion-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 3px;
-          background: linear-gradient(90deg, #007aff, #5856d6);
-          transform: translateX(-100%);
-          transition: transform 0.3s ease;
-        }
-
-        .suggestion-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 30px rgba(0, 122, 255, 0.15);
-          border-color: rgba(0, 122, 255, 0.2);
-        }
-
-        .suggestion-card:hover::before {
-          transform: translateX(0);
-        }
-
-        .suggestion-card:active {
-          transform: translateY(-2px);
-        }
-
-        .suggestion-content {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .suggestion-title {
-          font-size: 0.95rem;
-          font-weight: 600;
-          color: #1d1d1f;
-          margin: 0 0 0.5rem;
-          line-height: 1.3;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-        }
-
-        .suggestion-description {
+          padding: 0.5rem 0.875rem;
           font-size: 0.8rem;
           color: #6e6e73;
-          margin: 0;
-          line-height: 1.4;
-          font-weight: 400;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-        }
-
-        .suggestion-arrow {
-          color: #007aff;
-          opacity: 0.6;
-          transition: all 0.3s ease;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
           flex-shrink: 0;
-          margin-left: 0.75rem;
-          margin-top: 0.1rem;
+          font-weight: 400;
+          font-family: inherit;
         }
 
-        .suggestion-card:hover .suggestion-arrow {
-          opacity: 1;
-          transform: translateX(2px) translateY(-2px);
+        .suggestion-chip:hover {
+          background: rgba(255, 255, 255, 0.95);
+          border-color: rgba(0, 0, 0, 0.15);
+          color: #1d1d1f;
+        }
+
+        .suggestion-chip:active {
+          transform: scale(0.98);
         }
 
         /* Input */
@@ -839,7 +640,6 @@ export default function ChatPage() {
           left: 0;
           right: 0;
           z-index: 1000;
-          min-height: 80px;
           box-sizing: border-box;
         }
 
@@ -940,97 +740,21 @@ export default function ChatPage() {
           }
 
           .chat-input-container {
-            padding: 0.75rem 0.5rem;
+            padding: 0.75rem;
             padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-            min-height: 85px;
           }
 
-          .header-content {
-            gap: 0.75rem;
-            padding: 0 0.25rem;
+          .simple-suggestions {
+            margin-bottom: 0.75rem;
           }
 
-          .bot-avatar {
-            width: 40px;
-            height: 40px;
-          }
-
-          .avatar-gradient {
-            width: 40px;
-            height: 40px;
-          }
-
-          .bot-icon {
-            font-size: 18px;
-          }
-
-          .messages-container {
-            padding: 1rem 0.25rem;
-          }
-
-          .message-wrapper {
-            padding: 0 0.25rem;
-          }
-
-          .message {
-            max-width: calc(100% - 0.5rem);
-            gap: 0.5rem;
-          }
-
-          .message-content {
-            max-width: calc(100% - 2.5rem);
-          }
-
-          .message-bubble {
-            padding: 0.75rem 0.875rem;
-            word-break: normal;
-            overflow-wrap: break-word;
-            hyphens: auto;
-            font-size: 0.9rem;
-            min-width: 55px;
-          }
-
-          .message-bubble p {
-            font-size: 0.9rem;
-            word-break: normal;
-            overflow-wrap: break-word;
-          }
-
-          .suggestions-section {
-            padding: 0 0.5rem;
-            margin-top: 1.5rem;
-          }
-
-          .suggestions-main-title {
-            font-size: 1.3rem;
-          }
-
-          .suggestions-subtitle {
-            font-size: 0.85rem;
-          }
-
-          .suggestions-categories {
-            gap: 1.25rem;
-          }
-
-          .category-title {
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            padding-left: 0.5rem;
-          }
-
-          .suggestion-card {
-            min-width: 240px;
-            max-width: 280px;
-            padding: 1rem;
-          }
-
-          .suggestion-title {
-            font-size: 0.9rem;
-          }
-
-          .suggestion-description {
+          .suggestions-label {
             font-size: 0.75rem;
+          }
+
+          .suggestion-chip {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.75rem;
           }
 
           .input-wrapper {
@@ -1074,100 +798,21 @@ export default function ChatPage() {
           }
 
           .chat-input-container {
-            padding: 0.6rem 0.4rem;
+            padding: 0.6rem;
             padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
-            min-height: 90px;
           }
 
-          .messages-container {
-            padding: 1rem 0.15rem;
-            overflow-x: hidden;
-            box-sizing: border-box;
+          .simple-suggestions {
+            margin-bottom: 0.6rem;
           }
 
-          .message-wrapper {
-            padding: 0 0.15rem;
-            box-sizing: border-box;
-          }
-
-          .message {
-            max-width: calc(100% - 0.3rem);
-            gap: 0.4rem;
-          }
-
-          .message-content {
-            max-width: calc(100% - 2rem);
-          }
-
-          .message-bubble {
-            padding: 0.65rem 0.75rem;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            word-break: normal;
-            overflow-wrap: break-word;
-            hyphens: auto;
-            border-radius: 16px;
-            min-width: 50px;
-          }
-
-          .message-bubble p {
-            font-size: 0.85rem;
-            word-break: normal;
-            overflow-wrap: break-word;
-            line-height: 1.4;
-          }
-
-          .suggestions-section {
-            padding: 0 0.25rem;
-            margin-top: 1rem;
-          }
-
-          .suggestions-header {
-            margin-bottom: 1.5rem;
-            padding: 0 0.25rem;
-          }
-
-          .suggestions-main-title {
-            font-size: 1.2rem;
-          }
-
-          .suggestions-subtitle {
-            font-size: 0.8rem;
-          }
-
-          .suggestions-categories {
-            gap: 1rem;
-          }
-
-          .category-title {
-            font-size: 0.85rem;
-            margin-bottom: 0.4rem;
-            padding-left: 0.25rem;
-          }
-
-          .suggestions-scroll {
-            gap: 0.75rem;
-            padding-left: 0.25rem;
-            padding-right: 0.25rem;
-          }
-
-          .suggestion-card {
-            min-width: 200px;
-            max-width: 240px;
-            padding: 0.875rem;
-          }
-
-          .suggestion-title {
-            font-size: 0.85rem;
-            margin-bottom: 0.4rem;
-          }
-
-          .suggestion-description {
+          .suggestions-label {
             font-size: 0.7rem;
           }
 
-          .suggestion-arrow {
-            margin-left: 0.5rem;
+          .suggestion-chip {
+            font-size: 0.7rem;
+            padding: 0.35rem 0.6rem;
           }
 
           .send-button {
