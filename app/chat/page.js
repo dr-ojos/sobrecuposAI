@@ -483,8 +483,8 @@ export default function ChatPage() {
         }
 
         .message-bubble {
-          padding: 0.875rem 1.125rem;
-          border-radius: 20px;
+          padding: 0.8rem 1rem;
+          border-radius: 18px;
           position: relative;
           word-wrap: break-word;
           max-width: 100%;
@@ -508,7 +508,7 @@ export default function ChatPage() {
         .message-bubble p {
           margin: 0;
           line-height: 1.4;
-          font-size: 0.95rem;
+          font-size: 0.9rem;
           white-space: pre-wrap;
           word-wrap: break-word;
           overflow-wrap: break-word;
@@ -522,9 +522,9 @@ export default function ChatPage() {
         }
 
         .message-time {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
           color: #8e8e93;
-          font-weight: 500;
+          font-weight: 400;
           padding: 0 0.5rem;
         }
 
@@ -533,9 +533,9 @@ export default function ChatPage() {
           background: rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(10px);
           border: 1px solid rgba(0, 0, 0, 0.06);
-          border-radius: 20px;
+          border-radius: 18px;
           border-bottom-left-radius: 6px;
-          padding: 1rem 1.25rem;
+          padding: 0.8rem 1rem;
           box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
@@ -863,15 +863,15 @@ export default function ChatPage() {
           }
 
           .message-bubble {
-            padding: 0.6rem 0.7rem;
-            font-size: 0.8rem;
-            border-radius: 14px;
-            min-width: 45px;
+            padding: 0.55rem 0.65rem;
+            font-size: 0.75rem;
+            border-radius: 12px;
+            min-width: 40px;
           }
 
           .message-bubble p {
-            font-size: 0.8rem;
-            line-height: 1.35;
+            font-size: 0.75rem;
+            line-height: 1.3;
           }
 
           .suggestions-section {
@@ -919,12 +919,15 @@ export default function ChatPage() {
 
         @media (max-width: 320px) {
           .message-bubble {
-            padding: 0.55rem 0.65rem;
-            font-size: 0.78rem;
+            padding: 0.5rem 0.6rem;
+            font-size: 0.7rem;
+            border-radius: 10px;
+            min-width: 35px;
           }
 
           .message-bubble p {
-            font-size: 0.78rem;
+            font-size: 0.7rem;
+            line-height: 1.25;
           }
 
           .suggestions-main-title {
