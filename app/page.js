@@ -111,7 +111,7 @@ export default function Home() {
               <div className="step-icon">🔍</div>
               <h3 className="step-title">Busca</h3>
               <p className="step-description">
-                Encuentra profesionales médicos disponibles por especialidad, ubicación y fecha.
+                Encuentra profesionales médicos disponibles por especialidad, nombre y/o sintomas.
               </p>
             </div>
             
@@ -119,7 +119,7 @@ export default function Home() {
               <div className="step-icon">📅</div>
               <h3 className="step-title">Agenda</h3>
               <p className="step-description">
-                Selecciona el sobrecupo que mejor se adapte a tus necesidades y agéndalo al instante.
+                Selecciona el sobrecupo que necesitas y agéndalo al instante.
               </p>
             </div>
             
