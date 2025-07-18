@@ -320,61 +320,193 @@ export default async function handler(req, res) {
           console.error("❌ Error actualizando Sobrecupostest:", err);
         }
 
-        // Enviar email de confirmación
-        const medicoId = Array.isArray(chosen["Médico"]) ? chosen["Médico"][0] : chosen["Médico"];
-        const medicoNombre = await getDoctorName(medicoId);
-        
-        const emailPayload = {
-          from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos IA" },
-          personalizations: [{
-            to: [{ email: session.patient.email }],
-            subject: `Sobrecupo confirmado - ${session.specialty}`,
-          }],
-          content: [{
-            type: "text/plain",
-            value:
-              `Hola ${session.patient.name}, tu sobrecupo ha sido confirmado.\n\n` +
-              `📋 Detalles de tu cita:\n` +
-              `Especialidad: ${session.specialty}\n` +
-              `Clínica: ${chosen["Clínica"]||chosen["Clinica"]}\n` +
-              `Dirección: ${chosen["Dirección"]||chosen["Direccion"]}\n` +
-              `Médico: Dr. ${medicoNombre}\n` +
-              `Fecha: ${chosen.Fecha}\n` +
-              `Hora: ${chosen.Hora}\n` +
-              `RUT: ${session.patient.rut}\n\n` +
-              `¡Que te mejores pronto!\n` +
-              `Sobrecupos IA`
-          }]
-        };
-        
-        try {
-          await fetch("https://api.sendgrid.com/v3/mail/send", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${SENDGRID_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(emailPayload)
-          });
-        } catch (err) {
-          console.error("❌ Error SendGrid:", err);
-        }
+        // Reemplazar SOLO esta sección del código (líneas aproximadas 315-330)
+// Mantener todo lo demás exactamente igual
 
-        delete sessions[from];
-        return res.json({
-          text:
-            `✅ ¡Listo, ${session.patient.name}! Tu sobrecupo está confirmado.\n\n` +
-            `📍 ${chosen["Clínica"]||chosen["Clinica"]}\n` +
-            `📍 ${chosen["Dirección"]||chosen["Direccion"]}\n` +
-            `👨‍⚕️ Dr. ${medicoNombre}\n` +
-            `🗓️ ${chosen.Fecha} a las ${chosen.Hora}\n\n` +
-            `📧 Te envié la confirmación a ${session.patient.email}`
-        });
-
-      default:
-        break;
-    }
-  }
+const emailPayload = {
+  from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos" },
+  personalizations: [{
+    to: [{ email: session.patient.email }],
+    subject: `✅ Sobrecupo confirmado - ${session.specialty} | ${chosen.Fecha}`,
+  }],
+  content: [{
+    type: "text/html",
+    value: `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sobrecupo Confirmado</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f7;">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f7;">
+    <tr>
+      <td align="center" style="padding: 20px 0;">
+        <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #007aff 0%, #5856d6 100%); padding: 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Sobrecupos</h1>
+              <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 14px; opacity: 0.9;">Más tiempo sano, menos tiempo enfermo</p>
+            </td>
+          </tr>
+          
+          <!-- Confirmación exitosa -->
+          <tr>
+            <td style="padding: 40px 30px 20px; text-align: center;">
+              <div style="display: inline-block; background-color: #34c759; width: 64px; height: 64px; border-radius: 50%; line-height: 64px; margin-bottom: 20px;">
+                <span style="font-size: 32px;">✓</span>
+              </div>
+              <h2 style="margin: 0 0 10px; color: #1d1d1f; font-size: 24px; font-weight: 600;">¡Sobrecupo Confirmado!</h2>
+              <p style="margin: 0; color: #6e6e73; font-size: 16px;">Hola ${session.patient.name}, tu cita médica ha sido reservada exitosamente.</p>
+            </td>
+          </tr>
+          
+          <!-- Detalles de la cita -->
+          <tr>
+            <td style="padding: 20px 30px;">
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f7; border-radius: 12px; padding: 20px;">
+                <tr>
+                  <td>
+                    <h3 style="margin: 0 0 20px; color: #1d1d1f; font-size: 18px; font-weight: 600;">📋 Detalles de tu cita</h3>
+                    
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <strong style="color: #6e6e73; font-size: 14px;">Especialidad:</strong>
+                        </td>
+                        <td style="padding: 8px 0; text-align: right;">
+                          <span style="color: #1d1d1f; font-size: 14px; font-weight: 600;">${session.specialty}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <strong style="color: #6e6e73; font-size: 14px;">Médico:</strong>
+                        </td>
+                        <td style="padding: 8px 0; text-align: right;">
+                          <span style="color: #1d1d1f; font-size: 14px; font-weight: 600;">Dr. ${medicoNombre}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <strong style="color: #6e6e73; font-size: 14px;">Fecha:</strong>
+                        </td>
+                        <td style="padding: 8px 0; text-align: right;">
+                          <span style="color: #007aff; font-size: 14px; font-weight: 600;">${chosen.Fecha}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <strong style="color: #6e6e73; font-size: 14px;">Hora:</strong>
+                        </td>
+                        <td style="padding: 8px 0; text-align: right;">
+                          <span style="color: #007aff; font-size: 14px; font-weight: 600;">${chosen.Hora}</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Ubicación -->
+          <tr>
+            <td style="padding: 0 30px 20px;">
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #fff3cd; border-radius: 12px; padding: 20px;">
+                <tr>
+                  <td>
+                    <h3 style="margin: 0 0 10px; color: #856404; font-size: 16px; font-weight: 600;">📍 Ubicación</h3>
+                    <p style="margin: 0 0 5px; color: #856404; font-size: 14px;"><strong>${chosen["Clínica"]||chosen["Clinica"]}</strong></p>
+                    <p style="margin: 0; color: #856404; font-size: 14px;">${chosen["Dirección"]||chosen["Direccion"]}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Recordatorios importantes -->
+          <tr>
+            <td style="padding: 0 30px 30px;">
+              <h3 style="margin: 0 0 15px; color: #1d1d1f; font-size: 16px; font-weight: 600;">🔔 Recordatorios importantes</h3>
+              <ul style="margin: 0; padding-left: 20px; color: #6e6e73; font-size: 14px; line-height: 24px;">
+                <li>Llega 15 minutos antes de tu cita</li>
+                <li>Trae tu cédula de identidad y documentos de tu previsión</li>
+                <li>Si tienes exámenes previos, no olvides llevarlos</li>
+                <li>En caso de no poder asistir, avísanos con anticipación</li>
+              </ul>
+            </td>
+          </tr>
+          
+          <!-- Datos del paciente -->
+          <tr>
+            <td style="padding: 0 30px 30px;">
+              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top: 1px solid #e5e5e7; padding-top: 20px;">
+                <tr>
+                  <td>
+                    <p style="margin: 0; color: #6e6e73; font-size: 12px;"><strong>Paciente:</strong> ${session.patient.name}</p>
+                    <p style="margin: 5px 0 0; color: #6e6e73; font-size: 12px;"><strong>RUT:</strong> ${session.patient.rut}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f5f5f7; padding: 30px; text-align: center;">
+              <p style="margin: 0 0 10px; color: #6e6e73; font-size: 14px;">¿Tienes alguna pregunta?</p>
+              <p style="margin: 0 0 20px; color: #6e6e73; font-size: 14px;">
+                Contáctanos en <a href="mailto:soporte@sobrecupos.cl" style="color: #007aff; text-decoration: none;">soporte@sobrecupos.cl</a>
+              </p>
+              <hr style="border: none; border-top: 1px solid #e5e5e7; margin: 20px 0;">
+              <p style="margin: 0; color: #86868b; font-size: 12px;">
+                © 2024 Sobrecupos. Todos los derechos reservados.<br>
+                Santiago, Chile
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `
+  }, {
+    type: "text/plain",
+    value:
+      `Hola ${session.patient.name}, tu sobrecupo ha sido confirmado.\n\n` +
+      `DETALLES DE TU CITA:\n` +
+      `Especialidad: ${session.specialty}\n` +
+      `Médico: Dr. ${medicoNombre}\n` +
+      `Fecha: ${chosen.Fecha}\n` +
+      `Hora: ${chosen.Hora}\n\n` +
+      `UBICACIÓN:\n` +
+      `${chosen["Clínica"]||chosen["Clinica"]}\n` +
+      `${chosen["Dirección"]||chosen["Direccion"]}\n\n` +
+      `RECORDATORIOS:\n` +
+      `- Llega 15 minutos antes\n` +
+      `- Trae tu cédula de identidad\n` +
+      `- Lleva documentos de tu previsión\n\n` +
+      `Paciente: ${session.patient.name}\n` +
+      `RUT: ${session.patient.rut}\n\n` +
+      `¿Preguntas? Escríbenos a soporte@sobrecupos.cl\n\n` +
+      `Sobrecupos - Más tiempo sano, menos tiempo enfermo`
+  }]
+};
 
   // 5) Detectar especialidad directa primero
   const especialidadDirecta = detectarEspecialidadDirecta(text);
