@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// Agrupa médicos por especialidad
+// Función para agrupar médicos por especialidad
 function groupBySpecialty(doctors) {
   const groups = {};
   for (const d of doctors) {
@@ -24,10 +24,17 @@ export default function DoctorsAdminPage() {
     Email: "",
   });
   const [loading, setLoading] = useState(false);
-  const [openSpecialty, setOpenSpecialty] = useState(null);
-  const [openDoctor, setOpenDoctor] = useState(null);
+  const [activeTab, setActiveTab] = useState("agregar");
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [showDoctorModal, setShowDoctorModal] = useState(false);
 
   const router = useRouter();
+
+  // Especialidades predefinidas para mejor UX
+  const especialidades = [
+    "Oftalmología", "Medicina Familiar", "Dermatología", 
+    "Pediatría", "Otorrinolaringología", "Neurología", "Cardiología"
+  ];
 
   useEffect(() => {
     fetchDoctors();
@@ -50,361 +57,1002 @@ export default function DoctorsAdminPage() {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    
+    // Validaciones
+    if (!form.Name.trim()) {
+      setMsg("❌ El nombre es obligatorio");
+      return;
+    }
+    if (!form.Especialidad) {
+      setMsg("❌ Debes seleccionar una especialidad");
+      return;
+    }
+    if (!form.WhatsApp.trim()) {
+      setMsg("❌ El WhatsApp es obligatorio");
+      return;
+    }
+    if (!form.Email.trim() || !form.Email.includes('@')) {
+      setMsg("❌ Ingresa un email válido");
+      return;
+    }
+
     setLoading(true);
     setMsg("");
+    
     try {
       const res = await fetch("/api/doctors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      
       if (!res.ok) throw new Error("Error registrando médico");
+      
       setForm({ Name: "", Especialidad: "", WhatsApp: "", Email: "" });
       fetchDoctors();
+      setMsg("✅ Médico registrado exitosamente");
+      
+      // Cambiar a tab de gestión después de agregar
+      setTimeout(() => {
+        setActiveTab("gestionar");
+        setMsg("");
+      }, 2000);
+      
     } catch {
-      setMsg("Error registrando médico.");
+      setMsg("❌ Error registrando médico");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async id => {
-    if (!window.confirm("¿Estás seguro de eliminar este médico?")) return;
+  const handleDelete = async (doctor) => {
+    if (!window.confirm(`¿Estás seguro de eliminar al Dr. ${doctor.fields?.Name}?`)) return;
+    
     setLoading(true);
     setMsg("");
+    
     try {
-      const res = await fetch(`/api/doctors?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/doctors?id=${doctor.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Error eliminando médico");
+      
       fetchDoctors();
+      setMsg("✅ Médico eliminado correctamente");
+      setShowDoctorModal(false);
+      
+      setTimeout(() => setMsg(""), 3000);
     } catch {
-      setMsg("Error eliminando médico.");
+      setMsg("❌ Error eliminando médico");
     } finally {
       setLoading(false);
     }
   };
 
-  // Filtrado por nombre/especialidad
+  const openDoctorModal = (doctor) => {
+    setSelectedDoctor(doctor);
+    setShowDoctorModal(true);
+  };
+
+  // Filtrado mejorado
   const filtered = doctors.filter(d => {
-    const n = d.fields?.Name?.toLowerCase() || "";
-    const e = d.fields?.Especialidad?.toLowerCase() || "";
-    return (
-      n.includes(filter.toLowerCase()) ||
-      e.includes(filter.toLowerCase())
-    );
+    const name = d.fields?.Name?.toLowerCase() || "";
+    const specialty = d.fields?.Especialidad?.toLowerCase() || "";
+    const email = d.fields?.Email?.toLowerCase() || "";
+    const searchTerm = filter.toLowerCase();
+    
+    return name.includes(searchTerm) || 
+           specialty.includes(searchTerm) || 
+           email.includes(searchTerm);
   });
 
   const specialties = Object.entries(groupBySpecialty(filtered));
 
-  // Maneja abrir/cerrar acordeón de especialidad
-  const toggleSpecialty = (esp) => {
-    setOpenSpecialty(openSpecialty === esp ? null : esp);
-    setOpenDoctor(null); // Cierra médicos al cambiar especialidad
-  };
-
-  // Maneja abrir/cerrar acordeón de médico
-  const toggleDoctor = (id) => {
-    setOpenDoctor(openDoctor === id ? null : id);
-  };
-
   return (
-    <div style={{
-      maxWidth: 500,
-      margin: "0 auto",
-      padding: 24,
-      background: "#fff",
-      borderRadius: 16,
-      boxShadow: "0 4px 24px rgba(0,0,0,0.11)",
-      marginTop: 40,
-      fontFamily: 'Inter, Arial, sans-serif'
-    }}>
-      {/* Botón de volver */}
-      <button
-        onClick={() => router.push("/admin")}
-        style={{
-          background: "#F3F6FA",
-          border: "1px solid #b6c5e0",
-          color: "#1D62F0",
-          fontWeight: 600,
-          fontSize: 15,
-          padding: "8px 22px",
-          borderRadius: 8,
-          marginBottom: 18,
-          cursor: "pointer",
-          display: "block",
-          marginLeft: "auto",
-          marginRight: "auto",
-          marginTop: -4,
-          marginBottom: 26,
-          transition: "background .2s"
-        }}
-      >← Volver a carga de sobrecupos</button>
-
-      <h1 style={{
-        textAlign: "center",
-        fontWeight: 700,
-        fontSize: "2rem",
-        marginBottom: 12
-      }}>
-        Médicos registrados
-      </h1>
-
-      <h2 style={{
-        textAlign: "center",
-        color: "#1D62F0",
-        fontWeight: 600,
-        marginBottom: 12,
-        fontSize: "1.18rem",
-        marginTop: 12
-      }}>Agregar nuevo médico</h2>
-      <form onSubmit={handleSubmit} style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        marginBottom: 20
-      }}>
-        <input
-          type="text"
-          name="Name"
-          placeholder="Nombre completo"
-          value={form.Name}
-          onChange={handleInput}
-          required
-          maxLength={55}
-          style={{
-            padding: 10,
-            borderRadius: 8,
-            border: "1px solid #bbb",
-            fontSize: 15
-          }}
-        />
-        <input
-          type="text"
-          name="Especialidad"
-          placeholder="Especialidad (ej: Oftalmología)"
-          value={form.Especialidad}
-          onChange={handleInput}
-          required
-          maxLength={40}
-          style={{
-            padding: 10,
-            borderRadius: 8,
-            border: "1px solid #bbb",
-            fontSize: 15
-          }}
-        />
-        <input
-          type="text"
-          name="WhatsApp"
-          placeholder="WhatsApp (+569...)"
-          value={form.WhatsApp}
-          onChange={handleInput}
-          required
-          maxLength={20}
-          style={{
-            padding: 10,
-            borderRadius: 8,
-            border: "1px solid #bbb",
-            fontSize: 15
-          }}
-        />
-        <input
-          type="email"
-          name="Email"
-          placeholder="Correo electrónico"
-          value={form.Email}
-          onChange={handleInput}
-          required
-          maxLength={60}
-          style={{
-            padding: 10,
-            borderRadius: 8,
-            border: "1px solid #bbb",
-            fontSize: 15
-          }}
-        />
+    <div className="doctors-container">
+      {/* Header Móvil */}
+      <div className="mobile-header">
         <button
-          type="submit"
-          disabled={loading}
-          style={{
-            background: "#1D62F0",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            fontWeight: 600,
-            fontSize: 17,
-            padding: "12px 0",
-            marginTop: 10,
-            transition: "background .2s",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.6 : 1
-          }}
+          onClick={() => router.push("/admin")}
+          className="back-button"
         >
-          {loading ? "Guardando..." : "Agregar médico"}
+          ← Sobrecupos
         </button>
-      </form>
+        <div className="header-title">Médicos</div>
+        <div className="header-spacer"></div>
+      </div>
 
-      <input
-        type="text"
-        placeholder="Buscar médico por nombre, especialidad…"
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "10px 12px",
-          border: "1px solid #bbb",
-          borderRadius: 8,
-          marginBottom: 20,
-          fontSize: 15,
-          boxSizing: "border-box"
-        }}
-      />
+      {/* Navegación por tabs */}
+      <div className="mobile-tabs">
+        <button 
+          className={`tab-button ${activeTab === "agregar" ? "active" : ""}`}
+          onClick={() => setActiveTab("agregar")}
+        >
+          👨‍⚕️ Agregar
+        </button>
+        <button 
+          className={`tab-button ${activeTab === "gestionar" ? "active" : ""}`}
+          onClick={() => setActiveTab("gestionar")}
+        >
+          📋 Gestionar ({doctors.length})
+        </button>
+      </div>
 
-      {msg && <div style={{ color: "red", marginBottom: 12 }}>{msg}</div>}
-
-      <ul style={{
-        listStyle: "none",
-        padding: 0,
-        margin: 0,
-        marginBottom: 24,
-        maxHeight: 250,
-        overflowY: "auto"
-      }}>
-        {specialties.length === 0 && (
-          <li style={{ color: "#777", textAlign: "center" }}>
-            No hay médicos registrados.
-          </li>
+      <div className="content-container">
+        {/* Mensajes de estado */}
+        {msg && (
+          <div className={`mobile-message ${msg.includes("✅") ? "success" : "error"}`}>
+            {msg}
+          </div>
         )}
-        {specialties.map(([esp, docs]) => (
-          <li key={esp} style={{
-            background: "#F0F4FA",
-            borderRadius: 9,
-            marginBottom: 10,
-            fontSize: 15,
-            boxShadow: openSpecialty === esp ? "0 0 6px #d1e1fa" : undefined,
-            transition: "box-shadow .2s"
-          }}>
-            <button
-              onClick={() => toggleSpecialty(esp)}
-              style={{
-                width: "100%",
-                border: "none",
-                background: "transparent",
-                padding: "11px 15px",
-                fontSize: 16,
-                textAlign: "left",
-                fontWeight: 700,
-                color: "#1D62F0",
-                borderRadius: 9,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center"
-              }}
-            >
-              <span style={{ flex: 1 }}>{esp}</span>
-              <span style={{
-                fontSize: 19,
-                transform: openSpecialty === esp ? "rotate(90deg)" : "rotate(0)",
-                transition: "transform .2s"
-              }}>
-                ▶️
-              </span>
-            </button>
-            {openSpecialty === esp && (
-              <ul style={{ listStyle: "none", margin: 0, padding: "2px 0 2px 0" }}>
-                {docs.map(d => (
-                  <li key={d.id} style={{
-                    background: "#F8F9FB",
-                    borderRadius: 7,
-                    margin: "7px 13px",
-                    marginBottom: 7,
-                    fontSize: 15,
-                    position: "relative",
-                    boxShadow: openDoctor === d.id ? "0 0 4px #e2e6ec" : undefined,
-                    transition: "box-shadow .2s"
-                  }}>
-                    <button
-                      onClick={() => toggleDoctor(d.id)}
-                      style={{
-                        width: "100%",
-                        border: "none",
-                        background: "transparent",
-                        padding: "8px 13px",
-                        fontSize: 15,
-                        textAlign: "left",
-                        display: "flex",
-                        alignItems: "center",
-                        cursor: "pointer",
-                        fontWeight: 600,
-                        color: "#212121",
-                        borderRadius: 7
-                      }}
-                    >
-                      <span style={{
-                        flex: 1,
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                        textOverflow: "ellipsis",
-                        maxWidth: 140
-                      }}>{d.fields?.Name}</span>
-                      <span style={{
-                        marginLeft: 8,
-                        color: "#888",
-                        fontWeight: 500,
-                        fontSize: 14,
-                        whiteSpace: "nowrap"
-                      }}>{d.fields?.WhatsApp}</span>
-                      <span style={{
-                        marginLeft: 10,
-                        fontSize: 18,
-                        transform: openDoctor === d.id ? "rotate(90deg)" : "rotate(0)",
-                        transition: "transform .2s"
-                      }}>
-                        ▶️
-                      </span>
-                    </button>
-                    {openDoctor === d.id && (
-                      <div style={{
-                        borderTop: "1px solid #e2e8f0",
-                        padding: "9px 13px",
-                        background: "#f4f8fe",
-                        borderRadius: "0 0 7px 7px"
-                      }}>
-                        <div style={{
-                          marginBottom: 5,
-                          fontSize: 14,
-                          color: "#444",
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: 6
-                        }}>
-                          <span><b>Email:</b> <span style={{ color: "#555" }}>{d.fields?.Email}</span></span>
+
+        {/* Tab Agregar Médico */}
+        {activeTab === "agregar" && (
+          <div className="form-container">
+            <div className="form-header">
+              <h2 className="form-title">Nuevo Médico</h2>
+              <p className="form-subtitle">Completa todos los campos</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="doctor-form">
+              <div className="input-group">
+                <label className="input-label">Nombre Completo</label>
+                <input
+                  type="text"
+                  name="Name"
+                  placeholder="Dr. Juan Pérez"
+                  value={form.Name}
+                  onChange={handleInput}
+                  required
+                  maxLength={55}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Especialidad</label>
+                <select
+                  name="Especialidad"
+                  value={form.Especialidad}
+                  onChange={handleInput}
+                  required
+                  className="form-select"
+                >
+                  <option value="">Selecciona especialidad</option>
+                  {especialidades.map(esp => (
+                    <option key={esp} value={esp}>{esp}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">WhatsApp</label>
+                <input
+                  type="tel"
+                  name="WhatsApp"
+                  placeholder="+569 1234 5678"
+                  value={form.WhatsApp}
+                  onChange={handleInput}
+                  required
+                  maxLength={20}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Email</label>
+                <input
+                  type="email"
+                  name="Email"
+                  placeholder="doctor@ejemplo.com"
+                  value={form.Email}
+                  onChange={handleInput}
+                  required
+                  maxLength={60}
+                  className="form-input"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="submit-button"
+              >
+                {loading ? "⏳ Guardando..." : "✅ Agregar Médico"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Tab Gestionar Médicos */}
+        {activeTab === "gestionar" && (
+          <div className="manage-container">
+            <div className="search-section">
+              <div className="search-wrapper">
+                <input
+                  type="text"
+                  placeholder="🔍 Buscar médico..."
+                  value={filter}
+                  onChange={e => setFilter(e.target.value)}
+                  className="search-input"
+                />
+                {filter && (
+                  <button 
+                    onClick={() => setFilter("")}
+                    className="clear-search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {filtered.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">👨‍⚕️</div>
+                <h3 className="empty-title">
+                  {filter ? "No encontrado" : "Sin médicos"}
+                </h3>
+                <p className="empty-text">
+                  {filter ? "Intenta otro término" : "Agrega tu primer médico"}
+                </p>
+                {!filter && (
+                  <button
+                    onClick={() => setActiveTab("agregar")}
+                    className="empty-button"
+                  >
+                    👨‍⚕️ Agregar Médico
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="doctors-list">
+                {specialties.map(([specialty, docs]) => (
+                  <div key={specialty} className="specialty-section">
+                    <div className="specialty-header">
+                      <h3 className="specialty-title">{specialty}</h3>
+                      <span className="specialty-count">{docs.length}</span>
+                    </div>
+                    
+                    <div className="doctors-grid">
+                      {docs.map(doctor => (
+                        <div 
+                          key={doctor.id} 
+                          className="doctor-card"
+                          onClick={() => openDoctorModal(doctor)}
+                        >
+                          <div className="doctor-avatar">
+                            {doctor.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                          </div>
+                          <div className="doctor-info">
+                            <div className="doctor-name">
+                              Dr. {doctor.fields?.Name}
+                            </div>
+                            <div className="doctor-contact">
+                              📱 {doctor.fields?.WhatsApp}
+                            </div>
+                          </div>
+                          <div className="card-arrow">→</div>
                         </div>
-                        <button
-                          onClick={() => handleDelete(d.id)}
-                          style={{
-                            background: "#F36",
-                            border: "none",
-                            color: "#fff",
-                            fontSize: 14,
-                            borderRadius: 6,
-                            padding: "5px 13px",
-                            cursor: "pointer",
-                            fontWeight: 600,
-                            marginTop: 4,
-                            marginBottom: 4
-                          }}
-                          disabled={loading}
-                          title="Eliminar médico"
-                        >Eliminar médico</button>
-                      </div>
-                    )}
-                  </li>
+                      ))}
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
-          </li>
-        ))}
-      </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Modal de Detalle del Médico */}
+      {showDoctorModal && selectedDoctor && (
+        <div className="modal-overlay" onClick={() => setShowDoctorModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-doctor-avatar">
+                {selectedDoctor.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </div>
+              <div className="modal-doctor-info">
+                <h3 className="modal-doctor-name">
+                  Dr. {selectedDoctor.fields?.Name}
+                </h3>
+                <p className="modal-doctor-specialty">
+                  {selectedDoctor.fields?.Especialidad}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowDoctorModal(false)}
+                className="modal-close"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="contact-section">
+                <div className="contact-item">
+                  <div className="contact-label">📱 WhatsApp</div>
+                  <div className="contact-value">{selectedDoctor.fields?.WhatsApp}</div>
+                </div>
+                <div className="contact-item">
+                  <div className="contact-label">📧 Email</div>
+                  <div className="contact-value">{selectedDoctor.fields?.Email}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button
+                onClick={() => setShowDoctorModal(false)}
+                className="modal-button secondary"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={() => handleDelete(selectedDoctor)}
+                disabled={loading}
+                className="modal-button danger"
+              >
+                {loading ? "⏳" : "🗑️"} Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .doctors-container {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          color: #1a1a1a;
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* Header Móvil */
+        .mobile-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          height: 56px;
+          box-sizing: border-box;
+        }
+
+        .back-button {
+          background: none;
+          border: none;
+          color: #007aff;
+          font-size: 15px;
+          font-weight: 600;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+          background: rgba(0, 122, 255, 0.1);
+        }
+
+        .header-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: #1a1a1a;
+        }
+
+        .header-spacer {
+          width: 64px;
+        }
+
+        /* Tabs */
+        .mobile-tabs {
+          display: flex;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 56px;
+          z-index: 99;
+        }
+
+        .tab-button {
+          flex: 1;
+          padding: 12px 8px;
+          border: none;
+          background: transparent;
+          color: #8e8e93;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 2px solid transparent;
+        }
+
+        .tab-button.active {
+          color: #007aff;
+          border-bottom-color: #007aff;
+        }
+
+        /* Container Principal */
+        .content-container {
+          padding: 16px;
+          max-width: 100vw;
+          box-sizing: border-box;
+        }
+
+        /* Mensajes */
+        .mobile-message {
+          padding: 12px 16px;
+          border-radius: 12px;
+          margin-bottom: 16px;
+          font-size: 13px;
+          font-weight: 500;
+          text-align: center;
+        }
+
+        .mobile-message.success {
+          background: #e6ffed;
+          color: #006400;
+          border: 1px solid #c3e6cb;
+        }
+
+        .mobile-message.error {
+          background: #fee;
+          color: #b00020;
+          border: 1px solid #f5c6cb;
+        }
+
+        /* Formulario */
+        .form-container {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-header {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          padding: 20px 16px;
+          text-align: center;
+        }
+
+        .form-title {
+          font-size: 18px;
+          font-weight: 700;
+          margin: 0 0 4px;
+        }
+
+        .form-subtitle {
+          font-size: 13px;
+          opacity: 0.9;
+          margin: 0;
+        }
+
+        .doctor-form {
+          padding: 20px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .input-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+
+        .form-input, .form-select {
+          padding: 12px 14px;
+          border: 1.5px solid #e5e5e7;
+          border-radius: 10px;
+          font-size: 15px;
+          background: white;
+          transition: all 0.2s ease;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+
+        .form-input:focus, .form-select:focus {
+          outline: none;
+          border-color: #007aff;
+          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .form-select {
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+          background-position: right 12px center;
+          background-repeat: no-repeat;
+          background-size: 16px;
+          padding-right: 40px;
+        }
+
+        .submit-button {
+          width: 100%;
+          padding: 14px;
+          border: none;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #34c759, #30a14e);
+          color: white;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          margin-top: 8px;
+        }
+
+        .submit-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .submit-button:not(:disabled):active {
+          transform: scale(0.98);
+        }
+
+        /* Sección de Gestión */
+        .manage-container {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .search-section {
+          background: white;
+          border-radius: 16px;
+          padding: 16px;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .search-input {
+          width: 100%;
+          padding: 12px 14px;
+          border: 1.5px solid #e5e5e7;
+          border-radius: 12px;
+          font-size: 15px;
+          background: #f8faff;
+          transition: all 0.2s ease;
+          box-sizing: border-box;
+        }
+
+        .search-input:focus {
+          outline: none;
+          border-color: #007aff;
+          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+          background: white;
+        }
+
+        .clear-search {
+          position: absolute;
+          right: 12px;
+          background: #8e8e93;
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          font-size: 11px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        /* Estado Vacío */
+        .empty-state {
+          background: white;
+          border-radius: 16px;
+          padding: 40px 20px;
+          text-align: center;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-icon {
+          font-size: 48px;
+          margin-bottom: 16px;
+          opacity: 0.6;
+        }
+
+        .empty-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin: 0 0 8px;
+        }
+
+        .empty-text {
+          font-size: 14px;
+          margin: 0 0 24px;
+          color: #8e8e93;
+        }
+
+        .empty-button {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 12px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .empty-button:active {
+          transform: scale(0.95);
+        }
+
+        /* Lista de Médicos */
+        .doctors-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .specialty-section {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .specialty-header {
+          background: linear-gradient(135deg, #f8faff, #e8f2ff);
+          padding: 12px 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid #f0f0f0;
+        }
+
+        .specialty-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin: 0;
+        }
+
+        .specialty-count {
+          background: #007aff;
+          color: white;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 8px;
+          min-width: 18px;
+          text-align: center;
+        }
+
+        .doctors-grid {
+          padding: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .doctor-card {
+          display: flex;
+          align-items: center;
+          padding: 12px;
+          border: 1px solid #f0f0f0;
+          border-radius: 12px;
+          background: #fafbff;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .doctor-card:active {
+          transform: scale(0.98);
+          background: #f0f4fa;
+        }
+
+        .doctor-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          font-weight: 700;
+          margin-right: 12px;
+          flex-shrink: 0;
+        }
+
+        .doctor-info {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .doctor-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 2px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .doctor-contact {
+          font-size: 12px;
+          color: #8e8e93;
+          font-weight: 500;
+        }
+
+        .card-arrow {
+          color: #c7c7cc;
+          font-size: 16px;
+          margin-left: 8px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+          box-sizing: border-box;
+        }
+
+        .modal-content {
+          background: white;
+          border-radius: 20px;
+          width: 100%;
+          max-width: 400px;
+          overflow: hidden;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+          animation: modalSlideUp 0.3s ease;
+        }
+
+        @keyframes modalSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        .modal-header {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          padding: 20px 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          position: relative;
+        }
+
+        .modal-doctor-avatar {
+          width: 50px;
+          height: 50px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
+
+        .modal-doctor-info {
+          flex: 1;
+        }
+
+        .modal-doctor-name {
+          font-size: 16px;
+          font-weight: 700;
+          margin: 0 0 4px;
+        }
+
+        .modal-doctor-specialty {
+          font-size: 13px;
+          opacity: 0.9;
+          margin: 0;
+        }
+
+        .modal-close {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          color: white;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          font-size: 14px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-body {
+          padding: 20px 16px;
+        }
+
+        .contact-section {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .contact-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .contact-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #8e8e93;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .contact-value {
+          font-size: 14px;
+          font-weight: 500;
+          color: #1a1a1a;
+        }
+
+        .modal-actions {
+          display: flex;
+          gap: 8px;
+          padding: 16px;
+          background: #f8faff;
+        }
+
+        .modal-button {
+          flex: 1;
+          padding: 12px;
+          border: none;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .modal-button.secondary {
+          background: white;
+          color: #007aff;
+          border: 1.5px solid #007aff;
+        }
+
+        .modal-button.danger {
+          background: linear-gradient(135deg, #ff3b30, #d70015);
+          color: white;
+        }
+
+        .modal-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .modal-button:not(:disabled):active {
+          transform: scale(0.98);
+        }
+
+        /* Responsive */
+        @media (max-width: 430px) {
+          .content-container {
+            padding: 12px;
+          }
+          
+          .doctor-form {
+            padding: 16px 12px;
+          }
+          
+          .form-input, .form-select {
+            font-size: 16px; /* Previene zoom en iOS */
+          }
+          
+          .doctor-card {
+            padding: 10px;
+          }
+          
+          .doctor-name {
+            font-size: 13px;
+          }
+        }
+
+        @media (max-width: 375px) {
+          .mobile-header {
+            padding: 10px 12px;
+          }
+          
+          .header-title {
+            font-size: 15px;
+          }
+          
+          .tab-button {
+            font-size: 12px;
+            padding: 10px 6px;
+          }
+          
+          .modal-overlay {
+            padding: 16px;
+          }
+        }
+
+        @media (max-width: 320px) {
+          .content-container {
+            padding: 8px;
+          }
+          
+          .doctor-form {
+            padding: 12px 8px;
+          }
+          
+          .form-input, .form-select {
+            padding: 10px 12px;
+            font-size: 14px;
+          }
+          
+          .submit-button {
+            padding: 12px;
+            font-size: 14px;
+          }
+        }
+
+        /* Mejoras para iOS Safari */
+        @supports (-webkit-touch-callout: none) {
+          .form-input, .form-select {
+            -webkit-appearance: none;
+            -webkit-border-radius: 10px;
+          }
+          
+          .submit-button, .modal-button {
+            -webkit-appearance: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+          }
+        }
+
+        /* Fix para el notch de iPhone */
+        @supports (padding: max(0px)) {
+          .mobile-header {
+            padding-top: max(12px, env(safe-area-inset-top));
+          }
+          
+          .doctors-container {
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
+          }
+        }
+      `}</style>
     </div>
   );
 }
