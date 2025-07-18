@@ -442,21 +442,24 @@ export default function ChatPage() {
         .message-wrapper {
           margin-bottom: 1rem;
           display: flex;
+          padding: 0 1rem;
         }
 
         .message-wrapper.user {
           justify-content: flex-end;
+          padding-right: 1.5rem;
         }
 
         .message {
           display: flex;
           gap: 0.75rem;
-          max-width: 80%;
+          max-width: 70%;
           align-items: flex-end;
         }
 
         .message.user {
           flex-direction: row-reverse;
+          margin-left: auto;
         }
 
         .message-avatar {
@@ -854,7 +857,11 @@ export default function ChatPage() {
           }
 
           .message-wrapper {
-            padding: 0 0.15rem;
+            padding: 0 0.3rem;
+          }
+
+          .message-wrapper.user {
+            padding-right: 0.5rem;
           }
 
           .message-bubble {
