@@ -1,18 +1,20 @@
 // app/layout.js
 import './globals.css'
 import 'react-datepicker/dist/react-datepicker.css'
-// …
+import { Providers } from './providers'
 
 export const metadata = {
-  title: 'Admin Panel',
-  description: 'Carga de horarios para Airtable',
+  title: 'Sobrecupos AI',
+  description: 'Sistema de gestión de sobrecupos médicos',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )

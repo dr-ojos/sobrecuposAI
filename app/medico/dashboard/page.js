@@ -2,8 +2,9 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 
-export default function MedicoDashboard() {
+function MedicoDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -19,47 +20,63 @@ export default function MedicoDashboard() {
   useEffect(() => {
     if (status === 'loading') return;
     
-    if (!session) {
+    if (status === 'unauthenticated') {
       router.push('/auth/signin');
       return;
     }
 
-    fetchDoctorData();
-    fetchSobrecupos();
-  }, [session, status]);
+    if (session) {
+      fetchDoctorData();
+      fetchSobrecupos();
+    }
+  }, [session, status, router]);
 
   const fetchDoctorData = async () => {
+    if (!session?.user?.doctorId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/doctors/${session.user.doctorId}`);
-      const data = await res.json();
-      setDoctorData(data);
-      
-      // Calcular estadísticas
-      setStats(prev => ({
-        ...prev,
-        clinicas: data.fields?.Clinicas?.length || 0
-      }));
+      if (res.ok) {
+        const data = await res.json();
+        setDoctorData(data);
+        
+        // Calcular estadísticas
+        setStats(prev => ({
+          ...prev,
+          clinicas: data.fields?.Clinicas?.length || 0
+        }));
+      }
     } catch (error) {
       console.error('Error cargando datos del médico:', error);
     }
   };
 
   const fetchSobrecupos = async () => {
+    if (!session?.user?.doctorId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`/api/sobrecupos/medico/${session.user.doctorId}`);
-      const data = await res.json();
-      setSobrecupos(data);
-      
-      // Calcular estadísticas de sobrecupos
-      const disponibles = data.filter(s => s.fields?.Disponible === 'Si' || s.fields?.Disponible === true).length;
-      const reservados = data.length - disponibles;
-      
-      setStats(prev => ({
-        ...prev,
-        totalSobrecupos: data.length,
-        disponibles,
-        reservados
-      }));
+      if (res.ok) {
+        const data = await res.json();
+        setSobrecupos(data);
+        
+        // Calcular estadísticas de sobrecupos
+        const disponibles = data.filter(s => s.fields?.Disponible === 'Si' || s.fields?.Disponible === true).length;
+        const reservados = data.length - disponibles;
+        
+        setStats(prev => ({
+          ...prev,
+          totalSobrecupos: data.length,
+          disponibles,
+          reservados
+        }));
+      }
     } catch (error) {
       console.error('Error cargando sobrecupos:', error);
     } finally {
@@ -71,16 +88,38 @@ export default function MedicoDashboard() {
     await signOut({ callbackUrl: '/auth/signin' });
   };
 
+  // Loading state
   if (status === 'loading' || loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner">⏳</div>
         <p>Cargando dashboard...</p>
+        <style jsx>{`
+          .loading-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+          }
+          .loading-spinner {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            animation: spin 1s linear infinite;
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
 
-  if (!session) {
+  // Not authenticated
+  if (status === 'unauthenticated') {
     return null;
   }
 
@@ -618,3 +657,23 @@ export default function MedicoDashboard() {
     </div>
   );
 }
+
+// Exportar como componente dinámico para evitar SSR
+export default dynamic(() => Promise.resolve(MedicoDashboard), {
+  ssr: false,
+  loading: () => (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%)',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
+        <p>Cargando dashboard...</p>
+      </div>
+    </div>
+  )
+});
