@@ -6,6 +6,9 @@ export default function AdminSobrecuposPage() {
   const router = useRouter();
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [doctorClinicas, setDoctorClinicas] = useState([]);
+  const [selectedClinica, setSelectedClinica] = useState(null);
+  const [loadingClinicas, setLoadingClinicas] = useState(false);
   const [clinica, setClinica] = useState("");
   const [direccion, setDireccion] = useState("");
   const [fecha, setFecha] = useState("");
@@ -34,7 +37,7 @@ export default function AdminSobrecuposPage() {
     try {
       const res = await fetch("/api/doctors");
       const data = await res.json();
-      setDoctors(data);
+      setDoctors(Array.isArray(data) ? data : []);
     } catch {
       setMsg("Error cargando médicos");
     }
@@ -48,6 +51,70 @@ export default function AdminSobrecuposPage() {
     } catch {
       setMsg("Error cargando sobrecupos existentes");
     }
+  };
+
+  // Función para obtener clínicas del médico seleccionado
+  const fetchDoctorClinicas = async (doctorId) => {
+    if (!doctorId) {
+      setDoctorClinicas([]);
+      setSelectedClinica(null);
+      return;
+    }
+
+    setLoadingClinicas(true);
+    try {
+      // Obtener información del médico
+      const doctor = doctors.find(d => d.id === doctorId);
+      
+      if (!doctor?.fields?.Clinicas?.length) {
+        setDoctorClinicas([]);
+        setSelectedClinica(null);
+        setMsg("⚠️ Este médico no tiene clínicas registradas");
+        setLoadingClinicas(false);
+        return;
+      }
+
+      // Obtener todas las clínicas
+      const clinicasRes = await fetch(`/api/clinicas`);
+      const todasClinicas = await clinicasRes.json();
+      
+      // Filtrar solo las clínicas del médico
+      const clinicasDelMedico = todasClinicas.filter(c => 
+        doctor.fields.Clinicas.includes(c.id)
+      );
+      
+      setDoctorClinicas(clinicasDelMedico);
+      
+      // Auto-seleccionar si solo tiene una clínica
+      if (clinicasDelMedico.length === 1) {
+        const clinica = clinicasDelMedico[0];
+        setSelectedClinica(clinica);
+        setClinica(clinica.fields?.Nombre || "");
+        setDireccion(clinica.fields?.Direccion || "");
+      } else {
+        setSelectedClinica(null);
+        setClinica("");
+        setDireccion("");
+      }
+      
+    } catch (error) {
+      console.error("Error cargando clínicas del médico:", error);
+      setMsg("Error cargando clínicas del médico");
+      setDoctorClinicas([]);
+      setSelectedClinica(null);
+    }
+    setLoadingClinicas(false);
+  };
+
+  // Función mejorada para manejar selección de médico
+  const handleDoctorSelection = (doctor) => {
+    setSelectedDoctor(doctor);
+    fetchDoctorClinicas(doctor.id);
+    // Limpiar campos
+    setClinica("");
+    setDireccion("");
+    setSelectedClinica(null);
+    setMsg("");
   };
 
   const toggleHour = (hour) => {
@@ -132,6 +199,8 @@ export default function AdminSobrecuposPage() {
 
   const resetForm = () => {
     setSelectedDoctor(null);
+    setDoctorClinicas([]);
+    setSelectedClinica(null);
     setClinica("");
     setDireccion("");
     setFecha("");
@@ -159,6 +228,11 @@ export default function AdminSobrecuposPage() {
     });
   };
 
+  // Helper para obtener nombre real del médico
+  const getDoctorName = (doctor) => {
+    return `Dr. ${doctor.fields?.Name || 'Desconocido'}`;
+  };
+
   return (
     <main className="admin-container">
       {/* Header móvil optimizado */}
@@ -171,6 +245,22 @@ export default function AdminSobrecuposPage() {
         </button>
         <div className="header-title">Admin Panel</div>
         <div className="header-spacer"></div>
+      </div>
+
+      {/* Navegación adicional */}
+      <div className="admin-nav">
+        <button
+          onClick={() => router.push("/admin/doctors")}
+          className="nav-button"
+        >
+          👨‍⚕️ Médicos
+        </button>
+        <button
+          onClick={() => router.push("/admin/clinicas")}
+          className="nav-button"
+        >
+          🏥 Clínicas
+        </button>
       </div>
 
       {/* Navegación por tabs móvil */}
@@ -214,7 +304,7 @@ export default function AdminSobrecuposPage() {
                       <div 
                         key={doctor.id}
                         className={`doctor-card ${selectedDoctor?.id === doctor.id ? "selected" : ""}`}
-                        onClick={() => setSelectedDoctor(doctor)}
+                        onClick={() => handleDoctorSelection(doctor)}
                       >
                         <div className="doctor-avatar">
                           {doctor.fields.Name.split(' ').map(n => n[0]).join('').slice(0, 2)}
@@ -237,101 +327,183 @@ export default function AdminSobrecuposPage() {
 
                 {selectedDoctor && (
                   <>
-                    {/* Paso 2: Ubicación */}
+                    {/* Paso 2: Ubicación con Clínicas */}
                     <div className="step-section">
                       <div className="step-header">
                         <div className="step-number">2</div>
                         <h2 className="step-title">Ubicación</h2>
                       </div>
                       
-                      <div className="form-inputs">
-                        <div className="input-group">
-                          <label className="input-label">Clínica</label>
-                          <input
-                            type="text"
-                            value={clinica}
-                            onChange={e => setClinica(e.target.value)}
-                            placeholder="Ej: Clínica Las Condes"
-                            className="form-input"
-                          />
+                      {loadingClinicas ? (
+                        <div className="loading-clinicas">
+                          <p>⏳ Cargando clínicas del médico...</p>
                         </div>
-                        <div className="input-group">
-                          <label className="input-label">Dirección</label>
-                          <input
-                            type="text"
-                            value={direccion}
-                            onChange={e => setDireccion(e.target.value)}
-                            placeholder="Ej: Av. Las Condes 123"
-                            className="form-input"
-                          />
+                      ) : doctorClinicas.length === 0 ? (
+                        <div className="no-clinicas-warning">
+                          <p>⚠️ Este médico no tiene clínicas registradas</p>
+                          <button
+                            onClick={() => router.push("/admin/doctors")}
+                            className="add-clinicas-btn"
+                            type="button"
+                          >
+                            ➕ Agregar clínicas al médico
+                          </button>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="clinicas-selection">
+                          <div className="input-group">
+                            <label className="input-label">
+                              Clínica ({doctorClinicas.length} disponible{doctorClinicas.length !== 1 ? 's' : ''})
+                            </label>
+                            <select
+                              value={selectedClinica?.id || ""}
+                              onChange={(e) => {
+                                const clinica = doctorClinicas.find(c => c.id === e.target.value);
+                                setSelectedClinica(clinica);
+                                if (clinica) {
+                                  setClinica(clinica.fields?.Nombre || "");
+                                  setDireccion(clinica.fields?.Direccion || "");
+                                }
+                              }}
+                              className="form-input clinic-select"
+                            >
+                              <option value="">Selecciona clínica...</option>
+                              {doctorClinicas.map(clinica => (
+                                <option key={clinica.id} value={clinica.id}>
+                                  {clinica.fields?.Nombre} - {clinica.fields?.Comuna}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          {selectedClinica && (
+                            <div className="selected-clinic-info">
+                              <div className="clinic-details">
+                                <h4 className="clinic-name">🏥 {selectedClinica.fields?.Nombre}</h4>
+                                <p className="clinic-address">📍 {selectedClinica.fields?.Direccion}</p>
+                                <p className="clinic-comuna">🏛️ {selectedClinica.fields?.Comuna}</p>
+                                {selectedClinica.fields?.Telefono && (
+                                  <p className="clinic-phone">📞 {selectedClinica.fields.Telefono}</p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Opción para usar dirección personalizada */}
+                          <div className="custom-location">
+                            <div className="custom-toggle">
+                              <label className="toggle-label">
+                                <input
+                                  type="checkbox"
+                                  checked={!selectedClinica}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedClinica(null);
+                                      setClinica("");
+                                      setDireccion("");
+                                    }
+                                  }}
+                                  className="toggle-checkbox"
+                                />
+                                <span className="toggle-text">📝 Usar dirección personalizada</span>
+                              </label>
+                            </div>
+                            
+                            {!selectedClinica && (
+                              <div className="custom-inputs">
+                                <div className="input-group">
+                                  <label className="input-label">Clínica/Centro médico</label>
+                                  <input
+                                    type="text"
+                                    value={clinica}
+                                    onChange={e => setClinica(e.target.value)}
+                                    placeholder="Ej: Consulta particular"
+                                    className="form-input"
+                                  />
+                                </div>
+                                <div className="input-group">
+                                  <label className="input-label">Dirección</label>
+                                  <input
+                                    type="text"
+                                    value={direccion}
+                                    onChange={e => setDireccion(e.target.value)}
+                                    placeholder="Ej: Av. Las Condes 123"
+                                    className="form-input"
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Paso 3: Fecha y Horarios */}
-                    <div className="step-section">
-                      <div className="step-header">
-                        <div className="step-number">3</div>
-                        <h2 className="step-title">Fecha y Horarios</h2>
-                      </div>
-                      
-                      <div className="date-section">
-                        <label className="input-label">Fecha</label>
-                        <input
-                          type="date"
-                          value={fecha}
-                          onChange={e => setFecha(e.target.value)}
-                          min={new Date().toISOString().split('T')[0]}
-                          className="form-input date-input"
-                        />
-                      </div>
-                      
-                      <div className="hours-section">
-                        <div className="hours-header">
-                          <label className="input-label">Horarios</label>
-                          <div className="quick-select">
-                            <button
-                              onClick={selectAllMorning}
-                              className="quick-btn"
-                              type="button"
-                            >
-                              🌅 Mañana
-                            </button>
-                            <button
-                              onClick={selectAllAfternoon}
-                              className="quick-btn"
-                              type="button"
-                            >
-                              🌆 Tarde
-                            </button>
-                            <button
-                              onClick={() => setSelectedHours([])}
-                              className="quick-btn clear"
-                              type="button"
-                            >
-                              🗑️
-                            </button>
+                    {(selectedClinica || (!selectedClinica && clinica && direccion)) && (
+                      <div className="step-section">
+                        <div className="step-header">
+                          <div className="step-number">3</div>
+                          <h2 className="step-title">Fecha y Horarios</h2>
+                        </div>
+                        
+                        <div className="date-section">
+                          <label className="input-label">Fecha</label>
+                          <input
+                            type="date"
+                            value={fecha}
+                            onChange={e => setFecha(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="form-input date-input"
+                          />
+                        </div>
+                        
+                        <div className="hours-section">
+                          <div className="hours-header">
+                            <label className="input-label">Horarios</label>
+                            <div className="quick-select">
+                              <button
+                                onClick={selectAllMorning}
+                                className="quick-btn"
+                                type="button"
+                              >
+                                🌅 Mañana
+                              </button>
+                              <button
+                                onClick={selectAllAfternoon}
+                                className="quick-btn"
+                                type="button"
+                              >
+                                🌆 Tarde
+                              </button>
+                              <button
+                                onClick={() => setSelectedHours([])}
+                                className="quick-btn clear"
+                                type="button"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                          
+                          <div className="hours-grid">
+                            {availableHours.map(hour => (
+                              <button
+                                key={hour}
+                                type="button"
+                                className={`hour-button ${selectedHours.includes(hour) ? "selected" : ""}`}
+                                onClick={() => toggleHour(hour)}
+                              >
+                                {hour}
+                              </button>
+                            ))}
+                          </div>
+                          
+                          <div className="selected-count">
+                            {selectedHours.length} horarios seleccionados
                           </div>
                         </div>
-                        
-                        <div className="hours-grid">
-                          {availableHours.map(hour => (
-                            <button
-                              key={hour}
-                              type="button"
-                              className={`hour-button ${selectedHours.includes(hour) ? "selected" : ""}`}
-                              onClick={() => toggleHour(hour)}
-                            >
-                              {hour}
-                            </button>
-                          ))}
-                        </div>
-                        
-                        <div className="selected-count">
-                          {selectedHours.length} horarios seleccionados
-                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="submit-section">
                       <button 
@@ -376,6 +548,9 @@ export default function AdminSobrecuposPage() {
                     <div className="preview-location">
                       <div className="preview-clinic">{clinica}</div>
                       <div className="preview-address">📍 {direccion}</div>
+                      {selectedClinica && (
+                        <div className="preview-clinic-badge">🏥 Clínica registrada</div>
+                      )}
                     </div>
                   </div>
                   
@@ -512,6 +687,41 @@ export default function AdminSobrecuposPage() {
           width: 64px;
         }
 
+        /* Navegación adicional */
+        .admin-nav {
+          display: flex;
+          gap: 8px;
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 56px;
+          z-index: 98;
+        }
+
+        .nav-button {
+          flex: 1;
+          padding: 8px 12px;
+          border: 1px solid #e5e5e7;
+          border-radius: 8px;
+          background: white;
+          color: #007aff;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .nav-button:hover {
+          background: #f0f4fa;
+          border-color: #007aff;
+        }
+
+        .nav-button:active {
+          transform: scale(0.98);
+        }
+
         /* Tabs Móvil */
         .mobile-tabs {
           display: flex;
@@ -519,7 +729,7 @@ export default function AdminSobrecuposPage() {
           backdrop-filter: blur(10px);
           border-bottom: 1px solid rgba(0, 0, 0, 0.06);
           position: sticky;
-          top: 56px;
+          top: 112px;
           z-index: 99;
         }
 
@@ -696,12 +906,6 @@ export default function AdminSobrecuposPage() {
         }
 
         /* Inputs Móvil */
-        .form-inputs {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
         .input-group {
           display: flex;
           flex-direction: column;
@@ -733,6 +937,124 @@ export default function AdminSobrecuposPage() {
 
         .date-input {
           color-scheme: light;
+        }
+
+        /* Estilos para la selección de clínicas */
+        .loading-clinicas {
+          text-align: center;
+          padding: 20px;
+          color: #8e8e93;
+          font-style: italic;
+        }
+
+        .no-clinicas-warning {
+          text-align: center;
+          padding: 20px;
+          background: #fff3cd;
+          border: 1px solid #ffeaa7;
+          border-radius: 12px;
+          color: #856404;
+        }
+
+        .no-clinicas-warning p {
+          margin: 0 0 12px;
+          font-weight: 500;
+        }
+
+        .add-clinicas-btn {
+          background: #007aff;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 8px 16px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .add-clinicas-btn:active {
+          transform: scale(0.95);
+        }
+
+        .clinicas-selection {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .clinic-select {
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+          background-position: right 12px center;
+          background-repeat: no-repeat;
+          background-size: 16px;
+          padding-right: 40px;
+          appearance: none;
+        }
+
+        .selected-clinic-info {
+          background: #e6ffed;
+          border: 1px solid #c3e6cb;
+          border-radius: 12px;
+          padding: 16px;
+        }
+
+        .clinic-details {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .clinic-name {
+          font-size: 15px;
+          font-weight: 700;
+          color: #006400;
+          margin: 0;
+        }
+
+        .clinic-address, .clinic-comuna, .clinic-phone {
+          font-size: 13px;
+          color: #2d5a2d;
+          margin: 0;
+          font-weight: 500;
+        }
+
+        .custom-location {
+          border-top: 1px solid #e5e5e7;
+          padding-top: 16px;
+        }
+
+        .custom-toggle {
+          margin-bottom: 12px;
+        }
+
+        .toggle-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+        }
+
+        .toggle-checkbox {
+          width: 16px;
+          height: 16px;
+          cursor: pointer;
+        }
+
+        .toggle-text {
+          font-size: 13px;
+          font-weight: 600;
+          color: #007aff;
+        }
+
+        .custom-inputs {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          padding: 16px;
+          background: #f8faff;
+          border: 1px solid #e5e5e7;
+          border-radius: 10px;
         }
 
         /* Sección de Horarios */
@@ -939,6 +1261,16 @@ export default function AdminSobrecuposPage() {
           font-size: 12px;
           color: #8e8e93;
           font-weight: 500;
+        }
+
+        .preview-clinic-badge {
+          font-size: 11px;
+          color: #34c759;
+          font-weight: 600;
+          padding: 2px 6px;
+          background: #e6ffed;
+          border-radius: 4px;
+          align-self: flex-start;
         }
 
         .preview-date {
