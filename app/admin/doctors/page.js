@@ -87,11 +87,14 @@ export default function DoctorsAdminPage() {
 
   const fetchClinicas = async () => {
     try {
+      console.log("🔍 Cargando clínicas...");
       const res = await fetch("/api/clinicas");
       const data = await res.json();
+      console.log("📋 Clínicas recibidas:", data);
       setClinicas(Array.isArray(data) ? data : []);
-    } catch {
-      console.error("Error cargando clínicas");
+    } catch (error) {
+      console.error("❌ Error cargando clínicas:", error);
+      setMsg("Error cargando clínicas disponibles");
     }
   };
 
@@ -313,7 +316,23 @@ export default function DoctorsAdminPage() {
         <div className="header-spacer"></div>
       </div>
 
-      {/* Navegación por tabs */}
+        {/* Navegación adicional */}
+        <div className="admin-nav">
+          <button
+            onClick={() => router.push("/admin")}
+            className="nav-button"
+          >
+            💼 Sobrecupos
+          </button>
+          <button
+            onClick={() => router.push("/admin/clinicas")}
+            className="nav-button"
+          >
+            🏥 Clínicas
+          </button>
+        </div>
+
+        {/* Navegación por tabs */}
       <div className="mobile-tabs">
         <button 
           className={`tab-button ${activeTab === "agregar" ? "active" : ""}`}
@@ -468,7 +487,7 @@ export default function DoctorsAdminPage() {
                     
                     {clinicas.length === 0 ? (
                       <div className="no-clinicas">
-                        <p>No hay clínicas registradas</p>
+                        <p>⏳ Cargando clínicas...</p>
                         <button
                           type="button"
                           onClick={() => setShowAddClinicaModal(true)}
@@ -832,6 +851,41 @@ export default function DoctorsAdminPage() {
           width: 64px;
         }
 
+        /* Navegación adicional */
+        .admin-nav {
+          display: flex;
+          gap: 8px;
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 56px;
+          z-index: 98;
+        }
+
+        .nav-button {
+          flex: 1;
+          padding: 8px 12px;
+          border: 1px solid #e5e5e7;
+          border-radius: 8px;
+          background: white;
+          color: #007aff;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .nav-button:hover {
+          background: #f0f4fa;
+          border-color: #007aff;
+        }
+
+        .nav-button:active {
+          transform: scale(0.98);
+        }
+
         /* Tabs */
         .mobile-tabs {
           display: flex;
@@ -839,7 +893,7 @@ export default function DoctorsAdminPage() {
           backdrop-filter: blur(10px);
           border-bottom: 1px solid rgba(0, 0, 0, 0.06);
           position: sticky;
-          top: 56px;
+          top: 112px;
           z-index: 99;
         }
 
