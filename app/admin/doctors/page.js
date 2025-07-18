@@ -20,8 +20,11 @@ export default function DoctorsAdminPage() {
   const [form, setForm] = useState({
     Name: "",
     Especialidad: "",
+    EspecialidadOtra: "",
     WhatsApp: "",
     Email: "",
+    Atiende: "",
+    Seguros: [],
   });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("agregar");
@@ -34,6 +37,16 @@ export default function DoctorsAdminPage() {
   const especialidades = [
     "Oftalmología", "Medicina Familiar", "Dermatología", 
     "Pediatría", "Otorrinolaringología", "Neurología", "Cardiología"
+  ];
+
+  // Opciones de atención
+  const opcionesAtiende = [
+    "Adultos", "Niños", "Ambos"
+  ];
+
+  // Opciones de seguros
+  const opcionesSeguros = [
+    "Fonasa", "Isapres", "Particular"
   ];
 
   useEffect(() => {
@@ -52,7 +65,22 @@ export default function DoctorsAdminPage() {
   };
 
   const handleInput = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    
+    // Si cambia especialidad, limpiar "otra especialidad"
+    if (name === "Especialidad") {
+      setForm(prev => ({ ...prev, [name]: value, EspecialidadOtra: "" }));
+    }
+  };
+
+  const handleSeguroChange = (seguro) => {
+    setForm(prev => ({
+      ...prev,
+      Seguros: prev.Seguros.includes(seguro)
+        ? prev.Seguros.filter(s => s !== seguro)
+        : [...prev.Seguros, seguro]
+    }));
   };
 
   const handleSubmit = async e => {
@@ -63,10 +91,17 @@ export default function DoctorsAdminPage() {
       setMsg("❌ El nombre es obligatorio");
       return;
     }
-    if (!form.Especialidad) {
-      setMsg("❌ Debes seleccionar una especialidad");
+    
+    // Validar especialidad
+    const especialidadFinal = form.Especialidad === "Otra" 
+      ? form.EspecialidadOtra.trim() 
+      : form.Especialidad;
+    
+    if (!especialidadFinal) {
+      setMsg("❌ Debes seleccionar o escribir una especialidad");
       return;
     }
+    
     if (!form.WhatsApp.trim()) {
       setMsg("❌ El WhatsApp es obligatorio");
       return;
@@ -75,20 +110,46 @@ export default function DoctorsAdminPage() {
       setMsg("❌ Ingresa un email válido");
       return;
     }
+    if (!form.Atiende) {
+      setMsg("❌ Debes seleccionar a quién atiende");
+      return;
+    }
+    if (form.Seguros.length === 0) {
+      setMsg("❌ Debes seleccionar al menos un tipo de seguro");
+      return;
+    }
 
     setLoading(true);
     setMsg("");
     
     try {
+      // Preparar datos para enviar
+      const dataToSend = {
+        ...form,
+        Especialidad: especialidadFinal,
+        Seguros: form.Seguros.join(", ") // Convertir array a string
+      };
+      
+      // Remover campo temporal
+      delete dataToSend.EspecialidadOtra;
+      
       const res = await fetch("/api/doctors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(dataToSend),
       });
       
       if (!res.ok) throw new Error("Error registrando médico");
       
-      setForm({ Name: "", Especialidad: "", WhatsApp: "", Email: "" });
+      setForm({ 
+        Name: "", 
+        Especialidad: "", 
+        EspecialidadOtra: "", 
+        WhatsApp: "", 
+        Email: "", 
+        Atiende: "", 
+        Seguros: [] 
+      });
       fetchDoctors();
       setMsg("✅ Médico registrado exitosamente");
       
@@ -220,6 +281,37 @@ export default function DoctorsAdminPage() {
                   {especialidades.map(esp => (
                     <option key={esp} value={esp}>{esp}</option>
                   ))}
+                  <option value="Otra">➕ Otra especialidad...</option>
+                </select>
+                
+                {/* Campo condicional para "Otra especialidad" */}
+                {form.Especialidad === "Otra" && (
+                  <input
+                    type="text"
+                    name="EspecialidadOtra"
+                    placeholder="Escribe la especialidad"
+                    value={form.EspecialidadOtra}
+                    onChange={handleInput}
+                    required
+                    maxLength={50}
+                    className="form-input otra-especialidad"
+                  />
+                )}
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Atiende a</label>
+                <select
+                  name="Atiende"
+                  value={form.Atiende}
+                  onChange={handleInput}
+                  required
+                  className="form-select"
+                >
+                  <option value="">Selecciona opción</option>
+                  {opcionesAtiende.map(opcion => (
+                    <option key={opcion} value={opcion}>{opcion}</option>
+                  ))}
                 </select>
               </div>
 
@@ -249,6 +341,31 @@ export default function DoctorsAdminPage() {
                   maxLength={60}
                   className="form-input"
                 />
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Seguros que acepta</label>
+                <div className="checkbox-group">
+                  {opcionesSeguros.map(seguro => (
+                    <label key={seguro} className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={form.Seguros.includes(seguro)}
+                        onChange={() => handleSeguroChange(seguro)}
+                        className="checkbox-input"
+                      />
+                      <span className="checkbox-custom"></span>
+                      <span className="checkbox-label">{seguro}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="seguros-selected">
+                  {form.Seguros.length > 0 && (
+                    <span className="selected-count">
+                      ✓ {form.Seguros.length} seleccionado{form.Seguros.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <button
@@ -326,8 +443,16 @@ export default function DoctorsAdminPage() {
                             <div className="doctor-name">
                               Dr. {doctor.fields?.Name}
                             </div>
-                            <div className="doctor-contact">
-                              📱 {doctor.fields?.WhatsApp}
+                            <div className="doctor-details">
+                              <div className="doctor-atiende">
+                                👥 {doctor.fields?.Atiende || "No especificado"}
+                              </div>
+                              <div className="doctor-seguros">
+                                💳 {doctor.fields?.Seguros || "No especificado"}
+                              </div>
+                              <div className="doctor-contact">
+                                📱 {doctor.fields?.WhatsApp}
+                              </div>
                             </div>
                           </div>
                           <div className="card-arrow">→</div>
@@ -368,6 +493,14 @@ export default function DoctorsAdminPage() {
             
             <div className="modal-body">
               <div className="contact-section">
+                <div className="contact-item">
+                  <div className="contact-label">👥 Atiende a</div>
+                  <div className="contact-value">{selectedDoctor.fields?.Atiende || "No especificado"}</div>
+                </div>
+                <div className="contact-item">
+                  <div className="contact-label">💳 Seguros</div>
+                  <div className="contact-value">{selectedDoctor.fields?.Seguros || "No especificado"}</div>
+                </div>
                 <div className="contact-item">
                   <div className="contact-label">📱 WhatsApp</div>
                   <div className="contact-value">{selectedDoctor.fields?.WhatsApp}</div>
@@ -601,6 +734,77 @@ export default function DoctorsAdminPage() {
           transform: scale(0.98);
         }
 
+        /* Campo de otra especialidad */
+        .otra-especialidad {
+          margin-top: 8px;
+          border-color: #007aff !important;
+          background: #f8faff !important;
+        }
+
+        /* Checkbox Group */
+        .checkbox-group {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 4px;
+        }
+
+        .checkbox-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          padding: 8px 0;
+        }
+
+        .checkbox-input {
+          display: none;
+        }
+
+        .checkbox-custom {
+          width: 20px;
+          height: 20px;
+          border: 2px solid #e5e5e7;
+          border-radius: 6px;
+          background: white;
+          position: relative;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+        }
+
+        .checkbox-input:checked + .checkbox-custom {
+          background: #007aff;
+          border-color: #007aff;
+        }
+
+        .checkbox-input:checked + .checkbox-custom::after {
+          content: '✓';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: white;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .checkbox-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: #1a1a1a;
+          user-select: none;
+        }
+
+        .seguros-selected {
+          margin-top: 6px;
+        }
+
+        .selected-count {
+          font-size: 12px;
+          color: #34c759;
+          font-weight: 600;
+        }
+
         /* Sección de Gestión */
         .manage-container {
           display: flex;
@@ -787,16 +991,33 @@ export default function DoctorsAdminPage() {
           font-size: 14px;
           font-weight: 600;
           color: #1a1a1a;
-          margin-bottom: 2px;
+          margin-bottom: 4px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
 
-        .doctor-contact {
-          font-size: 12px;
+        .doctor-details {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .doctor-atiende, .doctor-seguros, .doctor-contact {
+          font-size: 11px;
           color: #8e8e93;
           font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .doctor-atiende {
+          color: #007aff;
+        }
+
+        .doctor-seguros {
+          color: #34c759;
         }
 
         .card-arrow {
