@@ -235,8 +235,6 @@ export default function ChatPage() {
           
           <div ref={endRef} />
         </div>
-
-
       </main>
 
       {/* Input mejorado */}
@@ -453,11 +451,15 @@ export default function ChatPage() {
         .message {
           display: flex;
           gap: 0.75rem;
-          max-width: 70%;
           align-items: flex-end;
         }
 
+        .message.bot {
+          max-width: 85%;
+        }
+
         .message.user {
+          max-width: 70%;
           flex-direction: row-reverse;
           margin-left: auto;
         }
@@ -479,6 +481,8 @@ export default function ChatPage() {
           display: flex;
           flex-direction: column;
           gap: 0.25rem;
+          min-width: 0;
+          flex: 1;
         }
 
         .message.user .message-content {
@@ -499,6 +503,7 @@ export default function ChatPage() {
           border: 1px solid rgba(0, 0, 0, 0.06);
           border-bottom-left-radius: 6px;
           box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+          min-width: 200px;
         }
 
         .message.user .message-bubble {
@@ -725,23 +730,6 @@ export default function ChatPage() {
 
         /* Mobile optimizations */
         @media (max-width: 768px) {
-          .chat-container {
-            height: 100vh;
-            height: 100dvh;
-            position: fixed;
-            overflow: hidden;
-          }
-
-          .chat-header {
-            padding: 0.75rem 0.75rem;
-            height: 65px;
-          }
-
-          .chat-messages {
-            padding-top: 65px;
-            padding-bottom: 85px;
-          }
-
           .chat-input-container {
             padding: 0.75rem;
             padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
@@ -760,6 +748,46 @@ export default function ChatPage() {
             padding: 0.4rem 0.75rem;
           }
 
+          .messages-container {
+            padding: 1rem 1rem;
+          }
+
+          .message-wrapper {
+            padding: 0 0.75rem;
+          }
+
+          .message-wrapper.user {
+            padding-right: 1rem;
+          }
+
+          .message.bot {
+            max-width: 80%;
+          }
+
+          .message.user {
+            max-width: 65%;
+          }
+
+          .message.bot .message-bubble {
+            min-width: 180px;
+          }
+
+          .message-bubble {
+            padding: 0.7rem 0.8rem;
+            word-break: normal;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            font-size: 0.85rem;
+            min-width: 50px;
+            border-radius: 16px;
+          }
+
+          .message-bubble p {
+            font-size: 0.85rem;
+            word-break: normal;
+            overflow-wrap: break-word;
+          }
+
           .input-wrapper {
             border-radius: 20px;
             padding: 0.4rem 0.75rem;
@@ -767,7 +795,7 @@ export default function ChatPage() {
           }
 
           .message-input {
-            font-size: 16px; /* Prevents zoom on iOS */
+            font-size: 16px;
             padding: 0.6rem 0.25rem;
             -webkit-appearance: none;
             -webkit-user-select: text;
@@ -781,25 +809,6 @@ export default function ChatPage() {
         }
 
         @media (max-width: 480px) {
-          .chat-container {
-            overflow-x: hidden;
-            width: 100vw;
-            box-sizing: border-box;
-            position: fixed;
-            height: 100vh;
-            height: 100dvh;
-          }
-
-          .chat-header {
-            height: 60px;
-            padding: 0.6rem 0.5rem;
-          }
-
-          .chat-messages {
-            padding-top: 60px;
-            padding-bottom: 90px;
-          }
-
           .chat-input-container {
             padding: 0.6rem;
             padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
@@ -816,6 +825,51 @@ export default function ChatPage() {
           .suggestion-chip {
             font-size: 0.7rem;
             padding: 0.35rem 0.6rem;
+          }
+
+          .messages-container {
+            padding: 1rem 0.75rem;
+            overflow-x: hidden;
+            box-sizing: border-box;
+          }
+
+          .message-wrapper {
+            padding: 0 0.5rem;
+            box-sizing: border-box;
+          }
+
+          .message-wrapper.user {
+            padding-right: 0.75rem;
+          }
+
+          .message.bot {
+            max-width: 75%;
+          }
+
+          .message.user {
+            max-width: 60%;
+          }
+
+          .message.bot .message-bubble {
+            min-width: 160px;
+          }
+
+          .message-bubble {
+            padding: 0.6rem 0.7rem;
+            font-size: 0.8rem;
+            line-height: 1.35;
+            word-break: normal;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            border-radius: 14px;
+            min-width: 45px;
+          }
+
+          .message-bubble p {
+            font-size: 0.8rem;
+            word-break: normal;
+            overflow-wrap: break-word;
+            line-height: 1.35;
           }
 
           .send-button {
@@ -836,32 +890,31 @@ export default function ChatPage() {
         }
 
         @media (max-width: 375px) {
-          .chat-header {
-            height: 58px;
-            padding: 0.55rem 0.4rem;
-          }
-
-          .chat-messages {
-            padding-top: 58px;
-            padding-bottom: 92px;
-          }
-
-          .chat-input-container {
-            min-height: 92px;
-            padding: 0.5rem 0.3rem;
-            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-          }
-
           .messages-container {
-            padding: 1rem 0.5rem;
+            padding: 1rem 0.6rem;
+            overflow-x: hidden;
+            box-sizing: border-box;
           }
 
           .message-wrapper {
-            padding: 0 0.3rem;
+            padding: 0 0.4rem;
+            box-sizing: border-box;
           }
 
           .message-wrapper.user {
-            padding-right: 0.5rem;
+            padding-right: 0.6rem;
+          }
+
+          .message.bot {
+            max-width: 70%;
+          }
+
+          .message.user {
+            max-width: 55%;
+          }
+
+          .message.bot .message-bubble {
+            min-width: 140px;
           }
 
           .message-bubble {
@@ -875,51 +928,33 @@ export default function ChatPage() {
             font-size: 0.75rem;
             line-height: 1.3;
           }
-
-          .suggestions-section {
-            padding: 0 0.15rem;
-          }
-
-          .suggestions-header {
-            padding: 0 0.15rem;
-          }
-
-          .suggestions-main-title {
-            font-size: 1.1rem;
-          }
-
-          .suggestions-subtitle {
-            font-size: 0.75rem;
-          }
-
-          .category-title {
-            font-size: 0.8rem;
-            padding-left: 0.15rem;
-          }
-
-          .suggestions-scroll {
-            padding-left: 0.15rem;
-            padding-right: 0.15rem;
-            gap: 0.5rem;
-          }
-
-          .suggestion-card {
-            min-width: 180px;
-            max-width: 220px;
-            padding: 0.75rem;
-          }
-
-          .suggestion-title {
-            font-size: 0.8rem;
-            margin-bottom: 0.35rem;
-          }
-
-          .suggestion-description {
-            font-size: 0.65rem;
-          }
         }
 
         @media (max-width: 320px) {
+          .messages-container {
+            padding: 1rem 0.5rem;
+          }
+
+          .message-wrapper {
+            padding: 0 0.3rem;
+          }
+
+          .message-wrapper.user {
+            padding-right: 0.5rem;
+          }
+
+          .message.bot {
+            max-width: 65%;
+          }
+
+          .message.user {
+            max-width: 50%;
+          }
+
+          .message.bot .message-bubble {
+            min-width: 120px;
+          }
+
           .message-bubble {
             padding: 0.5rem 0.6rem;
             font-size: 0.7rem;
@@ -930,28 +965,6 @@ export default function ChatPage() {
           .message-bubble p {
             font-size: 0.7rem;
             line-height: 1.25;
-          }
-
-          .suggestions-main-title {
-            font-size: 1rem;
-          }
-
-          .category-title {
-            font-size: 0.75rem;
-          }
-
-          .suggestion-card {
-            min-width: 160px;
-            max-width: 200px;
-            padding: 0.65rem;
-          }
-
-          .suggestion-title {
-            font-size: 0.75rem;
-          }
-
-          .suggestion-description {
-            font-size: 0.6rem;
           }
         }
       `}</style>
