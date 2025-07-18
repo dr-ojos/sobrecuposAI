@@ -6,10 +6,84 @@ const saludosSimples = [
   "hola","buenas","buenos dias","buenos días","buenas tardes","buenas noches",
   "hey","ey","qué tal","que tal","holi","holis","hello","saludos"
 ];
+
 function esSaludoSimple(text) {
   if (!text) return false;
   const limpio = text.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   return saludosSimples.includes(limpio);
+}
+
+// Función para validar RUT chileno
+function validarRUT(rut) {
+  // Remover puntos y guión, convertir a mayúsculas
+  rut = rut.replace(/[.\-]/g, '').toUpperCase();
+  
+  // Verificar formato básico
+  if (!/^[0-9]+[0-9K]$/.test(rut)) return false;
+  
+  const cuerpo = rut.slice(0, -1);
+  const dv = rut.slice(-1);
+  
+  // Calcular dígito verificador
+  let suma = 0;
+  let multiplicador = 2;
+  
+  for (let i = cuerpo.length - 1; i >= 0; i--) {
+    suma += parseInt(cuerpo[i]) * multiplicador;
+    multiplicador = multiplicador < 7 ? multiplicador + 1 : 2;
+  }
+  
+  const dvCalculado = 11 - (suma % 11);
+  let dvEsperado;
+  
+  if (dvCalculado === 11) dvEsperado = '0';
+  else if (dvCalculado === 10) dvEsperado = 'K';
+  else dvEsperado = dvCalculado.toString();
+  
+  return dv === dvEsperado;
+}
+
+// Función para detectar si el usuario menciona una especialidad específicamente
+function detectarEspecialidadDirecta(text) {
+  const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  
+  const especialidadesDirectas = {
+    'reumatologo': 'Reumatología',
+    'reumatologia': 'Reumatología',
+    'traumatologo': 'Traumatología',
+    'traumatologia': 'Traumatología',
+    'oftalmologo': 'Oftalmología',
+    'oftalmologia': 'Oftalmología',
+    'dermatologo': 'Dermatología',
+    'dermatologia': 'Dermatología',
+    'pediatra': 'Pediatría',
+    'pediatria': 'Pediatría',
+    'cardiologo': 'Cardiología',
+    'cardiologia': 'Cardiología',
+    'neurologo': 'Neurología',
+    'neurologia': 'Neurología',
+    'otorrino': 'Otorrinolaringología',
+    'otorrinolaringologia': 'Otorrinolaringología',
+    'medicina familiar': 'Medicina Familiar',
+    'medico general': 'Medicina Familiar',
+    'general': 'Medicina Familiar',
+    'familiar': 'Medicina Familiar',
+    'urologo': 'Urología',
+    'urologia': 'Urología',
+    'ginecologo': 'Ginecología',
+    'ginecologia': 'Ginecología',
+    'psiquiatra': 'Psiquiatría',
+    'psiquiatria': 'Psiquiatría',
+    'endocrinologo': 'Endocrinología',
+    'endocrinologia': 'Endocrinología'
+  };
+
+  for (const [key, value] of Object.entries(especialidadesDirectas)) {
+    if (textoLimpio.includes(key)) {
+      return value;
+    }
+  }
+  return null;
 }
 
 export default async function handler(req, res) {
@@ -19,25 +93,50 @@ export default async function handler(req, res) {
     OPENAI_API_KEY,
     AIRTABLE_API_KEY,
     AIRTABLE_BASE_ID,
-    AIRTABLE_TABLE_ID,
+    AIRTABLE_TABLE_ID, // Esta será "Sobrecupostest"
+    AIRTABLE_DOCTORS_TABLE,
+    AIRTABLE_PACIENTES_TABLE,
     SENDGRID_API_KEY,
     SENDGRID_FROM_EMAIL
   } = process.env;
 
   const { message, session: prevSession, from = "webuser" } = req.body;
-  const text  = (message || "").trim();
+  const text = (message || "").trim();
 
   // Regex comunes
-  const greetingRe    = /\b(hola|buenas|buenos días|buenos dias|buenas tardes|buenas noches|qué tal|que tal|cómo estás|como estas|hey|ey)\b/i;
-  const thanksRe      = /\b(gracias|muchas gracias)\b/i;
+  const greetingRe = /\b(hola|buenas|buenos días|buenos dias|buenas tardes|buenas noches|qué tal|que tal|cómo estás|como estas|hey|ey)\b/i;
+  const thanksRe = /\b(gracias|muchas gracias)\b/i;
   const affirmativeRe = /^(si|sí|s|ok|vale|perfecto|listo|confirmo|confirmar|dale|claro|quiero|lo quiero)/i;
-  const negativeRe    = /\b(no|otra|busca más|busca mas|no me sirve|no quiero|siguiente)\b/i;
+  const negativeRe = /\b(no|otra|busca más|busca mas|no me sirve|no quiero|siguiente)\b/i;
 
-  // --- Helper para obtener nombre real del médico (Airtable Doctors)
+  // --- Helper para obtener especialidades disponibles dinámicamente
+  async function getEspecialidadesDisponibles() {
+    try {
+      const resp = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}?fields%5B%5D=Especialidad`,
+        { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+      );
+      const data = await resp.json();
+      const especialidades = new Set();
+      
+      data.records?.forEach(record => {
+        if (record.fields?.Especialidad) {
+          especialidades.add(record.fields.Especialidad);
+        }
+      });
+      
+      return Array.from(especialidades).sort();
+    } catch (err) {
+      console.error("❌ Error obteniendo especialidades:", err);
+      return ["Medicina Familiar", "Oftalmología", "Dermatología"]; // Fallback
+    }
+  }
+
+  // --- Helper para obtener nombre real del médico
   async function getDoctorName(medicoId) {
     try {
       const resp = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Doctors/${medicoId}`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${medicoId}`,
         { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
       );
       const data = await resp.json();
@@ -48,15 +147,38 @@ export default async function handler(req, res) {
     }
   }
 
+  // --- Helper para crear registro de paciente
+  async function crearPaciente(pacienteData) {
+    try {
+      const resp = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PACIENTES_TABLE}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            fields: pacienteData
+          })
+        }
+      );
+      const data = await resp.json();
+      return data.id;
+    } catch (err) {
+      console.error("❌ Error creando paciente:", err);
+      return null;
+    }
+  }
+
   // 1) Verificar configuración
   if (![OPENAI_API_KEY, AIRTABLE_API_KEY, AIRTABLE_BASE_ID,
-        AIRTABLE_TABLE_ID, SENDGRID_API_KEY, SENDGRID_FROM_EMAIL].every(Boolean)) {
+        AIRTABLE_TABLE_ID, AIRTABLE_DOCTORS_TABLE, SENDGRID_API_KEY, SENDGRID_FROM_EMAIL].every(Boolean)) {
     return res.json({ text: "❌ Error de configuración. Contacta soporte." });
   }
 
   // 2) Saludo inicial o saludo simple
   if (greetingRe.test(text)) {
-    // Si es un saludo sin contexto
     if (esSaludoSimple(text)) {
       return res.json({
         text:
@@ -64,7 +186,6 @@ export default async function handler(req, res) {
           "Cuéntame tus síntomas, el nombre del médico o la especialidad que necesitas."
       });
     }
-    // Saludo más largo con contexto (ej: “hola, necesito oftalmología”)
     return res.json({
       text:
         "¡Hola! 👋 Soy Sobrecupos IA.\n" +
@@ -86,7 +207,7 @@ export default async function handler(req, res) {
         if (affirmativeRe.test(text)) {
           session.stage = 'collect-name';
           return res.json({
-            text: '¡Perfecto! Dime tu nombre completo para completar la reserva.',
+            text: '¡Perfecto! Para completar la reserva necesito algunos datos.\n\nPrimero, dime tu nombre completo:',
             session
           });
         } else if (negativeRe.test(text)) {
@@ -100,15 +221,17 @@ export default async function handler(req, res) {
             return res.json({
               text:
                 `🔄 Otra opción de ${session.specialty}:\n` +
-                `${clin} (${dir})\n` +
-                `con Dr. ${medicoNombre} el ${nxt.Fecha} a las ${nxt.Hora}.\n\n` +
-                `¿Te sirve? ¿Te la reservo? Me confirmas con un "sí".\n` +
-                `o escríbeme un "no" y te busco otra opción.`,
+                `📍 ${clin} (${dir})\n` +
+                `👨‍⚕️ Dr. ${medicoNombre}\n` +
+                `🗓️ ${nxt.Fecha} a las ${nxt.Hora}\n\n` +
+                `¿Te sirve? Confirma con "sí" o dime "no" para otra opción.`,
               session
             });
           } else {
             delete sessions[from];
-            return res.json({ text: 'Lo siento, no hay más sobrecupos disponibles.' });
+            return res.json({ 
+              text: 'Lo siento, no hay más sobrecupos disponibles para esta especialidad en este momento.\n\n¿Te gustaría que te contacte cuando tengamos nueva disponibilidad?' 
+            });
           }
         } else {
           return res.json({ text: 'Por favor responde con "sí" u "no".', session });
@@ -116,79 +239,114 @@ export default async function handler(req, res) {
 
       case 'collect-name':
         session.patient = { name: text };
+        session.stage = 'collect-age';
+        sessions[from] = session;
+        return res.json({ text: 'Gracias. Ahora dime tu edad:', session });
+
+      case 'collect-age':
+        const age = parseInt(text);
+        if (isNaN(age) || age < 0 || age > 120) {
+          return res.json({ text: 'Por favor ingresa una edad válida (número entre 0 y 120):', session });
+        }
+        session.patient.age = age;
+        session.stage = 'collect-rut';
+        sessions[from] = session;
+        return res.json({ text: 'Perfecto. Ahora necesito tu RUT (ej: 12345678-9):', session });
+
+      case 'collect-rut':
+        if (!validarRUT(text)) {
+          return res.json({ text: 'El RUT ingresado no es válido. Por favor ingresa un RUT chileno válido (ej: 12345678-9):', session });
+        }
+        session.patient.rut = text.replace(/[.\-]/g, '').toUpperCase();
         session.stage = 'collect-phone';
         sessions[from] = session;
-        return res.json({ text: 'Gracias. Ahora indícame tu teléfono (con código país).', session });
+        return res.json({ text: 'Excelente. Ahora tu teléfono (con código país):', session });
 
       case 'collect-phone':
         session.patient.phone = text;
         session.stage = 'collect-email';
         sessions[from] = session;
-        return res.json({ text: '¡Perfecto! Por último, tu email para enviarte la confirmación.', session });
+        return res.json({ text: 'Por último, tu email para enviarte la confirmación:', session });
 
-      case 'collect-email': {
+      case 'collect-email':
         session.patient.email = text;
-        const rec = session.records[session.attempts];
-        const chosen = rec.fields;
+        session.stage = 'final-confirmation';
+        sessions[from] = session;
 
-        // Detectar campos en Airtable
-        const allFields = Object.keys(chosen);
-        const nameField = allFields.find(f => /nombre/i.test(f)) || "Nombre";
-        const dispField = allFields.find(f => /disponible/i.test(f)) || "Disponible";
-        const phoneField = allFields.find(f => /tel(e|é)fono/i.test(f));
-        const emailField = allFields.find(f => /email/i.test(f)) || "Email";
+        // Crear registro de paciente en tabla Pacientes
+        const pacienteId = await crearPaciente({
+          Nombre: session.patient.name,
+          Edad: session.patient.age,
+          RUT: session.patient.rut,
+          Telefono: session.patient.phone,
+          Email: session.patient.email,
+          "Fecha Registro": new Date().toISOString().split('T')[0]
+        });
 
-        // Preparar campos de PATCH
-        const patchFields = {
-          [dispField]: typeof chosen[dispField] === 'boolean' ? false : 'No',
-          [nameField]: session.patient.name,
-          [emailField]: session.patient.email
+        // Marcar sobrecupo como no disponible en tabla Sobrecupostest
+        const chosen = session.records[session.attempts].fields;
+        const chosenId = session.records[session.attempts].id;
+        
+        const updateFields = {
+          Disponible: false,
+          Nombre: session.patient.name,
+          Edad: session.patient.age,
+          RUT: session.patient.rut,
+          Telefono: session.patient.phone,
+          Email: session.patient.email
         };
-        if (phoneField) {
-          patchFields[phoneField] = session.patient.phone;
-        }
 
-        // Actualizar registro en Airtable
+        // Si se creó el paciente, añadir la relación
+        if (pacienteId) {
+          updateFields.Paciente = [pacienteId];
+        }
+        
         try {
           await fetch(
-            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`,
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${chosenId}`,
             {
               method: "PATCH",
               headers: {
                 Authorization: `Bearer ${AIRTABLE_API_KEY}`,
                 "Content-Type": "application/json"
               },
-              body: JSON.stringify({ records: [{ id: rec.id, fields: patchFields }] })
+              body: JSON.stringify({
+                fields: updateFields
+              })
             }
           );
+          console.log("✅ Sobrecupo actualizado en Sobrecupostest");
         } catch (err) {
-          console.error("❌ Error PATCH Airtable:", err);
+          console.error("❌ Error actualizando Sobrecupostest:", err);
         }
 
-        // Obtener nombre real del médico
-        let medicoNombre = "";
+        // Enviar email de confirmación
         const medicoId = Array.isArray(chosen["Médico"]) ? chosen["Médico"][0] : chosen["Médico"];
-        medicoNombre = await getDoctorName(medicoId);
-
-        // Enviar correo de confirmación vía SendGrid
+        const medicoNombre = await getDoctorName(medicoId);
+        
         const emailPayload = {
-          personalizations: [{ to: [{ email: session.patient.email }] }],
-          from: { email: SENDGRID_FROM_EMAIL },
-          subject: "Confirmación de tu SobreCupo Médico",
+          from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos IA" },
+          personalizations: [{
+            to: [{ email: session.patient.email }],
+            subject: `Sobrecupo confirmado - ${session.specialty}`,
+          }],
           content: [{
             type: "text/plain",
             value:
-              `Hola ${session.patient.name},\n\n` +
-              `Yo, Dr. ${medicoNombre}, te he autorizado el sobrecupo.\n\n` +
-              `Tu sobrecupo de ${session.specialty} ha sido confirmado:\n` +
+              `Hola ${session.patient.name}, tu sobrecupo ha sido confirmado.\n\n` +
+              `📋 Detalles de tu cita:\n` +
+              `Especialidad: ${session.specialty}\n` +
               `Clínica: ${chosen["Clínica"]||chosen["Clinica"]}\n` +
               `Dirección: ${chosen["Dirección"]||chosen["Direccion"]}\n` +
-              `Dr/a: Dr. ${medicoNombre}\n` +
-              `Fecha: ${chosen.Fecha} a las ${chosen.Hora}\n\n` +
+              `Médico: Dr. ${medicoNombre}\n` +
+              `Fecha: ${chosen.Fecha}\n` +
+              `Hora: ${chosen.Hora}\n` +
+              `RUT: ${session.patient.rut}\n\n` +
               `¡Que te mejores pronto!\n` +
               `Sobrecupos IA`
           }]
         };
+        
         try {
           await fetch("https://api.sendgrid.com/v3/mail/send", {
             method: "POST",
@@ -205,19 +363,133 @@ export default async function handler(req, res) {
         delete sessions[from];
         return res.json({
           text:
-            `✅ ¡Listo, ${session.patient.name}! Tu sobrecupo está reservado.\n` +
-            `📍 ${chosen["Clínica"]||chosen["Clinica"]}, ${chosen["Dirección"]||chosen["Direccion"]}\n` +
-            `🗓️ ${chosen.Fecha} a las ${chosen.Hora}\n` +
-            `Te envié confirmación a ${session.patient.email}.`
+            `✅ ¡Listo, ${session.patient.name}! Tu sobrecupo está confirmado.\n\n` +
+            `📍 ${chosen["Clínica"]||chosen["Clinica"]}\n` +
+            `📍 ${chosen["Dirección"]||chosen["Direccion"]}\n` +
+            `👨‍⚕️ Dr. ${medicoNombre}\n` +
+            `🗓️ ${chosen.Fecha} a las ${chosen.Hora}\n\n` +
+            `📧 Te envié la confirmación a ${session.patient.email}`
         });
-      }
 
       default:
         break;
     }
   }
 
-  // 5) Detectar especialidad con OpenAI (igual que tenías)
+  // 5) Detectar especialidad directa primero
+  const especialidadDirecta = detectarEspecialidadDirecta(text);
+  
+  if (especialidadDirecta) {
+    console.log(`🎯 Especialidad detectada directamente: ${especialidadDirecta}`);
+    
+    // Obtener especialidades disponibles dinámicamente
+    const especialidadesDisponibles = await getEspecialidadesDisponibles();
+    
+    // Si la especialidad NO está disponible en nuestros médicos
+    if (!especialidadesDisponibles.includes(especialidadDirecta)) {
+      return res.json({
+        text:
+          `Entiendo que estás buscando atención especializada y es completamente normal sentirse preocupado por tu salud.\n\n` +
+          `Lamentablemente no tengo sobrecupos de ${especialidadDirecta} disponibles en este momento, pero puedo conseguirte una cita si me dejas tus datos para contactarte apenas tengamos disponibilidad.\n\n` +
+          `¿Te gustaría que te contacte cuando tengamos ${especialidadDirecta} disponible?`
+      });
+    }
+    
+    // Si la especialidad SÍ está disponible, continuar con la búsqueda
+    const specialty = especialidadDirecta;
+    
+    // Generar respuesta empática
+    let respuestaEmpatica = "";
+    try {
+      const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.7,
+          max_tokens: 40,
+          messages: [
+            {
+              role: "system",
+              content:
+                "Eres Sobrecupos IA, asistente médico chileno, humano y empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al usuario que busca una especialidad específica. No menciones 'Sobrecupos IA' ni uses comillas."
+            },
+            { role: "user", content: `Usuario busca: "${specialty}"` }
+          ]
+        })
+      });
+      const empatJson = await empatRes.json();
+      respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
+    } catch (err) {
+      respuestaEmpatica = "Entiendo que necesitas atención especializada.";
+    }
+
+    // Buscar sobrecupos disponibles
+    let records = [];
+    try {
+      const resp = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+        { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+      );
+      const data = await resp.json();
+      records = data.records || [];
+    } catch (err) {
+      console.error("❌ Error Airtable:", err);
+      return res.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
+    }
+
+    // Filtrar por especialidad y disponibilidad
+    const available = records.filter(r => {
+      const fields = r.fields || {};
+      return (
+        (fields.Especialidad === specialty) &&
+        (fields.Disponible === "Si" || fields.Disponible === true)
+      );
+    });
+
+    if (available.length === 0) {
+      return res.json({
+        text:
+          `${respuestaEmpatica}\n\n` +
+          `Lamentablemente no tengo sobrecupos de ${specialty} disponibles en este momento.\n\n` +
+          `¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+      });
+    }
+
+    // Mostrar primera opción disponible
+    const first = available[0].fields;
+    const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
+    const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
+    const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+    const medicoNombre = await getDoctorName(medicoId);
+
+    sessions[from] = {
+      stage: 'awaiting-confirmation',
+      specialty,
+      records: available,
+      attempts: 0
+    };
+
+    return res.json({
+      text:
+        `${respuestaEmpatica}\n\n` +
+        `✅ Encontré un sobrecupo de ${specialty}:\n` +
+        `📍 ${clin}\n` +
+        `📍 ${dir}\n` +
+        `👨‍⚕️ Dr. ${medicoNombre}\n` +
+        `🗓️ ${first.Fecha} a las ${first.Hora}\n\n` +
+        `¿Te sirve? Confirma con "sí".`,
+      session: sessions[from]
+    });
+  }
+
+  // 6) Si no detectamos especialidad directa, usar OpenAI para analizar síntomas
+  const especialidadesDisponibles = await getEspecialidadesDisponibles();
+  const especialidadesString = especialidadesDisponibles.join(", ");
+
   let rawEsp = "";
   try {
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -229,12 +501,12 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         temperature: 0,
-        max_tokens: 16,
+        max_tokens: 20,
         messages: [
           {
             role: "system",
             content:
-              "Eres Sobrecupos IA, asistente médico empático. Dado un síntoma, responde SOLO con EXACTAMENTE una de las siguientes especialidades (y nada más): Oftalmología, Medicina Familiar, Dermatología, Pediatría, Otorrinolaringología, Neurología, Cardiología. Elige la especialidad que con mayor probabilidad se encarga de ese síntoma. Si mencionan un niño, elige Pediatría."
+              `Eres Sobrecupos IA, asistente médico empático. Dado un síntoma o consulta médica, responde SOLO con EXACTAMENTE una de las siguientes especialidades disponibles (y nada más): ${especialidadesString}. Elige la especialidad que con mayor probabilidad se encarga de ese síntoma. Si mencionan un niño, elige Pediatría. Si no puedes determinar una especialidad específica, elige Medicina Familiar.`
           },
           { role: "user", content: `Paciente: "${text}"` }
         ]
@@ -247,7 +519,7 @@ export default async function handler(req, res) {
     return res.json({ text: "Lo siento, no entendí. ¿Puedes describirlo de otra forma?" });
   }
 
-  // 5b) Respuesta empática al síntoma (OpenAI)
+  // 7) Respuesta empática al síntoma
   let respuestaEmpatica = "";
   try {
     const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -276,29 +548,10 @@ export default async function handler(req, res) {
     respuestaEmpatica = "";
   }
 
-  // 6) Mapear especialidad
-  const normalize = (s) =>
-    s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z\s]/gi, "").toLowerCase();
-  const mapSpec = {
-    oftalmologia: "Oftalmología",
-    "medicina familiar": "Medicina Familiar",
-    dermatologia: "Dermatología",
-    pediatria: "Pediatría",
-    otorrinolaringologia: "Otorrinolaringología",
-    neurologia: "Neurología",
-    cardiologia: "Cardiología"
-  };
-  const specialty = mapSpec[normalize(rawEsp)];
-  if (!specialty) {
-    return res.json({
-      text:
-        "Lo siento, no encontré un sobrecupo disponible para esa especialidad en este momento. ¿Quieres dejar tus datos y te avisamos apenas tengamos disponibilidad?\n\n" +
-        "Especialidades disponibles:\n" +
-        "• Oftalmología\n• Medicina Familiar\n• Dermatología\n• Pediatría\n• Otorrinolaringología\n• Neurología\n• Cardiología"
-    });
-  }
+  // 8) Verificar que la especialidad detectada esté disponible
+  const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
 
-  // 7) Leer sobrecupos en Airtable
+  // 9) Buscar sobrecupos en tabla Sobrecupostest
   let records = [];
   try {
     const resp = await fetch(
@@ -308,54 +561,51 @@ export default async function handler(req, res) {
     const data = await resp.json();
     records = data.records || [];
   } catch (err) {
-    console.error("❌ Error Airtable:", err);
+    console.error("❌ Error consultando Sobrecupostest:", err);
     return res.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
   }
 
-  // 8) Filtrar disponibles con fecha futura
-  const today = new Date().setHours(0, 0, 0, 0);
-  const available = records.filter((r) => {
-    const esp = normalize(r.fields.Especialidad || "");
-    const disp = normalize(r.fields.Disponible || "");
-    const fecha = new Date(r.fields.Fecha).setHours(0, 0, 0, 0);
-    return esp === normalize(specialty) && disp === "si" && fecha >= today;
+  // 10) Filtrar por especialidad y disponibilidad
+  const available = records.filter(r => {
+    const fields = r.fields || {};
+    return (
+      (fields.Especialidad === specialty) &&
+      (fields.Disponible === "Si" || fields.Disponible === true)
+    );
   });
 
-  if (!available.length) {
+  if (available.length === 0) {
     return res.json({
       text:
-        (respuestaEmpatica ? respuestaEmpatica + "\n\n" : "") +
-        `Lo siento, no hay sobrecupos disponibles para ${specialty} con fecha vigente.`
+        `${respuestaEmpatica ? respuestaEmpatica + '\n\n' : ''}` +
+        `Lo siento, no tengo sobrecupos de ${specialty} disponibles en este momento.\n\n` +
+        `¿Te gustaría que te contacte cuando tengamos disponibilidad?`
     });
   }
 
-  // 9) Guardar sesión y ofrecer primer sobrecupo
-  session = {
-    records: available,
-    attempts: 0,
-    specialty,
-    stage: "awaiting-confirmation",
-    patient: {}
-  };
-  sessions[from] = session;
+  // 11) Mostrar primera opción
   const first = available[0].fields;
   const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
   const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
-  let medicoNombre = "";
-  if (Array.isArray(first["Médico"])) medicoNombre = await getDoctorName(first["Médico"][0]);
-  else if (first["Médico"]) medicoNombre = await getDoctorName(first["Médico"]);
-  else medicoNombre = first["Nombre"] || "";
+  const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+  const medicoNombre = await getDoctorName(medicoId);
+
+  sessions[from] = {
+    stage: 'awaiting-confirmation',
+    specialty,
+    records: available,
+    attempts: 0
+  };
 
   return res.json({
-    text: [
-      respuestaEmpatica,
-      `✅ He encontrado un sobrecupo de ${specialty} en ${clin} (${dir})\n` +
-        `con Dr. ${medicoNombre} el ${first.Fecha} a las ${first.Hora}.`,
-      "¿Te sirve? ¿Te la reservo? Me confirmas con un \"sí\".",
-      "o escríbeme un \"no\" y te busco otra opción."
-    ]
-      .filter(Boolean)
-      .join("\n\n"),
-    session
+    text:
+      `${respuestaEmpatica ? respuestaEmpatica + '\n\n' : ''}` +
+      `✅ Encontré un sobrecupo de ${specialty}:\n` +
+      `📍 ${clin}\n` +
+      `📍 ${dir}\n` +
+      `👨‍⚕️ Dr. ${medicoNombre}\n` +
+      `🗓️ ${first.Fecha} a las ${first.Hora}\n\n` +
+      `¿Te sirve? Confirma con "sí".`,
+    session: sessions[from]
   });
 }
