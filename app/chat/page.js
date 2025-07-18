@@ -435,7 +435,7 @@ export default function ChatPage() {
           max-width: 800px;
           margin: 0 auto;
           width: 100%;
-          padding: 0 1.5rem;
+          padding: 0 2rem;
           flex: 1;
         }
 
@@ -451,7 +451,7 @@ export default function ChatPage() {
         .message {
           display: flex;
           gap: 0.75rem;
-          max-width: 75%;
+          max-width: 80%;
           align-items: flex-end;
         }
 
@@ -849,17 +849,12 @@ export default function ChatPage() {
             padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
           }
 
+          .messages-container {
+            padding: 1rem 0.5rem;
+          }
+
           .message-wrapper {
-            padding: 0 0.1rem;
-          }
-
-          .message {
-            max-width: calc(100% - 0.2rem);
-            gap: 0.35rem;
-          }
-
-          .message-content {
-            max-width: calc(100% - 1.75rem);
+            padding: 0 0.15rem;
           }
 
           .message-bubble {
