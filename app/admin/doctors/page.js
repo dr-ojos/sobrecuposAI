@@ -222,7 +222,7 @@ export default function DoctorsAdminPage() {
       const dataToSend = {
         ...form,
         Especialidad: especialidadFinal,
-        Seguros: form.Seguros.join(", "), // Convertir array a string
+        Seguros: form.Seguros, // Enviar como array para Multiple select
         Clinicas: form.Clinicas // Enviar como array de IDs
       };
       
@@ -305,10 +305,7 @@ export default function DoctorsAdminPage() {
 
   const startEdit = (doctor) => {
     // Preparar datos del médico para edición
-    const segurosArray = doctor.fields?.Seguros 
-      ? doctor.fields.Seguros.split(", ").filter(Boolean)
-      : [];
-    
+    const segurosArray = doctor.fields?.Seguros || [];
     const clinicasArray = doctor.fields?.Clinicas || [];
     
     setForm({
@@ -691,7 +688,9 @@ export default function DoctorsAdminPage() {
                                 👥 {doctor.fields?.Atiende || "No especificado"}
                               </div>
                               <div className="doctor-seguros">
-                                💳 {doctor.fields?.Seguros || "No especificado"}
+                                💳 {Array.isArray(doctor.fields?.Seguros) 
+                                  ? doctor.fields.Seguros.join(", ") 
+                                  : doctor.fields?.Seguros || "No especificado"}
                               </div>
                               <div className="doctor-clinicas">
                                 🏥 {doctor.fields?.Clinicas?.length || 0} clínica{doctor.fields?.Clinicas?.length !== 1 ? 's' : ''}
@@ -839,7 +838,11 @@ export default function DoctorsAdminPage() {
                 </div>
                 <div className="contact-item">
                   <div className="contact-label">💳 Seguros</div>
-                  <div className="contact-value">{selectedDoctor.fields?.Seguros || "No especificado"}</div>
+                  <div className="contact-value">
+                    {Array.isArray(selectedDoctor.fields?.Seguros) 
+                      ? selectedDoctor.fields.Seguros.join(", ") 
+                      : selectedDoctor.fields?.Seguros || "No especificado"}
+                  </div>
                 </div>
                 <div className="contact-item">
                   <div className="contact-label">🏥 Clínicas</div>
