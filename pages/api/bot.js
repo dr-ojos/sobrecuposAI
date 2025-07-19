@@ -1,4 +1,4 @@
-// /pages/api/bot.js - VERSIÓN COMPLETA CORREGIDA
+// /pages/api/bot.js - VERSIÓN LIMPIA FINAL
 const sessions = {};
 
 const saludosSimples = [
@@ -236,7 +236,6 @@ export default async function handler(req, res) {
         session.stage = 'final-confirmation';
         sessions[from] = session;
 
-        // Crear registro de paciente
         console.log("📝 Creando paciente en Airtable...");
         const pacienteId = await crearPaciente({
           Nombre: session.patient.name,
@@ -247,7 +246,6 @@ export default async function handler(req, res) {
           "Fecha Registro": new Date().toISOString().split('T')[0]
         });
 
-        // Actualizar sobrecupo con manejo de errores mejorado
         const chosen = session.records[session.attempts].fields;
         const chosenId = session.records[session.attempts].id;
         
@@ -291,8 +289,13 @@ export default async function handler(req, res) {
             console.error("❌ Error HTTP actualizando sobrecupo:", updateResponse.status);
             console.error("❌ Detalles del error:", responseData);
             
-            // Intento de fallback: Solo actualizar campo Disponible
-            console.log("🔄 Intentando actualización mínima...");
+            console.log("🔄 Intentando actualización con datos esenciales...");
+            const fallbackFields = {
+              Disponible: "No",
+              Nombre: session.patient.name,
+              Email: session.patient.email
+            };
+            
             const fallbackResponse = await fetch(
               `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${chosenId}`,
               {
@@ -302,22 +305,43 @@ export default async function handler(req, res) {
                   "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ 
-                  fields: { Disponible: "No" } 
+                  fields: fallbackFields
                 })
               }
             );
             
             if (fallbackResponse.ok) {
-              console.log("✅ Actualización mínima exitosa");
+              console.log("✅ Actualización con datos esenciales exitosa");
               sobrecupoUpdated = true;
               updateError = null;
             } else {
               const fallbackError = await fallbackResponse.json();
-              console.error("❌ Error en actualización mínima:", fallbackError);
+              console.error("❌ Error en actualización esencial:", fallbackError);
+              
+              console.log("🔄 Último intento: solo Disponible...");
+              const minimalResponse = await fetch(
+                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${chosenId}`,
+                {
+                  method: "PATCH",
+                  headers: {
+                    Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({ 
+                    fields: { Disponible: "No" }
+                  })
+                }
+              );
+              
+              if (minimalResponse.ok) {
+                console.log("✅ Actualización mínima exitosa");
+                sobrecupoUpdated = true;
+                updateError = "Solo se actualizó disponibilidad, no datos del paciente";
+              }
             }
             
           } else {
-            console.log("✅ Sobrecupo actualizado exitosamente");
+            console.log("✅ Sobrecupo actualizado exitosamente con todos los datos");
             console.log("✅ Respuesta Airtable:", responseData);
             sobrecupoUpdated = true;
           }
@@ -326,7 +350,13 @@ export default async function handler(req, res) {
           console.error("❌ Error de conexión actualizando sobrecupo:", err);
           
           try {
-            console.log("🔄 Intentando actualización mínima por error de conexión...");
+            console.log("🔄 Fallback por error de conexión...");
+            const fallbackFields = {
+              Disponible: "No",
+              Nombre: session.patient.name,
+              Email: session.patient.email
+            };
+            
             const fallbackResponse = await fetch(
               `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${chosenId}`,
               {
@@ -336,13 +366,13 @@ export default async function handler(req, res) {
                   "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ 
-                  fields: { Disponible: "No" } 
+                  fields: fallbackFields
                 })
               }
             );
             
             if (fallbackResponse.ok) {
-              console.log("✅ Actualización mínima por fallback exitosa");
+              console.log("✅ Fallback con datos esenciales exitoso");
               sobrecupoUpdated = true;
               updateError = null;
             }
@@ -351,16 +381,13 @@ export default async function handler(req, res) {
           }
         }
 
-        // Obtener información del médico
         const medicoId = Array.isArray(chosen["Médico"]) ? chosen["Médico"][0] : chosen["Médico"];
         const doctorInfo = await getDoctorInfo(medicoId);
 
-        // Enviar emails
         const emailEnabled = SENDGRID_API_KEY && SENDGRID_FROM_EMAIL;
         let emailsSent = { patient: false, doctor: false };
 
         if (emailEnabled) {
-          // Email al paciente
           const patientEmailPayload = {
             from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos" },
             personalizations: [{
@@ -443,7 +470,6 @@ export default async function handler(req, res) {
             console.error("❌ Error enviando email al paciente:", err);
           }
 
-          // Email al médico
           if (doctorInfo.email) {
             const doctorEmailPayload = {
               from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos" },
@@ -547,7 +573,6 @@ export default async function handler(req, res) {
 
         delete sessions[from];
         
-        // Mensaje de confirmación limpio
         let statusText = `✅ ¡Listo, ${session.patient.name}! Tu sobrecupo está confirmado.\n\n` +
           `📍 ${chosen["Clínica"]||chosen["Clinica"]}\n` +
           `📍 ${chosen["Dirección"]||chosen["Direccion"]}\n` +
@@ -560,7 +585,6 @@ export default async function handler(req, res) {
           statusText += `📧 (La confirmación por email se enviará por separado)`;
         }
 
-        // Solo mostrar mensaje de problema si realmente falló
         if (!sobrecupoUpdated && updateError) {
           statusText += `\n\n⚠️ Nota técnica: ${updateError}. Tu cita está confirmada.`;
           console.error("❌ Error final actualización sobrecupo:", updateError);
@@ -587,7 +611,6 @@ export default async function handler(req, res) {
     
     const specialty = especialidadDirecta;
     
-    // Generar respuesta empática con OpenAI
     let respuestaEmpatica = "";
     if (OPENAI_API_KEY) {
       try {
@@ -617,7 +640,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // Buscar sobrecupos disponibles
     let records = [];
     try {
       const resp = await fetch(
@@ -664,7 +686,6 @@ export default async function handler(req, res) {
     });
   }
 
-  // Análisis de síntomas con OpenAI
   if (OPENAI_API_KEY) {
     const especialidadesDisponibles = await getEspecialidadesDisponibles();
     const especialidadesString = especialidadesDisponibles.join(", ");
@@ -699,7 +720,6 @@ export default async function handler(req, res) {
 
     const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
 
-    // Buscar sobrecupos
     let records = [];
     try {
       const resp = await fetch(
@@ -746,7 +766,6 @@ export default async function handler(req, res) {
     });
   }
 
-  // Fallback si no hay OpenAI
   return res.json({
     text: "¡Hola! Para ayudarte mejor, ¿puedes contarme qué especialidad médica necesitas o cuáles son tus síntomas?"
   });
