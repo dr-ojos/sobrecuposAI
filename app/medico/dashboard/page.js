@@ -914,18 +914,18 @@ function MedicoDashboard() {
 
         .stat-card {
           position: relative;
-          background: rgba(255, 255, 255, 0.7);
+          background: rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          border-radius: 20px;
-          padding: 2rem;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          border-radius: 16px;
+          padding: 1.5rem;
           cursor: pointer;
           transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           overflow: hidden;
           animation: card-enter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
           opacity: 0;
           transform: translateY(30px);
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
         @keyframes card-enter {
@@ -936,10 +936,10 @@ function MedicoDashboard() {
         }
 
         .stat-card:hover {
-          transform: translateY(-8px) scale(1.02);
-          background: rgba(255, 255, 255, 0.85);
-          border-color: rgba(0, 122, 255, 0.15);
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+          transform: translateY(-6px) scale(1.02);
+          background: rgba(255, 255, 255, 0.95);
+          border-color: rgba(0, 122, 255, 0.2);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
         }
 
         .card-glow {
@@ -1203,8 +1203,8 @@ function MedicoDashboard() {
         .action-card {
           position: relative;
           background: none;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          border-radius: 20px;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          border-radius: 16px;
           cursor: pointer;
           overflow: hidden;
           transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -1212,9 +1212,9 @@ function MedicoDashboard() {
         }
 
         .action-card:hover {
-          transform: translateY(-8px) scale(1.02);
-          border-color: rgba(0, 122, 255, 0.15);
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+          transform: translateY(-6px) scale(1.02);
+          border-color: rgba(0, 122, 255, 0.2);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
         }
 
         .action-bg {
@@ -1223,20 +1223,20 @@ function MedicoDashboard() {
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(255, 255, 255, 0.6);
+          background: rgba(255, 255, 255, 0.9);
           transition: all 0.3s ease;
         }
 
         .action-card:hover .action-bg {
-          background: rgba(255, 255, 255, 0.8);
+          background: rgba(255, 255, 255, 0.95);
         }
 
         .primary-bg {
-          background: linear-gradient(135deg, rgba(0, 122, 255, 0.08), rgba(88, 86, 214, 0.08)) !important;
+          background: linear-gradient(135deg, rgba(0, 122, 255, 0.12), rgba(88, 86, 214, 0.12)) !important;
         }
 
         .action-card.primary:hover .primary-bg {
-          background: linear-gradient(135deg, rgba(0, 122, 255, 0.12), rgba(88, 86, 214, 0.12)) !important;
+          background: linear-gradient(135deg, rgba(0, 122, 255, 0.18), rgba(88, 86, 214, 0.18)) !important;
         }
 
         .action-content {
