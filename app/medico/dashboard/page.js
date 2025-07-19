@@ -1231,12 +1231,50 @@ function MedicoDashboard() {
           background: rgba(255, 255, 255, 0.95);
         }
 
+        .action-card.primary .action-title {
+          color: #ffffff !important;
+        }
+
+        .action-card.primary .action-description {
+          color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .action-card.primary .action-icon {
+          color: #ffffff !important;
+        }
+
         .primary-bg {
-          background: linear-gradient(135deg, rgba(0, 122, 255, 0.12), rgba(88, 86, 214, 0.12)) !important;
+          background: linear-gradient(135deg, #34c759, #30d158) !important;
         }
 
         .action-card.primary:hover .primary-bg {
-          background: linear-gradient(135deg, rgba(0, 122, 255, 0.18), rgba(88, 86, 214, 0.18)) !important;
+          background: linear-gradient(135deg, #28a745, #34c759) !important;
+        }
+
+        .action-card.primary {
+          border-color: rgba(52, 199, 89, 0.3) !important;
+          box-shadow: 0 4px 24px rgba(52, 199, 89, 0.2) !important;
+        }
+
+        .action-card.primary:hover {
+          border-color: rgba(52, 199, 89, 0.5) !important;
+          box-shadow: 0 16px 48px rgba(52, 199, 89, 0.3) !important;
+        }
+
+        .primary-ring {
+          border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .primary-arrow {
+          color: #ffffff !important;
+        }
+
+        .action-card.primary:hover .primary-arrow {
+          color: #ffffff !important;
+        }
+
+        .primary-trail {
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent) !important;
         }
 
         .action-content {
