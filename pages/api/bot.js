@@ -1,4 +1,4 @@
-// /pages/api/bot.js - VERSIÓN LIMPIA FINAL
+// /pages/api/bot.js - VERSIÓN CON REGISTRO DE PACIENTES CORREGIDO
 const sessions = {};
 
 const saludosSimples = [
@@ -126,8 +126,17 @@ export default async function handler(req, res) {
     }
   }
 
+  // ✅ FUNCIÓN CORREGIDA PARA CREAR PACIENTES
   async function crearPaciente(pacienteData) {
+    if (!AIRTABLE_PATIENTS_TABLE) {
+      console.error("❌ Variable AIRTABLE_PATIENTS_TABLE no configurada");
+      return null;
+    }
+
     try {
+      console.log("📝 Intentando crear paciente con datos:", pacienteData);
+      console.log("📝 URL tabla pacientes:", `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PATIENTS_TABLE}`);
+      
       const resp = await fetch(
         `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PATIENTS_TABLE}`,
         {
@@ -140,17 +149,52 @@ export default async function handler(req, res) {
         }
       );
       
+      console.log("📡 Respuesta HTTP creando paciente:", resp.status);
+      
       if (!resp.ok) {
         const errorData = await resp.json();
-        console.error("❌ Error HTTP creando paciente:", resp.status, errorData);
+        console.error("❌ Error HTTP creando paciente:", resp.status);
+        console.error("❌ Detalles del error:", JSON.stringify(errorData, null, 2));
+        
+        // ✅ Intentar con campos básicos si hay error 422 (campos inválidos)
+        if (resp.status === 422) {
+          console.log("🔄 Intentando crear paciente solo con campos básicos...");
+          const basicData = {
+            Nombre: pacienteData.Nombre,
+            Email: pacienteData.Email
+          };
+          
+          const basicResp = await fetch(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PATIENTS_TABLE}`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ fields: basicData })
+            }
+          );
+          
+          if (basicResp.ok) {
+            const basicResult = await basicResp.json();
+            console.log("✅ Paciente creado con datos básicos:", basicResult.id);
+            return basicResult.id;
+          } else {
+            const basicError = await basicResp.json();
+            console.error("❌ Error creando paciente con datos básicos:", JSON.stringify(basicError, null, 2));
+          }
+        }
+        
         return null;
       }
       
       const data = await resp.json();
       console.log("✅ Paciente creado exitosamente:", data.id);
+      console.log("✅ Datos del paciente creado:", JSON.stringify(data, null, 2));
       return data.id;
     } catch (err) {
-      console.error("❌ Error creando paciente:", err);
+      console.error("❌ Error de conexión creando paciente:", err);
       return null;
     }
   }
@@ -236,15 +280,34 @@ export default async function handler(req, res) {
         session.stage = 'final-confirmation';
         sessions[from] = session;
 
-        console.log("📝 Creando paciente en Airtable...");
-        const pacienteId = await crearPaciente({
+        // ✅ CREACIÓN DE PACIENTE CON LOGS DETALLADOS
+        console.log("🏥 ======================");
+        console.log("🏥 INICIANDO REGISTRO DE PACIENTE");
+        console.log("🏥 ======================");
+        
+        const pacienteData = {
           Nombre: session.patient.name,
           Edad: session.patient.age,
           RUT: session.patient.rut,
           Telefono: session.patient.phone,
           Email: session.patient.email,
           "Fecha Registro": new Date().toISOString().split('T')[0]
-        });
+        };
+        
+        console.log("📝 Datos del paciente a crear:", JSON.stringify(pacienteData, null, 2));
+        console.log("📝 Variable AIRTABLE_PATIENTS_TABLE:", AIRTABLE_PATIENTS_TABLE);
+        
+        const pacienteId = await crearPaciente(pacienteData);
+        
+        if (pacienteId) {
+          console.log("✅ Paciente creado con ID:", pacienteId);
+        } else {
+          console.error("❌ No se pudo crear el paciente");
+        }
+
+        console.log("🏥 ======================");
+        console.log("🏥 INICIANDO ACTUALIZACIÓN DE SOBRECUPO");
+        console.log("🏥 ======================");
 
         const chosen = session.records[session.attempts].fields;
         const chosenId = session.records[session.attempts].id;
@@ -259,12 +322,16 @@ export default async function handler(req, res) {
         if (session.patient.phone) updateFields.Telefono = session.patient.phone;
         if (session.patient.email) updateFields.Email = session.patient.email;
         
+        // ✅ Solo agregar relación si el paciente se creó exitosamente
         if (pacienteId) {
           updateFields.Paciente = [pacienteId];
+          console.log("✅ Agregando relación con paciente ID:", pacienteId);
+        } else {
+          console.log("⚠️ No se agregará relación - paciente no creado");
         }
         
         console.log("📝 Actualizando sobrecupo ID:", chosenId);
-        console.log("📝 Campos a actualizar:", updateFields);
+        console.log("📝 Campos a actualizar:", JSON.stringify(updateFields, null, 2));
         
         let sobrecupoUpdated = false;
         let updateError = null;
@@ -287,7 +354,7 @@ export default async function handler(req, res) {
           if (!updateResponse.ok) {
             updateError = `HTTP ${updateResponse.status}: ${responseData.error?.message || 'Error desconocido'}`;
             console.error("❌ Error HTTP actualizando sobrecupo:", updateResponse.status);
-            console.error("❌ Detalles del error:", responseData);
+            console.error("❌ Detalles del error:", JSON.stringify(responseData, null, 2));
             
             console.log("🔄 Intentando actualización con datos esenciales...");
             const fallbackFields = {
@@ -316,7 +383,7 @@ export default async function handler(req, res) {
               updateError = null;
             } else {
               const fallbackError = await fallbackResponse.json();
-              console.error("❌ Error en actualización esencial:", fallbackError);
+              console.error("❌ Error en actualización esencial:", JSON.stringify(fallbackError, null, 2));
               
               console.log("🔄 Último intento: solo Disponible...");
               const minimalResponse = await fetch(
@@ -342,7 +409,7 @@ export default async function handler(req, res) {
             
           } else {
             console.log("✅ Sobrecupo actualizado exitosamente con todos los datos");
-            console.log("✅ Respuesta Airtable:", responseData);
+            console.log("✅ Respuesta Airtable:", JSON.stringify(responseData, null, 2));
             sobrecupoUpdated = true;
           }
         } catch (err) {
@@ -589,6 +656,14 @@ export default async function handler(req, res) {
           statusText += `\n\n⚠️ Nota técnica: ${updateError}. Tu cita está confirmada.`;
           console.error("❌ Error final actualización sobrecupo:", updateError);
         }
+
+        console.log("🏥 ======================");
+        console.log("🏥 PROCESO COMPLETADO");
+        console.log("🏥 Paciente creado:", !!pacienteId);
+        console.log("🏥 Sobrecupo actualizado:", sobrecupoUpdated);
+        console.log("🏥 Email paciente:", emailsSent.patient);
+        console.log("🏥 Email médico:", emailsSent.doctor);
+        console.log("🏥 ======================");
 
         return res.json({ text: statusText });
 
