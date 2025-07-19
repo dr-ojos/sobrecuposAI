@@ -1,4 +1,4 @@
-// /pages/api/bot.js
+// /pages/api/bot.js - VERSION DEBUG
 const sessions = {};
 
 // Lista de saludos simples para detectar sólo un saludo sin contexto
@@ -87,21 +87,51 @@ function detectarEspecialidadDirecta(text) {
 }
 
 export default async function handler(req, res) {
+  console.log("🚀 Bot iniciado - método:", req.method);
+  
   if (req.method !== "POST") return res.status(405).json({ text: "Método no permitido" });
 
   const {
     OPENAI_API_KEY,
     AIRTABLE_API_KEY,
     AIRTABLE_BASE_ID,
-    AIRTABLE_TABLE_ID, // Esta será "Sobrecupostest"
+    AIRTABLE_TABLE_ID,
     AIRTABLE_DOCTORS_TABLE,
-    AIRTABLE_PATIENTS_TABLE, // ✅ CORRECTO: AIRTABLE_PATIENTS_TABLE
+    AIRTABLE_PATIENTS_TABLE,
     SENDGRID_API_KEY,
     SENDGRID_FROM_EMAIL
   } = process.env;
 
+  // 🔍 DEBUG: Mostrar qué variables tenemos
+  console.log("🔍 Variables de entorno:", {
+    OPENAI_API_KEY: !!OPENAI_API_KEY,
+    AIRTABLE_API_KEY: !!AIRTABLE_API_KEY,
+    AIRTABLE_BASE_ID: !!AIRTABLE_BASE_ID,
+    AIRTABLE_TABLE_ID: !!AIRTABLE_TABLE_ID,
+    AIRTABLE_DOCTORS_TABLE: !!AIRTABLE_DOCTORS_TABLE,
+    AIRTABLE_PATIENTS_TABLE: !!AIRTABLE_PATIENTS_TABLE,
+    SENDGRID_API_KEY: !!SENDGRID_API_KEY,
+    SENDGRID_FROM_EMAIL: !!SENDGRID_FROM_EMAIL
+  });
+
   const { message, session: prevSession, from = "webuser" } = req.body;
   const text = (message || "").trim();
+
+  console.log("📨 Mensaje recibido:", text);
+
+  // 1) Verificar configuración básica - SOLO las absolutamente necesarias
+  if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
+    console.log("❌ Faltan variables críticas:", {
+      AIRTABLE_API_KEY: !!AIRTABLE_API_KEY,
+      AIRTABLE_BASE_ID: !!AIRTABLE_BASE_ID,
+      AIRTABLE_TABLE_ID: !!AIRTABLE_TABLE_ID
+    });
+    return res.json({ 
+      text: "❌ Error de configuración básica. Contacta soporte técnico." 
+    });
+  }
+
+  console.log("✅ Variables críticas OK");
 
   // Regex comunes
   const greetingRe = /\b(hola|buenas|buenos días|buenos dias|buenas tardes|buenas noches|qué tal|que tal|cómo estás|como estas|hey|ey)\b/i;
@@ -171,14 +201,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // ✅ CORRECCIÓN 1: Validación más específica - NO fallar si faltan variables de email
-  // Solo verificar variables críticas para el funcionamiento básico
-  if (![OPENAI_API_KEY, AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_ID, AIRTABLE_DOCTORS_TABLE, AIRTABLE_PATIENTS_TABLE].every(Boolean)) {
-    return res.json({ text: "❌ Error de configuración básica. Contacta soporte." });
-  }
-
   // 2) Saludo inicial o saludo simple
   if (greetingRe.test(text)) {
+    console.log("👋 Saludo detectado");
     if (esSaludoSimple(text)) {
       return res.json({
         text:
@@ -196,557 +221,14 @@ export default async function handler(req, res) {
 
   // 3) Agradecimientos
   if (thanksRe.test(text)) {
+    console.log("🙏 Agradecimiento detectado");
     return res.json({ text: "¡De nada! Si necesitas algo más, avísame. 😊" });
   }
 
-  // 4) Sesión activa (confirmaciones, reintentos, datos de paciente, etc.)
-  let session = prevSession || sessions[from];
-  if (session) {
-    switch (session.stage) {
-      case 'awaiting-confirmation':
-        if (affirmativeRe.test(text)) {
-          session.stage = 'collect-name';
-          return res.json({
-            text: '¡Perfecto! Para completar la reserva necesito algunos datos.\n\nPrimero, dime tu nombre completo:',
-            session
-          });
-        } else if (negativeRe.test(text)) {
-          session.attempts++;
-          if (session.attempts < session.records.length) {
-            const nxt = session.records[session.attempts].fields;
-            const clin = nxt["Clínica"] || nxt["Clinica"] || "nuestra clínica";
-            const dir = nxt["Dirección"] || nxt["Direccion"] || "la dirección indicada";
-            const medicoId = Array.isArray(nxt["Médico"]) ? nxt["Médico"][0] : nxt["Médico"];
-            const medicoNombre = await getDoctorName(medicoId);
-            return res.json({
-              text:
-                `🔄 Otra opción de ${session.specialty}:\n` +
-                `📍 ${clin} (${dir})\n` +
-                `👨‍⚕️ Dr. ${medicoNombre}\n` +
-                `🗓️ ${nxt.Fecha} a las ${nxt.Hora}\n\n` +
-                `¿Te sirve? Confirma con "sí" o dime "no" para otra opción.`,
-              session
-            });
-          } else {
-            delete sessions[from];
-            return res.json({ 
-              text: 'Lo siento, no hay más sobrecupos disponibles para esta especialidad en este momento.\n\n¿Te gustaría que te contacte cuando tengamos nueva disponibilidad?' 
-            });
-          }
-        } else {
-          return res.json({ text: 'Por favor responde con "sí" u "no".', session });
-        }
+  console.log("🔄 Continuando con lógica principal...");
 
-      case 'collect-name':
-        session.patient = { name: text };
-        session.stage = 'collect-age';
-        sessions[from] = session;
-        return res.json({ text: 'Gracias. Ahora dime tu edad:', session });
-
-      case 'collect-age':
-        const age = parseInt(text);
-        if (isNaN(age) || age < 0 || age > 120) {
-          return res.json({ text: 'Por favor ingresa una edad válida (número entre 0 y 120):', session });
-        }
-        session.patient.age = age;
-        session.stage = 'collect-rut';
-        sessions[from] = session;
-        return res.json({ text: 'Perfecto. Ahora necesito tu RUT (ej: 12345678-9):', session });
-
-      case 'collect-rut':
-        if (!validarRUT(text)) {
-          return res.json({ text: 'El RUT ingresado no es válido. Por favor ingresa un RUT chileno válido (ej: 12345678-9):', session });
-        }
-        session.patient.rut = text.replace(/[.\-]/g, '').toUpperCase();
-        session.stage = 'collect-phone';
-        sessions[from] = session;
-        return res.json({ text: 'Excelente. Ahora tu teléfono (con código país):', session });
-
-      case 'collect-phone':
-        session.patient.phone = text;
-        session.stage = 'collect-email';
-        sessions[from] = session;
-        return res.json({ text: 'Por último, tu email para enviarte la confirmación:', session });
-
-      case 'collect-email':
-        session.patient.email = text;
-        session.stage = 'final-confirmation';
-        sessions[from] = session;
-
-        // Crear registro de paciente en tabla Pacientes
-        const pacienteId = await crearPaciente({
-          Nombre: session.patient.name,
-          Edad: session.patient.age,
-          RUT: session.patient.rut,
-          Telefono: session.patient.phone,
-          Email: session.patient.email,
-          "Fecha Registro": new Date().toISOString().split('T')[0]
-        });
-
-        // Marcar sobrecupo como no disponible en tabla Sobrecupostest
-        const chosen = session.records[session.attempts].fields;
-        const chosenId = session.records[session.attempts].id;
-        
-        const updateFields = {
-          Disponible: false,
-          Nombre: session.patient.name,
-          Edad: session.patient.age,
-          RUT: session.patient.rut,
-          Telefono: session.patient.phone,
-          Email: session.patient.email
-        };
-
-        // Si se creó el paciente, añadir la relación
-        if (pacienteId) {
-          updateFields.Paciente = [pacienteId];
-        }
-        
-        try {
-          await fetch(
-            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${chosenId}`,
-            {
-              method: "PATCH",
-              headers: {
-                Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                fields: updateFields
-              })
-            }
-          );
-          console.log("✅ Sobrecupo actualizado en Sobrecupostest");
-        } catch (err) {
-          console.error("❌ Error actualizando Sobrecupostest:", err);
-        }
-
-        // ✅ CORRECCIÓN 2: Verificar si SendGrid está configurado antes de enviar
-        const emailEnabled = SENDGRID_API_KEY && SENDGRID_FROM_EMAIL;
-        let emailSent = false;
-
-        if (emailEnabled) {
-          // Enviar email de confirmación
-          const medicoId = Array.isArray(chosen["Médico"]) ? chosen["Médico"][0] : chosen["Médico"];
-          const medicoNombre = await getDoctorName(medicoId);
-          
-          const emailPayload = {
-            from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos" },
-            personalizations: [{
-              to: [{ email: session.patient.email }],
-              subject: `✅ Sobrecupo confirmado - ${session.specialty} | ${chosen.Fecha}`,
-            }],
-            content: [{
-              type: "text/html",
-              value: `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sobrecupo Confirmado</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f7;">
-  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f7;">
-    <tr>
-      <td align="center" style="padding: 20px 0;">
-        <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-          
-          <!-- Header -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #007aff 0%, #5856d6 100%); padding: 30px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Sobrecupos</h1>
-              <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 14px; opacity: 0.9;">Más tiempo sano, menos tiempo enfermo</p>
-            </td>
-          </tr>
-          
-          <!-- Confirmación exitosa -->
-          <tr>
-            <td style="padding: 40px 30px 20px; text-align: center;">
-              <div style="display: inline-block; background-color: #34c759; width: 64px; height: 64px; border-radius: 50%; line-height: 64px; margin-bottom: 20px;">
-                <span style="font-size: 32px; color: white;">✓</span>
-              </div>
-              <h2 style="margin: 0 0 10px; color: #1d1d1f; font-size: 24px; font-weight: 600;">¡Sobrecupo Confirmado!</h2>
-              <p style="margin: 0; color: #6e6e73; font-size: 16px;">Hola ${session.patient.name}, tu cita médica ha sido reservada exitosamente.</p>
-            </td>
-          </tr>
-          
-          <!-- Detalles de la cita -->
-          <tr>
-            <td style="padding: 20px 30px;">
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f7; border-radius: 12px; padding: 20px;">
-                <tr>
-                  <td>
-                    <h3 style="margin: 0 0 20px; color: #1d1d1f; font-size: 18px; font-weight: 600;">📋 Detalles de tu cita</h3>
-                    
-                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <strong style="color: #6e6e73; font-size: 14px;">Especialidad:</strong>
-                        </td>
-                        <td style="padding: 8px 0; text-align: right;">
-                          <span style="color: #1d1d1f; font-size: 14px; font-weight: 600;">${session.specialty}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <strong style="color: #6e6e73; font-size: 14px;">Médico:</strong>
-                        </td>
-                        <td style="padding: 8px 0; text-align: right;">
-                          <span style="color: #1d1d1f; font-size: 14px; font-weight: 600;">Dr. ${medicoNombre}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <strong style="color: #6e6e73; font-size: 14px;">Fecha:</strong>
-                        </td>
-                        <td style="padding: 8px 0; text-align: right;">
-                          <span style="color: #007aff; font-size: 14px; font-weight: 600;">${chosen.Fecha}</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding: 8px 0;">
-                          <strong style="color: #6e6e73; font-size: 14px;">Hora:</strong>
-                        </td>
-                        <td style="padding: 8px 0; text-align: right;">
-                          <span style="color: #007aff; font-size: 14px; font-weight: 600;">${chosen.Hora}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-          <!-- Ubicación -->
-          <tr>
-            <td style="padding: 0 30px 20px;">
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #fff3cd; border-radius: 12px; padding: 20px;">
-                <tr>
-                  <td>
-                    <h3 style="margin: 0 0 10px; color: #856404; font-size: 16px; font-weight: 600;">📍 Ubicación</h3>
-                    <p style="margin: 0 0 5px; color: #856404; font-size: 14px;"><strong>${chosen["Clínica"]||chosen["Clinica"]}</strong></p>
-                    <p style="margin: 0; color: #856404; font-size: 14px;">${chosen["Dirección"]||chosen["Direccion"]}</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f5f5f7; padding: 30px; text-align: center;">
-              <p style="margin: 0 0 10px; color: #6e6e73; font-size: 14px;">¿Tienes alguna pregunta?</p>
-              <p style="margin: 0 0 20px; color: #6e6e73; font-size: 14px;">
-                Contáctanos en <a href="mailto:soporte@sobrecupos.cl" style="color: #007aff; text-decoration: none;">soporte@sobrecupos.cl</a>
-              </p>
-              <hr style="border: none; border-top: 1px solid #e5e5e7; margin: 20px 0;">
-              <p style="margin: 0; color: #86868b; font-size: 12px;">
-                © 2024 Sobrecupos. Todos los derechos reservados.<br>
-                Santiago, Chile
-              </p>
-            </td>
-          </tr>
-          
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-              `
-            }, {
-              type: "text/plain",
-              value:
-                `Hola ${session.patient.name}, tu sobrecupo ha sido confirmado.\n\n` +
-                `DETALLES DE TU CITA:\n` +
-                `Especialidad: ${session.specialty}\n` +
-                `Médico: Dr. ${medicoNombre}\n` +
-                `Fecha: ${chosen.Fecha}\n` +
-                `Hora: ${chosen.Hora}\n\n` +
-                `UBICACIÓN:\n` +
-                `${chosen["Clínica"]||chosen["Clinica"]}\n` +
-                `${chosen["Dirección"]||chosen["Direccion"]}\n\n` +
-                `¿Preguntas? Escríbenos a soporte@sobrecupos.cl\n\n` +
-                `Sobrecupos - Más tiempo sano, menos tiempo enfermo`
-            }]
-          };
-          
-          try {
-            const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${SENDGRID_API_KEY}`,
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify(emailPayload)
-            });
-            
-            if (emailResponse.ok) {
-              emailSent = true;
-              console.log("✅ Email enviado correctamente");
-            } else {
-              console.error("❌ Error SendGrid:", await emailResponse.text());
-            }
-          } catch (err) {
-            console.error("❌ Error enviando email:", err);
-          }
-        } else {
-          console.log("⚠️ SendGrid no configurado - Email omitido");
-        }
-
-        delete sessions[from];
-        
-        // ✅ CORRECCIÓN 3: Mensaje de confirmación adaptado según si se envió email o no
-        const emailText = emailSent 
-          ? `📧 Te envié la confirmación a ${session.patient.email}` 
-          : '📧 (La confirmación por email se enviará por separado)';
-
-        return res.json({
-          text:
-            `✅ ¡Listo, ${session.patient.name}! Tu sobrecupo está confirmado.\n\n` +
-            `📍 ${chosen["Clínica"]||chosen["Clinica"]}\n` +
-            `📍 ${chosen["Dirección"]||chosen["Direccion"]}\n` +
-            `👨‍⚕️ Dr. ${medicoNombre}\n` +
-            `🗓️ ${chosen.Fecha} a las ${chosen.Hora}\n\n` +
-            emailText
-        });
-
-      default:
-        break;
-    }
-  }
-
-  // 5) Detectar especialidad directa primero
-  const especialidadDirecta = detectarEspecialidadDirecta(text);
-  
-  if (especialidadDirecta) {
-    console.log(`🎯 Especialidad detectada directamente: ${especialidadDirecta}`);
-    
-    // Obtener especialidades disponibles dinámicamente
-    const especialidadesDisponibles = await getEspecialidadesDisponibles();
-    
-    // Si la especialidad NO está disponible en nuestros médicos
-    if (!especialidadesDisponibles.includes(especialidadDirecta)) {
-      return res.json({
-        text:
-          `Entiendo que estás buscando atención especializada y es completamente normal sentirse preocupado por tu salud.\n\n` +
-          `Lamentablemente no tengo sobrecupos de ${especialidadDirecta} disponibles en este momento, pero puedo conseguirte una cita si me dejas tus datos para contactarte apenas tengamos disponibilidad.\n\n` +
-          `¿Te gustaría que te contacte cuando tengamos ${especialidadDirecta} disponible?`
-      });
-    }
-    
-    // Si la especialidad SÍ está disponible, continuar con la búsqueda
-    const specialty = especialidadDirecta;
-    
-    // Generar respuesta empática
-    let respuestaEmpatica = "";
-    try {
-      const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          temperature: 0.7,
-          max_tokens: 40,
-          messages: [
-            {
-              role: "system",
-              content:
-                "Eres Sobrecupos IA, asistente médico chileno, humano y empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al usuario que busca una especialidad específica. No menciones 'Sobrecupos IA' ni uses comillas."
-            },
-            { role: "user", content: `Usuario busca: "${specialty}"` }
-          ]
-        })
-      });
-      const empatJson = await empatRes.json();
-      respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
-    } catch (err) {
-      respuestaEmpatica = "Entiendo que necesitas atención especializada.";
-    }
-
-    // Buscar sobrecupos disponibles
-    let records = [];
-    try {
-      const resp = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
-        { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-      );
-      const data = await resp.json();
-      records = data.records || [];
-    } catch (err) {
-      console.error("❌ Error Airtable:", err);
-      return res.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
-    }
-
-    // Filtrar por especialidad y disponibilidad
-    const available = records.filter(r => {
-      const fields = r.fields || {};
-      return (
-        (fields.Especialidad === specialty) &&
-        (fields.Disponible === "Si" || fields.Disponible === true)
-      );
-    });
-
-    if (available.length === 0) {
-      return res.json({
-        text:
-          `${respuestaEmpatica}\n\n` +
-          `Lamentablemente no tengo sobrecupos de ${specialty} disponibles en este momento.\n\n` +
-          `¿Te gustaría que te contacte cuando tengamos disponibilidad?`
-      });
-    }
-
-    // Mostrar primera opción disponible
-    const first = available[0].fields;
-    const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
-    const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
-    const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
-    const medicoNombre = await getDoctorName(medicoId);
-
-    sessions[from] = {
-      stage: 'awaiting-confirmation',
-      specialty,
-      records: available,
-      attempts: 0
-    };
-
-    return res.json({
-      text:
-        `${respuestaEmpatica}\n\n` +
-        `✅ Encontré un sobrecupo de ${specialty}:\n` +
-        `📍 ${clin}\n` +
-        `📍 ${dir}\n` +
-        `👨‍⚕️ Dr. ${medicoNombre}\n` +
-        `🗓️ ${first.Fecha} a las ${first.Hora}\n\n` +
-        `¿Te sirve? Confirma con "sí".`,
-      session: sessions[from]
-    });
-  }
-
-  // 6) Si no detectamos especialidad directa, usar OpenAI para analizar síntomas
-  const especialidadesDisponibles = await getEspecialidadesDisponibles();
-  const especialidadesString = especialidadesDisponibles.join(", ");
-
-  let rawEsp = "";
-  try {
-    const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0,
-        max_tokens: 20,
-        messages: [
-          {
-            role: "system",
-            content:
-              `Eres Sobrecupos IA, asistente médico empático. Dado un síntoma o consulta médica, responde SOLO con EXACTAMENTE una de las siguientes especialidades disponibles (y nada más): ${especialidadesString}. Elige la especialidad que con mayor probabilidad se encarga de ese síntoma. Si mencionan un niño, elige Pediatría. Si no puedes determinar una especialidad específica, elige Medicina Familiar.`
-          },
-          { role: "user", content: `Paciente: "${text}"` }
-        ]
-      })
-    });
-    const j = await aiRes.json();
-    rawEsp = j.choices?.[0]?.message?.content?.trim() || "";
-  } catch (err) {
-    console.error("❌ Error OpenAI:", err);
-    return res.json({ text: "Lo siento, no entendí. ¿Puedes describirlo de otra forma?" });
-  }
-
-  // 7) Respuesta empática al síntoma
-  let respuestaEmpatica = "";
-  try {
-    const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.7,
-        max_tokens: 40,
-        messages: [
-          {
-            role: "system",
-            content:
-              "Eres Sobrecupos IA, asistente médico chileno, humano y empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al malestar del paciente. No menciones 'Sobrecupos IA' ni uses comillas."
-          },
-          { role: "user", content: `Paciente: "${text}"` }
-        ]
-      })
-    });
-    const empatJson = await empatRes.json();
-    respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
-  } catch (err) {
-    respuestaEmpatica = "";
-  }
-
-  // 8) Verificar que la especialidad detectada esté disponible
-  const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
-
-  // 9) Buscar sobrecupos en tabla Sobrecupostest
-  let records = [];
-  try {
-    const resp = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
-      { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-    );
-    const data = await resp.json();
-    records = data.records || [];
-  } catch (err) {
-    console.error("❌ Error consultando Sobrecupostest:", err);
-    return res.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
-  }
-
-  // 10) Filtrar por especialidad y disponibilidad
-  const available = records.filter(r => {
-    const fields = r.fields || {};
-    return (
-      (fields.Especialidad === specialty) &&
-      (fields.Disponible === "Si" || fields.Disponible === true)
-    );
-  });
-
-  if (available.length === 0) {
-    return res.json({
-      text:
-        `${respuestaEmpatica ? respuestaEmpatica + '\n\n' : ''}` +
-        `Lo siento, no tengo sobrecupos de ${specialty} disponibles en este momento.\n\n` +
-        `¿Te gustaría que te contacte cuando tengamos disponibilidad?`
-    });
-  }
-
-  // 11) Mostrar primera opción
-  const first = available[0].fields;
-  const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
-  const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
-  const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
-  const medicoNombre = await getDoctorName(medicoId);
-
-  sessions[from] = {
-    stage: 'awaiting-confirmation',
-    specialty,
-    records: available,
-    attempts: 0
-  };
-
+  // Para simplificar el debug, vamos a hacer una respuesta básica primero
   return res.json({
-    text:
-      `${respuestaEmpatica ? respuestaEmpatica + '\n\n' : ''}` +
-      `✅ Encontré un sobrecupo de ${specialty}:\n` +
-      `📍 ${clin}\n` +
-      `📍 ${dir}\n` +
-      `👨‍⚕️ Dr. ${medicoNombre}\n` +
-      `🗓️ ${first.Fecha} a las ${first.Hora}\n\n` +
-      `¿Te sirve? Confirma con "sí".`,
-    session: sessions[from]
+    text: `✅ Bot funcionando correctamente!\n\nRecibí tu mensaje: "${text}"\n\nSistema operativo normalmente. ¿En qué puedo ayudarte?`
   });
 }
