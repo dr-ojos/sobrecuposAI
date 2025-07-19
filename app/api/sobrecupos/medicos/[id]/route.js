@@ -21,9 +21,9 @@ export async function GET(request, { params }) {
 
     console.log(`🔍 Buscando sobrecupos para médico: ${id}`);
     
-    // Construir fórmula para filtrar por médico
-    // El campo "Médico" en Airtable es un array de IDs, por eso usamos FIND y ARRAYJOIN
-    const filterFormula = `FIND("${id}", ARRAYJOIN({Médico}))>0`;
+    // ✅ FÓRMULA CORREGIDA: Para campos Link to another record
+    // Probamos múltiples variaciones para asegurar compatibilidad
+    const filterFormula = `{Médico} = "${id}"`;
     
     const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?` +
       `filterByFormula=${encodeURIComponent(filterFormula)}&` +
@@ -31,7 +31,8 @@ export async function GET(request, { params }) {
       `sort[0][direction]=desc&` +
       `maxRecords=100`;
 
-    console.log(`📡 Consultando Airtable: ${url}`);
+    console.log(`📡 Consultando Airtable con fórmula corregida: ${filterFormula}`);
+    console.log(`📡 URL completa: ${url}`);
     
     const res = await fetch(url, {
       headers: {
@@ -47,6 +48,13 @@ export async function GET(request, { params }) {
         statusText: res.statusText,
         error: data.error
       });
+      
+      // ✅ FALLBACK: Si la primera fórmula falla, intentar con FIND
+      if (res.status === 422) {
+        console.log("🔄 Intentando con fórmula alternativa...");
+        return await tryAlternativeFormula(id);
+      }
+      
       return NextResponse.json(
         { error: "Error consultando la base de datos" }, 
         { status: res.status }
@@ -63,8 +71,13 @@ export async function GET(request, { params }) {
         id: sobrecupos[0].id,
         fecha: sobrecupos[0].fields?.Fecha,
         hora: sobrecupos[0].fields?.Hora,
-        disponible: sobrecupos[0].fields?.Disponible
+        disponible: sobrecupos[0].fields?.Disponible,
+        medico: sobrecupos[0].fields?.Médico
       });
+    } else {
+      // ✅ Si no encontramos nada, intentar método alternativo
+      console.log("🔄 No se encontraron resultados, intentando fórmula alternativa...");
+      return await tryAlternativeFormula(id);
     }
     
     return NextResponse.json(sobrecupos);
@@ -82,6 +95,109 @@ export async function GET(request, { params }) {
       }, 
       { status: 500 }
     );
+  }
+}
+
+// ✅ FUNCIÓN ALTERNATIVA: Buscar con diferentes fórmulas
+async function tryAlternativeFormula(doctorId) {
+  try {
+    console.log(`🔄 Probando fórmulas alternativas para doctor: ${doctorId}`);
+    
+    const formulas = [
+      `FIND("${doctorId}", ARRAYJOIN({Médico})) > 0`,
+      `SEARCH("${doctorId}", ARRAYJOIN({Médico})) > 0`,
+      `{Médico} = "${doctorId}"`,
+      `FIND("${doctorId}", {Médico}) > 0`
+    ];
+    
+    for (let i = 0; i < formulas.length; i++) {
+      const formula = formulas[i];
+      console.log(`🧪 Probando fórmula ${i + 1}: ${formula}`);
+      
+      const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?` +
+        `filterByFormula=${encodeURIComponent(formula)}&` +
+        `sort[0][field]=Fecha&` +
+        `sort[0][direction]=desc&` +
+        `maxRecords=100`;
+      
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        const sobrecupos = data.records || [];
+        
+        console.log(`✅ Fórmula ${i + 1} funcionó! Encontrados: ${sobrecupos.length}`);
+        
+        if (sobrecupos.length > 0) {
+          return NextResponse.json(sobrecupos);
+        }
+      } else {
+        console.log(`❌ Fórmula ${i + 1} falló:`, res.status);
+      }
+    }
+    
+    // ✅ ÚLTIMO RECURSO: Filtrar en JavaScript
+    console.log(`🔄 Todas las fórmulas fallaron, filtrando en JavaScript...`);
+    return await filterInJavaScript(doctorId);
+    
+  } catch (error) {
+    console.error("❌ Error en fórmulas alternativas:", error);
+    return NextResponse.json([], { status: 500 });
+  }
+}
+
+// ✅ FILTRO EN JAVASCRIPT: Como último recurso
+async function filterInJavaScript(doctorId) {
+  try {
+    console.log(`🔄 Filtrando en JavaScript para doctor: ${doctorId}`);
+    
+    // Obtener TODOS los sobrecupos sin filtro
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?` +
+      `sort[0][field]=Fecha&` +
+      `sort[0][direction]=desc&` +
+      `maxRecords=500`;
+    
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+      },
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Error HTTP: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    const allSobrecupos = data.records || [];
+    
+    console.log(`📊 Total sobrecupos para filtrar: ${allSobrecupos.length}`);
+    
+    // Filtrar en JavaScript
+    const filtered = allSobrecupos.filter(sobrecupo => {
+      const medicos = sobrecupo.fields?.Médico;
+      
+      if (Array.isArray(medicos)) {
+        return medicos.includes(doctorId);
+      }
+      
+      if (typeof medicos === 'string') {
+        return medicos === doctorId;
+      }
+      
+      return false;
+    });
+    
+    console.log(`✅ Sobrecupos filtrados en JavaScript: ${filtered.length}`);
+    
+    return NextResponse.json(filtered);
+    
+  } catch (error) {
+    console.error("❌ Error filtrando en JavaScript:", error);
+    return NextResponse.json([], { status: 500 });
   }
 }
 
