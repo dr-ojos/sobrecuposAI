@@ -55,103 +55,21 @@ function MedicoDashboard() {
 
   const fetchSobrecupos = async () => {
     if (!session?.user?.doctorId) {
-      console.error('🚨 NO HAY DOCTOR ID:', session?.user);
       setLoading(false);
       return;
     }
 
     try {
-      console.log('🔍 === DEBUGGING SOBRECUPOS ===');
-      console.log('🆔 Doctor ID:', session.user.doctorId);
-      console.log('👤 Session User:', session.user);
-      
-      // PRIMERA PRUEBA: Verificar que el doctor existe
-      console.log('📡 Verificando doctor en base de datos...');
-      const doctorRes = await fetch(`/api/doctors/${session.user.doctorId}`);
-      console.log('👨‍⚕️ Doctor response status:', doctorRes.status);
-      
-      if (doctorRes.ok) {
-        const doctorInfo = await doctorRes.json();
-        console.log('✅ Doctor encontrado:', doctorInfo);
-      } else {
-        console.error('❌ Doctor NO encontrado');
-      }
-
-      // SEGUNDA PRUEBA: Buscar sobrecupos del doctor
+      // ✅ URL corregida que funciona
       const sobrecuposUrl = `/api/sobrecupos/medicos/${session.user.doctorId}`;
-      console.log('📡 URL sobrecupos:', sobrecuposUrl);
-      
       const res = await fetch(sobrecuposUrl);
-      console.log('📊 Response status:', res.status);
-      console.log('📊 Response headers:', Object.fromEntries(res.headers.entries()));
       
       if (res.ok) {
         const data = await res.json();
-        console.log('✅ Raw data from API:', data);
-        console.log('📋 Sobrecupos encontrados:', data.length);
-        
-        // TERCERA PRUEBA: Analizar cada sobrecupo
-        if (data.length > 0) {
-          data.forEach((sobrecupo, index) => {
-            console.log(`📄 Sobrecupo ${index + 1}:`, {
-              id: sobrecupo.id,
-              medico: sobrecupo.fields?.Médico,
-              fecha: sobrecupo.fields?.Fecha,
-              hora: sobrecupo.fields?.Hora,
-              disponible: sobrecupo.fields?.Disponible,
-              clinica: sobrecupo.fields?.Clínica,
-              allFields: sobrecupo.fields
-            });
-          });
-        } else {
-          console.warn('⚠️ NO SE ENCONTRARON SOBRECUPOS');
-          
-          // CUARTA PRUEBA: Buscar TODOS los sobrecupos (sin filtro)
-          console.log('🔍 Buscando TODOS los sobrecupos para debug...');
-          const allSobrecuposRes = await fetch('/api/sobrecupos');
-          if (allSobrecuposRes.ok) {
-            const allSobrecupos = await allSobrecuposRes.json();
-            console.log('📊 Total sobrecupos en sistema:', allSobrecupos.length);
-            
-            // Buscar si hay alguno que coincida con nuestro doctor
-            const matching = allSobrecupos.filter(s => {
-              const medicos = s.fields?.Médico;
-              if (Array.isArray(medicos)) {
-                return medicos.includes(session.user.doctorId);
-              }
-              return medicos === session.user.doctorId;
-            });
-            
-            console.log('🎯 Sobrecupos que coinciden:', matching.length);
-            if (matching.length > 0) {
-              console.log('🎯 Primer match:', matching[0]);
-            }
-            
-            // Mostrar todos los médicos IDs únicos
-            const allDoctorIds = new Set();
-            allSobrecupos.forEach(s => {
-              const medicos = s.fields?.Médico;
-              if (Array.isArray(medicos)) {
-                medicos.forEach(id => allDoctorIds.add(id));
-              } else if (medicos) {
-                allDoctorIds.add(medicos);
-              }
-            });
-            console.log('👨‍⚕️ Todos los Doctor IDs en sistema:', Array.from(allDoctorIds));
-            console.log('🔍 ¿Nuestro ID está incluido?', Array.from(allDoctorIds).includes(session.user.doctorId));
-          }
-        }
-
         setSobrecupos(data);
         
         const disponibles = data.filter(s => s.fields?.Disponible === 'Si' || s.fields?.Disponible === true).length;
         const reservados = data.length - disponibles;
-        
-        console.log('📈 Estadísticas calculadas:', {
-          total: data.length,
-          disponibles,
-          reservados
-        });
         
         setStats(prev => ({
           ...prev,
@@ -159,14 +77,9 @@ function MedicoDashboard() {
           disponibles,
           reservados
         }));
-      } else {
-        console.error('❌ Error HTTP:', res.status, res.statusText);
-        const errorText = await res.text();
-        console.error('❌ Error body:', errorText);
       }
     } catch (error) {
-      console.error('💥 Error cargando sobrecupos:', error);
-      console.error('💥 Error stack:', error.stack);
+      console.error('Error cargando sobrecupos:', error);
     } finally {
       setLoading(false);
     }
@@ -207,16 +120,16 @@ function MedicoDashboard() {
             margin-bottom: 1.5rem;
           }
           .spinner-circle {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(0, 122, 255, 0.2);
-            border-top: 4px solid #007aff;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 122, 255, 0.2);
+            border-top: 3px solid #007aff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
           }
           .loading-text {
             color: #007aff;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 500;
             margin: 0;
           }
@@ -235,7 +148,7 @@ function MedicoDashboard() {
 
   return (
     <div className="dashboard-container">
-      {/* Header Responsivo */}
+      {/* Header Móvil Optimizado */}
       <header className="dashboard-header">
         <div className="header-content">
           <div className="doctor-info">
@@ -244,7 +157,7 @@ function MedicoDashboard() {
             </div>
             <div className="doctor-details">
               <h1 className="doctor-name">
-                Dr. {doctorData?.fields?.Name || session.user.name}
+                Dr. {doctorData?.fields?.Name?.split(' ')[0] || session.user.name?.split(' ')[0] || 'Doctor'}
               </h1>
               <p className="doctor-specialty">
                 {doctorData?.fields?.Especialidad || 'Médico'}
@@ -259,7 +172,7 @@ function MedicoDashboard() {
       </header>
 
       <div className="main-content">
-        {/* Stats Cards Responsivas */}
+        {/* Stats Cards Móvil Optimizadas */}
         <section className="stats-section">
           <div className="stats-grid">
             <div className="stat-card total">
@@ -304,37 +217,37 @@ function MedicoDashboard() {
           </div>
         </section>
 
-        {/* Quick Actions */}
+        {/* Quick Actions Móvil */}
         <section className="actions-section">
           <h2 className="section-title">Acciones Rápidas</h2>
           <div className="actions-grid">
             <button 
               onClick={() => router.push('/medico/perfil')}
-              className="action-card profile"
+              className="action-card"
             >
               <div className="action-icon">👤</div>
               <div className="action-content">
                 <div className="action-title">Mi Perfil</div>
-                <div className="action-description">Ver y editar mis datos</div>
+                <div className="action-description">Ver y editar datos</div>
               </div>
               <div className="action-arrow">→</div>
             </button>
             
             <button 
               onClick={() => router.push('/medico/sobrecupos')}
-              className="action-card create"
+              className="action-card"
             >
               <div className="action-icon">💼</div>
               <div className="action-content">
                 <div className="action-title">Crear Sobrecupos</div>
-                <div className="action-description">Agregar nuevos horarios</div>
+                <div className="action-description">Agregar horarios</div>
               </div>
               <div className="action-arrow">→</div>
             </button>
             
             <button 
               onClick={() => router.push('/medico/clinicas')}
-              className="action-card clinics"
+              className="action-card"
             >
               <div className="action-icon">🏥</div>
               <div className="action-content">
@@ -346,7 +259,7 @@ function MedicoDashboard() {
           </div>
         </section>
 
-        {/* Recent Sobrecupos */}
+        {/* Recent Sobrecupos Móvil */}
         <section className="recent-section">
           <div className="section-header">
             <h2 className="section-title">Sobrecupos Recientes</h2>
@@ -354,7 +267,7 @@ function MedicoDashboard() {
               onClick={() => router.push('/medico/sobrecupos')}
               className="view-all-btn"
             >
-              Ver todos →
+              Ver todos
             </button>
           </div>
           
@@ -362,7 +275,7 @@ function MedicoDashboard() {
             <div className="empty-state">
               <div className="empty-icon">📋</div>
               <h3 className="empty-title">Sin sobrecupos</h3>
-              <p className="empty-text">Crea tu primer sobrecupo para comenzar a ayudar a más pacientes</p>
+              <p className="empty-text">Crea tu primer sobrecupo para comenzar</p>
               <button 
                 onClick={() => router.push('/medico/sobrecupos')}
                 className="empty-action"
@@ -371,27 +284,26 @@ function MedicoDashboard() {
               </button>
             </div>
           ) : (
-            <div className="sobrecupos-grid">
-              {sobrecupos.slice(0, 6).map((sobrecupo, index) => (
-                <div key={index} className="sobrecupo-card">
-                  <div className="sobrecupo-header">
-                    <span className={`status-badge ${sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'available' : 'reserved'}`}>
-                      {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? '✅ Disponible' : '🗓️ Reservado'}
-                    </span>
+            <div className="sobrecupos-list">
+              {sobrecupos.slice(0, 4).map((sobrecupo, index) => (
+                <div key={index} className="sobrecupo-item">
+                  <div className="sobrecupo-left">
+                    <div className="sobrecupo-date">
+                      <span className="day">{new Date(sobrecupo.fields?.Fecha).getDate()}</span>
+                      <span className="month">{new Date(sobrecupo.fields?.Fecha).toLocaleDateString('es-CL', { month: 'short' })}</span>
+                    </div>
+                    <div className="sobrecupo-time">{sobrecupo.fields?.Hora}</div>
                   </div>
-                  <div className="sobrecupo-details">
-                    <div className="sobrecupo-datetime">
-                      <span className="date-info">📅 {formatDate(sobrecupo.fields?.Fecha)}</span>
-                      <span className="time-info">🕐 {sobrecupo.fields?.Hora}</span>
-                    </div>
-                    <div className="sobrecupo-location">
-                      📍 {sobrecupo.fields?.Clínica}
-                    </div>
+                  <div className="sobrecupo-center">
+                    <div className="sobrecupo-clinic">{sobrecupo.fields?.Clínica}</div>
                     {sobrecupo.fields?.Nombre && (
-                      <div className="sobrecupo-patient">
-                        👤 {sobrecupo.fields.Nombre}
-                      </div>
+                      <div className="sobrecupo-patient">👤 {sobrecupo.fields.Nombre}</div>
                     )}
+                  </div>
+                  <div className="sobrecupo-right">
+                    <span className={`status-dot ${sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'available' : 'reserved'}`}>
+                      {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? '●' : '●'}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -406,13 +318,15 @@ function MedicoDashboard() {
           background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 50%, #f8faff 100%);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           color: #1a1a1a;
+          padding-bottom: 2rem;
         }
 
+        /* Header Móvil Optimizado */
         .dashboard-header {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
           border-bottom: 1px solid rgba(0, 122, 255, 0.1);
-          padding: 1rem 1.5rem;
+          padding: 0.75rem 1rem;
           position: sticky;
           top: 0;
           z-index: 100;
@@ -420,35 +334,33 @@ function MedicoDashboard() {
         }
 
         .header-content {
-          max-width: 1400px;
-          margin: 0 auto;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 1rem;
+          gap: 0.5rem;
         }
 
         .doctor-info {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: 0.75rem;
           min-width: 0;
           flex: 1;
         }
 
         .doctor-avatar {
-          width: 60px;
-          height: 60px;
-          border-radius: 20px;
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
           background: linear-gradient(135deg, #007aff, #5856d6);
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 18px;
+          font-size: 14px;
           font-weight: 700;
           flex-shrink: 0;
-          box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+          box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
         }
 
         .doctor-details {
@@ -457,7 +369,7 @@ function MedicoDashboard() {
         }
 
         .doctor-name {
-          font-size: 1.4rem;
+          font-size: 1.1rem;
           font-weight: 700;
           color: #1a1a1a;
           margin: 0;
@@ -467,7 +379,7 @@ function MedicoDashboard() {
         }
 
         .doctor-specialty {
-          font-size: 0.95rem;
+          font-size: 0.8rem;
           color: #007aff;
           margin: 0;
           font-weight: 600;
@@ -477,50 +389,46 @@ function MedicoDashboard() {
           background: linear-gradient(135deg, #ff3b30, #ff6b6b);
           color: white;
           border: none;
-          border-radius: 12px;
-          padding: 0.7rem 1.2rem;
-          font-size: 0.9rem;
+          border-radius: 10px;
+          padding: 0.5rem 0.75rem;
+          font-size: 0.8rem;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.3s ease;
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          box-shadow: 0 2px 10px rgba(255, 59, 48, 0.3);
-        }
-
-        .logout-btn:hover {
-          background: linear-gradient(135deg, #d70015, #ff4757);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
+          gap: 0.4rem;
+          box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
+          flex-shrink: 0;
         }
 
         .logout-icon {
-          font-size: 1rem;
+          font-size: 0.9rem;
+        }
+
+        .logout-text {
+          font-size: 0.75rem;
         }
 
         .main-content {
-          max-width: 1400px;
-          margin: 0 auto;
-          padding: 2rem 1.5rem;
+          padding: 1rem;
         }
 
+        /* Stats Cards Móvil Optimizadas */
         .stats-section {
-          margin-bottom: 3rem;
+          margin-bottom: 1.5rem;
         }
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
         }
 
         .stat-card {
           background: white;
-          border-radius: 20px;
-          padding: 1.8rem;
-          box-shadow: 0 4px 25px rgba(0, 122, 255, 0.08);
-          transition: all 0.3s ease;
+          border-radius: 16px;
+          padding: 1rem;
+          box-shadow: 0 2px 12px rgba(0, 122, 255, 0.08);
           border: 1px solid rgba(0, 122, 255, 0.1);
           position: relative;
           overflow: hidden;
@@ -532,13 +440,8 @@ function MedicoDashboard() {
           top: 0;
           left: 0;
           right: 0;
-          height: 4px;
+          height: 3px;
           background: linear-gradient(90deg, #007aff, #5856d6);
-        }
-
-        .stat-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 35px rgba(0, 122, 255, 0.15);
         }
 
         .stat-card.available::before {
@@ -556,16 +459,16 @@ function MedicoDashboard() {
         .stat-content {
           display: flex;
           align-items: center;
-          gap: 1.2rem;
+          gap: 0.75rem;
         }
 
         .stat-icon {
-          font-size: 2.5rem;
-          opacity: 0.9;
+          font-size: 1.5rem;
+          opacity: 0.8;
         }
 
         .stat-number {
-          font-size: 2.8rem;
+          font-size: 1.8rem;
           font-weight: 800;
           color: #1a1a1a;
           line-height: 1;
@@ -573,79 +476,69 @@ function MedicoDashboard() {
         }
 
         .stat-label {
-          font-size: 1rem;
+          font-size: 0.75rem;
           color: #007aff;
           font-weight: 600;
+          line-height: 1.2;
         }
 
+        /* Sections */
         .actions-section, .recent-section {
-          margin-bottom: 3rem;
+          margin-bottom: 1.5rem;
         }
 
         .section-title {
-          font-size: 1.5rem;
+          font-size: 1.2rem;
           font-weight: 700;
           color: #1a1a1a;
-          margin: 0 0 1.5rem;
+          margin: 0 0 1rem;
         }
 
         .section-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
         }
 
         .view-all-btn {
           background: none;
           border: none;
           color: #007aff;
-          font-size: 1rem;
+          font-size: 0.85rem;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s ease;
-          padding: 0.5rem 1rem;
-          border-radius: 8px;
+          padding: 0.4rem;
+          border-radius: 6px;
         }
 
-        .view-all-btn:hover {
-          background: rgba(0, 122, 255, 0.1);
-          color: #0056b3;
-        }
-
+        /* Actions Grid Móvil */
         .actions-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: 1fr;
+          gap: 0.75rem;
         }
 
         .action-card {
           background: white;
           border: none;
-          border-radius: 16px;
-          padding: 1.8rem;
+          border-radius: 12px;
+          padding: 1rem;
           cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 20px rgba(0, 122, 255, 0.08);
+          box-shadow: 0 2px 10px rgba(0, 122, 255, 0.08);
           display: flex;
           align-items: center;
-          gap: 1.2rem;
+          gap: 0.75rem;
           text-align: left;
           border: 1px solid rgba(0, 122, 255, 0.1);
         }
 
-        .action-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 30px rgba(0, 122, 255, 0.15);
-          border-color: rgba(0, 122, 255, 0.2);
-        }
-
         .action-icon {
-          font-size: 2.2rem;
+          font-size: 1.5rem;
           flex-shrink: 0;
-          padding: 0.8rem;
-          background: linear-gradient(135deg, rgba(0, 122, 255, 0.1), rgba(88, 86, 214, 0.1));
-          border-radius: 12px;
+          padding: 0.5rem;
+          background: rgba(0, 122, 255, 0.1);
+          border-radius: 8px;
         }
 
         .action-content {
@@ -654,151 +547,257 @@ function MedicoDashboard() {
         }
 
         .action-title {
-          font-size: 1.1rem;
+          font-size: 0.95rem;
           font-weight: 700;
           color: #1a1a1a;
-          margin-bottom: 0.3rem;
+          margin-bottom: 0.2rem;
         }
 
         .action-description {
-          font-size: 0.9rem;
+          font-size: 0.8rem;
           color: #6b7280;
           font-weight: 500;
         }
 
         .action-arrow {
-          font-size: 1.2rem;
+          font-size: 1rem;
           color: #007aff;
           font-weight: 600;
-          transition: transform 0.2s ease;
         }
 
-        .action-card:hover .action-arrow {
-          transform: translateX(4px);
-        }
-
+        /* Empty State Móvil */
         .empty-state {
           background: white;
-          border-radius: 20px;
-          padding: 4rem 2rem;
+          border-radius: 16px;
+          padding: 2rem 1rem;
           text-align: center;
-          box-shadow: 0 4px 20px rgba(0, 122, 255, 0.08);
+          box-shadow: 0 2px 10px rgba(0, 122, 255, 0.08);
           border: 1px solid rgba(0, 122, 255, 0.1);
         }
 
         .empty-icon {
-          font-size: 4rem;
-          margin-bottom: 1.5rem;
+          font-size: 2.5rem;
+          margin-bottom: 1rem;
           opacity: 0.6;
         }
 
         .empty-title {
-          font-size: 1.4rem;
+          font-size: 1.1rem;
           font-weight: 700;
           color: #1a1a1a;
-          margin: 0 0 0.8rem;
+          margin: 0 0 0.5rem;
         }
 
         .empty-text {
           color: #6b7280;
-          margin: 0 0 2rem;
-          font-size: 1rem;
-          line-height: 1.5;
+          margin: 0 0 1.5rem;
+          font-size: 0.9rem;
+          line-height: 1.4;
         }
 
         .empty-action {
           background: linear-gradient(135deg, #007aff, #5856d6);
           color: white;
           border: none;
-          border-radius: 12px;
-          padding: 1rem 2rem;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-        }
-
-        .empty-action:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
-        }
-
-        .sobrecupos-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 1.5rem;
-        }
-
-        .sobrecupo-card {
-          background: white;
-          border-radius: 16px;
-          padding: 1.5rem;
-          box-shadow: 0 4px 20px rgba(0, 122, 255, 0.08);
-          transition: all 0.3s ease;
-          border: 1px solid rgba(0, 122, 255, 0.1);
-        }
-
-        .sobrecupo-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 25px rgba(0, 122, 255, 0.12);
-        }
-
-        .sobrecupo-header {
-          margin-bottom: 1rem;
-        }
-
-        .status-badge {
-          padding: 0.4rem 1rem;
-          border-radius: 20px;
-          font-size: 0.8rem;
-          font-weight: 700;
-          display: inline-block;
-        }
-
-        .status-badge.available {
-          background: linear-gradient(135deg, rgba(52, 199, 89, 0.15), rgba(48, 209, 88, 0.15));
-          color: #006400;
-          border: 1px solid rgba(52, 199, 89, 0.3);
-        }
-
-        .status-badge.reserved {
-          background: linear-gradient(135deg, rgba(255, 149, 0, 0.15), rgba(255, 179, 64, 0.15));
-          color: #995200;
-          border: 1px solid rgba(255, 149, 0, 0.3);
-        }
-
-        .sobrecupo-details {
-          display: flex;
-          flex-direction: column;
-          gap: 0.8rem;
-        }
-
-        .sobrecupo-datetime {
-          display: flex;
-          gap: 1rem;
-          flex-wrap: wrap;
-        }
-
-        .date-info, .time-info {
+          border-radius: 10px;
+          padding: 0.75rem 1.5rem;
           font-size: 0.9rem;
           font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+        }
+
+        /* Lista de Sobrecupos Móvil */
+        .sobrecupos-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .sobrecupo-item {
+          background: white;
+          border-radius: 12px;
+          padding: 1rem;
+          box-shadow: 0 2px 8px rgba(0, 122, 255, 0.08);
+          border: 1px solid rgba(0, 122, 255, 0.1);
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .sobrecupo-left {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          min-width: 60px;
+        }
+
+        .sobrecupo-date {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          line-height: 1;
+        }
+
+        .day {
+          font-size: 1.4rem;
+          font-weight: 800;
           color: #1a1a1a;
         }
 
-        .sobrecupo-location {
-          font-size: 0.85rem;
+        .month {
+          font-size: 0.7rem;
           color: #007aff;
-          font-weight: 500;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+
+        .sobrecupo-time {
+          font-size: 0.8rem;
+          color: #6b7280;
+          font-weight: 600;
+          margin-top: 0.2rem;
+        }
+
+        .sobrecupo-center {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .sobrecupo-clinic {
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 0.2rem;
         }
 
         .sobrecupo-patient {
-          font-size: 0.85rem;
+          font-size: 0.8rem;
           color: #6b7280;
-          font-weight: 600;
-          padding: 0.5rem;
-          background: rgba(0, 122, 255, 0.05);
-          border-radius: 8px;
+          font-weight: 500;
+        }
+
+        .sobrecupo-right {
+          flex-shrink: 0;
+        }
+
+        .status-dot {
+          font-size: 1.2rem;
+        }
+
+        .status-dot.available {
+          color: #34c759;
+        }
+
+        .status-dot.reserved {
+          color: #ff9500;
+        }
+
+        /* Responsive para pantallas muy pequeñas */
+        @media (max-width: 375px) {
+          .main-content {
+            padding: 0.75rem;
+          }
+
+          .stats-grid {
+            gap: 0.5rem;
+          }
+
+          .stat-card {
+            padding: 0.75rem;
+          }
+
+          .stat-number {
+            font-size: 1.5rem;
+          }
+
+          .stat-label {
+            font-size: 0.7rem;
+          }
+
+          .doctor-name {
+            font-size: 1rem;
+          }
+
+          .logout-text {
+            display: none;
+          }
+        }
+
+        /* Responsive para pantallas más grandes (tablet) */
+        @media (min-width: 768px) {
+          .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+
+          .actions-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+
+          .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+          }
+        }
+
+        /* Responsive Desktop */
+        @media (min-width: 1024px) {
+          .dashboard-header {
+            padding: 1rem 1.5rem;
+          }
+
+          .doctor-avatar {
+            width: 50px;
+            height: 50px;
+            font-size: 16px;
+          }
+
+          .doctor-name {
+            font-size: 1.3rem;
+          }
+
+          .doctor-specialty {
+            font-size: 0.9rem;
+          }
+
+          .logout-btn {
+            padding: 0.7rem 1rem;
+            font-size: 0.9rem;
+          }
+
+          .logout-text {
+            display: inline;
+            font-size: 0.9rem;
+          }
+
+          .main-content {
+            max-width: 1200px;
+            padding: 2rem;
+          }
+
+          .stats-grid {
+            gap: 1.5rem;
+          }
+
+          .stat-card {
+            padding: 1.5rem;
+          }
+
+          .stat-number {
+            font-size: 2.2rem;
+          }
+
+          .stat-label {
+            font-size: 0.9rem;
+          }
+
+          .actions-grid {
+            gap: 1.5rem;
+          }
+
+          .action-card {
+            padding: 1.5rem;
+          }
         }
       `}</style>
     </div>
