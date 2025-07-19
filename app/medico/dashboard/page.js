@@ -60,9 +60,14 @@ function MedicoDashboard() {
     }
 
     try {
-      const res = await fetch(`/api/sobrecupos/medico/${session.user.doctorId}`);
+      // ✅ CORRECCIÓN: Cambiar 'medico' por 'medicos'
+      console.log('🔍 Doctor ID:', session.user.doctorId);
+      const res = await fetch(`/api/sobrecupos/medicos/${session.user.doctorId}`);
+      console.log('📡 URL llamada:', `/api/sobrecupos/medicos/${session.user.doctorId}`);
+      
       if (res.ok) {
         const data = await res.json();
+        console.log('✅ Sobrecupos cargados:', data.length, 'registros');
         setSobrecupos(data);
         
         const disponibles = data.filter(s => s.fields?.Disponible === 'Si' || s.fields?.Disponible === true).length;
@@ -74,6 +79,8 @@ function MedicoDashboard() {
           disponibles,
           reservados
         }));
+      } else {
+        console.error('❌ Error HTTP:', res.status, res.statusText);
       }
     } catch (error) {
       console.error('Error cargando sobrecupos:', error);
