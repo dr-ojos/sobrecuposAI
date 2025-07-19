@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     AIRTABLE_BASE_ID,
     AIRTABLE_TABLE_ID, // Esta será "Sobrecupostest"
     AIRTABLE_DOCTORS_TABLE,
-    AIRTABLE_PACIENTES_TABLE,
+    AIRTABLE_PATIENTS_TABLE,
     SENDGRID_API_KEY,
     SENDGRID_FROM_EMAIL
   } = process.env;
@@ -151,7 +151,7 @@ export default async function handler(req, res) {
   async function crearPaciente(pacienteData) {
     try {
       const resp = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PACIENTES_TABLE}`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PATIENTS_TABLE}`,
         {
           method: "POST",
           headers: {
