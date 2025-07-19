@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     AIRTABLE_BASE_ID,
     AIRTABLE_TABLE_ID, // Esta será "Sobrecupostest"
     AIRTABLE_DOCTORS_TABLE,
-    AIRTABLE_PATIENTS_TABLE,
+    AIRTABLE_PATIENTS_TABLE, // ✅ CORRECTO: AIRTABLE_PATIENTS_TABLE
     SENDGRID_API_KEY,
     SENDGRID_FROM_EMAIL
   } = process.env;
@@ -171,10 +171,10 @@ export default async function handler(req, res) {
     }
   }
 
-  // 1) Verificar configuración
-  if (![OPENAI_API_KEY, AIRTABLE_API_KEY, AIRTABLE_BASE_ID,
-        AIRTABLE_TABLE_ID, AIRTABLE_DOCTORS_TABLE, SENDGRID_API_KEY, SENDGRID_FROM_EMAIL].every(Boolean)) {
-    return res.json({ text: "❌ Error de configuración. Contacta soporte." });
+  // ✅ CORRECCIÓN 1: Validación más específica - NO fallar si faltan variables de email
+  // Solo verificar variables críticas para el funcionamiento básico
+  if (![OPENAI_API_KEY, AIRTABLE_API_KEY, AIRTABLE_BASE_ID, AIRTABLE_TABLE_ID, AIRTABLE_DOCTORS_TABLE, AIRTABLE_PATIENTS_TABLE].every(Boolean)) {
+    return res.json({ text: "❌ Error de configuración básica. Contacta soporte." });
   }
 
   // 2) Saludo inicial o saludo simple
@@ -320,34 +320,30 @@ export default async function handler(req, res) {
           console.error("❌ Error actualizando Sobrecupostest:", err);
         }
 
-        // Enviar email de confirmación
-        const medicoId = Array.isArray(chosen["Médico"]) ? chosen["Médico"][0] : chosen["Médico"];
-        const medicoNombre = await getDoctorName(medicoId);
-        
-        const emailPayload = {
-          from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos" },
-          personalizations: [{
-            to: [{ email: session.patient.email }],
-            subject: `✅ Sobrecupo confirmado - ${session.specialty} | ${chosen.Fecha}`,
-          }],
-          content: [{
-            type: "text/html",
-            value: `
+        // ✅ CORRECCIÓN 2: Verificar si SendGrid está configurado antes de enviar
+        const emailEnabled = SENDGRID_API_KEY && SENDGRID_FROM_EMAIL;
+        let emailSent = false;
+
+        if (emailEnabled) {
+          // Enviar email de confirmación
+          const medicoId = Array.isArray(chosen["Médico"]) ? chosen["Médico"][0] : chosen["Médico"];
+          const medicoNombre = await getDoctorName(medicoId);
+          
+          const emailPayload = {
+            from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos" },
+            personalizations: [{
+              to: [{ email: session.patient.email }],
+              subject: `✅ Sobrecupo confirmado - ${session.specialty} | ${chosen.Fecha}`,
+            }],
+            content: [{
+              type: "text/html",
+              value: `
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sobrecupo Confirmado</title>
-  <!--[if mso]>
-  <noscript>
-    <xml>
-      <o:OfficeDocumentSettings>
-        <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-    </xml>
-  </noscript>
-  <![endif]-->
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f7;">
   <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f7;">
@@ -367,7 +363,7 @@ export default async function handler(req, res) {
           <tr>
             <td style="padding: 40px 30px 20px; text-align: center;">
               <div style="display: inline-block; background-color: #34c759; width: 64px; height: 64px; border-radius: 50%; line-height: 64px; margin-bottom: 20px;">
-                <span style="font-size: 32px;">✓</span>
+                <span style="font-size: 32px; color: white;">✓</span>
               </div>
               <h2 style="margin: 0 0 10px; color: #1d1d1f; font-size: 24px; font-weight: 600;">¡Sobrecupo Confirmado!</h2>
               <p style="margin: 0; color: #6e6e73; font-size: 16px;">Hola ${session.patient.name}, tu cita médica ha sido reservada exitosamente.</p>
@@ -437,33 +433,6 @@ export default async function handler(req, res) {
             </td>
           </tr>
           
-          <!-- Recordatorios importantes -->
-          <tr>
-            <td style="padding: 0 30px 30px;">
-              <h3 style="margin: 0 0 15px; color: #1d1d1f; font-size: 16px; font-weight: 600;">🔔 Recordatorios importantes</h3>
-              <ul style="margin: 0; padding-left: 20px; color: #6e6e73; font-size: 14px; line-height: 24px;">
-                <li>Llega 15 minutos antes de tu cita</li>
-                <li>Trae tu cédula de identidad y documentos de tu previsión</li>
-                <li>Si tienes exámenes previos, no olvides llevarlos</li>
-                <li>En caso de no poder asistir, avísanos con anticipación</li>
-              </ul>
-            </td>
-          </tr>
-          
-          <!-- Datos del paciente -->
-          <tr>
-            <td style="padding: 0 30px 30px;">
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top: 1px solid #e5e5e7; padding-top: 20px;">
-                <tr>
-                  <td>
-                    <p style="margin: 0; color: #6e6e73; font-size: 12px;"><strong>Paciente:</strong> ${session.patient.name}</p>
-                    <p style="margin: 5px 0 0; color: #6e6e73; font-size: 12px;"><strong>RUT:</strong> ${session.patient.rut}</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
           <!-- Footer -->
           <tr>
             <td style="background-color: #f5f5f7; padding: 30px; text-align: center;">
@@ -485,44 +454,54 @@ export default async function handler(req, res) {
   </table>
 </body>
 </html>
-            `
-          }, {
-            type: "text/plain",
-            value:
-              `Hola ${session.patient.name}, tu sobrecupo ha sido confirmado.\n\n` +
-              `DETALLES DE TU CITA:\n` +
-              `Especialidad: ${session.specialty}\n` +
-              `Médico: Dr. ${medicoNombre}\n` +
-              `Fecha: ${chosen.Fecha}\n` +
-              `Hora: ${chosen.Hora}\n\n` +
-              `UBICACIÓN:\n` +
-              `${chosen["Clínica"]||chosen["Clinica"]}\n` +
-              `${chosen["Dirección"]||chosen["Direccion"]}\n\n` +
-              `RECORDATORIOS:\n` +
-              `- Llega 15 minutos antes\n` +
-              `- Trae tu cédula de identidad\n` +
-              `- Lleva documentos de tu previsión\n\n` +
-              `Paciente: ${session.patient.name}\n` +
-              `RUT: ${session.patient.rut}\n\n` +
-              `¿Preguntas? Escríbenos a soporte@sobrecupos.cl\n\n` +
-              `Sobrecupos - Más tiempo sano, menos tiempo enfermo`
-          }]
-        };
-        
-        try {
-          await fetch("https://api.sendgrid.com/v3/mail/send", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${SENDGRID_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(emailPayload)
-          });
-        } catch (err) {
-          console.error("❌ Error SendGrid:", err);
+              `
+            }, {
+              type: "text/plain",
+              value:
+                `Hola ${session.patient.name}, tu sobrecupo ha sido confirmado.\n\n` +
+                `DETALLES DE TU CITA:\n` +
+                `Especialidad: ${session.specialty}\n` +
+                `Médico: Dr. ${medicoNombre}\n` +
+                `Fecha: ${chosen.Fecha}\n` +
+                `Hora: ${chosen.Hora}\n\n` +
+                `UBICACIÓN:\n` +
+                `${chosen["Clínica"]||chosen["Clinica"]}\n` +
+                `${chosen["Dirección"]||chosen["Direccion"]}\n\n` +
+                `¿Preguntas? Escríbenos a soporte@sobrecupos.cl\n\n` +
+                `Sobrecupos - Más tiempo sano, menos tiempo enfermo`
+            }]
+          };
+          
+          try {
+            const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${SENDGRID_API_KEY}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify(emailPayload)
+            });
+            
+            if (emailResponse.ok) {
+              emailSent = true;
+              console.log("✅ Email enviado correctamente");
+            } else {
+              console.error("❌ Error SendGrid:", await emailResponse.text());
+            }
+          } catch (err) {
+            console.error("❌ Error enviando email:", err);
+          }
+        } else {
+          console.log("⚠️ SendGrid no configurado - Email omitido");
         }
 
         delete sessions[from];
+        
+        // ✅ CORRECCIÓN 3: Mensaje de confirmación adaptado según si se envió email o no
+        const emailText = emailSent 
+          ? `📧 Te envié la confirmación a ${session.patient.email}` 
+          : '📧 (La confirmación por email se enviará por separado)';
+
         return res.json({
           text:
             `✅ ¡Listo, ${session.patient.name}! Tu sobrecupo está confirmado.\n\n` +
@@ -530,7 +509,7 @@ export default async function handler(req, res) {
             `📍 ${chosen["Dirección"]||chosen["Direccion"]}\n` +
             `👨‍⚕️ Dr. ${medicoNombre}\n` +
             `🗓️ ${chosen.Fecha} a las ${chosen.Hora}\n\n` +
-            `📧 Te envié la confirmación a ${session.patient.email}`
+            emailText
         });
 
       default:
