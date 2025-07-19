@@ -252,7 +252,7 @@ export default async function handler(req, res) {
         const chosenId = session.records[session.attempts].id;
         
         const updateFields = {
-          Disponible: false
+          Disponible: "No"
         };
 
         if (session.patient.name) updateFields.Nombre = session.patient.name;
@@ -302,7 +302,7 @@ export default async function handler(req, res) {
                   "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ 
-                  fields: { Disponible: false } 
+                  fields: { Disponible: "No" } 
                 })
               }
             );
@@ -336,7 +336,7 @@ export default async function handler(req, res) {
                   "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ 
-                  fields: { Disponible: false } 
+                  fields: { Disponible: "No" } 
                 })
               }
             );
