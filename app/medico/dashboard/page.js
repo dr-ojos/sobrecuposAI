@@ -55,23 +55,103 @@ function MedicoDashboard() {
 
   const fetchSobrecupos = async () => {
     if (!session?.user?.doctorId) {
+      console.error('🚨 NO HAY DOCTOR ID:', session?.user);
       setLoading(false);
       return;
     }
 
     try {
-      // ✅ CORRECCIÓN: Cambiar 'medico' por 'medicos'
-      console.log('🔍 Doctor ID:', session.user.doctorId);
-      const res = await fetch(`/api/sobrecupos/medicos/${session.user.doctorId}`);
-      console.log('📡 URL llamada:', `/api/sobrecupos/medicos/${session.user.doctorId}`);
+      console.log('🔍 === DEBUGGING SOBRECUPOS ===');
+      console.log('🆔 Doctor ID:', session.user.doctorId);
+      console.log('👤 Session User:', session.user);
+      
+      // PRIMERA PRUEBA: Verificar que el doctor existe
+      console.log('📡 Verificando doctor en base de datos...');
+      const doctorRes = await fetch(`/api/doctors/${session.user.doctorId}`);
+      console.log('👨‍⚕️ Doctor response status:', doctorRes.status);
+      
+      if (doctorRes.ok) {
+        const doctorInfo = await doctorRes.json();
+        console.log('✅ Doctor encontrado:', doctorInfo);
+      } else {
+        console.error('❌ Doctor NO encontrado');
+      }
+
+      // SEGUNDA PRUEBA: Buscar sobrecupos del doctor
+      const sobrecuposUrl = `/api/sobrecupos/medicos/${session.user.doctorId}`;
+      console.log('📡 URL sobrecupos:', sobrecuposUrl);
+      
+      const res = await fetch(sobrecuposUrl);
+      console.log('📊 Response status:', res.status);
+      console.log('📊 Response headers:', Object.fromEntries(res.headers.entries()));
       
       if (res.ok) {
         const data = await res.json();
-        console.log('✅ Sobrecupos cargados:', data.length, 'registros');
+        console.log('✅ Raw data from API:', data);
+        console.log('📋 Sobrecupos encontrados:', data.length);
+        
+        // TERCERA PRUEBA: Analizar cada sobrecupo
+        if (data.length > 0) {
+          data.forEach((sobrecupo, index) => {
+            console.log(`📄 Sobrecupo ${index + 1}:`, {
+              id: sobrecupo.id,
+              medico: sobrecupo.fields?.Médico,
+              fecha: sobrecupo.fields?.Fecha,
+              hora: sobrecupo.fields?.Hora,
+              disponible: sobrecupo.fields?.Disponible,
+              clinica: sobrecupo.fields?.Clínica,
+              allFields: sobrecupo.fields
+            });
+          });
+        } else {
+          console.warn('⚠️ NO SE ENCONTRARON SOBRECUPOS');
+          
+          // CUARTA PRUEBA: Buscar TODOS los sobrecupos (sin filtro)
+          console.log('🔍 Buscando TODOS los sobrecupos para debug...');
+          const allSobrecuposRes = await fetch('/api/sobrecupos');
+          if (allSobrecuposRes.ok) {
+            const allSobrecupos = await allSobrecuposRes.json();
+            console.log('📊 Total sobrecupos en sistema:', allSobrecupos.length);
+            
+            // Buscar si hay alguno que coincida con nuestro doctor
+            const matching = allSobrecupos.filter(s => {
+              const medicos = s.fields?.Médico;
+              if (Array.isArray(medicos)) {
+                return medicos.includes(session.user.doctorId);
+              }
+              return medicos === session.user.doctorId;
+            });
+            
+            console.log('🎯 Sobrecupos que coinciden:', matching.length);
+            if (matching.length > 0) {
+              console.log('🎯 Primer match:', matching[0]);
+            }
+            
+            // Mostrar todos los médicos IDs únicos
+            const allDoctorIds = new Set();
+            allSobrecupos.forEach(s => {
+              const medicos = s.fields?.Médico;
+              if (Array.isArray(medicos)) {
+                medicos.forEach(id => allDoctorIds.add(id));
+              } else if (medicos) {
+                allDoctorIds.add(medicos);
+              }
+            });
+            console.log('👨‍⚕️ Todos los Doctor IDs en sistema:', Array.from(allDoctorIds));
+            console.log('🔍 ¿Nuestro ID está incluido?', Array.from(allDoctorIds).includes(session.user.doctorId));
+          }
+        }
+
         setSobrecupos(data);
         
         const disponibles = data.filter(s => s.fields?.Disponible === 'Si' || s.fields?.Disponible === true).length;
         const reservados = data.length - disponibles;
+        
+        console.log('📈 Estadísticas calculadas:', {
+          total: data.length,
+          disponibles,
+          reservados
+        });
         
         setStats(prev => ({
           ...prev,
@@ -81,9 +161,12 @@ function MedicoDashboard() {
         }));
       } else {
         console.error('❌ Error HTTP:', res.status, res.statusText);
+        const errorText = await res.text();
+        console.error('❌ Error body:', errorText);
       }
     } catch (error) {
-      console.error('Error cargando sobrecupos:', error);
+      console.error('💥 Error cargando sobrecupos:', error);
+      console.error('💥 Error stack:', error.stack);
     } finally {
       setLoading(false);
     }
@@ -91,6 +174,14 @@ function MedicoDashboard() {
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/auth/signin' });
+  };
+
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString('es-CL', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   // Loading state
@@ -141,14 +232,6 @@ function MedicoDashboard() {
   if (status === 'unauthenticated') {
     return null;
   }
-
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('es-CL', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   return (
     <div className="dashboard-container">
@@ -325,7 +408,6 @@ function MedicoDashboard() {
           color: #1a1a1a;
         }
 
-        /* Header Responsivo */
         .dashboard-header {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
@@ -417,14 +499,12 @@ function MedicoDashboard() {
           font-size: 1rem;
         }
 
-        /* Main Content */
         .main-content {
           max-width: 1400px;
           margin: 0 auto;
           padding: 2rem 1.5rem;
         }
 
-        /* Stats Section */
         .stats-section {
           margin-bottom: 3rem;
         }
@@ -498,7 +578,6 @@ function MedicoDashboard() {
           font-weight: 600;
         }
 
-        /* Sections */
         .actions-section, .recent-section {
           margin-bottom: 3rem;
         }
@@ -534,7 +613,6 @@ function MedicoDashboard() {
           color: #0056b3;
         }
 
-        /* Actions Grid */
         .actions-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -599,7 +677,6 @@ function MedicoDashboard() {
           transform: translateX(4px);
         }
 
-        /* Empty State */
         .empty-state {
           background: white;
           border-radius: 20px;
@@ -647,7 +724,6 @@ function MedicoDashboard() {
           box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
         }
 
-        /* Sobrecupos Grid */
         .sobrecupos-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -724,215 +800,14 @@ function MedicoDashboard() {
           background: rgba(0, 122, 255, 0.05);
           border-radius: 8px;
         }
-
-        /* Responsive Breakpoints */
-        @media (max-width: 1200px) {
-          .main-content {
-            padding: 1.5rem 1rem;
-          }
-          
-          .stats-grid {
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .dashboard-header {
-            padding: 0.8rem 1rem;
-          }
-
-          .header-content {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-          }
-
-          .doctor-info {
-            justify-content: center;
-          }
-
-          .doctor-avatar {
-            width: 50px;
-            height: 50px;
-            font-size: 16px;
-          }
-
-          .doctor-name {
-            font-size: 1.2rem;
-          }
-
-          .logout-btn {
-            align-self: center;
-            padding: 0.6rem 1rem;
-          }
-
-          .logout-text {
-            display: none;
-          }
-
-          .main-content {
-            padding: 1rem 0.8rem;
-          }
-
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.8rem;
-          }
-
-          .stat-card {
-            padding: 1.2rem;
-          }
-
-          .stat-content {
-            flex-direction: column;
-            text-align: center;
-            gap: 0.8rem;
-          }
-
-          .stat-icon {
-            font-size: 2rem;
-          }
-
-          .stat-number {
-            font-size: 2.2rem;
-          }
-
-          .actions-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-          }
-
-          .action-card {
-            padding: 1.2rem;
-          }
-
-          .section-title {
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-          }
-
-          .sobrecupos-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-          }
-
-          .empty-state {
-            padding: 2.5rem 1.5rem;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .header-content {
-            flex-direction: row;
-            justify-content: space-between;
-          }
-
-          .doctor-info {
-            justify-content: flex-start;
-            min-width: 0;
-          }
-
-          .doctor-name {
-            font-size: 1.1rem;
-          }
-
-          .doctor-specialty {
-            font-size: 0.85rem;
-          }
-
-          .stats-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .stat-card {
-            padding: 1rem;
-          }
-
-          .stat-content {
-            flex-direction: row;
-            text-align: left;
-            gap: 1rem;
-          }
-
-          .main-content {
-            padding: 0.8rem 0.5rem;
-          }
-
-          .sobrecupo-datetime {
-            flex-direction: column;
-            gap: 0.4rem;
-          }
-
-          .empty-state {
-            padding: 2rem 1rem;
-          }
-
-          .empty-icon {
-            font-size: 3rem;
-          }
-
-          .empty-title {
-            font-size: 1.2rem;
-          }
-        }
-
-        @media (max-width: 320px) {
-          .doctor-avatar {
-            width: 45px;
-            height: 45px;
-            font-size: 14px;
-          }
-
-          .doctor-name {
-            font-size: 1rem;
-          }
-
-          .logout-btn {
-            padding: 0.5rem 0.8rem;
-            font-size: 0.8rem;
-          }
-
-          .stat-number {
-            font-size: 1.8rem;
-          }
-
-          .stat-label {
-            font-size: 0.9rem;
-          }
-        }
       `}</style>
     </div>
   );
 }
 
-// Exportar como componente dinámico para evitar SSR
 export default dynamic(() => Promise.resolve(MedicoDashboard), {
   ssr: false,
   loading: () => (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 50%, #f8faff 100%)',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-      padding: '1rem'
-    }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ 
-          width: '60px', 
-          height: '60px', 
-          border: '4px solid rgba(0, 122, 255, 0.2)', 
-          borderTop: '4px solid #007aff', 
-          borderRadius: '50%', 
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto 1rem'
-        }}></div>
-        <p style={{ color: '#007aff', fontSize: '1.1rem', fontWeight: '500', margin: 0 }}>
-          Cargando dashboard...
-        </p>
-      </div>
-    </div>
+    <div>Cargando...</div>
   )
 });
