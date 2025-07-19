@@ -219,7 +219,7 @@ function MedicoDashboard() {
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 70%);
+            background: linear-gradient(135deg, #f8faff 0%, #ffffff 50%, #f0f4ff 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -313,7 +313,7 @@ function MedicoDashboard() {
           .logo-sobrecupos {
             font-size: 2rem;
             font-weight: 700;
-            color: #ffffff;
+            color: #1d1d1f;
             letter-spacing: -0.5px;
           }
 
@@ -335,11 +335,10 @@ function MedicoDashboard() {
           .progress-track {
             width: 100%;
             height: 4px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
             border-radius: 2px;
             overflow: hidden;
             position: relative;
-            backdrop-filter: blur(10px);
           }
 
           .progress-fill {
@@ -375,7 +374,7 @@ function MedicoDashboard() {
           }
 
           .loading-text {
-            color: rgba(255, 255, 255, 0.7);
+            color: #6e6e73;
             font-size: 0.9rem;
             margin-top: 1.5rem;
             font-weight: 500;
@@ -433,13 +432,11 @@ function MedicoDashboard() {
 
   return (
     <div className="dashboard-container" ref={containerRef}>
-      {/* Glassmorphism Header */}
+      {/* Clean iOS Style Header */}
       <header className="header">
-        <div className="header-backdrop"></div>
         <div className="header-content">
           <div className="doctor-profile">
             <div className="doctor-avatar-container">
-              <div className="avatar-glow"></div>
               <div className="doctor-avatar">
                 {doctorData?.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
               </div>
@@ -455,92 +452,76 @@ function MedicoDashboard() {
             </div>
           </div>
           <button onClick={handleLogout} className="logout-btn">
-            <div className="logout-icon-bg"></div>
             <span className="logout-icon">→</span>
           </button>
         </div>
       </header>
 
       <main className="main-content">
-        {/* Premium Stats Cards with 3D Effects */}
+        {/* Clean Stats Cards */}
         <section className="stats-section">
           <div className="stats-grid">
-            <div className="stat-card stat-total">
-              <div className="card-glow"></div>
+            <div className="stat-card">
               <div className="stat-content">
                 <div className="stat-header">
                   <div className="stat-icon-container">
-                    <div className="icon-bg icon-bg-blue"></div>
-                    <span className="stat-icon">📊</span>
+                    <div className="stat-icon-bg blue">
+                      <span className="stat-icon">📊</span>
+                    </div>
                   </div>
-                  <div className="stat-number-container">
-                    <span className="stat-number">{animatedStats.totalSobrecupos}</span>
-                    <div className="number-sparkle"></div>
-                  </div>
+                  <div className="stat-number">{animatedStats.totalSobrecupos}</div>
                 </div>
                 <div className="stat-label">Total Sobrecupos</div>
                 <div className="stat-sublabel">Este mes</div>
                 <div className="stat-progress">
                   <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: '75%' }}></div>
+                    <div className="progress-fill blue-fill" style={{ width: '75%' }}></div>
                   </div>
                 </div>
               </div>
-              <div className="hover-effect"></div>
             </div>
             
-            <div className="stat-card stat-available">
-              <div className="card-glow"></div>
+            <div className="stat-card">
               <div className="stat-content">
                 <div className="stat-header">
                   <div className="stat-icon-container">
-                    <div className="icon-bg icon-bg-green"></div>
-                    <span className="stat-icon">✅</span>
+                    <div className="stat-icon-bg green">
+                      <span className="stat-icon">✅</span>
+                    </div>
                   </div>
-                  <div className="stat-number-container">
-                    <span className="stat-number">{animatedStats.disponibles}</span>
-                    <div className="number-sparkle"></div>
-                  </div>
+                  <div className="stat-number">{animatedStats.disponibles}</div>
                 </div>
                 <div className="stat-label">Disponibles</div>
                 <div className="stat-sublabel">Para reservar</div>
-                <div className="pulse-indicator available"></div>
+                <div className="pulse-indicator green-pulse"></div>
               </div>
-              <div className="hover-effect"></div>
             </div>
             
-            <div className="stat-card stat-reserved">
-              <div className="card-glow"></div>
+            <div className="stat-card">
               <div className="stat-content">
                 <div className="stat-header">
                   <div className="stat-icon-container">
-                    <div className="icon-bg icon-bg-orange"></div>
-                    <span className="stat-icon">🎯</span>
+                    <div className="stat-icon-bg orange">
+                      <span className="stat-icon">🎯</span>
+                    </div>
                   </div>
-                  <div className="stat-number-container">
-                    <span className="stat-number">{animatedStats.reservados}</span>
-                    <div className="number-sparkle"></div>
-                  </div>
+                  <div className="stat-number">{animatedStats.reservados}</div>
                 </div>
                 <div className="stat-label">Reservados</div>
                 <div className="stat-sublabel">Confirmados</div>
-                <div className="pulse-indicator reserved"></div>
+                <div className="pulse-indicator orange-pulse"></div>
               </div>
-              <div className="hover-effect"></div>
             </div>
             
-            <div className="stat-card stat-clinics">
-              <div className="card-glow"></div>
+            <div className="stat-card">
               <div className="stat-content">
                 <div className="stat-header">
                   <div className="stat-icon-container">
-                    <div className="icon-bg icon-bg-purple"></div>
-                    <span className="stat-icon">🏥</span>
+                    <div className="stat-icon-bg purple">
+                      <span className="stat-icon">🏥</span>
+                    </div>
                   </div>
-                  <div className="stat-number-container">
-                    <span className="stat-number">{animatedStats.clinicas}</span>
-                    <div className="number-sparkle"></div>
-                  </div>
+                  <div className="stat-number">{animatedStats.clinicas}</div>
                 </div>
                 <div className="stat-label">Clínicas</div>
                 <div className="stat-sublabel">Ubicaciones</div>
@@ -550,12 +531,11 @@ function MedicoDashboard() {
                   ))}
                 </div>
               </div>
-              <div className="hover-effect"></div>
             </div>
           </div>
         </section>
 
-        {/* Quick Actions with Glassmorphism */}
+        {/* Clean Actions Section */}
         <section className="actions-section">
           <div className="section-header">
             <h2 className="section-title">
@@ -565,62 +545,53 @@ function MedicoDashboard() {
           </div>
           <div className="actions-grid">
             <button onClick={() => router.push('/medico/perfil')} className="action-card">
-              <div className="action-bg"></div>
               <div className="action-content">
                 <div className="action-icon-container">
-                  <div className="action-icon">👤</div>
-                  <div className="icon-ring"></div>
+                  <div className="action-icon-bg">
+                    <span className="action-icon">👤</span>
+                  </div>
                 </div>
                 <div className="action-info">
                   <div className="action-title">Mi Perfil</div>
                   <div className="action-description">Configuración y datos personales</div>
                 </div>
-                <div className="action-arrow">
-                  <span>→</span>
-                  <div className="arrow-trail"></div>
-                </div>
+                <div className="action-arrow">→</div>
               </div>
             </button>
             
             <button onClick={() => router.push('/medico/sobrecupos')} className="action-card primary">
-              <div className="action-bg primary-bg"></div>
               <div className="action-content">
                 <div className="action-icon-container">
-                  <div className="action-icon">✨</div>
-                  <div className="icon-ring primary-ring"></div>
+                  <div className="action-icon-bg primary-icon-bg">
+                    <span className="action-icon primary-icon">✨</span>
+                  </div>
                 </div>
                 <div className="action-info">
-                  <div className="action-title">Crear Sobrecupos</div>
-                  <div className="action-description">Agregar nuevos horarios disponibles</div>
+                  <div className="action-title primary-title">Crear Sobrecupos</div>
+                  <div className="action-description primary-description">Agregar nuevos horarios disponibles</div>
                 </div>
-                <div className="action-arrow primary-arrow">
-                  <span>→</span>
-                  <div className="arrow-trail primary-trail"></div>
-                </div>
+                <div className="action-arrow primary-arrow">→</div>
               </div>
             </button>
             
             <button onClick={() => router.push('/medico/clinicas')} className="action-card">
-              <div className="action-bg"></div>
               <div className="action-content">
                 <div className="action-icon-container">
-                  <div className="action-icon">🏥</div>
-                  <div className="icon-ring"></div>
+                  <div className="action-icon-bg">
+                    <span className="action-icon">🏥</span>
+                  </div>
                 </div>
                 <div className="action-info">
                   <div className="action-title">Mis Clínicas</div>
                   <div className="action-description">Gestionar ubicaciones y centros</div>
                 </div>
-                <div className="action-arrow">
-                  <span>→</span>
-                  <div className="arrow-trail"></div>
-                </div>
+                <div className="action-arrow">→</div>
               </div>
             </button>
           </div>
         </section>
 
-        {/* Modern Timeline with Advanced Animations */}
+        {/* Clean Timeline */}
         <section className="timeline-section">
           <div className="section-header">
             <h2 className="section-title">
@@ -628,29 +599,19 @@ function MedicoDashboard() {
               Próximos Sobrecupos
             </h2>
             <button onClick={() => router.push('/medico/sobrecupos')} className="view-all-btn">
-              <span>Ver todos</span>
-              <div className="btn-glow"></div>
+              Ver todos
             </button>
           </div>
           
           {sobrecupos.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-animation">
-                <div className="empty-particles">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className={`empty-particle particle-${i + 1}`}></div>
-                  ))}
-                </div>
-                <div className="empty-icon-container">
-                  <div className="empty-icon">📋</div>
-                  <div className="icon-pulse"></div>
-                </div>
+              <div className="empty-icon-container">
+                <div className="empty-icon">📋</div>
               </div>
               <h3 className="empty-title">Todo perfectamente organizado</h3>
               <p className="empty-text">Cuando crees sobrecupos, aparecerán aquí con un diseño espectacular</p>
               <button onClick={() => router.push('/medico/sobrecupos')} className="empty-action">
-                <span className="btn-text">Crear mi primer sobrecupo</span>
-                <div className="btn-shine"></div>
+                Crear mi primer sobrecupo
               </button>
             </div>
           ) : (
@@ -658,36 +619,28 @@ function MedicoDashboard() {
               {sobrecupos.slice(0, 4).map((sobrecupo, index) => (
                 <div key={index} className="timeline-item" style={{ animationDelay: `${index * 0.1}s` }}>
                   <div className="timeline-card">
-                    <div className="card-shine"></div>
                     <div className="timeline-header">
                       <div className="time-info">
                         <div className="date-block">
-                          <div className="date-bg"></div>
                           <span className="day">{new Date(sobrecupo.fields?.Fecha).getDate()}</span>
                           <span className="month">
                             {new Date(sobrecupo.fields?.Fecha).toLocaleDateString('es-CL', { month: 'short' }).toUpperCase()}
                           </span>
-                          <div className="date-glow"></div>
                         </div>
                         <div className="time-details">
                           <span className="time">{sobrecupo.fields?.Hora}</span>
                           <span className="relative-time">{getTimeFromNow(sobrecupo.fields?.Fecha, sobrecupo.fields?.Hora)}</span>
-                          <div className="time-line"></div>
                         </div>
                       </div>
                       <div className="status-container">
                         <div className={`status-badge ${sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'available' : 'reserved'}`}>
-                          <div className="status-bg"></div>
-                          <span className="status-text">
-                            {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'Disponible' : 'Reservado'}
-                          </span>
-                          <div className="status-pulse"></div>
+                          {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'Disponible' : 'Reservado'}
                         </div>
                       </div>
                     </div>
                     <div className="timeline-body">
                       <div className="clinic-info">
-                        <div className="info-icon">📍</div>
+                        <span className="location-icon">📍</span>
                         <span className="clinic-name">{sobrecupo.fields?.Clínica}</span>
                         <div className="clinic-badge">Activa</div>
                       </div>
@@ -698,10 +651,7 @@ function MedicoDashboard() {
                           </div>
                           <div className="patient-details">
                             <span className="patient-name">{sobrecupo.fields.Nombre}</span>
-                            <div className="confirmed-badge">
-                              <span>✓ Confirmado</span>
-                              <div className="badge-glow"></div>
-                            </div>
+                            <div className="confirmed-badge">✓ Confirmado</div>
                           </div>
                         </div>
                       )}
@@ -715,55 +665,28 @@ function MedicoDashboard() {
       </main>
 
       <style jsx>{`
-        * {
-          box-sizing: border-box;
-        }
-
+        /* Clean Apple-Style Dashboard */
         .dashboard-container {
           min-height: 100vh;
           background: linear-gradient(135deg, #f8faff 0%, #ffffff 50%, #f0f4ff 100%);
           font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
           color: #1d1d1f;
           position: relative;
-          overflow-x: hidden;
         }
 
-        .dashboard-container::before {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: radial-gradient(600px circle at ${cursorPosition.x}px ${cursorPosition.y}px, rgba(0, 122, 255, 0.03), transparent 40%);
-          pointer-events: none;
-          z-index: 1;
-        }
-
-        /* Premium Glassmorphism Header */
+        /* Clean Header */
         .header {
           position: sticky;
           top: 0;
           z-index: 1000;
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
+          background: rgba(255, 255, 255, 0.95);
           border-bottom: 1px solid rgba(0, 0, 0, 0.08);
           padding: 1rem;
         }
 
-        .header-backdrop {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.95) 100%);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        }
-
         .header-content {
-          position: relative;
-          z-index: 10;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -781,24 +704,7 @@ function MedicoDashboard() {
           position: relative;
         }
 
-        .avatar-glow {
-          position: absolute;
-          top: -2px;
-          left: -2px;
-          right: -2px;
-          bottom: -2px;
-          background: linear-gradient(45deg, #007aff, #5856d6, #007aff);
-          border-radius: 50%;
-          animation: avatar-glow 3s ease-in-out infinite;
-        }
-
-        @keyframes avatar-glow {
-          0%, 100% { opacity: 0.6; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.05); }
-        }
-
         .doctor-avatar {
-          position: relative;
           width: 48px;
           height: 48px;
           border-radius: 50%;
@@ -809,8 +715,7 @@ function MedicoDashboard() {
           justify-content: center;
           font-size: 16px;
           font-weight: 700;
-          z-index: 2;
-          box-shadow: 0 8px 32px rgba(0, 122, 255, 0.3);
+          box-shadow: 0 4px 16px rgba(0, 122, 255, 0.25);
         }
 
         .status-dot {
@@ -821,17 +726,7 @@ function MedicoDashboard() {
           height: 12px;
           background: #34c759;
           border-radius: 50%;
-          border: 2px solid rgba(0, 0, 0, 0.8);
-          animation: status-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes status-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4); }
-          50% { box-shadow: 0 0 0 4px rgba(52, 199, 89, 0); }
-        }
-
-        .doctor-info {
-          min-width: 0;
+          border: 2px solid white;
         }
 
         .doctor-name {
@@ -850,9 +745,8 @@ function MedicoDashboard() {
         }
 
         .logout-btn {
-          position: relative;
-          background: rgba(0, 0, 0, 0.04);
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: rgba(0, 0, 0, 0.05);
+          border: 1px solid rgba(0, 0, 0, 0.1);
           border-radius: 12px;
           width: 44px;
           height: 44px;
@@ -860,107 +754,56 @@ function MedicoDashboard() {
           display: flex;
           align-items: center;
           justify-content: center;
-          backdrop-filter: blur(10px);
-          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          overflow: hidden;
+          transition: all 0.3s ease;
         }
 
         .logout-btn:hover {
           background: rgba(0, 0, 0, 0.08);
-          border-color: rgba(0, 0, 0, 0.12);
           transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .logout-icon-bg {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.06), transparent);
-          transition: left 0.5s ease;
-        }
-
-        .logout-btn:hover .logout-icon-bg {
-          left: 100%;
         }
 
         .logout-icon {
           color: #1d1d1f;
           font-size: 18px;
           font-weight: bold;
-          z-index: 2;
         }
 
         .main-content {
-          position: relative;
-          z-index: 10;
           max-width: 1200px;
           margin: 0 auto;
           padding: 2rem 1rem;
         }
 
-        /* Premium Stats Section */
+        /* Clean Stats Cards */
         .stats-section {
           margin-bottom: 3rem;
         }
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 1.5rem;
         }
 
         .stat-card {
-          position: relative;
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.08);
           border-radius: 16px;
           padding: 1.5rem;
           cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+          position: relative;
           overflow: hidden;
-          animation: card-enter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-          opacity: 0;
-          transform: translateY(30px);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-
-        @keyframes card-enter {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
         }
 
         .stat-card:hover {
-          transform: translateY(-6px) scale(1.02);
-          background: rgba(255, 255, 255, 0.95);
+          transform: translateY(-4px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
           border-color: rgba(0, 122, 255, 0.2);
-          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .card-glow {
-          position: absolute;
-          top: -2px;
-          left: -2px;
-          right: -2px;
-          bottom: -2px;
-          background: linear-gradient(45deg, transparent, rgba(0, 122, 255, 0.15), transparent);
-          border-radius: 20px;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .stat-card:hover .card-glow {
-          opacity: 1;
         }
 
         .stat-content {
-          position: relative;
-          z-index: 10;
           display: flex;
           flex-direction: column;
           gap: 1rem;
@@ -974,64 +817,32 @@ function MedicoDashboard() {
 
         .stat-icon-container {
           position: relative;
-          width: 56px;
-          height: 56px;
+        }
+
+        .stat-icon-bg {
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
+          font-size: 20px;
         }
 
-        .icon-bg {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          border-radius: 16px;
-          opacity: 0.8;
-        }
-
-        .icon-bg-blue { background: linear-gradient(135deg, #007aff, #5856d6); }
-        .icon-bg-green { background: linear-gradient(135deg, #34c759, #30d158); }
-        .icon-bg-orange { background: linear-gradient(135deg, #ff9500, #ff6b35); }
-        .icon-bg-purple { background: linear-gradient(135deg, #af52de, #bf5af2); }
+        .stat-icon-bg.blue { background: #e3f2fd; }
+        .stat-icon-bg.green { background: #e8f5e8; }
+        .stat-icon-bg.orange { background: #fff3e0; }
+        .stat-icon-bg.purple { background: #f3e5f5; }
 
         .stat-icon {
-          position: relative;
-          z-index: 2;
-          font-size: 24px;
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-        }
-
-        .stat-number-container {
-          position: relative;
-          text-align: right;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
         }
 
         .stat-number {
-          font-size: 2.5rem;
+          font-size: 2rem;
           font-weight: 800;
           color: #1d1d1f;
           letter-spacing: -1px;
-          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-          display: block;
-        }
-
-        .number-sparkle {
-          position: absolute;
-          top: 0;
-          right: -8px;
-          width: 6px;
-          height: 6px;
-          background: #007aff;
-          border-radius: 50%;
-          opacity: 0;
-          animation: sparkle 2s ease-in-out infinite;
-        }
-
-        @keyframes sparkle {
-          0%, 100% { opacity: 0; transform: scale(0); }
-          50% { opacity: 1; transform: scale(1); }
         }
 
         .stat-label {
@@ -1055,21 +866,18 @@ function MedicoDashboard() {
         .progress-bar {
           width: 100%;
           height: 4px;
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(0, 0, 0, 0.06);
           border-radius: 2px;
           overflow: hidden;
         }
 
         .progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, #007aff, #5856d6);
           border-radius: 2px;
-          animation: progress-fill 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        @keyframes progress-fill {
-          from { width: 0% !important; }
-        }
+        .blue-fill { background: linear-gradient(90deg, #007aff, #5856d6); }
 
         .pulse-indicator {
           position: absolute;
@@ -1078,20 +886,20 @@ function MedicoDashboard() {
           width: 8px;
           height: 8px;
           border-radius: 50%;
-          animation: pulse-indicator 2s ease-in-out infinite;
+          animation: pulse-anim 2s ease-in-out infinite;
         }
 
-        .pulse-indicator.available {
+        .green-pulse {
           background: #34c759;
           box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4);
         }
 
-        .pulse-indicator.reserved {
+        .orange-pulse {
           background: #ff9500;
           box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.4);
         }
 
-        @keyframes pulse-indicator {
+        @keyframes pulse-anim {
           0%, 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4); }
           50% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); }
         }
@@ -1107,31 +915,15 @@ function MedicoDashboard() {
           height: 6px;
           background: #af52de;
           border-radius: 50%;
-          animation: clinic-dot 1.5s ease-in-out infinite;
+          animation: clinic-dot-anim 1.5s ease-in-out infinite;
         }
 
-        @keyframes clinic-dot {
+        @keyframes clinic-dot-anim {
           0%, 100% { opacity: 0.4; transform: scale(1); }
           50% { opacity: 1; transform: scale(1.2); }
         }
 
-        .hover-effect {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          pointer-events: none;
-        }
-
-        .stat-card:hover .hover-effect {
-          opacity: 1;
-        }
-
-        /* Actions Section */
+        /* Clean Actions Section */
         .actions-section {
           margin-bottom: 3rem;
         }
@@ -1156,12 +948,10 @@ function MedicoDashboard() {
 
         .title-icon {
           font-size: 1.2rem;
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
 
         .view-all-btn {
-          position: relative;
-          background: rgba(0, 122, 255, 0.08);
+          background: rgba(0, 122, 255, 0.1);
           border: 1px solid rgba(0, 122, 255, 0.2);
           color: #007aff;
           font-size: 0.9rem;
@@ -1169,158 +959,80 @@ function MedicoDashboard() {
           cursor: pointer;
           padding: 0.75rem 1.5rem;
           border-radius: 12px;
-          backdrop-filter: blur(10px);
-          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          overflow: hidden;
+          transition: all 0.3s ease;
         }
 
         .view-all-btn:hover {
-          background: rgba(0, 122, 255, 0.12);
-          border-color: #007aff;
+          background: rgba(0, 122, 255, 0.15);
           transform: translateY(-2px);
-        }
-
-        .btn-glow {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.15), transparent);
-          transition: left 0.5s ease;
-        }
-
-        .view-all-btn:hover .btn-glow {
-          left: 100%;
         }
 
         .actions-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           gap: 1.5rem;
         }
 
         .action-card {
-          position: relative;
-          background: none;
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.08);
           border-radius: 16px;
           cursor: pointer;
           overflow: hidden;
-          transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          backdrop-filter: blur(20px);
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
         }
 
         .action-card:hover {
-          transform: translateY(-6px) scale(1.02);
+          transform: translateY(-4px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
           border-color: rgba(0, 122, 255, 0.2);
-          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .action-bg {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(255, 255, 255, 0.9);
-          transition: all 0.3s ease;
-        }
-
-        .action-card:hover .action-bg {
-          background: rgba(255, 255, 255, 0.95);
-        }
-
-        .action-card.primary .action-title {
-          color: #ffffff !important;
-        }
-
-        .action-card.primary .action-description {
-          color: rgba(255, 255, 255, 0.9) !important;
-        }
-
-        .action-card.primary .action-icon {
-          color: #ffffff !important;
-        }
-
-        .primary-bg {
-          background: linear-gradient(135deg, #34c759, #30d158) !important;
-        }
-
-        .action-card.primary:hover .primary-bg {
-          background: linear-gradient(135deg, #28a745, #34c759) !important;
         }
 
         .action-card.primary {
-          border-color: rgba(52, 199, 89, 0.3) !important;
-          box-shadow: 0 4px 24px rgba(52, 199, 89, 0.2) !important;
+          background: linear-gradient(135deg, #34c759, #30d158);
+          border-color: rgba(52, 199, 89, 0.3);
+          box-shadow: 0 4px 24px rgba(52, 199, 89, 0.2);
         }
 
         .action-card.primary:hover {
-          border-color: rgba(52, 199, 89, 0.5) !important;
-          box-shadow: 0 16px 48px rgba(52, 199, 89, 0.3) !important;
-        }
-
-        .primary-ring {
-          border-color: rgba(255, 255, 255, 0.3) !important;
-        }
-
-        .primary-arrow {
-          color: #ffffff !important;
-        }
-
-        .action-card.primary:hover .primary-arrow {
-          color: #ffffff !important;
-        }
-
-        .primary-trail {
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent) !important;
+          background: linear-gradient(135deg, #28a745, #34c759);
+          box-shadow: 0 8px 32px rgba(52, 199, 89, 0.3);
         }
 
         .action-content {
-          position: relative;
-          z-index: 10;
-          padding: 2rem;
+          padding: 1.25rem;
           display: flex;
           align-items: center;
-          gap: 1.5rem;
+          gap: 1rem;
           text-align: left;
         }
 
         .action-icon-container {
           position: relative;
-          width: 56px;
-          height: 56px;
+        }
+
+        .action-icon-bg {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: rgba(0, 0, 0, 0.05);
           display: flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
+          font-size: 20px;
+        }
+
+        .primary-icon-bg {
+          background: rgba(255, 255, 255, 0.2) !important;
         }
 
         .action-icon {
-          font-size: 24px;
-          z-index: 2;
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+          color: #1d1d1f;
         }
 
-        .icon-ring {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          border: 2px solid rgba(255, 255, 255, 0.2);
-          border-radius: 50%;
-          animation: icon-ring 3s ease-in-out infinite;
-        }
-
-        .primary-ring {
-          border-color: rgba(0, 122, 255, 0.5) !important;
-        }
-
-        @keyframes icon-ring {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.1); opacity: 0.7; }
+        .primary-icon {
+          color: white !important;
         }
 
         .action-info {
@@ -1329,158 +1041,86 @@ function MedicoDashboard() {
         }
 
         .action-title {
-          font-size: 1.1rem;
+          font-size: 1rem;
           font-weight: 700;
-          margin-bottom: 0.5rem;
-          color: #ffffff;
-          letter-spacing: -0.3px;
+          margin-bottom: 0.25rem;
+          color: #1d1d1f;
+          letter-spacing: -0.2px;
+        }
+
+        .primary-title {
+          color: white !important;
         }
 
         .action-description {
-          font-size: 0.9rem;
-          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.8rem;
+          color: #6e6e73;
           font-weight: 500;
-          line-height: 1.4;
+          line-height: 1.3;
+        }
+
+        .primary-description {
+          color: rgba(255, 255, 255, 0.9) !important;
         }
 
         .action-arrow {
-          position: relative;
           font-size: 1.2rem;
-          color: rgba(255, 255, 255, 0.6);
+          color: #8e8e93;
           transition: all 0.3s ease;
         }
 
         .action-card:hover .action-arrow {
-          color: #ffffff;
+          color: #1d1d1f;
           transform: translateX(4px);
         }
 
         .primary-arrow {
-          color: #007aff !important;
+          color: white !important;
         }
 
         .action-card.primary:hover .primary-arrow {
-          color: #ffffff !important;
+          color: white !important;
         }
 
-        .arrow-trail {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 20px;
-          height: 20px;
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
-          border-radius: 50%;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .action-card:hover .arrow-trail {
-          opacity: 1;
-        }
-
-        .primary-trail {
-          background: radial-gradient(circle, rgba(0, 122, 255, 0.5), transparent) !important;
-        }
-
-        /* Timeline Section */
+        /* Clean Timeline */
         .timeline-section {
           margin-bottom: 3rem;
         }
 
         .empty-state {
-          position: relative;
           text-align: center;
-          padding: 4rem 2rem;
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 24px;
-          overflow: hidden;
-        }
-
-        .empty-animation {
-          position: relative;
-          margin-bottom: 2rem;
-        }
-
-        .empty-particles {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 200px;
-          height: 200px;
-        }
-
-        .empty-particle {
-          position: absolute;
-          width: 3px;
-          height: 3px;
-          background: #007aff;
-          border-radius: 50%;
-          animation: empty-particle-float 4s ease-in-out infinite;
-        }
-
-        .particle-1 { top: 20%; left: 20%; animation-delay: 0s; }
-        .particle-2 { top: 20%; right: 20%; animation-delay: 0.5s; }
-        .particle-3 { top: 50%; left: 10%; animation-delay: 1s; }
-        .particle-4 { top: 50%; right: 10%; animation-delay: 1.5s; }
-        .particle-5 { bottom: 20%; left: 30%; animation-delay: 2s; }
-        .particle-6 { bottom: 20%; right: 30%; animation-delay: 2.5s; }
-        .particle-7 { top: 70%; left: 50%; animation-delay: 3s; }
-        .particle-8 { top: 30%; left: 50%; animation-delay: 3.5s; }
-
-        @keyframes empty-particle-float {
-          0%, 100% { opacity: 0.3; transform: translateY(0px) scale(1); }
-          50% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+          padding: 3rem 1.5rem;
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: 20px;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
         }
 
         .empty-icon-container {
-          position: relative;
-          display: inline-block;
+          margin-bottom: 2rem;
         }
 
         .empty-icon {
           font-size: 4rem;
-          opacity: 0.7;
-          filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-          animation: empty-icon-float 3s ease-in-out infinite;
+          opacity: 0.6;
+          animation: empty-float 3s ease-in-out infinite;
         }
 
-        @keyframes empty-icon-float {
+        @keyframes empty-float {
           0%, 100% { transform: translateY(0px); }
           50% { transform: translateY(-10px); }
-        }
-
-        .icon-pulse {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 100px;
-          height: 100px;
-          border: 2px solid rgba(0, 122, 255, 0.3);
-          border-radius: 50%;
-          animation: icon-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes icon-pulse {
-          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-          50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.3; }
         }
 
         .empty-title {
           font-size: 1.5rem;
           font-weight: 700;
           margin: 0 0 1rem;
-          color: #ffffff;
+          color: #1d1d1f;
           letter-spacing: -0.5px;
         }
 
         .empty-text {
-          color: rgba(255, 255, 255, 0.7);
+          color: #6e6e73;
           margin: 0 0 2rem;
           font-size: 1rem;
           font-weight: 500;
@@ -1488,45 +1128,23 @@ function MedicoDashboard() {
         }
 
         .empty-action {
-          position: relative;
           background: linear-gradient(135deg, #007aff, #5856d6);
           color: white;
           border: none;
-          border-radius: 16px;
-          padding: 1rem 2rem;
-          font-size: 1rem;
+          border-radius: 12px;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.9rem;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          overflow: hidden;
-          box-shadow: 0 8px 32px rgba(0, 122, 255, 0.3);
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
         }
 
         .empty-action:hover {
-          transform: translateY(-4px) scale(1.05);
-          box-shadow: 0 12px 48px rgba(0, 122, 255, 0.4);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
         }
 
-        .btn-text {
-          position: relative;
-          z-index: 2;
-        }
-
-        .btn-shine {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-          transition: left 0.5s ease;
-        }
-
-        .empty-action:hover .btn-shine {
-          left: 100%;
-        }
-
-        /* Timeline Container */
         .timeline-container {
           display: flex;
           flex-direction: column;
@@ -1534,12 +1152,12 @@ function MedicoDashboard() {
         }
 
         .timeline-item {
-          animation: timeline-item-enter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+          animation: timeline-enter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
           opacity: 0;
           transform: translateX(-30px);
         }
 
-        @keyframes timeline-item-enter {
+        @keyframes timeline-enter {
           to {
             opacity: 1;
             transform: translateX(0);
@@ -1547,142 +1165,80 @@ function MedicoDashboard() {
         }
 
         .timeline-card {
-          position: relative;
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 20px;
-          padding: 2rem;
-          transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          overflow: hidden;
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          border-radius: 16px;
+          padding: 1.5rem;
+          transition: all 0.3s ease;
           cursor: pointer;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
         }
 
         .timeline-card:hover {
-          transform: translateY(-4px) scale(1.01);
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.2);
-          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-shine {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-          transition: left 0.6s ease;
-        }
-
-        .timeline-card:hover .card-shine {
-          left: 100%;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          border-color: rgba(0, 122, 255, 0.2);
         }
 
         .timeline-header {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          margin-bottom: 1.5rem;
-          gap: 1.5rem;
+          margin-bottom: 1rem;
+          gap: 1rem;
         }
 
         .time-info {
           display: flex;
           align-items: center;
-          gap: 1.5rem;
+          gap: 1rem;
           flex: 1;
           min-width: 0;
         }
 
         .date-block {
-          position: relative;
           display: flex;
           flex-direction: column;
           align-items: center;
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border-radius: 16px;
-          padding: 1rem;
-          min-width: 60px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-radius: 12px;
+          padding: 0.75rem;
+          min-width: 50px;
           flex-shrink: 0;
-          overflow: hidden;
-        }
-
-        .date-bg {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(135deg, rgba(0, 122, 255, 0.2), rgba(88, 86, 214, 0.2));
+          color: white;
         }
 
         .day {
-          position: relative;
-          z-index: 2;
-          font-size: 1.5rem;
+          font-size: 1.3rem;
           font-weight: 800;
-          color: #ffffff;
           line-height: 1;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .month {
-          position: relative;
-          z-index: 2;
-          font-size: 0.7rem;
-          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.65rem;
           font-weight: 700;
-          margin-top: 0.25rem;
-        }
-
-        .date-glow {
-          position: absolute;
-          top: -1px;
-          left: -1px;
-          right: -1px;
-          bottom: -1px;
-          background: linear-gradient(45deg, #007aff, #5856d6);
-          border-radius: 16px;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-
-        .timeline-card:hover .date-glow {
-          opacity: 0.3;
+          margin-top: 0.2rem;
+          opacity: 0.9;
         }
 
         .time-details {
-          position: relative;
           display: flex;
           flex-direction: column;
           min-width: 0;
         }
 
         .time {
-          font-size: 1.2rem;
+          font-size: 1.1rem;
           font-weight: 700;
-          color: #ffffff;
+          color: #1d1d1f;
           line-height: 1.2;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .relative-time {
-          font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.7);
+          font-size: 0.8rem;
+          color: #6e6e73;
           font-weight: 500;
-          margin-top: 0.25rem;
-        }
-
-        .time-line {
-          position: absolute;
-          bottom: -0.5rem;
-          left: 0;
-          width: 30px;
-          height: 2px;
-          background: linear-gradient(90deg, #007aff, #5856d6);
-          border-radius: 1px;
+          margin-top: 0.2rem;
         }
 
         .status-container {
@@ -1690,70 +1246,23 @@ function MedicoDashboard() {
         }
 
         .status-badge {
-          position: relative;
+          padding: 0.4rem 0.8rem;
           border-radius: 20px;
-          font-size: 0.8rem;
-          font-weight: 600;
+          font-size: 0.75rem;
+          font-weight: 700;
           white-space: nowrap;
-          overflow: hidden;
-          backdrop-filter: blur(10px);
         }
 
-        .status-bg {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
+        .status-badge.available {
+          background: #d1f2df;
+          color: #1d7040;
+          border: 1px solid #34c759;
         }
 
-        .status-badge.available .status-bg {
-          background: rgba(52, 199, 89, 0.2);
-          border: 1px solid rgba(52, 199, 89, 0.4);
-        }
-
-        .status-badge.reserved .status-bg {
-          background: rgba(255, 149, 0, 0.2);
-          border: 1px solid rgba(255, 149, 0, 0.4);
-        }
-
-        .status-text {
-          position: relative;
-          z-index: 2;
-          padding: 0.5rem 1rem;
-          display: block;
-        }
-
-        .status-badge.available .status-text {
-          color: #34c759;
-        }
-
-        .status-badge.reserved .status-text {
-          color: #ff9500;
-        }
-
-        .status-pulse {
-          position: absolute;
-          top: 50%;
-          right: 0.5rem;
-          transform: translateY(-50%);
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          animation: status-pulse-anim 2s ease-in-out infinite;
-        }
-
-        .status-badge.available .status-pulse {
-          background: #34c759;
-        }
-
-        .status-badge.reserved .status-pulse {
-          background: #ff9500;
-        }
-
-        @keyframes status-pulse-anim {
-          0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
-          50% { opacity: 0.5; transform: translateY(-50%) scale(1.2); }
+        .status-badge.reserved {
+          background: #ffe4cc;
+          color: #cc6d00;
+          border: 1px solid #ff9500;
         }
 
         .timeline-body {
@@ -1765,144 +1274,127 @@ function MedicoDashboard() {
         .clinic-info {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: 0.75rem;
         }
 
-        .info-icon {
+        .location-icon {
           font-size: 1rem;
-          opacity: 0.8;
-          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+          opacity: 0.7;
         }
 
         .clinic-name {
           font-size: 1rem;
-          color: rgba(255, 255, 255, 0.9);
+          color: #1d1d1f;
           flex: 1;
           min-width: 0;
           font-weight: 500;
         }
 
         .clinic-badge {
-          background: rgba(52, 199, 89, 0.2);
-          color: #34c759;
+          background: #d1f2df;
+          color: #1d7040;
           padding: 0.25rem 0.75rem;
           border-radius: 12px;
           font-size: 0.75rem;
-          font-weight: 600;
-          border: 1px solid rgba(52, 199, 89, 0.3);
-          backdrop-filter: blur(5px);
+          font-weight: 700;
+          border: 1px solid #34c759;
         }
 
         .patient-info {
           display: flex;
           align-items: center;
-          gap: 1rem;
-          padding: 1rem;
-          background: rgba(255, 255, 255, 0.03);
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(10px);
+          gap: 0.75rem;
+          padding: 0.75rem;
+          background: rgba(0, 0, 0, 0.02);
+          border-radius: 12px;
+          border: 1px solid rgba(0, 0, 0, 0.06);
         }
 
         .patient-avatar {
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
           background: linear-gradient(135deg, #af52de, #bf5af2);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 700;
           color: white;
           flex-shrink: 0;
-          box-shadow: 0 4px 16px rgba(175, 82, 222, 0.3);
         }
 
         .patient-details {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: 0.75rem;
           flex: 1;
           min-width: 0;
         }
 
         .patient-name {
           font-size: 0.95rem;
-          color: rgba(255, 255, 255, 0.9);
+          color: #1d1d1f;
           flex: 1;
           min-width: 0;
           font-weight: 500;
         }
 
         .confirmed-badge {
-          position: relative;
-          background: rgba(52, 199, 89, 0.2);
-          color: #34c759;
-          padding: 0.4rem 0.8rem;
+          background: #d1f2df;
+          color: #1d7040;
+          padding: 0.3rem 0.6rem;
           border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          border: 1px solid rgba(52, 199, 89, 0.3);
+          font-size: 0.7rem;
+          font-weight: 700;
+          border: 1px solid #34c759;
           flex-shrink: 0;
-          backdrop-filter: blur(5px);
-          overflow: hidden;
-        }
-
-        .badge-glow {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(52, 199, 89, 0.3), transparent);
-          transition: left 0.8s ease;
-        }
-
-        .timeline-card:hover .badge-glow {
-          left: 100%;
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
           .main-content {
-            padding: 1.5rem 1rem;
+            padding: 1rem 0.75rem;
           }
 
           .stats-grid {
             grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
+            gap: 0.75rem;
           }
 
           .stat-card {
-            padding: 1.5rem;
+            padding: 1.25rem;
           }
 
           .stat-number {
-            font-size: 2rem;
+            font-size: 1.8rem;
           }
 
           .actions-grid {
             grid-template-columns: 1fr;
-            gap: 1rem;
+            gap: 0.75rem;
           }
 
           .action-content {
-            padding: 1.5rem;
+            padding: 1rem;
           }
 
           .timeline-header {
             flex-direction: column;
             align-items: flex-start;
-            gap: 1rem;
+            gap: 0.75rem;
           }
 
           .time-info {
-            gap: 1rem;
+            gap: 0.75rem;
           }
 
           .section-title {
             font-size: 1.3rem;
+          }
+
+          .timeline-card {
+            padding: 1.25rem;
           }
         }
 
@@ -1916,21 +1408,21 @@ function MedicoDashboard() {
           }
 
           .stat-card {
-            padding: 1.25rem;
+            padding: 1rem;
           }
 
           .stat-number {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
           }
 
           .timeline-card {
-            padding: 1.5rem;
+            padding: 1rem;
           }
 
           .patient-info {
             flex-direction: column;
             align-items: flex-start;
-            gap: 0.75rem;
+            gap: 0.5rem;
           }
 
           .patient-details {
@@ -1943,44 +1435,24 @@ function MedicoDashboard() {
           .confirmed-badge {
             align-self: flex-end;
           }
-        }
 
-        @media (min-width: 1200px) {
-          .stats-grid {
-            grid-template-columns: repeat(4, 1fr);
+          .action-content {
+            padding: 0.75rem;
           }
 
-          .stat-card {
-            padding: 2.5rem;
-          }
-
-          .stat-number {
-            font-size: 3rem;
-          }
-
-          .actions-grid {
-            grid-template-columns: repeat(3, 1fr);
+          .action-icon-bg {
+            width: 40px;
+            height: 40px;
           }
         }
 
-        /* Advanced Animations for Premium Feel */
-        @keyframes gradient-shift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-
-        .dashboard-container::after {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(45deg, transparent 40%, rgba(0, 122, 255, 0.02) 50%, transparent 60%);
-          background-size: 200% 200%;
-          animation: gradient-shift 8s ease-in-out infinite;
-          pointer-events: none;
-          z-index: 2;
+        /* Accessibility and Focus States */
+        .logout-btn:focus,
+        .view-all-btn:focus,
+        .action-card:focus,
+        .empty-action:focus {
+          outline: 2px solid #007aff;
+          outline-offset: 2px;
         }
 
         /* Smooth transitions for all interactive elements */
@@ -1992,7 +1464,28 @@ function MedicoDashboard() {
                       box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        /* Accessibility improvements */
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+          .dashboard-container {
+            background: #ffffff;
+          }
+
+          .stat-card,
+          .action-card,
+          .timeline-card {
+            border-color: #000000;
+            background: #ffffff;
+          }
+
+          .doctor-name,
+          .stat-number,
+          .action-title,
+          .section-title {
+            color: #000000;
+          }
+        }
+
+        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
           *,
           *::before,
@@ -2000,64 +1493,6 @@ function MedicoDashboard() {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
-          }
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-          .dashboard-container {
-            background: #000000;
-          }
-
-          .stat-card,
-          .action-card,
-          .timeline-card {
-            border-color: #ffffff;
-            background: rgba(255, 255, 255, 0.1);
-          }
-
-          .doctor-name,
-          .stat-number,
-          .action-title,
-          .section-title {
-            color: #ffffff;
-          }
-        }
-
-        /* Focus states for accessibility */
-        .logout-btn:focus,
-        .view-all-btn:focus,
-        .action-card:focus,
-        .empty-action:focus {
-          outline: 2px solid #007aff;
-          outline-offset: 2px;
-        }
-
-        /* Print styles */
-        @media print {
-          .dashboard-container {
-            background: white;
-            color: black;
-          }
-
-          .header {
-            position: static;
-            background: white;
-            border-bottom: 1px solid #ccc;
-          }
-
-          .logout-btn,
-          .view-all-btn,
-          .empty-action {
-            display: none;
-          }
-
-          .stat-card,
-          .action-card,
-          .timeline-card {
-            background: white;
-            border: 1px solid #ccc;
-            box-shadow: none;
           }
         }
       `}</style>
