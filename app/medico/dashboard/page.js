@@ -721,9 +721,9 @@ function MedicoDashboard() {
 
         .dashboard-container {
           min-height: 100vh;
-          background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+          background: linear-gradient(135deg, #f8faff 0%, #ffffff 50%, #f0f4ff 100%);
           font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-          color: #ffffff;
+          color: #1d1d1f;
           position: relative;
           overflow-x: hidden;
         }
@@ -735,7 +735,7 @@ function MedicoDashboard() {
           left: 0;
           width: 100%;
           height: 100%;
-          background: radial-gradient(600px circle at ${cursorPosition.x}px ${cursorPosition.y}px, rgba(0, 122, 255, 0.05), transparent 40%);
+          background: radial-gradient(600px circle at ${cursorPosition.x}px ${cursorPosition.y}px, rgba(0, 122, 255, 0.03), transparent 40%);
           pointer-events: none;
           z-index: 1;
         }
@@ -747,7 +747,7 @@ function MedicoDashboard() {
           z-index: 1000;
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
           padding: 1rem;
         }
 
@@ -757,8 +757,8 @@ function MedicoDashboard() {
           left: 0;
           width: 100%;
           height: 100%;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.95) 100%);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         .header-content {
@@ -838,21 +838,21 @@ function MedicoDashboard() {
           font-size: 1.2rem;
           font-weight: 700;
           margin: 0;
-          color: #ffffff;
+          color: #1d1d1f;
           letter-spacing: -0.3px;
         }
 
         .doctor-specialty {
           font-size: 0.9rem;
           margin: 0;
-          color: rgba(255, 255, 255, 0.7);
+          color: #6e6e73;
           font-weight: 500;
         }
 
         .logout-btn {
           position: relative;
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(0, 0, 0, 0.08);
           border-radius: 12px;
           width: 44px;
           height: 44px;
@@ -866,10 +866,10 @@ function MedicoDashboard() {
         }
 
         .logout-btn:hover {
-          background: rgba(255, 255, 255, 0.15);
-          border-color: rgba(255, 255, 255, 0.3);
+          background: rgba(0, 0, 0, 0.08);
+          border-color: rgba(0, 0, 0, 0.12);
           transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .logout-icon-bg {
@@ -878,7 +878,7 @@ function MedicoDashboard() {
           left: -100%;
           width: 100%;
           height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+          background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.06), transparent);
           transition: left 0.5s ease;
         }
 
@@ -887,7 +887,7 @@ function MedicoDashboard() {
         }
 
         .logout-icon {
-          color: rgba(255, 255, 255, 0.9);
+          color: #1d1d1f;
           font-size: 18px;
           font-weight: bold;
           z-index: 2;
@@ -914,9 +914,9 @@ function MedicoDashboard() {
 
         .stat-card {
           position: relative;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(0, 0, 0, 0.06);
           border-radius: 20px;
           padding: 2rem;
           cursor: pointer;
@@ -925,6 +925,7 @@ function MedicoDashboard() {
           animation: card-enter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
           opacity: 0;
           transform: translateY(30px);
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
         }
 
         @keyframes card-enter {
@@ -936,9 +937,9 @@ function MedicoDashboard() {
 
         .stat-card:hover {
           transform: translateY(-8px) scale(1.02);
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.2);
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+          background: rgba(255, 255, 255, 0.85);
+          border-color: rgba(0, 122, 255, 0.15);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
         }
 
         .card-glow {
@@ -947,7 +948,7 @@ function MedicoDashboard() {
           left: -2px;
           right: -2px;
           bottom: -2px;
-          background: linear-gradient(45deg, transparent, rgba(0, 122, 255, 0.3), transparent);
+          background: linear-gradient(45deg, transparent, rgba(0, 122, 255, 0.15), transparent);
           border-radius: 20px;
           opacity: 0;
           transition: opacity 0.3s ease;
@@ -1010,9 +1011,9 @@ function MedicoDashboard() {
         .stat-number {
           font-size: 2.5rem;
           font-weight: 800;
-          color: #ffffff;
+          color: #1d1d1f;
           letter-spacing: -1px;
-          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
           display: block;
         }
 
@@ -1022,7 +1023,7 @@ function MedicoDashboard() {
           right: -8px;
           width: 6px;
           height: 6px;
-          background: #ffffff;
+          background: #007aff;
           border-radius: 50%;
           opacity: 0;
           animation: sparkle 2s ease-in-out infinite;
@@ -1036,13 +1037,13 @@ function MedicoDashboard() {
         .stat-label {
           font-size: 1rem;
           font-weight: 600;
-          color: #ffffff;
+          color: #1d1d1f;
           margin: 0;
         }
 
         .stat-sublabel {
           font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.6);
+          color: #6e6e73;
           margin: 0;
           font-weight: 500;
         }
@@ -1145,7 +1146,7 @@ function MedicoDashboard() {
         .section-title {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #ffffff;
+          color: #1d1d1f;
           margin: 0;
           display: flex;
           align-items: center;
@@ -1155,13 +1156,13 @@ function MedicoDashboard() {
 
         .title-icon {
           font-size: 1.2rem;
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         }
 
         .view-all-btn {
           position: relative;
-          background: none;
-          border: 1px solid rgba(0, 122, 255, 0.5);
+          background: rgba(0, 122, 255, 0.08);
+          border: 1px solid rgba(0, 122, 255, 0.2);
           color: #007aff;
           font-size: 0.9rem;
           font-weight: 600;
@@ -1174,7 +1175,7 @@ function MedicoDashboard() {
         }
 
         .view-all-btn:hover {
-          background: rgba(0, 122, 255, 0.1);
+          background: rgba(0, 122, 255, 0.12);
           border-color: #007aff;
           transform: translateY(-2px);
         }
@@ -1185,7 +1186,7 @@ function MedicoDashboard() {
           left: -100%;
           width: 100%;
           height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.3), transparent);
+          background: linear-gradient(90deg, transparent, rgba(0, 122, 255, 0.15), transparent);
           transition: left 0.5s ease;
         }
 
@@ -1202,7 +1203,7 @@ function MedicoDashboard() {
         .action-card {
           position: relative;
           background: none;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(0, 0, 0, 0.06);
           border-radius: 20px;
           cursor: pointer;
           overflow: hidden;
@@ -1212,8 +1213,8 @@ function MedicoDashboard() {
 
         .action-card:hover {
           transform: translateY(-8px) scale(1.02);
-          border-color: rgba(255, 255, 255, 0.2);
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+          border-color: rgba(0, 122, 255, 0.15);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
         }
 
         .action-bg {
@@ -1222,20 +1223,20 @@ function MedicoDashboard() {
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(255, 255, 255, 0.6);
           transition: all 0.3s ease;
         }
 
         .action-card:hover .action-bg {
-          background: rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.8);
         }
 
         .primary-bg {
-          background: linear-gradient(135deg, rgba(0, 122, 255, 0.2), rgba(88, 86, 214, 0.2)) !important;
+          background: linear-gradient(135deg, rgba(0, 122, 255, 0.08), rgba(88, 86, 214, 0.08)) !important;
         }
 
         .action-card.primary:hover .primary-bg {
-          background: linear-gradient(135deg, rgba(0, 122, 255, 0.3), rgba(88, 86, 214, 0.3)) !important;
+          background: linear-gradient(135deg, rgba(0, 122, 255, 0.12), rgba(88, 86, 214, 0.12)) !important;
         }
 
         .action-content {
