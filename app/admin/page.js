@@ -1,702 +1,773 @@
 'use client';
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function AdminSobrecuposPage() {
+const SobrecuposAdminPanel = () => {
   const router = useRouter();
+  const [activeSection, setActiveSection] = useState('dashboard');
   const [doctors, setDoctors] = useState([]);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [doctorClinicas, setDoctorClinicas] = useState([]);
-  const [selectedClinica, setSelectedClinica] = useState(null);
-  const [loadingClinicas, setLoadingClinicas] = useState(false);
-  const [clinica, setClinica] = useState("");
-  const [direccion, setDireccion] = useState("");
-  const [fecha, setFecha] = useState("");
-  const [selectedHours, setSelectedHours] = useState([]);
-  const [msg, setMsg] = useState("");
+  const [clinicas, setClinicas] = useState([]);
+  const [sobrecupos, setSobrecupos] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [existingSobrecupos, setExistingSobrecupos] = useState([]);
-  const [activeTab, setActiveTab] = useState("crear");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [message, setMessage] = useState('');
 
-  // Horarios disponibles (cada 60 minutos)
-  const availableHours = [
-    "08:00", "09:00", "10:00", "11:00", "12:00", 
-    "13:00", "14:00", "15:00", "16:00", "17:00", 
-    "18:00", "19:00"
+  // Estados para formularios
+  const [showDoctorForm, setShowDoctorForm] = useState(false);
+  const [showClinicaForm, setShowClinicaForm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
+  // Formulario de médico
+  const [doctorForm, setDoctorForm] = useState({
+    Name: '',
+    Especialidad: '',
+    WhatsApp: '',
+    Email: '',
+    Atiende: '',
+    Seguros: [],
+    Clinicas: []
+  });
+
+  // Formulario de clínica
+  const [clinicaForm, setClinicaForm] = useState({
+    Nombre: '',
+    Direccion: '',
+    Comuna: '',
+    Telefono: ''
+  });
+
+  const especialidades = [
+    'Oftalmología', 'Medicina Familiar', 'Dermatología', 'Pediatría',
+    'Otorrinolaringología', 'Neurología', 'Cardiología', 'Ginecología'
   ];
 
+  const opcionesAtiende = ['Adultos', 'Niños', 'Ambos'];
+  const opcionesSeguros = ['Fonasa', 'Isapres', 'Particular'];
+
   useEffect(() => {
-    fetchDoctors();
-    if (activeTab === "gestionar") {
-      fetchExistingSobrecupos();
-    }
-  }, [activeTab]);
+    fetchAllData();
+  }, []);
 
-  const fetchDoctors = async () => {
-    try {
-      const res = await fetch("/api/doctors");
-      const data = await res.json();
-      setDoctors(Array.isArray(data) ? data : []);
-    } catch {
-      setMsg("Error cargando médicos");
-    }
-  };
-
-  const fetchExistingSobrecupos = async () => {
-    try {
-      const res = await fetch("/api/sobrecupos");
-      const data = await res.json();
-      setExistingSobrecupos(data);
-    } catch {
-      setMsg("Error cargando sobrecupos existentes");
-    }
-  };
-
-  const fetchDoctorClinicas = async (doctorId) => {
-    if (!doctorId) {
-      setDoctorClinicas([]);
-      setSelectedClinica(null);
-      return;
-    }
-
-    setLoadingClinicas(true);
-    try {
-      const doctor = doctors.find(d => d.id === doctorId);
-      
-      if (!doctor?.fields?.Clinicas?.length) {
-        setDoctorClinicas([]);
-        setSelectedClinica(null);
-        setMsg("⚠️ Este médico no tiene clínicas registradas");
-        setLoadingClinicas(false);
-        return;
-      }
-
-      const clinicasRes = await fetch(`/api/clinicas`);
-      const todasClinicas = await clinicasRes.json();
-      
-      const clinicasDelMedico = todasClinicas.filter(c => 
-        doctor.fields.Clinicas.includes(c.id)
-      );
-      
-      setDoctorClinicas(clinicasDelMedico);
-      
-      if (clinicasDelMedico.length === 1) {
-        const clinica = clinicasDelMedico[0];
-        setSelectedClinica(clinica);
-        setClinica(clinica.fields?.Nombre || "");
-        setDireccion(clinica.fields?.Direccion || "");
-      } else {
-        setSelectedClinica(null);
-        setClinica("");
-        setDireccion("");
-      }
-      
-    } catch (error) {
-      console.error("Error cargando clínicas del médico:", error);
-      setMsg("Error cargando clínicas del médico");
-      setDoctorClinicas([]);
-      setSelectedClinica(null);
-    }
-    setLoadingClinicas(false);
-  };
-
-  const handleDoctorSelection = (doctor) => {
-    setSelectedDoctor(doctor);
-    fetchDoctorClinicas(doctor.id);
-    setClinica("");
-    setDireccion("");
-    setSelectedClinica(null);
-    setMsg("");
-  };
-
-  const toggleHour = (hour) => {
-    setSelectedHours(prev => 
-      prev.includes(hour) 
-        ? prev.filter(h => h !== hour)
-        : [...prev, hour].sort()
-    );
-  };
-
-  const selectAllMorning = () => {
-    const morningHours = availableHours.filter(hour => {
-      const hourNum = parseInt(hour.split(':')[0]);
-      return hourNum >= 8 && hourNum <= 12;
-    });
-    setSelectedHours(morningHours);
-  };
-
-  const selectAllAfternoon = () => {
-    const afternoonHours = availableHours.filter(hour => {
-      const hourNum = parseInt(hour.split(':')[0]);
-      return hourNum >= 13 && hourNum <= 19;
-    });
-    setSelectedHours(afternoonHours);
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedDoctor) {
-      setMsg("❌ Debes seleccionar un médico");
-      return;
-    }
-    
-    if (selectedHours.length === 0) {
-      setMsg("❌ Debes seleccionar al menos un horario");
-      return;
-    }
-
-    if (!clinica.trim() || !direccion.trim() || !fecha) {
-      setMsg("❌ Completa todos los campos requeridos");
-      return;
-    }
-
-    if (!showPreview) {
-      setShowPreview(true);
-      return;
-    }
-
+  const fetchAllData = async () => {
     setLoading(true);
-    setMsg("");
-
     try {
-      const promises = selectedHours.map(hora => 
-        fetch("/api/sobrecupos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            medico: selectedDoctor.id,
-            especialidad: selectedDoctor.fields.Especialidad,
-            clinica: clinica.trim(),
-            direccion: direccion.trim(),
-            fecha,
-            hora
-          }),
-        })
-      );
-
-      const results = await Promise.all(promises);
-      const successful = results.filter(r => r.ok).length;
-      
-      if (successful === selectedHours.length) {
-        setMsg(`✅ Se crearon ${successful} sobrecupos exitosamente`);
-        resetForm();
-      } else {
-        setMsg(`⚠️ Se crearon ${successful} de ${selectedHours.length} sobrecupos`);
-      }
-    } catch (err) {
-      setMsg("❌ Error en la red o el servidor");
+      await Promise.all([fetchDoctors(), fetchClinicas(), fetchSobrecupos()]);
+    } catch (error) {
+      console.error('Error cargando datos:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setSelectedDoctor(null);
-    setDoctorClinicas([]);
-    setSelectedClinica(null);
-    setClinica("");
-    setDireccion("");
-    setFecha("");
-    setSelectedHours([]);
-    setShowPreview(false);
-  };
-
-  const deleteSobrecupo = async (id) => {
-    if (!confirm("¿Estás seguro de eliminar este sobrecupo?")) return;
-    
+  const fetchDoctors = async () => {
     try {
-      await fetch(`/api/sobrecupos?id=${id}`, { method: "DELETE" });
-      fetchExistingSobrecupos();
-      setMsg("✅ Sobrecupo eliminado");
-    } catch {
-      setMsg("❌ Error eliminando sobrecupo");
+      const res = await fetch('/api/doctors');
+      const data = await res.json();
+      setDoctors(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error cargando médicos:', error);
+      setDoctors([]);
     }
   };
 
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('es-CL', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
+  const fetchClinicas = async () => {
+    try {
+      const res = await fetch('/api/clinicas');
+      const data = await res.json();
+      setClinicas(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error cargando clínicas:', error);
+      setClinicas([]);
+    }
   };
 
-  // Componente del Logo SVG de Sobrecupos
-  const SobrecuposLogo = ({ size = 32, className = "" }) => (
-    <svg 
-      width={size} 
-      height={size * 0.588}
-      viewBox="0 0 1005 591" 
-      className={className}
-      fill="currentColor"
-    >
-      <g transform="translate(0,591) scale(0.1,-0.1)">
-        <path d="M1363 3665 c-143 -39 -241 -131 -293 -272 -19 -53 -22 -77 -18 -156
-3 -84 8 -103 40 -168 34 -67 64 -101 320 -357 l283 -282 398 398 c372 372 397
-400 397 432 -1 57 -48 98 -98 85 -17 -4 -116 -95 -262 -240 -272 -271 -297
--288 -430 -289 -128 -1 -165 18 -307 157 -144 141 -173 188 -173 282 0 113 70
-209 174 240 119 36 179 13 316 -121 l105 -103 -60 -61 -60 -60 -95 94 c-98 98
--132 117 -172 95 -34 -18 -47 -40 -48 -79 0 -30 12 -46 118 -151 92 -92 126
--120 157 -128 83 -22 97 -12 360 249 132 131 255 245 274 255 45 22 126 30
-178 16 105 -28 183 -134 183 -245 -1 -110 -4 -114 -438 -548 l-397 -398 60
--60 60 -60 403 402 c374 374 406 408 440 477 36 73 37 78 37 186 0 108 -1 113
--38 187 -103 210 -346 293 -563 194 -42 -19 -87 -56 -164 -131 -58 -58 -110
--105 -115 -105 -5 0 -56 47 -114 104 -59 57 -124 113 -146 124 -102 51 -211
-64 -312 37z"/>
-      </g>
-    </svg>
+  const fetchSobrecupos = async () => {
+    try {
+      const res = await fetch('/api/sobrecupos');
+      const data = await res.json();
+      setSobrecupos(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error cargando sobrecupos:', error);
+      setSobrecupos([]);
+    }
+  };
+
+  const handleDoctorSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const method = editingItem ? 'PUT' : 'POST';
+      const body = editingItem 
+        ? JSON.stringify({ id: editingItem.id, ...doctorForm })
+        : JSON.stringify(doctorForm);
+
+      const res = await fetch('/api/doctors', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body
+      });
+
+      if (res.ok) {
+        await fetchDoctors();
+        setShowDoctorForm(false);
+        setEditingItem(null);
+        setDoctorForm({
+          Name: '',
+          Especialidad: '',
+          WhatsApp: '',
+          Email: '',
+          Atiende: '',
+          Seguros: [],
+          Clinicas: []
+        });
+        setMessage('✅ Médico guardado exitosamente');
+      } else {
+        setMessage('❌ Error guardando médico');
+      }
+    } catch (error) {
+      setMessage('❌ Error de conexión');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  const handleClinicaSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const method = editingItem ? 'PUT' : 'POST';
+      const body = editingItem 
+        ? JSON.stringify({ id: editingItem.id, ...clinicaForm })
+        : JSON.stringify(clinicaForm);
+
+      const res = await fetch('/api/clinicas', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body
+      });
+
+      if (res.ok) {
+        await fetchClinicas();
+        setShowClinicaForm(false);
+        setEditingItem(null);
+        setClinicaForm({
+          Nombre: '',
+          Direccion: '',
+          Comuna: '',
+          Telefono: ''
+        });
+        setMessage('✅ Clínica guardada exitosamente');
+      } else {
+        setMessage('❌ Error guardando clínica');
+      }
+    } catch (error) {
+      setMessage('❌ Error de conexión');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  const handleDelete = async (type, id) => {
+    if (!confirm('¿Estás seguro de eliminar este elemento?')) return;
+    
+    try {
+      const res = await fetch(`/api/${type}s?id=${id}`, { method: 'DELETE' });
+      
+      if (res.ok) {
+        if (type === 'doctor') await fetchDoctors();
+        else if (type === 'clinica') await fetchClinicas();
+        else if (type === 'sobrecupo') await fetchSobrecupos();
+        
+        setMessage('✅ Elemento eliminado exitosamente');
+      } else {
+        setMessage('❌ Error eliminando elemento');
+      }
+    } catch (error) {
+      setMessage('❌ Error de conexión');
+    } finally {
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  const handleEdit = (type, item) => {
+    setEditingItem(item);
+    
+    if (type === 'doctor') {
+      setDoctorForm(item.fields || item);
+      setShowDoctorForm(true);
+    } else if (type === 'clinica') {
+      setClinicaForm(item.fields || item);
+      setShowClinicaForm(true);
+    }
+  };
+
+  const StatCard = ({ title, value, icon, trend, color = "blue" }) => (
+    <div className={`stat-card stat-card-${color}`}>
+      <div className="stat-content">
+        <div className="stat-header">
+          <h3 className="stat-title">{title}</h3>
+          <div className="stat-icon">{icon}</div>
+        </div>
+        <div className="stat-value">{value}</div>
+        {trend && (
+          <div className="stat-trend">
+            <span>📈 {trend}</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 
-  return (
-    <main className="admin-container">
-      {/* Header móvil consistente con el diseño del proyecto */}
-      <div className="mobile-header">
-        <button
-          onClick={() => router.push('/admin')}
-          className="back-button"
-        >
-          ← Admin
-        </button>
-        <div className="header-title">
-          <SobrecuposLogo size={24} className="header-logo" />
-          <span>Sobrecupos</span>
-        </div>
-        <div className="header-spacer"></div>
+  const DashboardContent = () => (
+    <div className="dashboard-content">
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">Panel de Administración</h1>
+        <p className="dashboard-subtitle">Gestiona médicos, clínicas y sobrecupos</p>
       </div>
 
-      {/* Navegación adicional consistente */}
-      <div className="admin-nav">
-        <button
-          onClick={() => router.push("/admin/doctors")}
-          className="nav-button"
-        >
-          👨‍⚕️ Médicos
-        </button>
-        <button
-          onClick={() => router.push("/admin/clinicas")}
-          className="nav-button"
-        >
-          🏥 Clínicas
-        </button>
+      <div className="stats-grid">
+        <StatCard
+          title="Médicos Registrados"
+          value={doctors.length}
+          icon="👨‍⚕️"
+          trend="+12% este mes"
+          color="blue"
+        />
+        <StatCard
+          title="Clínicas Activas"
+          value={clinicas.length}
+          icon="🏥"
+          trend="+8% este mes"
+          color="green"
+        />
+        <StatCard
+          title="Sobrecupos Creados"
+          value={sobrecupos.length}
+          icon="📅"
+          trend="+25% esta semana"
+          color="purple"
+        />
+        <StatCard
+          title="Reservas Pendientes"
+          value="12"
+          icon="⏳"
+          color="orange"
+        />
       </div>
 
-      {/* Navegación por tabs móvil consistente */}
-      <div className="mobile-tabs">
-        <button 
-          className={`tab-button ${activeTab === "crear" ? "active" : ""}`}
-          onClick={() => setActiveTab("crear")}
-        >
-          💼 Crear
-        </button>
-        <button 
-          className={`tab-button ${activeTab === "gestionar" ? "active" : ""}`}
-          onClick={() => setActiveTab("gestionar")}
-        >
-          📋 Gestionar
-        </button>
-      </div>
-
-      <div className="content-container">
-        {/* Mensajes de estado móvil consistentes */}
-        {msg && (
-          <div className={`mobile-message ${msg.includes("✅") ? "success" : msg.includes("❌") ? "error" : "warning"}`}>
-            {msg}
-          </div>
-        )}
-
-        {/* Tab de Crear Sobrecupos */}
-        {activeTab === "crear" && (
-          <div className="mobile-form-container">
-            {!showPreview ? (
-              <div className="form-steps">
-                {/* Paso 1: Médico */}
-                <div className="step-section">
-                  <div className="step-header">
-                    <div className="step-number">1</div>
-                    <h2 className="step-title">Seleccionar Médico</h2>
-                  </div>
-                  
-                  <div className="doctors-grid">
-                    {doctors.map(doctor => (
-                      <div 
-                        key={doctor.id}
-                        className={`doctor-card ${selectedDoctor?.id === doctor.id ? "selected" : ""}`}
-                        onClick={() => handleDoctorSelection(doctor)}
-                      >
-                        <div className="doctor-avatar">
-                          {doctor.fields.Name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                        </div>
-                        <div className="doctor-info">
-                          <div className="doctor-name">
-                            Dr. {doctor.fields.Name}
-                          </div>
-                          <div className="doctor-specialty">
-                            {doctor.fields.Especialidad}
-                          </div>
-                        </div>
-                        {selectedDoctor?.id === doctor.id && (
-                          <div className="selected-check">✓</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {selectedDoctor && (
-                  <>
-                    {/* Paso 2: Ubicación con Clínicas */}
-                    <div className="step-section">
-                      <div className="step-header">
-                        <div className="step-number">2</div>
-                        <h2 className="step-title">Ubicación</h2>
-                      </div>
-                      
-                      {loadingClinicas ? (
-                        <div className="loading-clinicas">
-                          <p>⏳ Cargando clínicas del médico...</p>
-                        </div>
-                      ) : doctorClinicas.length === 0 ? (
-                        <div className="no-clinicas-warning">
-                          <p>⚠️ Este médico no tiene clínicas registradas</p>
-                          <button
-                            onClick={() => router.push("/admin/doctors")}
-                            className="add-clinicas-btn"
-                            type="button"
-                          >
-                            ➕ Agregar clínicas al médico
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="clinicas-selection">
-                          <div className="input-group">
-                            <label className="input-label">
-                              Clínica ({doctorClinicas.length} disponible{doctorClinicas.length !== 1 ? 's' : ''})
-                            </label>
-                            <select
-                              value={selectedClinica?.id || ""}
-                              onChange={(e) => {
-                                const clinica = doctorClinicas.find(c => c.id === e.target.value);
-                                setSelectedClinica(clinica);
-                                if (clinica) {
-                                  setClinica(clinica.fields?.Nombre || "");
-                                  setDireccion(clinica.fields?.Direccion || "");
-                                }
-                              }}
-                              className="form-input clinic-select"
-                            >
-                              <option value="">Selecciona clínica...</option>
-                              {doctorClinicas.map(clinica => (
-                                <option key={clinica.id} value={clinica.id}>
-                                  {clinica.fields?.Nombre} - {clinica.fields?.Comuna}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          
-                          {selectedClinica && (
-                            <div className="selected-clinic-info">
-                              <div className="clinic-details">
-                                <h4 className="clinic-name">🏥 {selectedClinica.fields?.Nombre}</h4>
-                                <p className="clinic-address">📍 {selectedClinica.fields?.Direccion}</p>
-                                <p className="clinic-comuna">🏛️ {selectedClinica.fields?.Comuna}</p>
-                                {selectedClinica.fields?.Telefono && (
-                                  <p className="clinic-phone">📞 {selectedClinica.fields.Telefono}</p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Opción para usar dirección personalizada */}
-                          <div className="custom-location">
-                            <div className="custom-toggle">
-                              <label className="toggle-label">
-                                <input
-                                  type="checkbox"
-                                  checked={!selectedClinica}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setSelectedClinica(null);
-                                      setClinica("");
-                                      setDireccion("");
-                                    }
-                                  }}
-                                  className="toggle-checkbox"
-                                />
-                                <span className="toggle-text">📝 Usar dirección personalizada</span>
-                              </label>
-                            </div>
-                            
-                            {!selectedClinica && (
-                              <div className="custom-inputs">
-                                <div className="input-group">
-                                  <label className="input-label">Clínica/Centro médico</label>
-                                  <input
-                                    type="text"
-                                    value={clinica}
-                                    onChange={e => setClinica(e.target.value)}
-                                    placeholder="Ej: Consulta particular"
-                                    className="form-input"
-                                  />
-                                </div>
-                                <div className="input-group">
-                                  <label className="input-label">Dirección</label>
-                                  <input
-                                    type="text"
-                                    value={direccion}
-                                    onChange={e => setDireccion(e.target.value)}
-                                    placeholder="Ej: Av. Las Condes 123"
-                                    className="form-input"
-                                  />
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Paso 3: Fecha y Horarios */}
-                    {(selectedClinica || (!selectedClinica && clinica && direccion)) && (
-                      <div className="step-section">
-                        <div className="step-header">
-                          <div className="step-number">3</div>
-                          <h2 className="step-title">Fecha y Horarios</h2>
-                        </div>
-                        
-                        <div className="date-section">
-                          <label className="input-label">Fecha</label>
-                          <input
-                            type="date"
-                            value={fecha}
-                            onChange={e => setFecha(e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
-                            className="form-input date-input"
-                          />
-                        </div>
-                        
-                        <div className="hours-section">
-                          <div className="hours-header">
-                            <label className="input-label">Horarios</label>
-                            <div className="quick-select">
-                              <button
-                                onClick={selectAllMorning}
-                                className="quick-btn morning"
-                                type="button"
-                              >
-                                🌅 Mañana
-                              </button>
-                              <button
-                                onClick={selectAllAfternoon}
-                                className="quick-btn afternoon"
-                                type="button"
-                              >
-                                🌆 Tarde
-                              </button>
-                              <button
-                                onClick={() => setSelectedHours([])}
-                                className="quick-btn clear"
-                                type="button"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          </div>
-                          
-                          <div className="hours-grid">
-                            {availableHours.map(hour => (
-                              <button
-                                key={hour}
-                                type="button"
-                                className={`hour-button ${selectedHours.includes(hour) ? "selected" : ""}`}
-                                onClick={() => toggleHour(hour)}
-                              >
-                                {hour}
-                              </button>
-                            ))}
-                          </div>
-                          
-                          <div className="selected-count">
-                            {selectedHours.length} horarios seleccionados
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="submit-section">
-                      <button 
-                        onClick={handleSubmit}
-                        disabled={loading || !clinica.trim() || !direccion.trim() || !fecha || selectedHours.length === 0}
-                        className="submit-button"
-                      >
-                        {loading ? "⏳ Procesando..." : "👁️ Vista Previa"}
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              /* Vista Previa Móvil */
-              <div className="preview-container">
-                <div className="preview-header">
-                  <h2 className="preview-title">Confirmar Sobrecupos</h2>
-                  <p className="preview-subtitle">Revisa antes de crear</p>
-                </div>
-                
-                <div className="preview-content">
-                  <div className="preview-section">
-                    <h3 className="preview-section-title">Médico</h3>
-                    <div className="preview-doctor">
-                      <div className="preview-doctor-avatar">
-                        {selectedDoctor.fields.Name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                      </div>
-                      <div>
-                        <div className="preview-doctor-name">
-                          Dr. {selectedDoctor.fields.Name}
-                        </div>
-                        <div className="preview-doctor-specialty">
-                          {selectedDoctor.fields.Especialidad}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="preview-section">
-                    <h3 className="preview-section-title">Ubicación</h3>
-                    <div className="preview-location">
-                      <div className="preview-clinic">{clinica}</div>
-                      <div className="preview-address">📍 {direccion}</div>
-                      {selectedClinica && (
-                        <div className="preview-clinic-badge">🏥 Clínica registrada</div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="preview-section">
-                    <h3 className="preview-section-title">Fecha y Horarios ({selectedHours.length})</h3>
-                    <div className="preview-date">
-                      📅 {formatDate(fecha)}
-                    </div>
-                    <div className="preview-hours">
-                      {selectedHours.map(hour => (
-                        <span key={hour} className="preview-hour">
-                          {hour}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="preview-actions">
-                  <button 
-                    onClick={() => setShowPreview(false)}
-                    className="preview-button secondary"
-                  >
-                    ← Editar
-                  </button>
-                  <button 
-                    onClick={handleSubmit}
-                    disabled={loading}
-                    className="preview-button primary"
-                  >
-                    {loading ? "⏳ Creando..." : `✅ Crear ${selectedHours.length}`}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tab de Gestionar Existentes */}
-        {activeTab === "gestionar" && (
-          <div className="manage-container">
-            <div className="manage-header">
-              <h2 className="manage-title">Sobrecupos Existentes</h2>
+      <div className="recent-activity">
+        <h2 className="section-title">Actividad Reciente</h2>
+        <div className="activity-list">
+          <div className="activity-item">
+            <div className="activity-icon">👨‍⚕️</div>
+            <div className="activity-content">
+              <p className="activity-text">Nuevo médico registrado</p>
+              <p className="activity-time">Hace 2 horas</p>
             </div>
-            
-            {existingSobrecupos.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">📋</div>
-                <h3 className="empty-title">No hay sobrecupos</h3>
-                <p className="empty-text">Crea tu primer sobrecupo</p>
-                <button
-                  onClick={() => setActiveTab("crear")}
-                  className="empty-button"
-                >
-                  💼 Crear Sobrecupo
-                </button>
-              </div>
-            ) : (
-              <div className="sobrecupos-list">
-                {existingSobrecupos.map((sobrecupo, index) => (
-                  <div key={index} className="sobrecupo-card">
-                    <div className="sobrecupo-info">
-                      <div className="sobrecupo-doctor">
-                        {sobrecupo.fields?.MedicoNombre || `Dr. ${sobrecupo.fields?.Médico?.[0] || 'Desconocido'}`}
-                      </div>
-                      <div className="sobrecupo-specialty">
-                        {sobrecupo.fields?.Especialidad}
-                      </div>
-                      <div className="sobrecupo-datetime">
-                        📅 {formatDate(sobrecupo.fields?.Fecha)} • 🕐 {sobrecupo.fields?.Hora}
-                      </div>
-                      <div className="sobrecupo-location">
-                        📍 {sobrecupo.fields?.Clínica}
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => deleteSobrecupo(sobrecupo.id)}
-                      className="delete-button"
-                      title="Eliminar"
+          </div>
+          <div className="activity-item">
+            <div className="activity-icon">🏥</div>
+            <div className="activity-content">
+              <p className="activity-text">Clínica actualizada</p>
+              <p className="activity-time">Hace 1 día</p>
+            </div>
+          </div>
+          <div className="activity-item">
+            <div className="activity-icon">📅</div>
+            <div className="activity-content">
+              <p className="activity-text">15 sobrecupos reservados</p>
+              <p className="activity-time">Hace 3 horas</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const DoctorsContent = () => (
+    <div className="content-section">
+      <div className="section-header">
+        <h2 className="section-title">Gestión de Médicos</h2>
+        <button 
+          className="primary-button"
+          onClick={() => setShowDoctorForm(true)}
+        >
+          ➕ Agregar Médico
+        </button>
+      </div>
+
+      <div className="filters-section">
+        <div className="search-bar">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar médicos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <select 
+          value={selectedFilter}
+          onChange={(e) => setSelectedFilter(e.target.value)}
+          className="filter-select"
+        >
+          <option value="all">Todas las especialidades</option>
+          {especialidades.map(esp => (
+            <option key={esp} value={esp}>{esp}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="items-grid">
+        {doctors
+          .filter(doctor => {
+            const fields = doctor.fields || doctor;
+            const matchesSearch = fields.Name?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesFilter = selectedFilter === 'all' || fields.Especialidad === selectedFilter;
+            return matchesSearch && matchesFilter;
+          })
+          .map(doctor => {
+            const fields = doctor.fields || doctor;
+            return (
+              <div key={doctor.id} className="item-card">
+                <div className="item-header">
+                  <div className="item-avatar">
+                    {fields.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                  </div>
+                  <div className="item-info">
+                    <h3 className="item-title">Dr. {fields.Name}</h3>
+                    <p className="item-subtitle">{fields.Especialidad}</p>
+                    <p className="item-detail">Atiende: {fields.Atiende}</p>
+                  </div>
+                  <div className="item-actions">
+                    <button
+                      className="action-button edit"
+                      onClick={() => handleEdit('doctor', doctor)}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="action-button delete"
+                      onClick={() => handleDelete('doctor', doctor.id)}
                     >
                       🗑️
                     </button>
                   </div>
-                ))}
+                </div>
+                <div className="item-details">
+                  <p><strong>Email:</strong> {fields.Email}</p>
+                  <p><strong>WhatsApp:</strong> {fields.WhatsApp}</p>
+                  <p><strong>Seguros:</strong> {fields.Seguros?.join(', ') || 'No especificado'}</p>
+                </div>
               </div>
-            )}
-          </div>
-        )}
+            );
+          })
+        }
+      </div>
+    </div>
+  );
+
+  const ClinicasContent = () => (
+    <div className="content-section">
+      <div className="section-header">
+        <h2 className="section-title">Gestión de Clínicas</h2>
+        <button 
+          className="primary-button"
+          onClick={() => setShowClinicaForm(true)}
+        >
+          ➕ Agregar Clínica
+        </button>
       </div>
 
+      <div className="filters-section">
+        <div className="search-bar">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Buscar clínicas..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="items-grid">
+        {clinicas
+          .filter(clinica => {
+            const fields = clinica.fields || clinica;
+            return fields.Nombre?.toLowerCase().includes(searchTerm.toLowerCase());
+          })
+          .map(clinica => {
+            const fields = clinica.fields || clinica;
+            return (
+              <div key={clinica.id} className="item-card">
+                <div className="item-header">
+                  <div className="item-avatar clinic">🏥</div>
+                  <div className="item-info">
+                    <h3 className="item-title">{fields.Nombre}</h3>
+                    <p className="item-subtitle">{fields.Comuna}</p>
+                    <p className="item-detail">{fields.Direccion}</p>
+                  </div>
+                  <div className="item-actions">
+                    <button
+                      className="action-button edit"
+                      onClick={() => handleEdit('clinica', clinica)}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="action-button delete"
+                      onClick={() => handleDelete('clinica', clinica.id)}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+                <div className="item-details">
+                  <p><strong>Teléfono:</strong> {fields.Telefono || 'No especificado'}</p>
+                </div>
+              </div>
+            );
+          })
+        }
+      </div>
+    </div>
+  );
+
+  const SobrecuposContent = () => (
+    <div className="content-section">
+      <div className="section-header">
+        <h2 className="section-title">Gestión de Sobrecupos</h2>
+        <button 
+          className="primary-button"
+          onClick={() => router.push('/admin')}
+        >
+          ➕ Crear Sobrecupo
+        </button>
+      </div>
+
+      <div className="sobrecupos-list">
+        {sobrecupos.map(sobrecupo => {
+          const fields = sobrecupo.fields || sobrecupo;
+          return (
+            <div key={sobrecupo.id} className="sobrecupo-item">
+              <div className="sobrecupo-info">
+                <h3 className="sobrecupo-doctor">{fields.MedicoNombre || 'Dr. Desconocido'}</h3>
+                <p className="sobrecupo-specialty">{fields.Especialidad}</p>
+                <p className="sobrecupo-datetime">
+                  📅 {fields.Fecha} • 🕐 {fields.Hora}
+                </p>
+                <p className="sobrecupo-location">📍 {fields.Clínica}</p>
+              </div>
+              <div className="sobrecupo-status">
+                <span className="status-badge disponible">
+                  {fields.Estado || 'Disponible'}
+                </span>
+              </div>
+              <button
+                className="action-button delete"
+                onClick={() => handleDelete('sobrecupo', sobrecupo.id)}
+              >
+                🗑️
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const DoctorForm = () => (
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <h2>{editingItem ? 'Editar Médico' : 'Agregar Médico'}</h2>
+          <button 
+            className="close-button"
+            onClick={() => {
+              setShowDoctorForm(false);
+              setEditingItem(null);
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleDoctorSubmit} className="modal-form">
+          <div className="form-group">
+            <label>Nombre Completo</label>
+            <input
+              type="text"
+              value={doctorForm.Name}
+              onChange={(e) => setDoctorForm({...doctorForm, Name: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Especialidad</label>
+            <select
+              value={doctorForm.Especialidad}
+              onChange={(e) => setDoctorForm({...doctorForm, Especialidad: e.target.value})}
+              required
+            >
+              <option value="">Seleccionar especialidad</option>
+              {especialidades.map(esp => (
+                <option key={esp} value={esp}>{esp}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label>WhatsApp</label>
+            <input
+              type="tel"
+              value={doctorForm.WhatsApp}
+              onChange={(e) => setDoctorForm({...doctorForm, WhatsApp: e.target.value})}
+              placeholder="+56912345678"
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              value={doctorForm.Email}
+              onChange={(e) => setDoctorForm({...doctorForm, Email: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Atiende</label>
+            <select
+              value={doctorForm.Atiende}
+              onChange={(e) => setDoctorForm({...doctorForm, Atiende: e.target.value})}
+              required
+            >
+              <option value="">Seleccionar</option>
+              {opcionesAtiende.map(opcion => (
+                <option key={opcion} value={opcion}>{opcion}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label>Seguros</label>
+            <div className="checkbox-group">
+              {opcionesSeguros.map(seguro => (
+                <label key={seguro} className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={doctorForm.Seguros?.includes(seguro)}
+                    onChange={(e) => {
+                      const seguros = doctorForm.Seguros || [];
+                      if (e.target.checked) {
+                        setDoctorForm({...doctorForm, Seguros: [...seguros, seguro]});
+                      } else {
+                        setDoctorForm({...doctorForm, Seguros: seguros.filter(s => s !== seguro)});
+                      }
+                    }}
+                  />
+                  {seguro}
+                </label>
+              ))}
+            </div>
+          </div>
+          
+          <div className="modal-actions">
+            <button type="button" className="secondary-button" onClick={() => setShowDoctorForm(false)}>
+              Cancelar
+            </button>
+            <button type="submit" className="primary-button" disabled={loading}>
+              {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  const ClinicaForm = () => (
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <h2>{editingItem ? 'Editar Clínica' : 'Agregar Clínica'}</h2>
+          <button 
+            className="close-button"
+            onClick={() => {
+              setShowClinicaForm(false);
+              setEditingItem(null);
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleClinicaSubmit} className="modal-form">
+          <div className="form-group">
+            <label>Nombre de la Clínica</label>
+            <input
+              type="text"
+              value={clinicaForm.Nombre}
+              onChange={(e) => setClinicaForm({...clinicaForm, Nombre: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Dirección</label>
+            <input
+              type="text"
+              value={clinicaForm.Direccion}
+              onChange={(e) => setClinicaForm({...clinicaForm, Direccion: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Comuna</label>
+            <input
+              type="text"
+              value={clinicaForm.Comuna}
+              onChange={(e) => setClinicaForm({...clinicaForm, Comuna: e.target.value})}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Teléfono</label>
+            <input
+              type="tel"
+              value={clinicaForm.Telefono}
+              onChange={(e) => setClinicaForm({...clinicaForm, Telefono: e.target.value})}
+              placeholder="+56223456789"
+            />
+          </div>
+          
+          <div className="modal-actions">
+            <button type="button" className="secondary-button" onClick={() => setShowClinicaForm(false)}>
+              Cancelar
+            </button>
+            <button type="submit" className="primary-button" disabled={loading}>
+              {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="admin-panel">
+      {/* Header móvil */}
+      <div className="mobile-header">
+        <button onClick={() => router.back()} className="back-button">
+          ← Volver
+        </button>
+        <div className="header-title">
+          <span className="header-icon">🩺</span>
+          <span>Admin Panel</span>
+        </div>
+        <div className="header-spacer"></div>
+      </div>
+
+      {/* Mensajes */}
+      {message && (
+        <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
+          {message}
+        </div>
+      )}
+
+      {/* Sidebar */}
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <div className="logo">
+            <div className="logo-icon">🩺</div>
+            <span className="logo-text">Sobrecupos Admin</span>
+          </div>
+        </div>
+        
+        <nav className="sidebar-nav">
+          <button
+            className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveSection('dashboard')}
+          >
+            <span className="nav-icon">📊</span>
+            <span>Dashboard</span>
+          </button>
+          
+          <button
+            className={`nav-item ${activeSection === 'doctors' ? 'active' : ''}`}
+            onClick={() => setActiveSection('doctors')}
+          >
+            <span className="nav-icon">👨‍⚕️</span>
+            <span>Médicos</span>
+            <span className="nav-badge">{doctors.length}</span>
+          </button>
+          
+          <button
+            className={`nav-item ${activeSection === 'clinicas' ? 'active' : ''}`}
+            onClick={() => setActiveSection('clinicas')}
+          >
+            <span className="nav-icon">🏥</span>
+            <span>Clínicas</span>
+            <span className="nav-badge">{clinicas.length}</span>
+          </button>
+          
+          <button
+            className={`nav-item ${activeSection === 'sobrecupos' ? 'active' : ''}`}
+            onClick={() => setActiveSection('sobrecupos')}
+          >
+            <span className="nav-icon">📅</span>
+            <span>Sobrecupos</span>
+            <span className="nav-badge">{sobrecupos.length}</span>
+          </button>
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="main-content">
+        {activeSection === 'dashboard' && <DashboardContent />}
+        {activeSection === 'doctors' && <DoctorsContent />}
+        {activeSection === 'clinicas' && <ClinicasContent />}
+        {activeSection === 'sobrecupos' && <SobrecuposContent />}
+      </div>
+
+      {/* Modales */}
+      {showDoctorForm && <DoctorForm />}
+      {showClinicaForm && <ClinicaForm />}
+
       <style jsx>{`
-        .admin-container {
+        .admin-panel {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+          background: #f8fafc;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #1a1a1a;
-          padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Header Móvil - Exactamente igual al diseño del proyecto */
         .mobile-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          background: white;
+          border-bottom: 1px solid #e2e8f0;
           position: sticky;
           top: 0;
           z-index: 100;
-          height: 56px;
-          box-sizing: border-box;
         }
 
         .back-button {
           background: none;
           border: none;
-          color: #007aff;
-          font-size: 15px;
+          color: #3b82f6;
+          font-size: 14px;
           font-weight: 600;
-          padding: 8px 12px;
-          border-radius: 8px;
           cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .back-button:hover {
-          background: rgba(0, 122, 255, 0.1);
         }
 
         .header-title {
@@ -705,1020 +776,729 @@ export default function AdminSobrecuposPage() {
           gap: 8px;
           font-size: 16px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: #1e293b;
         }
 
-        .header-logo {
-          color: #007aff;
-          filter: drop-shadow(0 1px 2px rgba(0, 122, 255, 0.2));
+        .header-icon {
+          font-size: 20px;
         }
 
         .header-spacer {
           width: 64px;
         }
 
-        /* Navegación adicional - Igual al diseño del proyecto */
-        .admin-nav {
-          display: flex;
-          gap: 8px;
-          padding: 8px 16px;
-          background: rgba(255, 255, 255, 0.8);
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          position: sticky;
-          top: 56px;
-          z-index: 98;
-        }
-
-        .nav-button {
-          flex: 1;
-          padding: 8px 12px;
-          border: 1px solid #e5e5e7;
+        .message {
+          position: fixed;
+          top: 80px;
+          right: 20px;
+          padding: 12px 20px;
           border-radius: 8px;
-          background: white;
-          color: #007aff;
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .nav-button:hover {
-          background: #f0f4fa;
-          border-color: #007aff;
-        }
-
-        .nav-button:active {
-          transform: scale(0.98);
-        }
-
-        /* Tabs Móvil - Exactamente igual al diseño del proyecto */
-        .mobile-tabs {
-          display: flex;
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          position: sticky;
-          top: 112px;
-          z-index: 99;
-        }
-
-        .tab-button {
-          flex: 1;
-          padding: 12px 8px;
-          border: none;
-          background: transparent;
-          color: #8e8e93;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-bottom: 2px solid transparent;
-        }
-
-        .tab-button.active {
-          color: #007aff;
-          border-bottom-color: #007aff;
-        }
-
-        /* Container Principal - Igual al diseño del proyecto */
-        .content-container {
-          padding: 16px;
-          max-width: 100vw;
-          box-sizing: border-box;
-        }
-
-        /* Mensajes Móvil - Exactamente igual al diseño del proyecto */
-        .mobile-message {
-          padding: 12px 16px;
-          border-radius: 12px;
-          margin-bottom: 16px;
-          font-size: 13px;
           font-weight: 500;
+          z-index: 1000;
+          animation: slideIn 0.3s ease;
+        }
+
+        .message.success {
+          background: #dcfce7;
+          color: #166534;
+          border: 1px solid #bbf7d0;
+        }
+
+        .message.error {
+          background: #fee2e2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+        }
+
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
+        .sidebar {
+          width: 280px;
+          background: white;
+          border-right: 1px solid #e2e8f0;
+          position: fixed;
+          height: calc(100vh - 57px);
+          top: 57px;
+          overflow-y: auto;
+          z-index: 50;
+        }
+
+        .sidebar-header {
+          padding: 20px;
+          border-bottom: 1px solid #e2e8f0;
+        }
+
+        .logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .logo-icon {
+          width: 36px;
+          height: 36px;
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+        }
+
+        .logo-text {
+          font-size: 16px;
+          font-weight: 700;
+          color: #1e293b;
+        }
+
+        .sidebar-nav {
+          padding: 16px;
+        }
+
+        .nav-item {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          margin-bottom: 4px;
+          border: none;
+          background: none;
+          border-radius: 8px;
+          color: #64748b;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-align: left;
+        }
+
+        .nav-item:hover {
+          background: #f1f5f9;
+          color: #3b82f6;
+        }
+
+        .nav-item.active {
+          background: #dbeafe;
+          color: #3b82f6;
+          font-weight: 600;
+        }
+
+        .nav-icon {
+          font-size: 16px;
+        }
+
+        .nav-badge {
+          margin-left: auto;
+          background: #3b82f6;
+          color: white;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 2px 6px;
+          border-radius: 10px;
+          min-width: 18px;
           text-align: center;
         }
 
-        .mobile-message.success {
-          background: #e6ffed;
-          color: #006400;
-          border: 1px solid #c3e6cb;
+        .main-content {
+          margin-left: 280px;
+          margin-top: 57px;
+          padding: 24px;
+          min-height: calc(100vh - 57px);
         }
 
-        .mobile-message.error {
-          background: #fee;
-          color: #b00020;
-          border: 1px solid #f5c6cb;
+        .dashboard-content {
+          max-width: 1200px;
         }
 
-        .mobile-message.warning {
-          background: #fff3cd;
-          color: #856404;
-          border: 1px solid #ffeaa7;
+        .dashboard-header {
+          margin-bottom: 32px;
         }
 
-        /* Formulario Móvil - Exactamente igual al diseño del proyecto */
-        .mobile-form-container {
-          background: white;
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-        }
-
-        .form-steps {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .step-section {
-          padding: 20px 16px;
-          border-bottom: 1px solid #f0f0f0;
-        }
-
-        .step-section:last-child {
-          border-bottom: none;
-        }
-
-        .step-header {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 16px;
-        }
-
-        .step-number {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: #007aff;
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
+        .dashboard-title {
+          font-size: 28px;
           font-weight: 700;
-          flex-shrink: 0;
+          color: #1e293b;
+          margin: 0 0 8px 0;
         }
 
-        .step-title {
+        .dashboard-subtitle {
           font-size: 16px;
-          font-weight: 700;
-          color: #1a1a1a;
+          color: #64748b;
           margin: 0;
         }
 
-        /* Grid de Médicos Móvil - Exactamente igual al diseño del proyecto */
-        .doctors-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 20px;
+          margin-bottom: 32px;
         }
 
-        .doctor-card {
+        .stat-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card-blue {
+          border-left: 4px solid #3b82f6;
+        }
+
+        .stat-card-green {
+          border-left: 4px solid #10b981;
+        }
+
+        .stat-card-purple {
+          border-left: 4px solid #8b5cf6;
+        }
+
+        .stat-card-orange {
+          border-left: 4px solid #f59e0b;
+        }
+
+        .stat-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .stat-title {
+          font-size: 14px;
+          font-weight: 500;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .stat-icon {
+          font-size: 24px;
+          opacity: 0.7;
+        }
+
+        .stat-value {
+          font-size: 32px;
+          font-weight: 700;
+          color: #1e293b;
+          margin-bottom: 8px;
+        }
+
+        .stat-trend {
           display: flex;
           align-items: center;
-          padding: 12px;
-          border: 1.5px solid #f0f0f0;
-          border-radius: 12px;
-          cursor: pointer;
-          transition: all 0.2s ease;
+          gap: 4px;
+          font-size: 12px;
+          color: #10b981;
+          font-weight: 500;
+        }
+
+        .recent-activity {
           background: white;
+          border-radius: 12px;
+          padding: 24px;
+          border: 1px solid #e2e8f0;
         }
 
-        .doctor-card.selected {
-          border-color: #007aff;
-          background: #f8faff;
+        .section-title {
+          font-size: 20px;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 20px 0;
         }
 
-        .doctor-avatar {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
+        .activity-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .activity-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          border-radius: 8px;
+          background: #f8fafc;
+        }
+
+        .activity-icon {
+          width: 32px;
+          height: 32px;
+          background: #dbeafe;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
+          font-size: 16px;
+        }
+
+        .activity-content {
+          flex: 1;
+        }
+
+        .activity-text {
+          font-size: 14px;
+          color: #1e293b;
+          margin: 0 0 4px 0;
+          font-weight: 500;
+        }
+
+        .activity-time {
           font-size: 12px;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .content-section {
+          max-width: 1200px;
+        }
+
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+
+        .primary-button {
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          padding: 12px 20px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .primary-button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .secondary-button {
+          background: white;
+          color: #64748b;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 12px 20px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .secondary-button:hover {
+          background: #f8fafc;
+          border-color: #cbd5e1;
+        }
+
+        .filters-section {
+          display: flex;
+          gap: 16px;
+          margin-bottom: 24px;
+          align-items: center;
+        }
+
+        .search-bar {
+          flex: 1;
+          position: relative;
+          display: flex;
+          align-items: center;
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 0 12px;
+        }
+
+        .search-icon {
+          color: #94a3b8;
+          margin-right: 8px;
+        }
+
+        .search-bar input {
+          flex: 1;
+          border: none;
+          outline: none;
+          padding: 12px 0;
+          font-size: 14px;
+        }
+
+        .filter-select {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 12px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          min-width: 200px;
+        }
+
+        .items-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+          gap: 20px;
+        }
+
+        .item-card {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 20px;
+          transition: all 0.2s ease;
+        }
+
+        .item-card:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-header {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        .item-avatar {
+          width: 48px;
+          height: 48px;
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
           font-weight: 700;
-          margin-right: 12px;
+          font-size: 16px;
           flex-shrink: 0;
         }
 
-        .doctor-info {
+        .item-avatar.clinic {
+          background: linear-gradient(135deg, #10b981, #059669);
+          font-size: 20px;
+        }
+
+        .item-info {
           flex: 1;
           min-width: 0;
         }
 
-        .doctor-name {
-          font-size: 14px;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 2px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .doctor-specialty {
-          font-size: 12px;
-          color: #8e8e93;
-          font-weight: 500;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .selected-check {
-          color: #007aff;
+        .item-title {
           font-size: 16px;
-          font-weight: 700;
-          margin-left: 8px;
-        }
-
-        /* Inputs Móvil - Exactamente igual al diseño del proyecto */
-        .input-group {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .input-label {
-          font-size: 13px;
           font-weight: 600;
-          color: #1a1a1a;
+          color: #1e293b;
+          margin: 0 0 4px 0;
         }
 
-        .form-input {
-          padding: 12px 14px;
-          border: 1.5px solid #e5e5e7;
-          border-radius: 10px;
-          font-size: 15px;
-          background: white;
-          transition: all 0.2s ease;
-          -webkit-appearance: none;
-          appearance: none;
-        }
-
-        .form-input:focus {
-          outline: none;
-          border-color: #007aff;
-          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-        }
-
-        .date-input {
-          color-scheme: light;
-        }
-
-        /* Estilos para la selección de clínicas - Exactamente igual al diseño del proyecto */
-        .loading-clinicas {
-          text-align: center;
-          padding: 20px;
-          color: #8e8e93;
-          font-style: italic;
-        }
-
-        .no-clinicas-warning {
-          text-align: center;
-          padding: 20px;
-          background: #fff3cd;
-          border: 1px solid #ffeaa7;
-          border-radius: 12px;
-          color: #856404;
-        }
-
-        .no-clinicas-warning p {
-          margin: 0 0 12px;
+        .item-subtitle {
+          font-size: 14px;
+          color: #3b82f6;
           font-weight: 500;
+          margin: 0 0 4px 0;
         }
 
-        .add-clinicas-btn {
-          background: #007aff;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          padding: 8px 16px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .add-clinicas-btn:active {
-          transform: scale(0.95);
-        }
-
-        .clinicas-selection {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .clinic-select {
-          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-          background-position: right 12px center;
-          background-repeat: no-repeat;
-          background-size: 16px;
-          padding-right: 40px;
-          appearance: none;
-        }
-
-        .selected-clinic-info {
-          background: #e6ffed;
-          border: 1px solid #c3e6cb;
-          border-radius: 12px;
-          padding: 16px;
-        }
-
-        .clinic-details {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-
-        .clinic-name {
-          font-size: 15px;
-          font-weight: 700;
-          color: #006400;
+        .item-detail {
+          font-size: 12px;
+          color: #64748b;
           margin: 0;
         }
 
-        .clinic-address, .clinic-comuna, .clinic-phone {
-          font-size: 13px;
-          color: #2d5a2d;
-          margin: 0;
-          font-weight: 500;
-        }
-
-        .custom-location {
-          border-top: 1px solid #e5e5e7;
-          padding-top: 16px;
-        }
-
-        .custom-toggle {
-          margin-bottom: 12px;
-        }
-
-        .toggle-label {
+        .item-actions {
           display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-        }
-
-        .toggle-checkbox {
-          width: 16px;
-          height: 16px;
-          cursor: pointer;
-        }
-
-        .toggle-text {
-          font-size: 13px;
-          font-weight: 600;
-          color: #007aff;
-        }
-
-        .custom-inputs {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding: 16px;
-          background: #f8faff;
-          border: 1px solid #e5e5e7;
-          border-radius: 10px;
-        }
-
-        /* Sección de Horarios - Exactamente igual al diseño del proyecto */
-        .date-section {
-          margin-bottom: 20px;
-        }
-
-        .hours-section {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .hours-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .quick-select {
-          display: flex;
-          gap: 6px;
-        }
-
-        .quick-btn {
-          padding: 6px 10px;
-          border: 1px solid #e5e5e7;
-          border-radius: 8px;
-          background: white;
-          font-size: 11px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .quick-btn.morning {
-          color: #ff9500;
-          border-color: #ff9500;
-        }
-
-        .quick-btn.afternoon {
-          color: #5856d6;
-          border-color: #5856d6;
-        }
-
-        .quick-btn.clear {
-          color: #ff3b30;
-          border-color: #ff3b30;
-        }
-
-        .quick-btn:hover {
-          background: currentColor;
-          color: white;
-        }
-
-        .quick-btn:active {
-          transform: scale(0.95);
-        }
-
-        .hours-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
           gap: 8px;
         }
 
-        .hour-button {
-          padding: 10px 6px;
-          border: 1.5px solid #e5e5e7;
-          border-radius: 8px;
-          background: white;
-          font-size: 12px;
-          font-weight: 600;
-          color: #1a1a1a;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .hour-button.selected {
-          border-color: #007aff;
-          background: #007aff;
-          color: white;
-        }
-
-        .hour-button:active {
-          transform: scale(0.95);
-        }
-
-        .selected-count {
-          font-size: 12px;
-          color: #8e8e93;
-          font-weight: 500;
-          text-align: center;
-        }
-
-        /* Botón Submit - Exactamente igual al diseño del proyecto */
-        .submit-section {
-          padding: 20px 16px;
-          background: #f8faff;
-        }
-
-        .submit-button {
-          width: 100%;
-          padding: 14px;
+        .action-button {
+          width: 32px;
+          height: 32px;
           border: none;
-          border-radius: 12px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
-          font-size: 15px;
-          font-weight: 700;
+          border-radius: 6px;
           cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .submit-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .submit-button:not(:disabled):active {
-          transform: scale(0.98);
-        }
-
-        /* Vista Previa Móvil - Exactamente igual al diseño del proyecto */
-        .preview-container {
-          background: white;
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-        }
-
-        .preview-header {
-          background: linear-gradient(135deg, #34c759, #30a14e);
-          color: white;
-          padding: 20px 16px;
-          text-align: center;
-        }
-
-        .preview-title {
-          font-size: 18px;
-          font-weight: 700;
-          margin: 0 0 4px;
-        }
-
-        .preview-subtitle {
-          font-size: 13px;
-          opacity: 0.9;
-          margin: 0;
-        }
-
-        .preview-content {
-          padding: 20px 16px;
-        }
-
-        .preview-section {
-          margin-bottom: 20px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #f0f0f0;
-        }
-
-        .preview-section:last-child {
-          border-bottom: none;
-          margin-bottom: 0;
-        }
-
-        .preview-section-title {
-          font-size: 11px;
-          font-weight: 700;
-          color: #8e8e93;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin: 0 0 8px;
-        }
-
-        .preview-doctor {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .preview-doctor-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: all 0.2s ease;
           font-size: 14px;
-          font-weight: 700;
         }
 
-        .preview-doctor-name {
-          font-size: 15px;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin-bottom: 2px;
+        .action-button.edit {
+          background: #dbeafe;
+          color: #3b82f6;
         }
 
-        .preview-doctor-specialty {
-          font-size: 12px;
-          color: #8e8e93;
-          font-weight: 500;
+        .action-button.edit:hover {
+          background: #bfdbfe;
         }
 
-        .preview-location {
+        .action-button.delete {
+          background: #fee2e2;
+          color: #dc2626;
+        }
+
+        .action-button.delete:hover {
+          background: #fecaca;
+        }
+
+        .item-details {
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
 
-        .preview-clinic {
-          font-size: 15px;
-          font-weight: 600;
-          color: #1a1a1a;
-        }
-
-        .preview-address {
+        .item-details p {
           font-size: 12px;
-          color: #8e8e93;
-          font-weight: 500;
-        }
-
-        .preview-clinic-badge {
-          font-size: 11px;
-          color: #34c759;
-          font-weight: 600;
-          padding: 2px 6px;
-          background: #e6ffed;
-          border-radius: 4px;
-          align-self: flex-start;
-        }
-
-        .preview-date {
-          font-size: 14px;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 12px;
-        }
-
-        .preview-hours {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .preview-hour {
-          background: #007aff;
-          color: white;
-          padding: 4px 8px;
-          border-radius: 6px;
-          font-size: 11px;
-          font-weight: 600;
-        }
-
-        /* Acciones de Vista Previa - Exactamente igual al diseño del proyecto */
-        .preview-actions {
-          display: flex;
-          gap: 8px;
-          padding: 16px;
-          background: #f8faff;
-        }
-
-        .preview-button {
-          flex: 1;
-          padding: 12px;
-          border: none;
-          border-radius: 10px;
-          font-size: 14px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .preview-button.secondary {
-          background: white;
-          color: #007aff;
-          border: 1.5px solid #007aff;
-        }
-
-        .preview-button.primary {
-          background: linear-gradient(135deg, #34c759, #30a14e);
-          color: white;
-        }
-
-        .preview-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .preview-button:not(:disabled):active {
-          transform: scale(0.98);
-        }
-
-        /* Gestionar Existentes Móvil - Exactamente igual al diseño del proyecto */
-        .manage-container {
-          background: white;
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-        }
-
-        .manage-header {
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
-          padding: 20px 16px;
-          text-align: center;
-        }
-
-        .manage-title {
-          font-size: 18px;
-          font-weight: 700;
+          color: #64748b;
           margin: 0;
         }
 
-        /* Estado Vacío - Exactamente igual al diseño del proyecto */
-        .empty-state {
-          padding: 40px 20px;
-          text-align: center;
-          color: #8e8e93;
-        }
-
-        .empty-icon {
-          font-size: 48px;
-          margin-bottom: 16px;
-          opacity: 0.6;
-        }
-
-        .empty-title {
-          font-size: 18px;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin: 0 0 8px;
-        }
-
-        .empty-text {
-          font-size: 14px;
-          margin: 0 0 24px;
-          color: #8e8e93;
-        }
-
-        .empty-button {
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .empty-button:active {
-          transform: scale(0.95);
-        }
-
-        /* Lista de Sobrecupos - Exactamente igual al diseño del proyecto */
         .sobrecupos-list {
-          padding: 16px;
           display: flex;
           flex-direction: column;
           gap: 12px;
-          max-height: 60vh;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
         }
 
-        .sobrecupo-card {
+        .sobrecupo-item {
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 20px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          padding: 14px;
-          border: 1px solid #f0f0f0;
-          border-radius: 12px;
-          background: #fafbff;
-          transition: all 0.2s ease;
-        }
-
-        .sobrecupo-card:active {
-          transform: scale(0.98);
+          gap: 16px;
         }
 
         .sobrecupo-info {
           flex: 1;
-          min-width: 0;
         }
 
         .sobrecupo-doctor {
-          font-size: 14px;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin-bottom: 2px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          font-size: 16px;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 4px 0;
         }
 
         .sobrecupo-specialty {
-          font-size: 12px;
-          color: #007aff;
-          font-weight: 600;
-          margin-bottom: 4px;
+          font-size: 14px;
+          color: #3b82f6;
+          font-weight: 500;
+          margin: 0 0 8px 0;
         }
 
         .sobrecupo-datetime {
-          font-size: 11px;
-          color: #34c759;
-          font-weight: 600;
-          margin-bottom: 2px;
+          font-size: 12px;
+          color: #10b981;
+          font-weight: 500;
+          margin: 0 0 4px 0;
         }
 
         .sobrecupo-location {
-          font-size: 11px;
-          color: #8e8e93;
-          font-weight: 500;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .delete-button {
-          background: #ff3b30;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          padding: 8px 10px;
           font-size: 12px;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .sobrecupo-status {
+          margin-right: 16px;
+        }
+
+        .status-badge {
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+
+        .status-badge.disponible {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+        }
+
+        .modal {
+          background: white;
+          border-radius: 16px;
+          width: 100%;
+          max-width: 500px;
+          max-height: 90vh;
+          overflow-y: auto;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 24px 24px 0 24px;
+          margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+          font-size: 20px;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0;
+        }
+
+        .close-button {
+          width: 32px;
+          height: 32px;
+          border: none;
+          background: #f1f5f9;
+          border-radius: 6px;
           cursor: pointer;
-          transition: all 0.2s ease;
-          margin-left: 12px;
-          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+          font-size: 16px;
         }
 
-        .delete-button:active {
-          transform: scale(0.95);
-          background: #d70015;
+        .close-button:hover {
+          background: #e2e8f0;
         }
 
-        /* Responsive específico para iPhone - Exactamente igual al diseño del proyecto */
-        @media (max-width: 430px) {
-          .content-container {
-            padding: 12px;
-          }
-          
-          .step-section {
-            padding: 16px 12px;
-          }
-          
-          .hours-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-          }
-          
-          .hour-button {
-            padding: 8px 4px;
-            font-size: 11px;
-          }
-          
-          .doctor-name {
-            font-size: 13px;
-          }
-          
-          .doctor-specialty {
-            font-size: 11px;
-          }
+        .modal-form {
+          padding: 0 24px 24px 24px;
         }
 
-        @media (max-width: 375px) {
-          .mobile-header {
-            padding: 10px 12px;
-          }
-          
-          .header-title {
-            font-size: 15px;
-          }
-          
-          .tab-button {
-            font-size: 12px;
-            padding: 10px 6px;
-          }
-          
-          .step-title {
-            font-size: 15px;
-          }
-          
-          .form-input {
-            font-size: 14px;
-            padding: 10px 12px;
-          }
-          
-          .sobrecupo-card {
-            padding: 12px;
-          }
-          
-          .sobrecupo-doctor {
-            font-size: 13px;
-          }
+        .form-group {
+          margin-bottom: 20px;
         }
 
-        @media (max-width: 320px) {
-          .content-container {
-            padding: 8px;
-          }
-          
-          .step-section {
-            padding: 12px 8px;
-          }
-          
-          .hours-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-          }
-          
-          .hour-button {
-            padding: 6px 2px;
-            font-size: 10px;
-          }
-          
-          .quick-btn {
-            padding: 4px 6px;
-            font-size: 10px;
-          }
+        .form-group label {
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
+          color: #374151;
+          margin-bottom: 6px;
         }
 
-        /* Mejoras para iOS Safari - Exactamente igual al diseño del proyecto */
-        @supports (-webkit-touch-callout: none) {
-          .form-input {
-            -webkit-appearance: none;
-            -webkit-border-radius: 10px;
-          }
-          
-          .submit-button, .preview-button, .delete-button {
-            -webkit-appearance: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-          }
+        .form-group input,
+        .form-group select {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          font-size: 14px;
+          transition: border-color 0.2s ease;
+          box-sizing: border-box;
         }
 
-        /* Prevenir zoom en inputs - Exactamente igual al diseño del proyecto */
+        .form-group input:focus,
+        .form-group select:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .checkbox-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .checkbox-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          color: #374151;
+          cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+          width: auto;
+          margin: 0;
+        }
+
+        .modal-actions {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+          margin-top: 24px;
+          padding-top: 20px;
+          border-top: 1px solid #e2e8f0;
+        }
+
         @media (max-width: 768px) {
-          .form-input {
-            font-size: 16px;
-          }
-        }
-
-        /* Smooth scrolling para toda la página - Exactamente igual al diseño del proyecto */
-        * {
-          -webkit-overflow-scrolling: touch;
-        }
-
-        /* Fix para el notch de iPhone - Exactamente igual al diseño del proyecto */
-        @supports (padding: max(0px)) {
-          .mobile-header {
-            padding-top: max(12px, env(safe-area-inset-top));
-          }
-          
-          .admin-container {
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
-          }
-        }
-
-        /* Desktop responsive - Adaptado al diseño consistente */
-        @media (min-width: 768px) {
-          .admin-container {
-            padding: 0;
-          }
-
-          .mobile-header {
-            display: none;
-          }
-
-          .admin-nav {
-            display: none;
-          }
-
-          .mobile-tabs {
+          .sidebar {
+            width: 100%;
             position: relative;
+            height: auto;
             top: 0;
-            background: white;
-            border-bottom: 1px solid #e5e5e7;
-            padding: 0 24px;
-            justify-content: center;
-            max-width: 400px;
-            margin: 24px auto 0;
-            border-radius: 12px 12px 0 0;
           }
 
-          .content-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 24px;
+          .main-content {
+            margin-left: 0;
+            margin-top: 0;
+            padding: 16px;
           }
 
-          .hours-grid {
-            grid-template-columns: repeat(6, 1fr);
-          }
-
-          .doctors-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          .stats-grid {
+            grid-template-columns: 1fr;
             gap: 16px;
           }
 
-          .preview-actions {
-            flex-direction: row;
-            justify-content: center;
+          .items-grid {
+            grid-template-columns: 1fr;
             gap: 16px;
           }
 
-          .preview-button {
-            flex: 0 0 auto;
-            min-width: 140px;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .content-container {
-            padding: 32px;
+          .filters-section {
+            flex-direction: column;
+            align-items: stretch;
           }
 
-          .mobile-form-container, .manage-container {
-            box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
+          .section-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
           }
 
-          .step-section {
-            padding: 32px 24px;
+          .modal {
+            margin: 16px;
+            max-width: calc(100% - 32px);
           }
 
-          .hours-grid {
-            grid-template-columns: repeat(8, 1fr);
+          .dashboard-title {
+            font-size: 24px;
+          }
+
+          .stat-value {
+            font-size: 28px;
           }
         }
       `}</style>
-    </main>
+    </div>
   );
-}
+};
+
+export default SobrecuposAdminPanel;
