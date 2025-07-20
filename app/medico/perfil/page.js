@@ -92,27 +92,52 @@ export default function PerfilMedico() {
     setMessage('');
 
     try {
-      // Convertir a base64 para preview inmediato
+      // Preview inmediato
       const reader = new FileReader();
       reader.onload = (e) => {
         setDoctorData(prev => ({ ...prev, PhotoURL: e.target.result }));
       };
       reader.readAsDataURL(file);
 
-      // Aquí normalmente subirías a un servicio como Cloudinary, AWS S3, etc.
-      // Por ahora simularemos la subida
+      // Upload real a AWS S3
       const formData = new FormData();
       formData.append('photo', file);
       formData.append('doctorId', session.user.doctorId);
-
-      // Simulación de upload (reemplazar con tu servicio real)
-      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      setMessage('✅ Foto subida correctamente');
+      // Enviar URL anterior para eliminar
+      if (doctorData.PhotoURL && doctorData.PhotoURL.includes('s3.') && doctorData.PhotoURL.includes('amazonaws.com')) {
+        formData.append('oldImageUrl', doctorData.PhotoURL);
+      }
+
+      console.log(`📤 Subiendo imagen: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const uploadData = await uploadRes.json();
+
+      if (uploadData.success) {
+        // Actualizar con URL real de AWS S3
+        setDoctorData(prev => ({ ...prev, PhotoURL: uploadData.url }));
+        setMessage('✅ Foto subida correctamente a AWS S3');
+        
+        console.log('📊 Upload exitoso:', {
+          url: uploadData.url,
+          bucket: uploadData.metadata?.bucket,
+          size: uploadData.metadata?.size
+        });
+      } else {
+        throw new Error(uploadData.error || 'Error desconocido');
+      }
+      
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('Error subiendo imagen:', error);
-      setMessage('❌ Error subiendo la imagen');
+      setMessage(`❌ Error subiendo la imagen: ${error.message}`);
+      // Revertir preview en caso de error - restaurar imagen original
+      fetchDoctorData();
     } finally {
       setUploadingImage(false);
     }
