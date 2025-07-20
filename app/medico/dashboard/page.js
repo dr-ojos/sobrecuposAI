@@ -666,8 +666,10 @@ function MedicoDashboard() {
                           {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'Disponible' : 'Reservado'}
                         </div>
                         <button className="delete-btn" onClick={(e) => { e.stopPropagation(); /* Aquí iría la función de borrar */ }}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"/>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="m15 9-6 6"/>
+                            <path d="m9 9 6 6"/>
                           </svg>
                         </button>
                       </div>
@@ -1425,13 +1427,13 @@ function MedicoDashboard() {
           }
 
           .delete-btn {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
           }
 
           .delete-btn svg {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
           }
 
           .date-block {
@@ -1525,13 +1527,13 @@ function MedicoDashboard() {
           }
 
           .delete-btn {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
           }
 
           .delete-btn svg {
-            width: 12px;
-            height: 12px;
+            width: 11px;
+            height: 11px;
             stroke-width: 1.8;
           }
 
