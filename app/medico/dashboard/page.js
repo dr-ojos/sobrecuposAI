@@ -122,8 +122,17 @@ function MedicoDashboard() {
       if (res.ok) {
         const data = await res.json();
         
+        // Filtrar solo sobrecupos futuros (desde hoy)
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const futureSobrecupos = data.filter(sobrecupo => {
+          const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
+          return sobrecupoDate >= today;
+        });
+        
         // Ordenar por fecha más próxima
-        const sortedData = data.sort((a, b) => {
+        const sortedData = futureSobrecupos.sort((a, b) => {
           const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
           const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
           return dateA - dateB;
@@ -967,20 +976,20 @@ function MedicoDashboard() {
         }
 
         .view-all-btn {
-          background: rgba(0, 122, 255, 0.1);
-          border: 1px solid rgba(0, 122, 255, 0.2);
+          background: none;
+          border: none;
           color: #007aff;
-          font-size: 0.9rem;
+          font-size: 0.85rem;
           font-weight: 600;
           cursor: pointer;
-          padding: 0.75rem 1.5rem;
-          border-radius: 12px;
-          transition: all 0.3s ease;
+          padding: 0.5rem;
+          border-radius: 8px;
+          transition: all 0.2s ease;
         }
 
         .view-all-btn:hover {
-          background: rgba(0, 122, 255, 0.15);
-          transform: translateY(-2px);
+          background: rgba(0, 122, 255, 0.08);
+          transform: scale(1.02);
         }
 
         .actions-grid {
@@ -1181,32 +1190,32 @@ function MedicoDashboard() {
 
         .timeline-card {
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          border-radius: 16px;
-          padding: 1.5rem;
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 14px;
+          padding: 1rem;
           transition: all 0.3s ease;
           cursor: pointer;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
         }
 
         .timeline-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-          border-color: rgba(0, 122, 255, 0.2);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+          border-color: rgba(0, 122, 255, 0.15);
         }
 
         .timeline-header {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          margin-bottom: 1rem;
-          gap: 1rem;
+          margin-bottom: 0.75rem;
+          gap: 0.75rem;
         }
 
         .time-info {
           display: flex;
           align-items: center;
-          gap: 1rem;
+          gap: 0.75rem;
           flex: 1;
           min-width: 0;
         }
@@ -1216,23 +1225,23 @@ function MedicoDashboard() {
           flex-direction: column;
           align-items: center;
           background: linear-gradient(135deg, #007aff, #5856d6);
-          border-radius: 12px;
-          padding: 0.75rem;
-          min-width: 50px;
+          border-radius: 10px;
+          padding: 0.5rem;
+          min-width: 42px;
           flex-shrink: 0;
           color: white;
         }
 
         .day {
-          font-size: 1.3rem;
+          font-size: 1.1rem;
           font-weight: 800;
           line-height: 1;
         }
 
         .month {
-          font-size: 0.65rem;
+          font-size: 0.6rem;
           font-weight: 700;
-          margin-top: 0.2rem;
+          margin-top: 0.15rem;
           opacity: 0.9;
         }
 
@@ -1243,17 +1252,17 @@ function MedicoDashboard() {
         }
 
         .time {
-          font-size: 1.1rem;
+          font-size: 1rem;
           font-weight: 700;
           color: #1d1d1f;
           line-height: 1.2;
         }
 
         .relative-time {
-          font-size: 0.8rem;
+          font-size: 0.75rem;
           color: #6e6e73;
           font-weight: 500;
-          margin-top: 0.2rem;
+          margin-top: 0.15rem;
         }
 
         .status-container {
@@ -1261,44 +1270,44 @@ function MedicoDashboard() {
         }
 
         .status-badge {
-          padding: 0.4rem 0.8rem;
-          border-radius: 20px;
-          font-size: 0.75rem;
+          padding: 0.3rem 0.65rem;
+          border-radius: 16px;
+          font-size: 0.7rem;
           font-weight: 700;
           white-space: nowrap;
         }
 
         .status-badge.available {
-          background: #d1f2df;
+          background: #e8f8ec;
           color: #1d7040;
-          border: 1px solid #34c759;
+          border: 1px solid rgba(52, 199, 89, 0.3);
         }
 
         .status-badge.reserved {
-          background: #ffe4cc;
+          background: #fff3e8;
           color: #cc6d00;
-          border: 1px solid #ff9500;
+          border: 1px solid rgba(255, 149, 0, 0.3);
         }
 
         .timeline-body {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.75rem;
         }
 
         .clinic-info {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 0.5rem;
         }
 
         .location-icon {
-          font-size: 1rem;
+          font-size: 0.85rem;
           opacity: 0.7;
         }
 
         .clinic-name {
-          font-size: 1rem;
+          font-size: 0.85rem;
           color: #1d1d1f;
           flex: 1;
           min-width: 0;
@@ -1306,34 +1315,34 @@ function MedicoDashboard() {
         }
 
         .clinic-badge {
-          background: #d1f2df;
+          background: #e8f8ec;
           color: #1d7040;
-          padding: 0.25rem 0.75rem;
-          border-radius: 12px;
-          font-size: 0.75rem;
+          padding: 0.2rem 0.5rem;
+          border-radius: 8px;
+          font-size: 0.65rem;
           font-weight: 700;
-          border: 1px solid #34c759;
+          border: 1px solid rgba(52, 199, 89, 0.3);
         }
 
         .patient-info {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding: 0.75rem;
+          gap: 0.6rem;
+          padding: 0.6rem;
           background: rgba(0, 0, 0, 0.02);
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 10px;
+          border: 1px solid rgba(0, 0, 0, 0.04);
         }
 
         .patient-avatar {
-          width: 36px;
-          height: 36px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           background: linear-gradient(135deg, #af52de, #bf5af2);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 12px;
+          font-size: 10px;
           font-weight: 700;
           color: white;
           flex-shrink: 0;
@@ -1342,13 +1351,13 @@ function MedicoDashboard() {
         .patient-details {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 0.6rem;
           flex: 1;
           min-width: 0;
         }
 
         .patient-name {
-          font-size: 0.95rem;
+          font-size: 0.8rem;
           color: #1d1d1f;
           flex: 1;
           min-width: 0;
@@ -1356,13 +1365,13 @@ function MedicoDashboard() {
         }
 
         .confirmed-badge {
-          background: #d1f2df;
+          background: #e8f8ec;
           color: #1d7040;
-          padding: 0.3rem 0.6rem;
-          border-radius: 12px;
-          font-size: 0.7rem;
+          padding: 0.25rem 0.45rem;
+          border-radius: 8px;
+          font-size: 0.65rem;
           font-weight: 700;
-          border: 1px solid #34c759;
+          border: 1px solid rgba(52, 199, 89, 0.3);
           flex-shrink: 0;
         }
 
@@ -1377,11 +1386,11 @@ function MedicoDashboard() {
           }
 
           .stat-card {
-            padding: 1.25rem;
+            padding: 1rem;
           }
 
           .stat-number {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
           }
 
           .actions-grid {
@@ -1390,64 +1399,169 @@ function MedicoDashboard() {
           }
 
           .action-content {
-            padding: 1rem;
-          }
-
-          .timeline-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.75rem;
-          }
-
-          .time-info {
-            gap: 0.75rem;
+            padding: 0.875rem;
           }
 
           .section-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
           }
 
           .timeline-card {
-            padding: 1.25rem;
+            padding: 0.875rem;
+          }
+
+          .timeline-header {
+            margin-bottom: 0.625rem;
+            gap: 0.625rem;
+          }
+
+          .date-block {
+            min-width: 38px;
+            padding: 0.4rem;
+          }
+
+          .day {
+            font-size: 1rem;
+          }
+
+          .month {
+            font-size: 0.55rem;
+          }
+
+          .time {
+            font-size: 0.9rem;
+          }
+
+          .relative-time {
+            font-size: 0.7rem;
+          }
+
+          .status-badge {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.65rem;
+          }
+
+          .timeline-body {
+            gap: 0.625rem;
+          }
+
+          .clinic-name {
+            font-size: 0.8rem;
+          }
+
+          .clinic-badge {
+            padding: 0.15rem 0.4rem;
+            font-size: 0.6rem;
+          }
+
+          .patient-info {
+            padding: 0.5rem;
+            gap: 0.5rem;
+          }
+
+          .patient-avatar {
+            width: 24px;
+            height: 24px;
+            font-size: 9px;
+          }
+
+          .patient-name {
+            font-size: 0.75rem;
+          }
+
+          .confirmed-badge {
+            padding: 0.2rem 0.35rem;
+            font-size: 0.6rem;
           }
         }
 
         @media (max-width: 480px) {
           .main-content {
-            padding: 1rem 0.75rem;
+            padding: 0.875rem 0.625rem;
           }
 
           .stats-grid {
-            gap: 0.75rem;
+            gap: 0.625rem;
           }
 
           .stat-card {
-            padding: 1rem;
+            padding: 0.875rem;
           }
 
           .stat-number {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
           }
 
           .timeline-card {
-            padding: 1rem;
+            padding: 0.75rem;
+          }
+
+          .timeline-header {
+            margin-bottom: 0.5rem;
+            gap: 0.5rem;
+          }
+
+          .date-block {
+            min-width: 34px;
+            padding: 0.35rem;
+          }
+
+          .day {
+            font-size: 0.9rem;
+          }
+
+          .month {
+            font-size: 0.5rem;
+          }
+
+          .time {
+            font-size: 0.85rem;
+          }
+
+          .relative-time {
+            font-size: 0.65rem;
+          }
+
+          .status-badge {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.6rem;
+          }
+
+          .timeline-body {
+            gap: 0.5rem;
+          }
+
+          .clinic-info {
+            gap: 0.4rem;
+          }
+
+          .clinic-name {
+            font-size: 0.75rem;
+          }
+
+          .clinic-badge {
+            padding: 0.125rem 0.35rem;
+            font-size: 0.55rem;
           }
 
           .patient-info {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
+            padding: 0.4rem;
+            gap: 0.4rem;
           }
 
-          .patient-details {
-            width: 100%;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
+          .patient-avatar {
+            width: 22px;
+            height: 22px;
+            font-size: 8px;
+          }
+
+          .patient-name {
+            font-size: 0.7rem;
           }
 
           .confirmed-badge {
-            align-self: flex-end;
+            padding: 0.15rem 0.3rem;
+            font-size: 0.55rem;
           }
 
           .action-content {
@@ -1455,8 +1569,16 @@ function MedicoDashboard() {
           }
 
           .action-icon-bg {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
+          }
+
+          .action-title {
+            font-size: 0.9rem;
+          }
+
+          .action-description {
+            font-size: 0.75rem;
           }
         }
 
