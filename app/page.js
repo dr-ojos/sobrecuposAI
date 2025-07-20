@@ -8,7 +8,7 @@ export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Función para navegar al chat completo
+  // Función para navegar al chat
   const goToChat = () => {
     router.push('/chat');
   };
@@ -34,32 +34,6 @@ export default function Home() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Logo SVG Component (tu logo real)
-  const SobrecuposLogo = ({ size = 48, className = "" }) => (
-    <svg 
-      width={size} 
-      height={size * 0.588}
-      viewBox="0 0 1005 591" 
-      className={className}
-      fill="currentColor"
-    >
-      <g transform="translate(0,591) scale(0.1,-0.1)">
-        <path d="M1363 3665 c-143 -39 -241 -131 -293 -272 -19 -53 -22 -77 -18 -156
-3 -84 8 -103 40 -168 34 -67 64 -101 320 -357 l283 -282 398 398 c372 372 397
-400 397 432 -1 57 -48 98 -98 85 -17 -4 -116 -95 -262 -240 -272 -271 -297
--288 -430 -289 -128 -1 -165 18 -307 157 -144 141 -173 188 -173 282 0 113 70
-209 174 240 119 36 179 13 316 -121 l105 -103 -60 -61 -60 -60 -95 94 c-98 98
--132 117 -172 95 -34 -18 -47 -40 -48 -79 0 -30 12 -46 118 -151 92 -92 126
--120 157 -128 83 -22 97 -12 360 249 132 131 255 245 274 255 45 22 126 30
-178 16 105 -28 183 -134 183 -245 -1 -110 -4 -114 -438 -548 l-397 -398 60
--60 60 -60 403 402 c374 374 406 408 440 477 36 73 37 78 37 186 0 108 -1 113
--38 187 -103 210 -346 293 -563 194 -42 -19 -87 -56 -164 -131 -58 -58 -110
--105 -115 -105 -5 0 -56 47 -114 104 -59 57 -124 113 -146 124 -102 51 -211
-64 -312 37z"/>
-      </g>
-    </svg>
-  );
-
   return (
     <main className="homepage">
       {/* Fondo con gradiente suave y elegante */}
@@ -75,13 +49,12 @@ export default function Home() {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="content-wrapper">
-          {/* Logo principal mejorado con SVG real */}
+          {/* Logo principal mejorado */}
           <div 
             ref={logoRef}
             className={`logo-container ${isVisible ? 'visible' : ''}`}
           >
             <div className="logo-glow">
-              <SobrecuposLogo size={120} className="sobrecupos-logo" />
               <div className="logo-text">
                 <span className="logo-main">Sobrecupos</span>
                 <span className="logo-ai">AI</span>
@@ -100,7 +73,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Botón CTA original mejorado */}
+          {/* Botón CTA mejorado con más prominencia */}
           <div className={`cta-section ${isVisible ? 'visible' : ''}`}>
             <AnimatedButton 
               onClick={goToChat}
@@ -129,87 +102,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Chat Embebido Modal */}
-      {showEmbeddedChat && (
-        <div className="chat-overlay">
-          <div className="embedded-chat">
-            <div className="chat-header">
-              <div className="chat-header-info">
-                <div className="bot-avatar-small">🤖</div>
-                <div>
-                  <h3>Sobrecupos AI</h3>
-                  <p className="status">En línea</p>
-                </div>
-              </div>
-              <div className="chat-header-actions">
-                <button onClick={goToChat} className="expand-btn" title="Abrir chat completo">
-                  ↗️
-                </button>
-                <button onClick={() => setShowEmbeddedChat(false)} className="close-btn">
-                  ✕
-                </button>
-              </div>
-            </div>
-
-            <div className="chat-messages-container">
-              {chatMessages.map((msg, i) => (
-                <div key={i} className={`chat-message ${msg.from}`}>
-                  {msg.from === "bot" && <div className="msg-avatar">🤖</div>}
-                  <div className="message-bubble">
-                    <p>{msg.text}</p>
-                    <span className="msg-time">
-                      {msg.timestamp.toLocaleTimeString('es-ES', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              
-              {chatLoading && (
-                <div className="chat-message bot">
-                  <div className="msg-avatar">🤖</div>
-                  <div className="typing-indicator">
-                    <div className="typing-dots">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            <div className="chat-input-area">
-              <div className="input-container">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendEmbeddedMessage()}
-                  placeholder="Escribe tu consulta..."
-                  disabled={chatLoading}
-                />
-                <button 
-                  onClick={() => sendEmbeddedMessage()}
-                  disabled={chatLoading || !chatInput.trim()}
-                  className="send-btn"
-                >
-                  {chatLoading ? "⏳" : "➤"}
-                </button>
-              </div>
-              <div className="chat-footer-actions">
-                <button onClick={openWhatsApp} className="whatsapp-btn">
-                  📱 Continuar en WhatsApp
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Sección ¿Cómo funciona? */}
       <section className="how-it-works">
         <div className="section-container">
@@ -219,7 +111,7 @@ export default function Home() {
               <div className="step-icon">🔍</div>
               <h3 className="step-title">Busca</h3>
               <p className="step-description">
-                Encuentra profesionales médicos disponibles por especialidad, nombre y/o síntomas.
+                Encuentra profesionales médicos disponibles por especialidad, nombre y/o sintomas.
               </p>
             </div>
             
@@ -341,11 +233,8 @@ export default function Home() {
           <div className="footer-content">
             <div className="footer-section">
               <div className="footer-logo">
-                <SobrecuposLogo size={32} className="footer-logo-svg" />
-                <div className="footer-logo-text">
-                  <span className="logo-main">Sobrecupos</span>
-                  <span className="logo-ai">AI</span>
-                </div>
+                <span className="logo-main">Sobrecupos</span>
+                <span className="logo-ai">AI</span>
               </div>
               <p className="footer-description">
                 La plataforma que conecta pacientes con médicos disponibles al instante.
@@ -490,7 +379,7 @@ export default function Home() {
           left: -20px;
           right: -20px;
           bottom: -20px;
-          background: linear-gradient(45deg, #007aff, #5856d6, #34c759, #ff3b30, #007aff);
+          background: linear-gradient(45deg, #007aff, #5856d6, #34c759, #007aff);
           border-radius: 40px;
           opacity: 0.1;
           filter: blur(40px);
@@ -500,19 +389,6 @@ export default function Home() {
         @keyframes logoGlow {
           0%, 100% { opacity: 0.08; transform: scale(1); }
           50% { opacity: 0.15; transform: scale(1.05); }
-        }
-
-        .sobrecupos-logo {
-          color: #ff3b30;
-          filter: drop-shadow(0 8px 16px rgba(255, 59, 48, 0.3));
-          animation: logoFloat 6s ease-in-out infinite;
-          display: block;
-          margin: 0 auto 1rem;
-        }
-
-        @keyframes logoFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
         }
 
         .logo-text {
@@ -594,14 +470,6 @@ export default function Home() {
         .cta-section.visible {
           opacity: 1;
           transform: translateY(0);
-        }
-
-        .cta-buttons-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          max-width: 600px;
-          margin: 0 auto 2rem;
         }
 
         .trust-indicator {
@@ -922,31 +790,13 @@ export default function Home() {
         }
 
         .footer-logo {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          margin-bottom: 1rem;
-        }
-
-        .footer-logo-svg {
-          color: #ff3b30;
-        }
-
-        .footer-logo-text {
-          display: flex;
-          align-items: baseline;
-          gap: 0.3rem;
-        }
-
-        .footer-logo-text .logo-main {
           font-size: 1.8rem;
           font-weight: 900;
-          color: white;
+          margin-bottom: 1rem;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        .footer-logo-text .logo-ai {
-          font-size: 1.3rem;
-          font-weight: 700;
+        .footer-logo .logo-ai {
           background: linear-gradient(135deg, #007aff, #5856d6);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -1027,11 +877,6 @@ export default function Home() {
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
           }
-
-          .cta-buttons-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-          }
         }
 
         @media (max-width: 768px) {
@@ -1102,16 +947,6 @@ export default function Home() {
             flex-direction: column;
             text-align: center;
             gap: 1.5rem;
-          }
-
-          .embedded-chat {
-            max-width: 100%;
-            height: 100%;
-            border-radius: 0;
-          }
-
-          .chat-overlay {
-            padding: 0;
           }
         }
 
@@ -1194,7 +1029,7 @@ export default function Home() {
   );
 }
 
-// Botón CTA mejorado estilo Apple - versión limpia
+// Botón CTA mejorado estilo Apple
 function AnimatedButton({ children, onClick, primary = false }) {
   return (
     <button
