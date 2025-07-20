@@ -1,8 +1,8 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-const SobrecuposAdminPanel = () => {
+export default function AdminPanelPage() {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [doctors, setDoctors] = useState([]);
@@ -11,14 +11,11 @@ const SobrecuposAdminPanel = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [message, setMessage] = useState('');
-
-  // Estados para formularios
+  const [msg, setMsg] = useState('');
   const [showDoctorForm, setShowDoctorForm] = useState(false);
   const [showClinicaForm, setShowClinicaForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  // Formulario de médico
   const [doctorForm, setDoctorForm] = useState({
     Name: '',
     Especialidad: '',
@@ -29,7 +26,6 @@ const SobrecuposAdminPanel = () => {
     Clinicas: []
   });
 
-  // Formulario de clínica
   const [clinicaForm, setClinicaForm] = useState({
     Nombre: '',
     Direccion: '',
@@ -122,15 +118,15 @@ const SobrecuposAdminPanel = () => {
           Seguros: [],
           Clinicas: []
         });
-        setMessage('✅ Médico guardado exitosamente');
+        setMsg('✅ Médico guardado exitosamente');
       } else {
-        setMessage('❌ Error guardando médico');
+        setMsg('❌ Error guardando médico');
       }
     } catch (error) {
-      setMessage('❌ Error de conexión');
+      setMsg('❌ Error de conexión');
     } finally {
       setLoading(false);
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMsg(''), 3000);
     }
   };
 
@@ -160,15 +156,15 @@ const SobrecuposAdminPanel = () => {
           Comuna: '',
           Telefono: ''
         });
-        setMessage('✅ Clínica guardada exitosamente');
+        setMsg('✅ Clínica guardada exitosamente');
       } else {
-        setMessage('❌ Error guardando clínica');
+        setMsg('❌ Error guardando clínica');
       }
     } catch (error) {
-      setMessage('❌ Error de conexión');
+      setMsg('❌ Error de conexión');
     } finally {
       setLoading(false);
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMsg(''), 3000);
     }
   };
 
@@ -183,14 +179,14 @@ const SobrecuposAdminPanel = () => {
         else if (type === 'clinica') await fetchClinicas();
         else if (type === 'sobrecupo') await fetchSobrecupos();
         
-        setMessage('✅ Elemento eliminado exitosamente');
+        setMsg('✅ Elemento eliminado exitosamente');
       } else {
-        setMessage('❌ Error eliminando elemento');
+        setMsg('❌ Error eliminando elemento');
       }
     } catch (error) {
-      setMessage('❌ Error de conexión');
+      setMsg('❌ Error de conexión');
     } finally {
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMsg(''), 3000);
     }
   };
 
@@ -206,568 +202,620 @@ const SobrecuposAdminPanel = () => {
     }
   };
 
-  const StatCard = ({ title, value, icon, trend, color = "blue" }) => (
-    <div className={`stat-card stat-card-${color}`}>
-      <div className="stat-content">
-        <div className="stat-header">
-          <h3 className="stat-title">{title}</h3>
-          <div className="stat-icon">{icon}</div>
-        </div>
-        <div className="stat-value">{value}</div>
-        {trend && (
-          <div className="stat-trend">
-            <span>📈 {trend}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString('es-CL', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
-  const DashboardContent = () => (
-    <div className="dashboard-content">
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Panel de Administración</h1>
-        <p className="dashboard-subtitle">Gestiona médicos, clínicas y sobrecupos</p>
-      </div>
-
-      <div className="stats-grid">
-        <StatCard
-          title="Médicos Registrados"
-          value={doctors.length}
-          icon="👨‍⚕️"
-          trend="+12% este mes"
-          color="blue"
-        />
-        <StatCard
-          title="Clínicas Activas"
-          value={clinicas.length}
-          icon="🏥"
-          trend="+8% este mes"
-          color="green"
-        />
-        <StatCard
-          title="Sobrecupos Creados"
-          value={sobrecupos.length}
-          icon="📅"
-          trend="+25% esta semana"
-          color="purple"
-        />
-        <StatCard
-          title="Reservas Pendientes"
-          value="12"
-          icon="⏳"
-          color="orange"
-        />
-      </div>
-
-      <div className="recent-activity">
-        <h2 className="section-title">Actividad Reciente</h2>
-        <div className="activity-list">
-          <div className="activity-item">
-            <div className="activity-icon">👨‍⚕️</div>
-            <div className="activity-content">
-              <p className="activity-text">Nuevo médico registrado</p>
-              <p className="activity-time">Hace 2 horas</p>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon">🏥</div>
-            <div className="activity-content">
-              <p className="activity-text">Clínica actualizada</p>
-              <p className="activity-time">Hace 1 día</p>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon">📅</div>
-            <div className="activity-content">
-              <p className="activity-text">15 sobrecupos reservados</p>
-              <p className="activity-time">Hace 3 horas</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const DoctorsContent = () => (
-    <div className="content-section">
-      <div className="section-header">
-        <h2 className="section-title">Gestión de Médicos</h2>
-        <button 
-          className="primary-button"
-          onClick={() => setShowDoctorForm(true)}
-        >
-          ➕ Agregar Médico
-        </button>
-      </div>
-
-      <div className="filters-section">
-        <div className="search-bar">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Buscar médicos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <select 
-          value={selectedFilter}
-          onChange={(e) => setSelectedFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="all">Todas las especialidades</option>
-          {especialidades.map(esp => (
-            <option key={esp} value={esp}>{esp}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="items-grid">
-        {doctors
-          .filter(doctor => {
-            const fields = doctor.fields || doctor;
-            const matchesSearch = fields.Name?.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesFilter = selectedFilter === 'all' || fields.Especialidad === selectedFilter;
-            return matchesSearch && matchesFilter;
-          })
-          .map(doctor => {
-            const fields = doctor.fields || doctor;
-            return (
-              <div key={doctor.id} className="item-card">
-                <div className="item-header">
-                  <div className="item-avatar">
-                    {fields.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
-                  </div>
-                  <div className="item-info">
-                    <h3 className="item-title">Dr. {fields.Name}</h3>
-                    <p className="item-subtitle">{fields.Especialidad}</p>
-                    <p className="item-detail">Atiende: {fields.Atiende}</p>
-                  </div>
-                  <div className="item-actions">
-                    <button
-                      className="action-button edit"
-                      onClick={() => handleEdit('doctor', doctor)}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="action-button delete"
-                      onClick={() => handleDelete('doctor', doctor.id)}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-                <div className="item-details">
-                  <p><strong>Email:</strong> {fields.Email}</p>
-                  <p><strong>WhatsApp:</strong> {fields.WhatsApp}</p>
-                  <p><strong>Seguros:</strong> {fields.Seguros?.join(', ') || 'No especificado'}</p>
-                </div>
-              </div>
-            );
-          })
-        }
-      </div>
-    </div>
-  );
-
-  const ClinicasContent = () => (
-    <div className="content-section">
-      <div className="section-header">
-        <h2 className="section-title">Gestión de Clínicas</h2>
-        <button 
-          className="primary-button"
-          onClick={() => setShowClinicaForm(true)}
-        >
-          ➕ Agregar Clínica
-        </button>
-      </div>
-
-      <div className="filters-section">
-        <div className="search-bar">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Buscar clínicas..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="items-grid">
-        {clinicas
-          .filter(clinica => {
-            const fields = clinica.fields || clinica;
-            return fields.Nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-          })
-          .map(clinica => {
-            const fields = clinica.fields || clinica;
-            return (
-              <div key={clinica.id} className="item-card">
-                <div className="item-header">
-                  <div className="item-avatar clinic">🏥</div>
-                  <div className="item-info">
-                    <h3 className="item-title">{fields.Nombre}</h3>
-                    <p className="item-subtitle">{fields.Comuna}</p>
-                    <p className="item-detail">{fields.Direccion}</p>
-                  </div>
-                  <div className="item-actions">
-                    <button
-                      className="action-button edit"
-                      onClick={() => handleEdit('clinica', clinica)}
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      className="action-button delete"
-                      onClick={() => handleDelete('clinica', clinica.id)}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-                <div className="item-details">
-                  <p><strong>Teléfono:</strong> {fields.Telefono || 'No especificado'}</p>
-                </div>
-              </div>
-            );
-          })
-        }
-      </div>
-    </div>
-  );
-
-  const SobrecuposContent = () => (
-    <div className="content-section">
-      <div className="section-header">
-        <h2 className="section-title">Gestión de Sobrecupos</h2>
-        <button 
-          className="primary-button"
-          onClick={() => router.push('/admin')}
-        >
-          ➕ Crear Sobrecupo
-        </button>
-      </div>
-
-      <div className="sobrecupos-list">
-        {sobrecupos.map(sobrecupo => {
-          const fields = sobrecupo.fields || sobrecupo;
-          return (
-            <div key={sobrecupo.id} className="sobrecupo-item">
-              <div className="sobrecupo-info">
-                <h3 className="sobrecupo-doctor">{fields.MedicoNombre || 'Dr. Desconocido'}</h3>
-                <p className="sobrecupo-specialty">{fields.Especialidad}</p>
-                <p className="sobrecupo-datetime">
-                  📅 {fields.Fecha} • 🕐 {fields.Hora}
-                </p>
-                <p className="sobrecupo-location">📍 {fields.Clínica}</p>
-              </div>
-              <div className="sobrecupo-status">
-                <span className="status-badge disponible">
-                  {fields.Estado || 'Disponible'}
-                </span>
-              </div>
-              <button
-                className="action-button delete"
-                onClick={() => handleDelete('sobrecupo', sobrecupo.id)}
-              >
-                🗑️
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-
-  const DoctorForm = () => (
-    <div className="modal-overlay">
-      <div className="modal">
-        <div className="modal-header">
-          <h2>{editingItem ? 'Editar Médico' : 'Agregar Médico'}</h2>
-          <button 
-            className="close-button"
-            onClick={() => {
-              setShowDoctorForm(false);
-              setEditingItem(null);
-            }}
-          >
-            ✕
-          </button>
-        </div>
-        <form onSubmit={handleDoctorSubmit} className="modal-form">
-          <div className="form-group">
-            <label>Nombre Completo</label>
-            <input
-              type="text"
-              value={doctorForm.Name}
-              onChange={(e) => setDoctorForm({...doctorForm, Name: e.target.value})}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Especialidad</label>
-            <select
-              value={doctorForm.Especialidad}
-              onChange={(e) => setDoctorForm({...doctorForm, Especialidad: e.target.value})}
-              required
-            >
-              <option value="">Seleccionar especialidad</option>
-              {especialidades.map(esp => (
-                <option key={esp} value={esp}>{esp}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label>WhatsApp</label>
-            <input
-              type="tel"
-              value={doctorForm.WhatsApp}
-              onChange={(e) => setDoctorForm({...doctorForm, WhatsApp: e.target.value})}
-              placeholder="+56912345678"
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={doctorForm.Email}
-              onChange={(e) => setDoctorForm({...doctorForm, Email: e.target.value})}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Atiende</label>
-            <select
-              value={doctorForm.Atiende}
-              onChange={(e) => setDoctorForm({...doctorForm, Atiende: e.target.value})}
-              required
-            >
-              <option value="">Seleccionar</option>
-              {opcionesAtiende.map(opcion => (
-                <option key={opcion} value={opcion}>{opcion}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label>Seguros</label>
-            <div className="checkbox-group">
-              {opcionesSeguros.map(seguro => (
-                <label key={seguro} className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={doctorForm.Seguros?.includes(seguro)}
-                    onChange={(e) => {
-                      const seguros = doctorForm.Seguros || [];
-                      if (e.target.checked) {
-                        setDoctorForm({...doctorForm, Seguros: [...seguros, seguro]});
-                      } else {
-                        setDoctorForm({...doctorForm, Seguros: seguros.filter(s => s !== seguro)});
-                      }
-                    }}
-                  />
-                  {seguro}
-                </label>
-              ))}
-            </div>
-          </div>
-          
-          <div className="modal-actions">
-            <button type="button" className="secondary-button" onClick={() => setShowDoctorForm(false)}>
-              Cancelar
-            </button>
-            <button type="submit" className="primary-button" disabled={loading}>
-              {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-
-  const ClinicaForm = () => (
-    <div className="modal-overlay">
-      <div className="modal">
-        <div className="modal-header">
-          <h2>{editingItem ? 'Editar Clínica' : 'Agregar Clínica'}</h2>
-          <button 
-            className="close-button"
-            onClick={() => {
-              setShowClinicaForm(false);
-              setEditingItem(null);
-            }}
-          >
-            ✕
-          </button>
-        </div>
-        <form onSubmit={handleClinicaSubmit} className="modal-form">
-          <div className="form-group">
-            <label>Nombre de la Clínica</label>
-            <input
-              type="text"
-              value={clinicaForm.Nombre}
-              onChange={(e) => setClinicaForm({...clinicaForm, Nombre: e.target.value})}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Dirección</label>
-            <input
-              type="text"
-              value={clinicaForm.Direccion}
-              onChange={(e) => setClinicaForm({...clinicaForm, Direccion: e.target.value})}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Comuna</label>
-            <input
-              type="text"
-              value={clinicaForm.Comuna}
-              onChange={(e) => setClinicaForm({...clinicaForm, Comuna: e.target.value})}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Teléfono</label>
-            <input
-              type="tel"
-              value={clinicaForm.Telefono}
-              onChange={(e) => setClinicaForm({...clinicaForm, Telefono: e.target.value})}
-              placeholder="+56223456789"
-            />
-          </div>
-          
-          <div className="modal-actions">
-            <button type="button" className="secondary-button" onClick={() => setShowClinicaForm(false)}>
-              Cancelar
-            </button>
-            <button type="submit" className="primary-button" disabled={loading}>
-              {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+  // Componente del Logo SVG de Sobrecupos
+  const SobrecuposLogo = ({ size = 32, className = "" }) => (
+    <svg 
+      width={size} 
+      height={size * 0.588}
+      viewBox="0 0 1005 591" 
+      className={className}
+      fill="currentColor"
+    >
+      <g transform="translate(0,591) scale(0.1,-0.1)">
+        <path d="M1363 3665 c-143 -39 -241 -131 -293 -272 -19 -53 -22 -77 -18 -156
+3 -84 8 -103 40 -168 34 -67 64 -101 320 -357 l283 -282 398 398 c372 372 397
+400 397 432 -1 57 -48 98 -98 85 -17 -4 -116 -95 -262 -240 -272 -271 -297
+-288 -430 -289 -128 -1 -165 18 -307 157 -144 141 -173 188 -173 282 0 113 70
+209 174 240 119 36 179 13 316 -121 l105 -103 -60 -61 -60 -60 -95 94 c-98 98
+-132 117 -172 95 -34 -18 -47 -40 -48 -79 0 -30 12 -46 118 -151 92 -92 126
+-120 157 -128 83 -22 97 -12 360 249 132 131 255 245 274 255 45 22 126 30
+178 16 105 -28 183 -134 183 -245 -1 -110 -4 -114 -438 -548 l-397 -398 60
+-60 60 -60 403 402 c374 374 406 408 440 477 36 73 37 78 37 186 0 108 -1 113
+-38 187 -103 210 -346 293 -563 194 -42 -19 -87 -56 -164 -131 -58 -58 -110
+-105 -115 -105 -5 0 -56 47 -114 104 -59 57 -124 113 -146 124 -102 51 -211
+64 -312 37z"/>
+      </g>
+    </svg>
   );
 
   return (
-    <div className="admin-panel">
-      {/* Header móvil */}
+    <main className="admin-container">
+      {/* Header móvil consistente con el diseño del proyecto */}
       <div className="mobile-header">
-        <button onClick={() => router.back()} className="back-button">
+        <button
+          onClick={() => router.back()}
+          className="back-button"
+        >
           ← Volver
         </button>
         <div className="header-title">
-          <span className="header-icon">🩺</span>
+          <SobrecuposLogo size={24} className="header-logo" />
           <span>Admin Panel</span>
         </div>
         <div className="header-spacer"></div>
       </div>
 
-      {/* Mensajes */}
-      {message && (
-        <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
-          {message}
+      {/* Navegación adicional consistente */}
+      <div className="admin-nav">
+        <button
+          onClick={() => router.push("/admin/doctors")}
+          className="nav-button"
+        >
+          👨‍⚕️ Médicos
+        </button>
+        <button
+          onClick={() => router.push("/admin/clinicas")}
+          className="nav-button"
+        >
+          🏥 Clínicas
+        </button>
+      </div>
+
+      {/* Navegación por tabs móvil consistente */}
+      <div className="mobile-tabs">
+        <button 
+          className={`tab-button ${activeSection === "dashboard" ? "active" : ""}`}
+          onClick={() => setActiveSection("dashboard")}
+        >
+          📊 Dashboard
+        </button>
+        <button 
+          className={`tab-button ${activeSection === "doctors" ? "active" : ""}`}
+          onClick={() => setActiveSection("doctors")}
+        >
+          👨‍⚕️ Médicos
+        </button>
+        <button 
+          className={`tab-button ${activeSection === "clinicas" ? "active" : ""}`}
+          onClick={() => setActiveSection("clinicas")}
+        >
+          🏥 Clínicas
+        </button>
+        <button 
+          className={`tab-button ${activeSection === "sobrecupos" ? "active" : ""}`}
+          onClick={() => setActiveSection("sobrecupos")}
+        >
+          📅 Sobrecupos
+        </button>
+      </div>
+
+      <div className="content-container">
+        {/* Mensajes de estado móvil consistentes */}
+        {msg && (
+          <div className={`mobile-message ${msg.includes("✅") ? "success" : msg.includes("❌") ? "error" : "warning"}`}>
+            {msg}
+          </div>
+        )}
+
+        {/* Dashboard */}
+        {activeSection === "dashboard" && (
+          <div className="dashboard-container">
+            <div className="dashboard-header">
+              <h1 className="dashboard-title">Panel Administrativo</h1>
+              <p className="dashboard-subtitle">Gestiona tu plataforma médica</p>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-icon">👨‍⚕️</div>
+                <div className="stat-content">
+                  <div className="stat-value">{doctors.length}</div>
+                  <div className="stat-label">Médicos Registrados</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">🏥</div>
+                <div className="stat-content">
+                  <div className="stat-value">{clinicas.length}</div>
+                  <div className="stat-label">Clínicas Activas</div>
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon">📅</div>
+                <div className="stat-content">
+                  <div className="stat-value">{sobrecupos.length}</div>
+                  <div className="stat-label">Sobrecupos Disponibles</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="quick-actions">
+              <h2 className="section-title">Acciones Rápidas</h2>
+              <div className="actions-grid">
+                <button 
+                  className="quick-action-card"
+                  onClick={() => router.push('/admin')}
+                >
+                  <div className="action-icon">➕</div>
+                  <div className="action-title">Crear Sobrecupo</div>
+                </button>
+                <button 
+                  className="quick-action-card"
+                  onClick={() => setShowDoctorForm(true)}
+                >
+                  <div className="action-icon">👨‍⚕️</div>
+                  <div className="action-title">Agregar Médico</div>
+                </button>
+                <button 
+                  className="quick-action-card"
+                  onClick={() => setShowClinicaForm(true)}
+                >
+                  <div className="action-icon">🏥</div>
+                  <div className="action-title">Agregar Clínica</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Médicos */}
+        {activeSection === "doctors" && (
+          <div className="section-container">
+            <div className="section-header">
+              <h2 className="section-title">Gestión de Médicos</h2>
+              <button 
+                className="primary-button"
+                onClick={() => setShowDoctorForm(true)}
+              >
+                ➕ Agregar Médico
+              </button>
+            </div>
+
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Buscar médicos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <select 
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">Todas las especialidades</option>
+                {especialidades.map(esp => (
+                  <option key={esp} value={esp}>{esp}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="items-grid">
+              {doctors
+                .filter(doctor => {
+                  const fields = doctor.fields || doctor;
+                  const matchesSearch = fields.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        fields.Especialidad?.toLowerCase().includes(searchTerm.toLowerCase());
+                  const matchesFilter = selectedFilter === 'all' || fields.Especialidad === selectedFilter;
+                  return matchesSearch && matchesFilter;
+                })
+                .map(doctor => {
+                  const fields = doctor.fields || doctor;
+                  return (
+                    <div key={doctor.id} className="item-card">
+                      <div className="item-header">
+                        <div className="item-avatar">
+                          {fields.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                        </div>
+                        <div className="item-actions">
+                          <button
+                            className="action-button edit"
+                            onClick={() => handleEdit('doctor', doctor)}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="action-button delete"
+                            onClick={() => handleDelete('doctor', doctor.id)}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                      <div className="item-content">
+                        <h3 className="item-title">Dr. {fields.Name}</h3>
+                        <p className="item-subtitle">{fields.Especialidad}</p>
+                        <div className="item-details">
+                          <p><strong>Email:</strong> {fields.Email}</p>
+                          <p><strong>WhatsApp:</strong> {fields.WhatsApp}</p>
+                          <p><strong>Atiende:</strong> {fields.Atiende}</p>
+                          {fields.Seguros && fields.Seguros.length > 0 && (
+                            <p><strong>Seguros:</strong> {fields.Seguros.join(', ')}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </div>
+        )}
+
+        {/* Clínicas */}
+        {activeSection === "clinicas" && (
+          <div className="section-container">
+            <div className="section-header">
+              <h2 className="section-title">Gestión de Clínicas</h2>
+              <button 
+                className="primary-button"
+                onClick={() => setShowClinicaForm(true)}
+              >
+                ➕ Agregar Clínica
+              </button>
+            </div>
+
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Buscar clínicas..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
+
+            <div className="items-grid">
+              {clinicas
+                .filter(clinica => {
+                  const fields = clinica.fields || clinica;
+                  return fields.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         fields.Comuna?.toLowerCase().includes(searchTerm.toLowerCase());
+                })
+                .map(clinica => {
+                  const fields = clinica.fields || clinica;
+                  return (
+                    <div key={clinica.id} className="item-card">
+                      <div className="item-header">
+                        <div className="item-avatar clinic">🏥</div>
+                        <div className="item-actions">
+                          <button
+                            className="action-button edit"
+                            onClick={() => handleEdit('clinica', clinica)}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="action-button delete"
+                            onClick={() => handleDelete('clinica', clinica.id)}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                      <div className="item-content">
+                        <h3 className="item-title">{fields.Nombre}</h3>
+                        <p className="item-subtitle">{fields.Comuna}</p>
+                        <div className="item-details">
+                          <p><strong>Dirección:</strong> {fields.Direccion}</p>
+                          {fields.Telefono && (
+                            <p><strong>Teléfono:</strong> {fields.Telefono}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </div>
+        )}
+
+        {/* Sobrecupos */}
+        {activeSection === "sobrecupos" && (
+          <div className="section-container">
+            <div className="section-header">
+              <h2 className="section-title">Gestión de Sobrecupos</h2>
+              <button 
+                className="primary-button"
+                onClick={() => router.push('/admin')}
+              >
+                ➕ Crear Sobrecupo
+              </button>
+            </div>
+
+            <div className="sobrecupos-list">
+              {sobrecupos.map(sobrecupo => {
+                const fields = sobrecupo.fields || sobrecupo;
+                return (
+                  <div key={sobrecupo.id} className="sobrecupo-item">
+                    <div className="sobrecupo-info">
+                      <h3 className="sobrecupo-doctor">{fields.MedicoNombre || 'Dr. Desconocido'}</h3>
+                      <p className="sobrecupo-specialty">{fields.Especialidad}</p>
+                      <p className="sobrecupo-datetime">
+                        📅 {fields.Fecha} • 🕐 {fields.Hora}
+                      </p>
+                      <p className="sobrecupo-location">📍 {fields.Clínica}</p>
+                    </div>
+                    <button
+                      className="action-button delete"
+                      onClick={() => handleDelete('sobrecupo', sobrecupo.id)}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Doctor Form Modal */}
+      {showDoctorForm && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">{editingItem ? 'Editar Médico' : 'Nuevo Médico'}</h2>
+              <button 
+                className="modal-close"
+                onClick={() => {
+                  setShowDoctorForm(false);
+                  setEditingItem(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleDoctorSubmit} className="modal-form">
+              <div className="form-grid">
+                <div className="form-field">
+                  <label className="field-label">Nombre Completo</label>
+                  <input
+                    type="text"
+                    value={doctorForm.Name}
+                    onChange={(e) => setDoctorForm({...doctorForm, Name: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Juan Pérez Silva"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Especialidad</label>
+                  <select
+                    value={doctorForm.Especialidad}
+                    onChange={(e) => setDoctorForm({...doctorForm, Especialidad: e.target.value})}
+                    className="field-select"
+                    required
+                  >
+                    <option value="">Seleccionar especialidad</option>
+                    {especialidades.map(esp => (
+                      <option key={esp} value={esp}>{esp}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">WhatsApp</label>
+                  <input
+                    type="tel"
+                    value={doctorForm.WhatsApp}
+                    onChange={(e) => setDoctorForm({...doctorForm, WhatsApp: e.target.value})}
+                    className="field-input"
+                    placeholder="+56 9 1234 5678"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Email</label>
+                  <input
+                    type="email"
+                    value={doctorForm.Email}
+                    onChange={(e) => setDoctorForm({...doctorForm, Email: e.target.value})}
+                    className="field-input"
+                    placeholder="doctor@email.com"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Atiende</label>
+                  <select
+                    value={doctorForm.Atiende}
+                    onChange={(e) => setDoctorForm({...doctorForm, Atiende: e.target.value})}
+                    className="field-select"
+                    required
+                  >
+                    <option value="">Seleccionar</option>
+                    {opcionesAtiende.map(opcion => (
+                      <option key={opcion} value={opcion}>{opcion}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="form-field full-width">
+                <label className="field-label">Seguros Aceptados</label>
+                <div className="checkbox-grid">
+                  {opcionesSeguros.map(seguro => (
+                    <label key={seguro} className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={doctorForm.Seguros?.includes(seguro)}
+                        onChange={(e) => {
+                          const seguros = doctorForm.Seguros || [];
+                          if (e.target.checked) {
+                            setDoctorForm({...doctorForm, Seguros: [...seguros, seguro]});
+                          } else {
+                            setDoctorForm({...doctorForm, Seguros: seguros.filter(s => s !== seguro)});
+                          }
+                        }}
+                        className="checkbox-input"
+                      />
+                      <span className="checkbox-label">{seguro}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  type="button" 
+                  className="secondary-button" 
+                  onClick={() => setShowDoctorForm(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="primary-button" 
+                  disabled={loading}
+                >
+                  {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* Sidebar */}
-      <div className="sidebar">
-        <div className="sidebar-header">
-          <div className="logo">
-            <div className="logo-icon">🩺</div>
-            <span className="logo-text">Sobrecupos Admin</span>
+      {/* Clinica Form Modal */}
+      {showClinicaForm && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">{editingItem ? 'Editar Clínica' : 'Nueva Clínica'}</h2>
+              <button 
+                className="modal-close"
+                onClick={() => {
+                  setShowClinicaForm(false);
+                  setEditingItem(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleClinicaSubmit} className="modal-form">
+              <div className="form-grid">
+                <div className="form-field">
+                  <label className="field-label">Nombre de la Clínica</label>
+                  <input
+                    type="text"
+                    value={clinicaForm.Nombre}
+                    onChange={(e) => setClinicaForm({...clinicaForm, Nombre: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Clínica Las Condes"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Comuna</label>
+                  <input
+                    type="text"
+                    value={clinicaForm.Comuna}
+                    onChange={(e) => setClinicaForm({...clinicaForm, Comuna: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Las Condes"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field full-width">
+                  <label className="field-label">Dirección</label>
+                  <input
+                    type="text"
+                    value={clinicaForm.Direccion}
+                    onChange={(e) => setClinicaForm({...clinicaForm, Direccion: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Av. Las Condes 123, Oficina 456"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Teléfono</label>
+                  <input
+                    type="tel"
+                    value={clinicaForm.Telefono}
+                    onChange={(e) => setClinicaForm({...clinicaForm, Telefono: e.target.value})}
+                    className="field-input"
+                    placeholder="+56 2 2345 6789"
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  type="button" 
+                  className="secondary-button" 
+                  onClick={() => setShowClinicaForm(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="primary-button" 
+                  disabled={loading}
+                >
+                  {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-        
-        <nav className="sidebar-nav">
-          <button
-            className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveSection('dashboard')}
-          >
-            <span className="nav-icon">📊</span>
-            <span>Dashboard</span>
-          </button>
-          
-          <button
-            className={`nav-item ${activeSection === 'doctors' ? 'active' : ''}`}
-            onClick={() => setActiveSection('doctors')}
-          >
-            <span className="nav-icon">👨‍⚕️</span>
-            <span>Médicos</span>
-            <span className="nav-badge">{doctors.length}</span>
-          </button>
-          
-          <button
-            className={`nav-item ${activeSection === 'clinicas' ? 'active' : ''}`}
-            onClick={() => setActiveSection('clinicas')}
-          >
-            <span className="nav-icon">🏥</span>
-            <span>Clínicas</span>
-            <span className="nav-badge">{clinicas.length}</span>
-          </button>
-          
-          <button
-            className={`nav-item ${activeSection === 'sobrecupos' ? 'active' : ''}`}
-            onClick={() => setActiveSection('sobrecupos')}
-          >
-            <span className="nav-icon">📅</span>
-            <span>Sobrecupos</span>
-            <span className="nav-badge">{sobrecupos.length}</span>
-          </button>
-        </nav>
-      </div>
-
-      {/* Main Content */}
-      <div className="main-content">
-        {activeSection === 'dashboard' && <DashboardContent />}
-        {activeSection === 'doctors' && <DoctorsContent />}
-        {activeSection === 'clinicas' && <ClinicasContent />}
-        {activeSection === 'sobrecupos' && <SobrecuposContent />}
-      </div>
-
-      {/* Modales */}
-      {showDoctorForm && <DoctorForm />}
-      {showClinicaForm && <ClinicaForm />}
+      )}
 
       <style jsx>{`
-        .admin-panel {
+        .admin-container {
           min-height: 100vh;
-          background: #f8fafc;
+          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          color: #1a1a1a;
+          padding-bottom: env(safe-area-inset-bottom);
         }
 
+        /* Header Móvil */
         .mobile-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 12px 16px;
-          background: white;
-          border-bottom: 1px solid #e2e8f0;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
           position: sticky;
           top: 0;
           z-index: 100;
+          height: 56px;
+          box-sizing: border-box;
         }
 
         .back-button {
           background: none;
           border: none;
-          color: #3b82f6;
-          font-size: 14px;
+          color: #007aff;
+          font-size: 15px;
           font-weight: 600;
+          padding: 8px 12px;
+          border-radius: 8px;
           cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+          background: rgba(0, 122, 255, 0.1);
         }
 
         .header-title {
@@ -776,307 +824,251 @@ const SobrecuposAdminPanel = () => {
           gap: 8px;
           font-size: 16px;
           font-weight: 700;
-          color: #1e293b;
+          color: #1a1a1a;
         }
 
-        .header-icon {
-          font-size: 20px;
+        .header-logo {
+          color: #007aff;
+          filter: drop-shadow(0 1px 2px rgba(0, 122, 255, 0.2));
         }
 
         .header-spacer {
           width: 64px;
         }
 
-        .message {
-          position: fixed;
-          top: 80px;
-          right: 20px;
-          padding: 12px 20px;
+        /* Navegación adicional */
+        .admin-nav {
+          display: flex;
+          gap: 8px;
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 56px;
+          z-index: 98;
+        }
+
+        .nav-button {
+          flex: 1;
+          padding: 8px 12px;
+          border: 1px solid #e5e5e7;
           border-radius: 8px;
-          font-weight: 500;
-          z-index: 1000;
-          animation: slideIn 0.3s ease;
-        }
-
-        .message.success {
-          background: #dcfce7;
-          color: #166534;
-          border: 1px solid #bbf7d0;
-        }
-
-        .message.error {
-          background: #fee2e2;
-          color: #dc2626;
-          border: 1px solid #fecaca;
-        }
-
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-
-        .sidebar {
-          width: 280px;
           background: white;
-          border-right: 1px solid #e2e8f0;
-          position: fixed;
-          height: calc(100vh - 57px);
-          top: 57px;
-          overflow-y: auto;
-          z-index: 50;
-        }
-
-        .sidebar-header {
-          padding: 20px;
-          border-bottom: 1px solid #e2e8f0;
-        }
-
-        .logo {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .logo-icon {
-          width: 36px;
-          height: 36px;
-          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-        }
-
-        .logo-text {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1e293b;
-        }
-
-        .sidebar-nav {
-          padding: 16px;
-        }
-
-        .nav-item {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 16px;
-          margin-bottom: 4px;
-          border: none;
-          background: none;
-          border-radius: 8px;
-          color: #64748b;
-          font-size: 14px;
-          font-weight: 500;
+          color: #007aff;
+          font-size: 12px;
+          font-weight: 600;
           cursor: pointer;
           transition: all 0.2s ease;
-          text-align: left;
         }
 
-        .nav-item:hover {
-          background: #f1f5f9;
-          color: #3b82f6;
+        .nav-button:hover {
+          background: #f0f4fa;
+          border-color: #007aff;
         }
 
-        .nav-item.active {
-          background: #dbeafe;
-          color: #3b82f6;
+        .nav-button:active {
+          transform: scale(0.98);
+        }
+
+        /* Tabs Móvil */
+        .mobile-tabs {
+          display: flex;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 112px;
+          z-index: 99;
+        }
+
+        .tab-button {
+          flex: 1;
+          padding: 12px 8px;
+          border: none;
+          background: transparent;
+          color: #8e8e93;
+          font-size: 13px;
           font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 2px solid transparent;
         }
 
-        .nav-icon {
-          font-size: 16px;
+        .tab-button.active {
+          color: #007aff;
+          border-bottom-color: #007aff;
         }
 
-        .nav-badge {
-          margin-left: auto;
-          background: #3b82f6;
-          color: white;
-          font-size: 11px;
-          font-weight: 600;
-          padding: 2px 6px;
-          border-radius: 10px;
-          min-width: 18px;
+        /* Container Principal */
+        .content-container {
+          padding: 16px;
+          max-width: 100vw;
+          box-sizing: border-box;
+        }
+
+        /* Mensajes */
+        .mobile-message {
+          padding: 12px 16px;
+          border-radius: 12px;
+          margin-bottom: 16px;
+          font-size: 13px;
+          font-weight: 500;
           text-align: center;
         }
 
-        .main-content {
-          margin-left: 280px;
-          margin-top: 57px;
-          padding: 24px;
-          min-height: calc(100vh - 57px);
+        .mobile-message.success {
+          background: #e6ffed;
+          color: #006400;
+          border: 1px solid #c3e6cb;
         }
 
-        .dashboard-content {
-          max-width: 1200px;
+        .mobile-message.error {
+          background: #fee;
+          color: #b00020;
+          border: 1px solid #f5c6cb;
+        }
+
+        .mobile-message.warning {
+          background: #fff3cd;
+          color: #856404;
+          border: 1px solid #ffeaa7;
+        }
+
+        /* Dashboard */
+        .dashboard-container {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
         }
 
         .dashboard-header {
-          margin-bottom: 32px;
+          padding: 24px 20px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          text-align: center;
         }
 
         .dashboard-title {
-          font-size: 28px;
+          font-size: 24px;
           font-weight: 700;
-          color: #1e293b;
           margin: 0 0 8px 0;
         }
 
         .dashboard-subtitle {
-          font-size: 16px;
-          color: #64748b;
+          font-size: 15px;
+          opacity: 0.9;
           margin: 0;
         }
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 20px;
-          margin-bottom: 32px;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          padding: 20px;
         }
 
         .stat-card {
-          background: white;
+          background: #f8faff;
+          border: 1px solid #e5e5e7;
           border-radius: 12px;
           padding: 20px;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          text-align: center;
           transition: all 0.2s ease;
         }
 
         .stat-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .stat-card-blue {
-          border-left: 4px solid #3b82f6;
-        }
-
-        .stat-card-green {
-          border-left: 4px solid #10b981;
-        }
-
-        .stat-card-purple {
-          border-left: 4px solid #8b5cf6;
-        }
-
-        .stat-card-orange {
-          border-left: 4px solid #f59e0b;
-        }
-
-        .stat-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-        }
-
-        .stat-title {
-          font-size: 14px;
-          font-weight: 500;
-          color: #64748b;
-          margin: 0;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .stat-icon {
-          font-size: 24px;
-          opacity: 0.7;
+          font-size: 32px;
+          margin-bottom: 12px;
         }
 
         .stat-value {
-          font-size: 32px;
+          font-size: 28px;
           font-weight: 700;
-          color: #1e293b;
-          margin-bottom: 8px;
+          color: #007aff;
+          margin-bottom: 4px;
         }
 
-        .stat-trend {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 12px;
-          color: #10b981;
+        .stat-label {
+          font-size: 14px;
+          color: #8e8e93;
           font-weight: 500;
         }
 
-        .recent-activity {
-          background: white;
-          border-radius: 12px;
-          padding: 24px;
-          border: 1px solid #e2e8f0;
+        .quick-actions {
+          padding: 20px;
+          border-top: 1px solid #e5e5e7;
         }
 
         .section-title {
-          font-size: 20px;
+          font-size: 18px;
           font-weight: 600;
-          color: #1e293b;
-          margin: 0 0 20px 0;
+          color: #1a1a1a;
+          margin: 0 0 16px 0;
         }
 
-        .activity-list {
-          display: flex;
-          flex-direction: column;
+        .actions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
           gap: 12px;
         }
 
-        .activity-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px;
-          border-radius: 8px;
-          background: #f8fafc;
+        .quick-action-card {
+          background: white;
+          border: 1px solid #e5e5e7;
+          border-radius: 12px;
+          padding: 16px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
 
-        .activity-icon {
-          width: 32px;
-          height: 32px;
-          background: #dbeafe;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 16px;
+        .quick-action-card:hover {
+          background: #f8faff;
+          border-color: #007aff;
+          transform: translateY(-1px);
         }
 
-        .activity-content {
-          flex: 1;
+        .action-icon {
+          font-size: 24px;
+          margin-bottom: 8px;
         }
 
-        .activity-text {
-          font-size: 14px;
-          color: #1e293b;
-          margin: 0 0 4px 0;
-          font-weight: 500;
-        }
-
-        .activity-time {
+        .action-title {
           font-size: 12px;
-          color: #64748b;
-          margin: 0;
+          font-weight: 600;
+          color: #1a1a1a;
         }
 
-        .content-section {
-          max-width: 1200px;
+        /* Secciones */
+        .section-container {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
         }
 
         .section-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 24px;
+          padding: 20px;
+          border-bottom: 1px solid #e5e5e7;
+          background: #f8faff;
         }
 
         .primary-button {
-          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          background: linear-gradient(135deg, #007aff, #5856d6);
           color: white;
           border: none;
           border-radius: 8px;
-          padding: 12px 20px;
+          padding: 10px 16px;
           font-size: 14px;
           font-weight: 600;
           cursor: pointer;
@@ -1085,15 +1077,15 @@ const SobrecuposAdminPanel = () => {
 
         .primary-button:hover {
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
         }
 
         .secondary-button {
           background: white;
-          color: #64748b;
-          border: 1px solid #e2e8f0;
+          color: #8e8e93;
+          border: 1px solid #e5e5e7;
           border-radius: 8px;
-          padding: 12px 20px;
+          padding: 10px 16px;
           font-size: 14px;
           font-weight: 500;
           cursor: pointer;
@@ -1101,142 +1093,111 @@ const SobrecuposAdminPanel = () => {
         }
 
         .secondary-button:hover {
-          background: #f8fafc;
-          border-color: #cbd5e1;
+          background: #f8faff;
+          border-color: #007aff;
         }
 
-        .filters-section {
+        /* Búsqueda */
+        .search-container {
           display: flex;
-          gap: 16px;
-          margin-bottom: 24px;
-          align-items: center;
+          gap: 12px;
+          padding: 16px 20px;
+          background: #f8faff;
+          border-bottom: 1px solid #e5e5e7;
         }
 
-        .search-bar {
+        .search-input {
           flex: 1;
-          position: relative;
-          display: flex;
-          align-items: center;
-          background: white;
-          border: 1px solid #e2e8f0;
+          padding: 10px 12px;
+          border: 1px solid #e5e5e7;
           border-radius: 8px;
-          padding: 0 12px;
-        }
-
-        .search-icon {
-          color: #94a3b8;
-          margin-right: 8px;
-        }
-
-        .search-bar input {
-          flex: 1;
-          border: none;
-          outline: none;
-          padding: 12px 0;
           font-size: 14px;
+          background: white;
+        }
+
+        .search-input:focus {
+          outline: none;
+          border-color: #007aff;
+          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
         }
 
         .filter-select {
-          background: white;
-          border: 1px solid #e2e8f0;
+          padding: 10px 12px;
+          border: 1px solid #e5e5e7;
           border-radius: 8px;
-          padding: 12px 16px;
           font-size: 14px;
-          cursor: pointer;
-          min-width: 200px;
+          background: white;
+          min-width: 160px;
         }
 
+        /* Items Grid */
         .items-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 20px;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 16px;
+          padding: 20px;
         }
 
         .item-card {
           background: white;
-          border: 1px solid #e2e8f0;
+          border: 1px solid #e5e5e7;
           border-radius: 12px;
-          padding: 20px;
+          padding: 16px;
           transition: all 0.2s ease;
         }
 
         .item-card:hover {
-          transform: translateY(-1px);
+          transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          border-color: #007aff;
         }
 
         .item-header {
           display: flex;
-          align-items: flex-start;
-          gap: 16px;
-          margin-bottom: 16px;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
         }
 
         .item-avatar {
-          width: 48px;
-          height: 48px;
-          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-          border-radius: 12px;
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
           font-weight: 700;
-          font-size: 16px;
-          flex-shrink: 0;
+          font-size: 14px;
         }
 
         .item-avatar.clinic {
-          background: linear-gradient(135deg, #10b981, #059669);
-          font-size: 20px;
-        }
-
-        .item-info {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .item-title {
-          font-size: 16px;
-          font-weight: 600;
-          color: #1e293b;
-          margin: 0 0 4px 0;
-        }
-
-        .item-subtitle {
-          font-size: 14px;
-          color: #3b82f6;
-          font-weight: 500;
-          margin: 0 0 4px 0;
-        }
-
-        .item-detail {
-          font-size: 12px;
-          color: #64748b;
-          margin: 0;
+          background: linear-gradient(135deg, #34c759, #248a3d);
+          font-size: 18px;
         }
 
         .item-actions {
           display: flex;
-          gap: 8px;
+          gap: 6px;
         }
 
         .action-button {
-          width: 32px;
-          height: 32px;
+          width: 28px;
+          height: 28px;
           border: none;
           border-radius: 6px;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
+          font-size: 12px;
           transition: all 0.2s ease;
-          font-size: 14px;
         }
 
         .action-button.edit {
           background: #dbeafe;
-          color: #3b82f6;
+          color: #007aff;
         }
 
         .action-button.edit:hover {
@@ -1252,6 +1213,26 @@ const SobrecuposAdminPanel = () => {
           background: #fecaca;
         }
 
+        .item-content {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .item-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin: 0;
+        }
+
+        .item-subtitle {
+          font-size: 14px;
+          color: #007aff;
+          font-weight: 500;
+          margin: 0;
+        }
+
         .item-details {
           display: flex;
           flex-direction: column;
@@ -1260,24 +1241,33 @@ const SobrecuposAdminPanel = () => {
 
         .item-details p {
           font-size: 12px;
-          color: #64748b;
+          color: #8e8e93;
           margin: 0;
         }
 
+        /* Sobrecupos */
         .sobrecupos-list {
+          padding: 20px;
           display: flex;
           flex-direction: column;
           gap: 12px;
         }
 
         .sobrecupo-item {
-          background: white;
-          border: 1px solid #e2e8f0;
+          background: #f8faff;
+          border: 1px solid #e5e5e7;
           border-radius: 12px;
-          padding: 20px;
+          padding: 16px;
           display: flex;
+          justify-content: space-between;
           align-items: center;
-          gap: 16px;
+          transition: all 0.2s ease;
+        }
+
+        .sobrecupo-item:hover {
+          background: white;
+          border-color: #007aff;
+          transform: translateY(-1px);
         }
 
         .sobrecupo-info {
@@ -1287,47 +1277,31 @@ const SobrecuposAdminPanel = () => {
         .sobrecupo-doctor {
           font-size: 16px;
           font-weight: 600;
-          color: #1e293b;
+          color: #1a1a1a;
           margin: 0 0 4px 0;
         }
 
         .sobrecupo-specialty {
           font-size: 14px;
-          color: #3b82f6;
+          color: #007aff;
           font-weight: 500;
           margin: 0 0 8px 0;
         }
 
         .sobrecupo-datetime {
           font-size: 12px;
-          color: #10b981;
+          color: #34c759;
           font-weight: 500;
           margin: 0 0 4px 0;
         }
 
         .sobrecupo-location {
           font-size: 12px;
-          color: #64748b;
+          color: #8e8e93;
           margin: 0;
         }
 
-        .sobrecupo-status {
-          margin-right: 16px;
-        }
-
-        .status-badge {
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .status-badge.disponible {
-          background: #dcfce7;
-          color: #166534;
-        }
-
+        /* Modales */
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -1356,20 +1330,20 @@ const SobrecuposAdminPanel = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 24px 24px 0 24px;
-          margin-bottom: 20px;
+          padding: 20px 20px 0 20px;
+          margin-bottom: 16px;
         }
 
-        .modal-header h2 {
-          font-size: 20px;
+        .modal-title {
+          font-size: 18px;
           font-weight: 600;
-          color: #1e293b;
+          color: #1a1a1a;
           margin: 0;
         }
 
-        .close-button {
-          width: 32px;
-          height: 32px;
+        .modal-close {
+          width: 28px;
+          height: 28px;
           border: none;
           background: #f1f5f9;
           border-radius: 6px;
@@ -1377,110 +1351,129 @@ const SobrecuposAdminPanel = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #64748b;
-          font-size: 16px;
+          color: #8e8e93;
+          font-size: 14px;
         }
 
-        .close-button:hover {
+        .modal-close:hover {
           background: #e2e8f0;
         }
 
         .modal-form {
-          padding: 0 24px 24px 24px;
+          padding: 0 20px 20px 20px;
         }
 
-        .form-group {
-          margin-bottom: 20px;
+        .form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 16px;
         }
 
-        .form-group label {
-          display: block;
+        .form-field {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .form-field.full-width {
+          grid-column: 1 / -1;
+        }
+
+        .field-label {
           font-size: 14px;
           font-weight: 500;
           color: #374151;
-          margin-bottom: 6px;
         }
 
-        .form-group input,
-        .form-group select {
-          width: 100%;
-          padding: 12px;
-          border: 1px solid #e2e8f0;
+        .field-input,
+        .field-select {
+          padding: 10px 12px;
+          border: 1px solid #e5e5e7;
           border-radius: 8px;
           font-size: 14px;
           transition: border-color 0.2s ease;
-          box-sizing: border-box;
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
+        .field-input:focus,
+        .field-select:focus {
           outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+          border-color: #007aff;
+          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
         }
 
-        .checkbox-group {
-          display: flex;
-          flex-direction: column;
+        .checkbox-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
           gap: 8px;
+          padding: 12px;
+          background: #f8faff;
+          border: 1px solid #e5e5e7;
+          border-radius: 8px;
         }
 
-        .checkbox-label {
+        .checkbox-item {
           display: flex;
           align-items: center;
-          gap: 8px;
-          font-size: 14px;
-          color: #374151;
+          gap: 6px;
           cursor: pointer;
         }
 
-        .checkbox-label input[type="checkbox"] {
-          width: auto;
-          margin: 0;
+        .checkbox-input {
+          width: 14px;
+          height: 14px;
+        }
+
+        .checkbox-label {
+          font-size: 13px;
+          color: #374151;
         }
 
         .modal-actions {
           display: flex;
-          gap: 12px;
+          gap: 10px;
           justify-content: flex-end;
-          margin-top: 24px;
-          padding-top: 20px;
-          border-top: 1px solid #e2e8f0;
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid #e5e5e7;
         }
 
+        /* Responsive */
         @media (max-width: 768px) {
-          .sidebar {
-            width: 100%;
-            position: relative;
-            height: auto;
-            top: 0;
+          .form-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
           }
 
-          .main-content {
-            margin-left: 0;
-            margin-top: 0;
+          .items-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
             padding: 16px;
           }
 
           .stats-grid {
             grid-template-columns: 1fr;
-            gap: 16px;
           }
 
-          .items-grid {
+          .actions-grid {
             grid-template-columns: 1fr;
-            gap: 16px;
           }
 
-          .filters-section {
+          .search-container {
             flex-direction: column;
-            align-items: stretch;
+            gap: 8px;
           }
 
           .section-header {
             flex-direction: column;
             align-items: stretch;
-            gap: 16px;
+            gap: 12px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .content-container {
+            padding: 12px;
           }
 
           .modal {
@@ -1488,17 +1481,86 @@ const SobrecuposAdminPanel = () => {
             max-width: calc(100% - 32px);
           }
 
-          .dashboard-title {
-            font-size: 24px;
+          .mobile-header {
+            padding: 10px 12px;
           }
 
-          .stat-value {
-            font-size: 28px;
+          .header-title {
+            font-size: 15px;
+          }
+        }
+
+        /* iOS Safari fixes */
+        @supports (-webkit-touch-callout: none) {
+          .field-input,
+          .field-select,
+          .search-input {
+            -webkit-appearance: none;
+            font-size: 16px;
+          }
+
+          .primary-button,
+          .action-button {
+            -webkit-appearance: none;
+            -webkit-touch-callout: none;
+          }
+        }
+
+        /* Smooth scrolling */
+        * {
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Safe area */
+        @supports (padding: max(0px)) {
+          .mobile-header {
+            padding-top: max(12px, env(safe-area-inset-top));
+          }
+
+          .admin-container {
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
+          }
+        }
+
+        /* Desktop responsive */
+        @media (min-width: 1024px) {
+          .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+          }
+
+          .mobile-header {
+            display: none;
+          }
+
+          .admin-nav {
+            display: none;
+          }
+
+          .mobile-tabs {
+            position: relative;
+            top: 0;
+            background: white;
+            border-bottom: 1px solid #e5e5e7;
+            padding: 0 24px;
+            justify-content: center;
+            max-width: 600px;
+            margin: 0 auto 24px;
+            border-radius: 12px;
+          }
+
+          .items-grid {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+          }
+
+          .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
           }
         }
       `}</style>
-    </div>
+    </main>
   );
-};
-
-export default SobrecuposAdminPanel;
+}
