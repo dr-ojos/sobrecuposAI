@@ -8,14 +8,92 @@ export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Función para navegar al chat
+  // Estados para el chat embebido
+  const [showEmbeddedChat, setShowEmbeddedChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    { 
+      from: "bot", 
+      text: "¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar sobrecupos médicos. ¿Qué especialista necesitas?",
+      timestamp: new Date()
+    }
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatSession, setChatSession] = useState({});
+  const chatEndRef = useRef();
+
+  // Función para navegar al chat completo
   const goToChat = () => {
     router.push('/chat');
+  };
+
+  // Función para abrir chat embebido
+  const openEmbeddedChat = () => {
+    setShowEmbeddedChat(true);
   };
 
   // Función para ir al login de médicos
   const goToMedicoLogin = () => {
     router.push('/auth/signin');
+  };
+
+  // Función para WhatsApp
+  const openWhatsApp = () => {
+    const message = "Hola, necesito un sobrecupo médico";
+    const whatsappUrl = `https://wa.me/56912345678?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  // Función para enviar mensaje en chat embebido
+  const sendEmbeddedMessage = async (message = null) => {
+    const messageToSend = message || chatInput;
+    if (!messageToSend.trim()) return;
+
+    // Agregar mensaje del usuario
+    const userMessage = {
+      from: "user",
+      text: messageToSend,
+      timestamp: new Date()
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput("");
+    setChatLoading(true);
+
+    try {
+      // Conectar con tu API existente
+      const response = await fetch("/api/bot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          message: messageToSend, 
+          session: chatSession 
+        })
+      });
+      
+      const data = await response.json();
+      
+      setTimeout(() => {
+        const botMessage = {
+          from: "bot",
+          text: data.text || "Perfecto, te estoy buscando las mejores opciones disponibles...",
+          timestamp: new Date()
+        };
+        setChatMessages(prev => [...prev, botMessage]);
+        setChatLoading(false);
+        setChatSession(data.session || {});
+      }, 800);
+
+    } catch (error) {
+      setTimeout(() => {
+        const errorMessage = {
+          from: "bot", 
+          text: "❌ Error de conexión. Puedes probar en WhatsApp o intentar de nuevo.",
+          timestamp: new Date()
+        };
+        setChatMessages(prev => [...prev, errorMessage]);
+        setChatLoading(false);
+      }, 800);
+    }
   };
 
   useEffect(() => {
@@ -34,6 +112,38 @@ export default function Home() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages]);
+
+  // Logo SVG Component (tu logo real)
+  const SobrecuposLogo = ({ size = 48, className = "" }) => (
+    <svg 
+      width={size} 
+      height={size * 0.588}
+      viewBox="0 0 1005 591" 
+      className={className}
+      fill="currentColor"
+    >
+      <g transform="translate(0,591) scale(0.1,-0.1)">
+        <path d="M1363 3665 c-143 -39 -241 -131 -293 -272 -19 -53 -22 -77 -18 -156
+3 -84 8 -103 40 -168 34 -67 64 -101 320 -357 l283 -282 398 398 c372 372 397
+400 397 432 -1 57 -48 98 -98 85 -17 -4 -116 -95 -262 -240 -272 -271 -297
+-288 -430 -289 -128 -1 -165 18 -307 157 -144 141 -173 188 -173 282 0 113 70
+209 174 240 119 36 179 13 316 -121 l105 -103 -60 -61 -60 -60 -95 94 c-98 98
+-132 117 -172 95 -34 -18 -47 -40 -48 -79 0 -30 12 -46 118 -151 92 -92 126
+-120 157 -128 83 -22 97 -12 360 249 132 131 255 245 274 255 45 22 126 30
+178 16 105 -28 183 -134 183 -245 -1 -110 -4 -114 -438 -548 l-397 -398 60
+-60 60 -60 403 402 c374 374 406 408 440 477 36 73 37 78 37 186 0 108 -1 113
+-38 187 -103 210 -346 293 -563 194 -42 -19 -87 -56 -164 -131 -58 -58 -110
+-105 -115 -105 -5 0 -56 47 -114 104 -59 57 -124 113 -146 124 -102 51 -211
+64 -312 37z"/>
+      </g>
+    </svg>
+  );
+
   return (
     <main className="homepage">
       {/* Fondo con gradiente suave y elegante */}
@@ -49,12 +159,13 @@ export default function Home() {
       {/* Hero Section */}
       <section className="hero-section">
         <div className="content-wrapper">
-          {/* Logo principal mejorado */}
+          {/* Logo principal mejorado con SVG real */}
           <div 
             ref={logoRef}
             className={`logo-container ${isVisible ? 'visible' : ''}`}
           >
             <div className="logo-glow">
+              <SobrecuposLogo size={64} className="sobrecupos-logo" />
               <div className="logo-text">
                 <span className="logo-main">Sobrecupos</span>
                 <span className="logo-ai">AI</span>
@@ -73,16 +184,34 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Botón CTA mejorado con más prominencia */}
+          {/* Botones CTA mejorados */}
           <div className={`cta-section ${isVisible ? 'visible' : ''}`}>
-            <AnimatedButton 
-              onClick={goToChat}
-              primary
-            >
-              <span className="button-icon">💬</span>
-              Comenzar Chat
-              <span className="button-arrow">→</span>
-            </AnimatedButton>
+            <div className="cta-buttons-grid">
+              <AnimatedButton 
+                onClick={openEmbeddedChat}
+                primary
+              >
+                <span className="button-icon">💬</span>
+                Chat Rápido
+                <span className="button-arrow">→</span>
+              </AnimatedButton>
+              
+              <AnimatedButton 
+                onClick={openWhatsApp}
+                whatsapp
+              >
+                <span className="button-icon">📱</span>
+                WhatsApp
+              </AnimatedButton>
+              
+              <AnimatedButton 
+                onClick={goToChat}
+                secondary
+              >
+                <span className="button-icon">🚀</span>
+                Chat Completo
+              </AnimatedButton>
+            </div>
           </div>
 
           {/* Indicador de confianza minimalista */}
@@ -102,6 +231,87 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Chat Embebido Modal */}
+      {showEmbeddedChat && (
+        <div className="chat-overlay">
+          <div className="embedded-chat">
+            <div className="chat-header">
+              <div className="chat-header-info">
+                <div className="bot-avatar-small">🤖</div>
+                <div>
+                  <h3>Sobrecupos AI</h3>
+                  <p className="status">En línea</p>
+                </div>
+              </div>
+              <div className="chat-header-actions">
+                <button onClick={goToChat} className="expand-btn" title="Abrir chat completo">
+                  ↗️
+                </button>
+                <button onClick={() => setShowEmbeddedChat(false)} className="close-btn">
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="chat-messages-container">
+              {chatMessages.map((msg, i) => (
+                <div key={i} className={`chat-message ${msg.from}`}>
+                  {msg.from === "bot" && <div className="msg-avatar">🤖</div>}
+                  <div className="message-bubble">
+                    <p>{msg.text}</p>
+                    <span className="msg-time">
+                      {msg.timestamp.toLocaleTimeString('es-ES', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              
+              {chatLoading && (
+                <div className="chat-message bot">
+                  <div className="msg-avatar">🤖</div>
+                  <div className="typing-indicator">
+                    <div className="typing-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            <div className="chat-input-area">
+              <div className="input-container">
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendEmbeddedMessage()}
+                  placeholder="Escribe tu consulta..."
+                  disabled={chatLoading}
+                />
+                <button 
+                  onClick={() => sendEmbeddedMessage()}
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="send-btn"
+                >
+                  {chatLoading ? "⏳" : "➤"}
+                </button>
+              </div>
+              <div className="chat-footer-actions">
+                <button onClick={openWhatsApp} className="whatsapp-btn">
+                  📱 Continuar en WhatsApp
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sección ¿Cómo funciona? */}
       <section className="how-it-works">
         <div className="section-container">
@@ -111,7 +321,7 @@ export default function Home() {
               <div className="step-icon">🔍</div>
               <h3 className="step-title">Busca</h3>
               <p className="step-description">
-                Encuentra profesionales médicos disponibles por especialidad, nombre y/o sintomas.
+                Encuentra profesionales médicos disponibles por especialidad, nombre y/o síntomas.
               </p>
             </div>
             
@@ -215,7 +425,7 @@ export default function Home() {
             No esperes más para cuidar tu salud. Agenda un sobrecupo y recibe la atención que necesitas al instante.
           </p>
           <div className="cta-buttons">
-            <AnimatedButton onClick={goToChat} primary>
+            <AnimatedButton onClick={openEmbeddedChat} primary>
               <span className="button-icon">💬</span>
               Agendar sobrecupo
             </AnimatedButton>
@@ -233,8 +443,11 @@ export default function Home() {
           <div className="footer-content">
             <div className="footer-section">
               <div className="footer-logo">
-                <span className="logo-main">Sobrecupos</span>
-                <span className="logo-ai">AI</span>
+                <SobrecuposLogo size={32} className="footer-logo-svg" />
+                <div className="footer-logo-text">
+                  <span className="logo-main">Sobrecupos</span>
+                  <span className="logo-ai">AI</span>
+                </div>
               </div>
               <p className="footer-description">
                 La plataforma que conecta pacientes con médicos disponibles al instante.
@@ -379,7 +592,7 @@ export default function Home() {
           left: -20px;
           right: -20px;
           bottom: -20px;
-          background: linear-gradient(45deg, #007aff, #5856d6, #34c759, #007aff);
+          background: linear-gradient(45deg, #007aff, #5856d6, #34c759, #ff3b30, #007aff);
           border-radius: 40px;
           opacity: 0.1;
           filter: blur(40px);
@@ -389,6 +602,19 @@ export default function Home() {
         @keyframes logoGlow {
           0%, 100% { opacity: 0.08; transform: scale(1); }
           50% { opacity: 0.15; transform: scale(1.05); }
+        }
+
+        .sobrecupos-logo {
+          color: #ff3b30;
+          filter: drop-shadow(0 8px 16px rgba(255, 59, 48, 0.3));
+          animation: logoFloat 6s ease-in-out infinite;
+          display: block;
+          margin: 0 auto 1rem;
+        }
+
+        @keyframes logoFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
         }
 
         .logo-text {
@@ -458,18 +684,19 @@ export default function Home() {
           opacity: 0;
           transform: translateY(30px);
           transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 100%;
-          text-align: center;
-          position: relative;
-          padding: 2rem 0;
         }
 
         .cta-section.visible {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        .cta-buttons-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          max-width: 600px;
+          margin: 0 auto 2rem;
         }
 
         .trust-indicator {
@@ -520,6 +747,274 @@ export default function Home() {
         .stat-divider {
           color: #c6c6c8;
           font-size: 1.5rem;
+        }
+
+        /* Chat Overlay */
+        .chat-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 2rem;
+        }
+
+        .embedded-chat {
+          background: white;
+          border-radius: 24px;
+          width: 100%;
+          max-width: 480px;
+          height: 600px;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
+          overflow: hidden;
+        }
+
+        .chat-header {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          padding: 1.5rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .chat-header-info {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .bot-avatar-small {
+          width: 40px;
+          height: 40px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.2rem;
+        }
+
+        .chat-header h3 {
+          margin: 0;
+          font-size: 1.1rem;
+          font-weight: 600;
+        }
+
+        .status {
+          margin: 0;
+          font-size: 0.8rem;
+          opacity: 0.8;
+        }
+
+        .chat-header-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .expand-btn, .close-btn {
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          color: white;
+          width: 32px;
+          height: 32px;
+          border-radius: 16px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.9rem;
+          transition: all 0.2s ease;
+        }
+
+        .expand-btn:hover, .close-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-messages-container {
+          flex: 1;
+          overflow-y: auto;
+          padding: 1.5rem;
+          background: #f8f9fa;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .chat-message {
+          display: flex;
+          align-items: flex-end;
+          gap: 0.5rem;
+          max-width: 80%;
+        }
+
+        .chat-message.user {
+          align-self: flex-end;
+          flex-direction: row-reverse;
+        }
+
+        .chat-message.bot {
+          align-self: flex-start;
+        }
+
+        .msg-avatar {
+          width: 28px;
+          height: 28px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.8rem;
+          flex-shrink: 0;
+        }
+
+        .message-bubble {
+          background: white;
+          padding: 0.8rem 1rem;
+          border-radius: 18px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          position: relative;
+        }
+
+        .chat-message.user .message-bubble {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+        }
+
+        .message-bubble p {
+          margin: 0;
+          font-size: 0.9rem;
+          line-height: 1.4;
+        }
+
+        .msg-time {
+          display: block;
+          font-size: 0.7rem;
+          opacity: 0.6;
+          margin-top: 0.3rem;
+        }
+
+        .typing-indicator {
+          background: white;
+          padding: 1rem;
+          border-radius: 18px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-dots {
+          display: flex;
+          gap: 0.3rem;
+        }
+
+        .typing-dots span {
+          width: 6px;
+          height: 6px;
+          background: #007aff;
+          border-radius: 50%;
+          animation: typing 1.4s ease-in-out infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+          0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.4;
+          }
+          30% {
+            transform: translateY(-8px);
+            opacity: 1;
+          }
+        }
+
+        .chat-input-area {
+          background: white;
+          border-top: 1px solid #e9ecef;
+          padding: 1rem;
+        }
+
+        .input-container {
+          display: flex;
+          gap: 0.5rem;
+          align-items: center;
+          background: #f8f9fa;
+          border-radius: 25px;
+          padding: 0.5rem;
+          margin-bottom: 0.8rem;
+        }
+
+        .input-container input {
+          flex: 1;
+          border: none;
+          outline: none;
+          background: transparent;
+          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+          color: #1d1d1f;
+        }
+
+        .input-container input::placeholder {
+          color: #8e8e93;
+        }
+
+        .send-btn {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          border: none;
+          width: 36px;
+          height: 36px;
+          border-radius: 18px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1rem;
+          transition: all 0.2s ease;
+        }
+
+        .send-btn:hover:not(:disabled) {
+          transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .chat-footer-actions {
+          text-align: center;
+        }
+
+        .whatsapp-btn {
+          background: linear-gradient(135deg, #25d366, #128c7e);
+          color: white;
+          border: none;
+          padding: 0.6rem 1.2rem;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .whatsapp-btn:hover {
+          transform: scale(1.02);
+          box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
         }
 
         /* Secciones */
@@ -790,13 +1285,31 @@ export default function Home() {
         }
 
         .footer-logo {
-          font-size: 1.8rem;
-          font-weight: 900;
+          display: flex;
+          align-items: center;
+          gap: 1rem;
           margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        .footer-logo .logo-ai {
+        .footer-logo-svg {
+          color: #ff3b30;
+        }
+
+        .footer-logo-text {
+          display: flex;
+          align-items: baseline;
+          gap: 0.3rem;
+        }
+
+        .footer-logo-text .logo-main {
+          font-size: 1.8rem;
+          font-weight: 900;
+          color: white;
+        }
+
+        .footer-logo-text .logo-ai {
+          font-size: 1.3rem;
+          font-weight: 700;
           background: linear-gradient(135deg, #007aff, #5856d6);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -877,6 +1390,11 @@ export default function Home() {
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
           }
+
+          .cta-buttons-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
         }
 
         @media (max-width: 768px) {
@@ -947,6 +1465,16 @@ export default function Home() {
             flex-direction: column;
             text-align: center;
             gap: 1.5rem;
+          }
+
+          .embedded-chat {
+            max-width: 100%;
+            height: 100%;
+            border-radius: 0;
+          }
+
+          .chat-overlay {
+            padding: 0;
           }
         }
 
@@ -1029,12 +1557,12 @@ export default function Home() {
   );
 }
 
-// Botón CTA mejorado estilo Apple
-function AnimatedButton({ children, onClick, primary = false }) {
+// Botón CTA mejorado estilo Apple con WhatsApp
+function AnimatedButton({ children, onClick, primary = false, secondary = false, whatsapp = false }) {
   return (
     <button
       onClick={onClick}
-      className={`animated-btn ${primary ? 'primary' : 'secondary'}`}
+      className={`animated-btn ${primary ? 'primary' : secondary ? 'secondary' : whatsapp ? 'whatsapp' : 'default'}`}
     >
       {children}
       <style jsx>{`
@@ -1064,6 +1592,12 @@ function AnimatedButton({ children, onClick, primary = false }) {
           box-shadow: 0 8px 30px rgba(0, 122, 255, 0.3);
         }
 
+        .animated-btn.whatsapp {
+          background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+          color: white;
+          box-shadow: 0 8px 30px rgba(37, 211, 102, 0.3);
+        }
+
         .animated-btn.secondary {
           background: rgba(255, 255, 255, 0.8);
           color: #007aff;
@@ -1088,6 +1622,10 @@ function AnimatedButton({ children, onClick, primary = false }) {
 
         .animated-btn.primary:hover {
           box-shadow: 0 12px 40px rgba(0, 122, 255, 0.4);
+        }
+
+        .animated-btn.whatsapp:hover {
+          box-shadow: 0 12px 40px rgba(37, 211, 102, 0.4);
         }
 
         .animated-btn.secondary:hover {
