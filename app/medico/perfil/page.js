@@ -19,13 +19,10 @@ export default function PerfilMedico() {
     Atiende: '',
     Seguros: [],
     Password: '',
-    // Nuevos campos
+    // Nuevos campos simplificados
     PhotoURL: '',
     RSS: '', // Registro Superintendencia de Salud
     Experiencia: '', // Experiencia profesional
-    AniosExperiencia: '', // Años de experiencia
-    Titulos: '', // Títulos y certificaciones
-    Hospital: '', // Hospital o clínica principal
   });
 
   const especialidades = [
@@ -37,7 +34,6 @@ export default function PerfilMedico() {
 
   const opcionesAtiende = ["Adultos", "Niños", "Ambos"];
   const opcionesSeguros = ["Fonasa", "Isapres", "Particular"];
-  const aniosOptions = ["1-2 años", "3-5 años", "6-10 años", "11-15 años", "16-20 años", "Más de 20 años"];
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -67,9 +63,6 @@ export default function PerfilMedico() {
           PhotoURL: data.fields?.PhotoURL || '',
           RSS: data.fields?.RSS || '',
           Experiencia: data.fields?.Experiencia || '',
-          AniosExperiencia: data.fields?.AniosExperiencia || '',
-          Titulos: data.fields?.Titulos || '',
-          Hospital: data.fields?.Hospital || '',
         });
       }
     } catch (error) {
@@ -321,31 +314,6 @@ export default function PerfilMedico() {
             </div>
 
             <div className="input-group">
-              <label className="input-label">Años de Experiencia</label>
-              <select
-                value={doctorData.AniosExperiencia}
-                onChange={(e) => setDoctorData({...doctorData, AniosExperiencia: e.target.value})}
-                className="form-select"
-              >
-                <option value="">Seleccionar...</option>
-                {aniosOptions.map(opcion => (
-                  <option key={opcion} value={opcion}>{opcion}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">Hospital o Clínica Principal</label>
-              <input
-                type="text"
-                value={doctorData.Hospital}
-                onChange={(e) => setDoctorData({...doctorData, Hospital: e.target.value})}
-                className="form-input"
-                placeholder="Hospital Las Condes, Clínica Alemana, etc."
-              />
-            </div>
-
-            <div className="input-group">
               <label className="input-label">Atiendo a</label>
               <select
                 value={doctorData.Atiende}
@@ -383,28 +351,17 @@ export default function PerfilMedico() {
             </div>
           </div>
 
-          {/* Experiencia y Títulos */}
+          {/* Experiencia Profesional */}
           <div className="form-section">
-            <h3 className="section-title">🎓 Experiencia y Formación</h3>
+            <h3 className="section-title">📝 Experiencia Profesional</h3>
             
-            <div className="input-group">
-              <label className="input-label">Títulos y Certificaciones</label>
-              <textarea
-                value={doctorData.Titulos}
-                onChange={(e) => setDoctorData({...doctorData, Titulos: e.target.value})}
-                className="form-textarea"
-                placeholder="Ej: Médico Cirujano Universidad de Chile, Especialista en Oftalmología, Certificación en Cirugía Refractiva..."
-                rows="3"
-              />
-            </div>
-
             <div className="input-group">
               <label className="input-label">Experiencia Profesional</label>
               <textarea
                 value={doctorData.Experiencia}
                 onChange={(e) => setDoctorData({...doctorData, Experiencia: e.target.value})}
                 className="form-textarea"
-                placeholder="Describe tu experiencia profesional, logros destacados, áreas de especialización, etc."
+                placeholder="Describe tu experiencia profesional, logros destacados, áreas de especialización, procedimientos que realizas, etc."
                 rows="4"
               />
               <div className="input-help">
