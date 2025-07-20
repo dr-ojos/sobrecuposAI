@@ -18,6 +18,7 @@ export default function AdminSobrecuposPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [existingSobrecupos, setExistingSobrecupos] = useState([]);
   const [activeTab, setActiveTab] = useState("crear");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Horarios disponibles (cada 60 minutos)
   const availableHours = [
@@ -63,7 +64,6 @@ export default function AdminSobrecuposPage() {
 
     setLoadingClinicas(true);
     try {
-      // Obtener información del médico
       const doctor = doctors.find(d => d.id === doctorId);
       
       if (!doctor?.fields?.Clinicas?.length) {
@@ -74,18 +74,15 @@ export default function AdminSobrecuposPage() {
         return;
       }
 
-      // Obtener todas las clínicas
       const clinicasRes = await fetch(`/api/clinicas`);
       const todasClinicas = await clinicasRes.json();
       
-      // Filtrar solo las clínicas del médico
       const clinicasDelMedico = todasClinicas.filter(c => 
         doctor.fields.Clinicas.includes(c.id)
       );
       
       setDoctorClinicas(clinicasDelMedico);
       
-      // Auto-seleccionar si solo tiene una clínica
       if (clinicasDelMedico.length === 1) {
         const clinica = clinicasDelMedico[0];
         setSelectedClinica(clinica);
@@ -106,11 +103,9 @@ export default function AdminSobrecuposPage() {
     setLoadingClinicas(false);
   };
 
-  // Función mejorada para manejar selección de médico
   const handleDoctorSelection = (doctor) => {
     setSelectedDoctor(doctor);
     fetchDoctorClinicas(doctor.id);
-    // Limpiar campos
     setClinica("");
     setDireccion("");
     setSelectedClinica(null);
@@ -228,16 +223,11 @@ export default function AdminSobrecuposPage() {
     });
   };
 
-  // Helper para obtener nombre real del médico
-  const getDoctorName = (doctor) => {
-    return `Dr. ${doctor.fields?.Name || 'Desconocido'}`;
-  };
-
   // Componente del Logo SVG de Sobrecupos
   const SobrecuposLogo = ({ size = 32, className = "" }) => (
     <svg 
       width={size} 
-      height={size * 0.588} // Mantener proporción del SVG original
+      height={size * 0.588}
       viewBox="0 0 1005 591" 
       className={className}
       fill="currentColor"
@@ -261,21 +251,39 @@ export default function AdminSobrecuposPage() {
 
   return (
     <div className="admin-dashboard">
-      {/* Sidebar de navegación */}
-      <aside className="sidebar">
+      {/* Overlay para móvil */}
+      {sidebarOpen && (
+        <div 
+          className="sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="logo-section">
-            <SobrecuposLogo size={40} className="logo-icon" />
+            <SobrecuposLogo size={36} className="logo-icon" />
             <div className="logo-text">
               <span className="brand-name">Sobrecupos</span>
               <span className="brand-sub">Admin Panel</span>
             </div>
           </div>
+          {/* Botón cerrar en móvil */}
+          <button 
+            className="close-sidebar-btn"
+            onClick={() => setSidebarOpen(false)}
+          >
+            ✕
+          </button>
         </div>
 
         <nav className="sidebar-nav">
           <button
-            onClick={() => setActiveTab("crear")}
+            onClick={() => {
+              setActiveTab("crear");
+              setSidebarOpen(false);
+            }}
             className={`nav-item ${activeTab === "crear" ? "active" : ""}`}
           >
             <span className="nav-icon">➕</span>
@@ -283,7 +291,10 @@ export default function AdminSobrecuposPage() {
           </button>
           
           <button
-            onClick={() => setActiveTab("gestionar")}
+            onClick={() => {
+              setActiveTab("gestionar");
+              setSidebarOpen(false);
+            }}
             className={`nav-item ${activeTab === "gestionar" ? "active" : ""}`}
           >
             <span className="nav-icon">📋</span>
@@ -293,7 +304,10 @@ export default function AdminSobrecuposPage() {
           <div className="nav-divider"></div>
 
           <button
-            onClick={() => router.push("/admin/doctors")}
+            onClick={() => {
+              router.push("/admin/doctors");
+              setSidebarOpen(false);
+            }}
             className="nav-item"
           >
             <span className="nav-icon">👨‍⚕️</span>
@@ -301,7 +315,10 @@ export default function AdminSobrecuposPage() {
           </button>
 
           <button
-            onClick={() => router.push("/admin/clinicas")}
+            onClick={() => {
+              router.push("/admin/clinicas");
+              setSidebarOpen(false);
+            }}
             className="nav-item"
           >
             <span className="nav-icon">🏥</span>
@@ -311,7 +328,10 @@ export default function AdminSobrecuposPage() {
 
         <div className="sidebar-footer">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => {
+              router.push('/');
+              setSidebarOpen(false);
+            }}
             className="nav-item back-home"
           >
             <span className="nav-icon">🏠</span>
@@ -322,14 +342,31 @@ export default function AdminSobrecuposPage() {
 
       {/* Contenido principal */}
       <main className="main-content">
-        {/* Header con breadcrumbs */}
+        {/* Header con hamburger y breadcrumbs */}
         <header className="main-header">
-          <div className="breadcrumbs">
-            <span className="breadcrumb">Admin</span>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb active">
-              {activeTab === "crear" ? "Crear Sobrecupos" : "Gestionar Sobrecupos"}
-            </span>
+          <div className="header-left">
+            <button 
+              className="hamburger-btn"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+            </button>
+            
+            <div className="breadcrumbs">
+              <button 
+                onClick={() => router.push('/admin')}
+                className="breadcrumb-btn"
+              >
+                <span className="breadcrumb-icon">⚙️</span>
+                <span>Admin</span>
+              </button>
+              <span className="breadcrumb-separator">/</span>
+              <span className="breadcrumb active">
+                {activeTab === "crear" ? "Crear Sobrecupos" : "Gestionar Sobrecupos"}
+              </span>
+            </div>
           </div>
           
           {/* Notificaciones de estado */}
@@ -340,7 +377,7 @@ export default function AdminSobrecuposPage() {
                 onClick={() => setMsg("")}
                 className="notification-close"
               >
-                ×
+                ✕
               </button>
             </div>
           )}
@@ -770,33 +807,79 @@ export default function AdminSobrecuposPage() {
       </main>
 
       <style jsx>{`
+        /* ===================
+           VARIABLES & RESET
+        =================== */
+        :root {
+          --primary: #007aff;
+          --primary-dark: #0051d5;
+          --secondary: #5856d6;
+          --success: #34c759;
+          --warning: #ff9500;
+          --error: #ff3b30;
+          --background: #f8faff;
+          --surface: #ffffff;
+          --text-primary: #1a1a1a;
+          --text-secondary: #8e8e93;
+          --border: #e5e5e7;
+          --shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+          --radius: 16px;
+          --radius-small: 8px;
+          --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .admin-dashboard {
-          display: grid;
-          grid-template-columns: 280px 1fr;
+          display: flex;
           min-height: 100vh;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+          background: linear-gradient(135deg, var(--background) 0%, #e8f2ff 100%);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-          color: #1a1a1a;
+          color: var(--text-primary);
+          position: relative;
         }
 
         /* ===================
            SIDEBAR STYLES
         =================== */
         .sidebar {
-          background: white;
-          border-right: 1px solid rgba(0, 0, 0, 0.08);
+          background: var(--surface);
+          border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
           position: fixed;
           height: 100vh;
           width: 280px;
-          z-index: 100;
+          z-index: 1000;
           box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+        }
+
+        .sidebar.open {
+          transform: translateX(0);
+        }
+
+        .sidebar-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 999;
+          opacity: 0;
+          animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+          to { opacity: 1; }
         }
 
         .sidebar-header {
           padding: 24px 20px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
 
         .logo-section {
@@ -806,7 +889,7 @@ export default function AdminSobrecuposPage() {
         }
 
         .logo-icon {
-          color: #007aff;
+          color: var(--primary);
           filter: drop-shadow(0 2px 4px rgba(0, 122, 255, 0.2));
         }
 
@@ -818,16 +901,33 @@ export default function AdminSobrecuposPage() {
         .brand-name {
           font-size: 18px;
           font-weight: 800;
-          color: #1a1a1a;
+          color: var(--text-primary);
           line-height: 1;
         }
 
         .brand-sub {
           font-size: 11px;
-          color: #8e8e93;
+          color: var(--text-secondary);
           font-weight: 500;
           text-transform: uppercase;
           letter-spacing: 0.5px;
+        }
+
+        .close-sidebar-btn {
+          background: none;
+          border: none;
+          font-size: 18px;
+          color: var(--text-secondary);
+          cursor: pointer;
+          padding: 8px;
+          border-radius: var(--radius-small);
+          transition: var(--transition);
+          display: none;
+        }
+
+        .close-sidebar-btn:hover {
+          background: rgba(0, 0, 0, 0.1);
+          color: var(--text-primary);
         }
 
         .sidebar-nav {
@@ -846,7 +946,7 @@ export default function AdminSobrecuposPage() {
           background: transparent;
           border-radius: 12px;
           cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: var(--transition);
           margin-bottom: 4px;
           text-align: left;
           color: #3c3c43;
@@ -856,19 +956,19 @@ export default function AdminSobrecuposPage() {
 
         .nav-item:hover {
           background: rgba(0, 122, 255, 0.08);
-          color: #007aff;
+          color: var(--primary);
           transform: translateX(2px);
         }
 
         .nav-item.active {
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          background: linear-gradient(135deg, var(--primary), var(--secondary));
           color: white;
           box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
         }
 
         .nav-item.active:hover {
           transform: translateX(0);
-          background: linear-gradient(135deg, #0051d5, #4c46c7);
+          background: linear-gradient(135deg, var(--primary-dark), #4c46c7);
         }
 
         .nav-icon {
@@ -885,22 +985,22 @@ export default function AdminSobrecuposPage() {
 
         .nav-divider {
           height: 1px;
-          background: rgba(0, 0, 0, 0.06);
+          background: var(--border);
           margin: 16px 16px;
         }
 
         .sidebar-footer {
           padding: 16px 12px;
-          border-top: 1px solid rgba(0, 0, 0, 0.06);
+          border-top: 1px solid var(--border);
         }
 
         .back-home {
-          color: #8e8e93 !important;
+          color: var(--text-secondary) !important;
           font-size: 13px !important;
         }
 
         .back-home:hover {
-          color: #007aff !important;
+          color: var(--primary) !important;
           background: rgba(0, 122, 255, 0.06) !important;
         }
 
@@ -908,36 +1008,92 @@ export default function AdminSobrecuposPage() {
            MAIN CONTENT STYLES
         =================== */
         .main-content {
-          margin-left: 280px;
+          flex: 1;
           display: flex;
           flex-direction: column;
           min-height: 100vh;
+          margin-left: 0;
         }
 
         .main-header {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          padding: 20px 32px;
+          border-bottom: 1px solid var(--border);
+          padding: 16px 24px;
           position: sticky;
           top: 0;
-          z-index: 50;
+          z-index: 100;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          gap: 16px;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .hamburger-btn {
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 8px;
+          border-radius: var(--radius-small);
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          transition: var(--transition);
+        }
+
+        .hamburger-btn:hover {
+          background: rgba(0, 122, 255, 0.1);
+        }
+
+        .hamburger-line {
+          width: 20px;
+          height: 2px;
+          background: var(--text-primary);
+          border-radius: 2px;
+          transition: var(--transition);
         }
 
         .breadcrumbs {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #8e8e93;
+          color: var(--text-secondary);
           font-size: 14px;
           font-weight: 500;
         }
 
+        .breadcrumb-btn {
+          background: none;
+          border: none;
+          color: var(--text-secondary);
+          cursor: pointer;
+          padding: 4px 8px;
+          border-radius: var(--radius-small);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          transition: var(--transition);
+        }
+
+        .breadcrumb-btn:hover {
+          background: rgba(0, 122, 255, 0.1);
+          color: var(--primary);
+        }
+
+        .breadcrumb-icon {
+          font-size: 12px;
+        }
+
         .breadcrumb.active {
-          color: #1a1a1a;
+          color: var(--text-primary);
           font-weight: 600;
         }
 
@@ -954,6 +1110,7 @@ export default function AdminSobrecuposPage() {
           font-size: 14px;
           font-weight: 500;
           animation: slideInFromTop 0.3s ease;
+          max-width: 400px;
         }
 
         .notification.success {
@@ -977,7 +1134,7 @@ export default function AdminSobrecuposPage() {
         .notification-close {
           background: none;
           border: none;
-          font-size: 18px;
+          font-size: 16px;
           cursor: pointer;
           color: inherit;
           opacity: 0.7;
@@ -1019,13 +1176,13 @@ export default function AdminSobrecuposPage() {
         }
 
         .wizard-step {
-          background: white;
+          background: var(--surface);
           border-radius: 20px;
           padding: 32px;
           margin-bottom: 24px;
-          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+          box-shadow: var(--shadow);
           border: 1px solid rgba(0, 0, 0, 0.04);
-          transition: all 0.3s ease;
+          transition: var(--transition);
         }
 
         .wizard-step:hover {
@@ -1044,7 +1201,7 @@ export default function AdminSobrecuposPage() {
           width: 48px;
           height: 48px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          background: linear-gradient(135deg, var(--primary), var(--secondary));
           color: white;
           display: flex;
           align-items: center;
@@ -1061,14 +1218,14 @@ export default function AdminSobrecuposPage() {
         .step-title {
           font-size: 24px;
           font-weight: 800;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0 0 4px;
           line-height: 1.2;
         }
 
         .step-subtitle {
           font-size: 16px;
-          color: #8e8e93;
+          color: var(--text-secondary);
           margin: 0;
           font-weight: 500;
         }
@@ -1088,9 +1245,9 @@ export default function AdminSobrecuposPage() {
           gap: 16px;
           padding: 20px;
           border: 2px solid #f0f0f0;
-          border-radius: 16px;
+          border-radius: var(--radius);
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: var(--transition);
           background: #fafbff;
           position: relative;
           overflow: hidden;
@@ -1109,7 +1266,7 @@ export default function AdminSobrecuposPage() {
         }
 
         .doctor-card:hover {
-          border-color: #007aff;
+          border-color: var(--primary);
           transform: translateY(-4px);
           box-shadow: 0 12px 32px rgba(0, 122, 255, 0.15);
         }
@@ -1119,7 +1276,7 @@ export default function AdminSobrecuposPage() {
         }
 
         .doctor-card.selected {
-          border-color: #007aff;
+          border-color: var(--primary);
           background: linear-gradient(135deg, #f0f8ff, #e8f4ff);
           box-shadow: 0 8px 32px rgba(0, 122, 255, 0.2);
         }
@@ -1131,8 +1288,8 @@ export default function AdminSobrecuposPage() {
         .doctor-avatar {
           width: 56px;
           height: 56px;
-          border-radius: 16px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-radius: var(--radius);
+          background: linear-gradient(135deg, var(--primary), var(--secondary));
           color: white;
           display: flex;
           align-items: center;
@@ -1154,14 +1311,14 @@ export default function AdminSobrecuposPage() {
         .doctor-name {
           font-size: 18px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0 0 4px;
           line-height: 1.3;
         }
 
         .doctor-specialty {
           font-size: 14px;
-          color: #007aff;
+          color: var(--primary);
           margin: 0;
           font-weight: 600;
         }
@@ -1175,7 +1332,7 @@ export default function AdminSobrecuposPage() {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: #34c759;
+          background: var(--success);
           color: white;
           display: flex;
           align-items: center;
@@ -1211,25 +1368,26 @@ export default function AdminSobrecuposPage() {
           display: block;
           font-size: 14px;
           font-weight: 600;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin-bottom: 8px;
         }
 
         .form-input, .form-select {
           width: 100%;
           padding: 16px 20px;
-          border: 2px solid #e5e5e7;
+          border: 2px solid var(--border);
           border-radius: 12px;
           font-size: 16px;
           font-weight: 500;
-          background: white;
-          transition: all 0.3s ease;
+          background: var(--surface);
+          transition: var(--transition);
           font-family: inherit;
+          box-sizing: border-box;
         }
 
         .form-input:focus, .form-select:focus {
           outline: none;
-          border-color: #007aff;
+          border-color: var(--primary);
           box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
           transform: translateY(-1px);
         }
@@ -1261,14 +1419,14 @@ export default function AdminSobrecuposPage() {
           gap: 16px;
           padding: 48px 20px;
           text-align: center;
-          color: #8e8e93;
+          color: var(--text-secondary);
         }
 
         .spinner {
           width: 32px;
           height: 32px;
           border: 3px solid #f0f0f0;
-          border-top: 3px solid #007aff;
+          border-top: 3px solid var(--primary);
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
@@ -1293,7 +1451,7 @@ export default function AdminSobrecuposPage() {
           text-align: center;
           background: #fafbff;
           border: 2px dashed #d1d1d6;
-          border-radius: 16px;
+          border-radius: var(--radius);
         }
 
         .empty-state.large {
@@ -1308,13 +1466,13 @@ export default function AdminSobrecuposPage() {
         .empty-title {
           font-size: 20px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0;
         }
 
         .empty-description {
           font-size: 16px;
-          color: #8e8e93;
+          color: var(--text-secondary);
           margin: 0;
           max-width: 400px;
         }
@@ -1325,7 +1483,7 @@ export default function AdminSobrecuposPage() {
         .selected-clinic {
           background: linear-gradient(135deg, #e6ffed, #d4ffdc);
           border: 2px solid #c3e6cb;
-          border-radius: 16px;
+          border-radius: var(--radius);
           padding: 24px;
           margin-top: 16px;
         }
@@ -1368,7 +1526,7 @@ export default function AdminSobrecuposPage() {
         .custom-location-section {
           margin-top: 24px;
           padding-top: 24px;
-          border-top: 1px solid #e5e5e7;
+          border-top: 1px solid var(--border);
         }
 
         .toggle-section {
@@ -1382,7 +1540,7 @@ export default function AdminSobrecuposPage() {
           cursor: pointer;
           font-size: 14px;
           font-weight: 600;
-          color: #007aff;
+          color: var(--primary);
         }
 
         .toggle-input {
@@ -1390,14 +1548,14 @@ export default function AdminSobrecuposPage() {
           width: 44px;
           height: 24px;
           appearance: none;
-          background: #e5e5e7;
+          background: var(--border);
           border-radius: 12px;
           cursor: pointer;
-          transition: all 0.3s ease;
+          transition: var(--transition);
         }
 
         .toggle-input:checked {
-          background: #007aff;
+          background: var(--primary);
         }
 
         .toggle-input::before {
@@ -1409,7 +1567,7 @@ export default function AdminSobrecuposPage() {
           height: 20px;
           background: white;
           border-radius: 50%;
-          transition: all 0.3s ease;
+          transition: var(--transition);
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
@@ -1420,7 +1578,7 @@ export default function AdminSobrecuposPage() {
         .custom-inputs {
           background: #f8faff;
           border: 2px solid #e8f2ff;
-          border-radius: 16px;
+          border-radius: var(--radius);
           padding: 24px;
           display: flex;
           flex-direction: column;
@@ -1439,37 +1597,41 @@ export default function AdminSobrecuposPage() {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 16px;
+          flex-wrap: wrap;
+          gap: 12px;
         }
 
         .quick-actions {
           display: flex;
           gap: 8px;
+          flex-wrap: wrap;
         }
 
         .quick-button {
           padding: 8px 12px;
-          border: 1px solid #e5e5e7;
-          border-radius: 8px;
-          background: white;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-small);
+          background: var(--surface);
           font-size: 12px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: var(--transition);
+          white-space: nowrap;
         }
 
         .quick-button.morning {
-          color: #ff9500;
-          border-color: #ff9500;
+          color: var(--warning);
+          border-color: var(--warning);
         }
 
         .quick-button.afternoon {
-          color: #5856d6;
-          border-color: #5856d6;
+          color: var(--secondary);
+          border-color: var(--secondary);
         }
 
         .quick-button.clear {
-          color: #ff3b30;
-          border-color: #ff3b30;
+          color: var(--error);
+          border-color: var(--error);
         }
 
         .quick-button:hover {
@@ -1487,26 +1649,26 @@ export default function AdminSobrecuposPage() {
 
         .hour-chip {
           padding: 14px 16px;
-          border: 2px solid #e5e5e7;
+          border: 2px solid var(--border);
           border-radius: 12px;
-          background: white;
+          background: var(--surface);
           font-size: 14px;
           font-weight: 600;
-          color: #1a1a1a;
+          color: var(--text-primary);
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: var(--transition);
           text-align: center;
         }
 
         .hour-chip:hover {
-          border-color: #007aff;
+          border-color: var(--primary);
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
         }
 
         .hour-chip.selected {
-          border-color: #007aff;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-color: var(--primary);
+          background: linear-gradient(135deg, var(--primary), var(--secondary));
           color: white;
           box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
           transform: translateY(-2px);
@@ -1522,7 +1684,7 @@ export default function AdminSobrecuposPage() {
 
         .selection-count {
           font-size: 14px;
-          color: #0051d5;
+          color: var(--primary-dark);
           font-weight: 600;
         }
 
@@ -1539,31 +1701,31 @@ export default function AdminSobrecuposPage() {
           font-size: 16px;
           font-weight: 700;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: var(--transition);
           text-decoration: none;
           font-family: inherit;
         }
 
         .primary-button, .action-button.primary {
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          background: linear-gradient(135deg, var(--primary), var(--secondary));
           color: white;
           box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
         }
 
         .primary-button:hover, .action-button.primary:hover {
-          background: linear-gradient(135deg, #0051d5, #4c46c7);
+          background: linear-gradient(135deg, var(--primary-dark), #4c46c7);
           transform: translateY(-2px);
           box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
         }
 
         .action-button.secondary {
-          background: white;
-          color: #007aff;
-          border: 2px solid #007aff;
+          background: var(--surface);
+          color: var(--primary);
+          border: 2px solid var(--primary);
         }
 
         .action-button.secondary:hover {
-          background: #007aff;
+          background: var(--primary);
           color: white;
           transform: translateY(-2px);
         }
@@ -1605,13 +1767,13 @@ export default function AdminSobrecuposPage() {
         .preview-title {
           font-size: 28px;
           font-weight: 800;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0 0 8px;
         }
 
         .preview-subtitle {
           font-size: 16px;
-          color: #8e8e93;
+          color: var(--text-secondary);
           margin: 0;
         }
 
@@ -1623,9 +1785,9 @@ export default function AdminSobrecuposPage() {
         }
 
         .preview-card {
-          background: white;
-          border: 1px solid #e5e5e7;
-          border-radius: 16px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
           padding: 24px;
           box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
         }
@@ -1633,7 +1795,7 @@ export default function AdminSobrecuposPage() {
         .preview-section-title {
           font-size: 16px;
           font-weight: 700;
-          color: #8e8e93;
+          color: var(--text-secondary);
           margin: 0 0 16px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -1649,7 +1811,7 @@ export default function AdminSobrecuposPage() {
           width: 48px;
           height: 48px;
           border-radius: 12px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          background: linear-gradient(135deg, var(--primary), var(--secondary));
           color: white;
           display: flex;
           align-items: center;
@@ -1665,13 +1827,13 @@ export default function AdminSobrecuposPage() {
         .preview-doctor-name {
           font-size: 18px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0 0 4px;
         }
 
         .preview-doctor-specialty {
           font-size: 14px;
-          color: #007aff;
+          color: var(--primary);
           margin: 0;
           font-weight: 600;
         }
@@ -1685,19 +1847,19 @@ export default function AdminSobrecuposPage() {
         .preview-clinic-name {
           font-size: 18px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0;
         }
 
         .preview-address {
           font-size: 14px;
-          color: #8e8e93;
+          color: var(--text-secondary);
           margin: 0;
         }
 
         .clinic-badge {
           font-size: 12px;
-          color: #34c759;
+          color: var(--success);
           background: #e6ffed;
           padding: 4px 8px;
           border-radius: 6px;
@@ -1713,7 +1875,7 @@ export default function AdminSobrecuposPage() {
 
         .preview-date {
           font-size: 18px;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0;
         }
 
@@ -1724,7 +1886,7 @@ export default function AdminSobrecuposPage() {
         }
 
         .preview-hour-chip {
-          background: #007aff;
+          background: var(--primary);
           color: white;
           padding: 6px 12px;
           border-radius: 8px;
@@ -1734,7 +1896,7 @@ export default function AdminSobrecuposPage() {
 
         .preview-total {
           font-size: 16px;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0;
         }
 
@@ -1760,13 +1922,13 @@ export default function AdminSobrecuposPage() {
         .section-title {
           font-size: 28px;
           font-weight: 800;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0 0 8px;
         }
 
         .section-subtitle {
           font-size: 16px;
-          color: #8e8e93;
+          color: var(--text-secondary);
           margin: 0;
         }
 
@@ -1777,12 +1939,12 @@ export default function AdminSobrecuposPage() {
         }
 
         .sobrecupo-item {
-          background: white;
-          border: 1px solid #e5e5e7;
-          border-radius: 16px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
           padding: 20px;
           box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-          transition: all 0.3s ease;
+          transition: var(--transition);
         }
 
         .sobrecupo-item:hover {
@@ -1804,25 +1966,25 @@ export default function AdminSobrecuposPage() {
         .doctor-name {
           font-size: 16px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: var(--text-primary);
           margin: 0 0 4px;
         }
 
         .specialty {
           font-size: 14px;
-          color: #007aff;
+          color: var(--primary);
           margin: 0;
           font-weight: 600;
         }
 
         .delete-button {
-          background: #ff3b30;
+          background: var(--error);
           color: white;
           border: none;
-          border-radius: 8px;
+          border-radius: var(--radius-small);
           padding: 8px 10px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: var(--transition);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1864,54 +2026,45 @@ export default function AdminSobrecuposPage() {
         /* ===================
            RESPONSIVE DESIGN
         =================== */
-        @media (max-width: 1200px) {
-          .admin-dashboard {
-            grid-template-columns: 260px 1fr;
-          }
-
+        @media (min-width: 1024px) {
           .sidebar {
-            width: 260px;
+            position: static;
+            transform: translateX(0);
+            height: 100vh;
           }
 
           .main-content {
-            margin-left: 260px;
+            margin-left: 280px;
           }
 
-          .content-area {
-            padding: 24px;
+          .hamburger-btn {
+            display: none;
+          }
+
+          .close-sidebar-btn {
+            display: none;
+          }
+
+          .sidebar-overlay {
+            display: none;
           }
         }
 
-        @media (max-width: 992px) {
-          .admin-dashboard {
-            grid-template-columns: 1fr;
-          }
-
-          .sidebar {
-            position: fixed;
-            left: -280px;
-            transition: left 0.3s ease;
-            z-index: 1000;
-          }
-
-          .sidebar.open {
-            left: 0;
-          }
-
-          .main-content {
-            margin-left: 0;
+        @media (max-width: 1023px) {
+          .close-sidebar-btn {
+            display: block;
           }
 
           .main-header {
-            padding: 16px 20px;
+            padding: 12px 16px;
           }
 
           .content-area {
-            padding: 20px;
+            padding: 20px 16px;
           }
 
           .wizard-step {
-            padding: 24px;
+            padding: 24px 20px;
           }
 
           .step-title {
@@ -1929,13 +2082,37 @@ export default function AdminSobrecuposPage() {
           .sobrecupos-grid {
             grid-template-columns: 1fr;
           }
+
+          .hours-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+
+          .quick-actions {
+            justify-content: center;
+          }
+
+          .preview-actions {
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .action-button {
+            width: 100%;
+            justify-content: center;
+          }
         }
 
         @media (max-width: 768px) {
           .main-header {
             flex-direction: column;
-            gap: 16px;
-            align-items: flex-start;
+            gap: 12px;
+            align-items: stretch;
+          }
+
+          .header-left {
+            justify-content: space-between;
           }
 
           .breadcrumbs {
@@ -1948,7 +2125,7 @@ export default function AdminSobrecuposPage() {
           }
 
           .wizard-step {
-            padding: 20px;
+            padding: 20px 16px;
             margin-bottom: 16px;
           }
 
@@ -2005,10 +2182,6 @@ export default function AdminSobrecuposPage() {
             font-size: 13px;
           }
 
-          .quick-actions {
-            flex-wrap: wrap;
-          }
-
           .quick-button {
             font-size: 11px;
             padding: 6px 8px;
@@ -2022,24 +2195,34 @@ export default function AdminSobrecuposPage() {
             padding: 20px;
           }
 
-          .preview-actions {
-            flex-direction: column;
-            gap: 12px;
+          .sobrecupo-item {
+            padding: 16px;
           }
 
-          .action-button {
-            width: 100%;
-            justify-content: center;
+          .empty-state {
+            padding: 32px 16px;
+          }
+
+          .empty-icon {
+            font-size: 36px;
+          }
+
+          .empty-title {
+            font-size: 18px;
+          }
+
+          .empty-description {
+            font-size: 14px;
           }
         }
 
         @media (max-width: 480px) {
           .content-area {
-            padding: 16px;
+            padding: 16px 12px;
           }
 
           .wizard-step {
-            padding: 16px;
+            padding: 16px 12px;
           }
 
           .step-title {
@@ -2096,23 +2279,20 @@ export default function AdminSobrecuposPage() {
           }
 
           .sobrecupo-item {
-            padding: 16px;
+            padding: 14px;
           }
 
           .empty-state {
-            padding: 32px 16px;
+            padding: 24px 12px;
           }
 
-          .empty-icon {
-            font-size: 36px;
+          .breadcrumbs {
+            flex-wrap: wrap;
           }
 
-          .empty-title {
-            font-size: 18px;
-          }
-
-          .empty-description {
-            font-size: 14px;
+          .breadcrumb-btn {
+            font-size: 12px;
+            padding: 2px 6px;
           }
         }
 
@@ -2143,57 +2323,7 @@ export default function AdminSobrecuposPage() {
         }
 
         /* ===================
-           DARK MODE SUPPORT (OPTIONAL)
-        =================== */
-        @media (prefers-color-scheme: dark) {
-          .admin-dashboard {
-            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
-            color: #ffffff;
-          }
-
-          .sidebar {
-            background: #1c1c1e;
-            border-right-color: rgba(255, 255, 255, 0.1);
-          }
-
-          .main-header {
-            background: rgba(28, 28, 30, 0.95);
-            border-bottom-color: rgba(255, 255, 255, 0.1);
-          }
-
-          .wizard-step, .preview-card, .sobrecupo-item {
-            background: #2c2c2e;
-            border-color: rgba(255, 255, 255, 0.1);
-          }
-
-          .form-input, .form-select {
-            background: #3a3a3c;
-            border-color: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-          }
-
-          .doctor-card {
-            background: #2c2c2e;
-            border-color: rgba(255, 255, 255, 0.1);
-          }
-
-          .hour-chip {
-            background: #3a3a3c;
-            border-color: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-          }
-
-          .step-title, .preview-title, .section-title, .doctor-name {
-            color: #ffffff;
-          }
-
-          .step-subtitle, .preview-subtitle, .section-subtitle {
-            color: #8e8e93;
-          }
-        }
-
-        /* ===================
-           ACCESSIBILITY
+           ACCESSIBILITY & UX
         =================== */
         @media (prefers-reduced-motion: reduce) {
           * {
@@ -2209,16 +2339,61 @@ export default function AdminSobrecuposPage() {
         .form-input:focus,
         .form-select:focus,
         .action-button:focus,
-        .primary-button:focus {
-          outline: 2px solid #007aff;
+        .primary-button:focus,
+        .hamburger-btn:focus,
+        .breadcrumb-btn:focus {
+          outline: 2px solid var(--primary);
           outline-offset: 2px;
+        }
+
+        /* ===================
+           DARK MODE SUPPORT
+        =================== */
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --background: #1c1c1e;
+            --surface: #2c2c2e;
+            --text-primary: #ffffff;
+            --text-secondary: #8e8e93;
+            --border: rgba(255, 255, 255, 0.1);
+          }
+
+          .admin-dashboard {
+            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+          }
+
+          .main-header {
+            background: rgba(28, 28, 30, 0.95);
+          }
+
+          .form-input, .form-select {
+            background: #3a3a3c;
+            color: #ffffff;
+          }
+
+          .doctor-card {
+            background: #2c2c2e;
+          }
+
+          .hour-chip {
+            background: #3a3a3c;
+            color: #ffffff;
+          }
+
+          .hamburger-line {
+            background: #ffffff;
+          }
         }
 
         /* ===================
            PRINT STYLES
         =================== */
         @media print {
-          .sidebar {
+          .sidebar,
+          .hamburger-btn,
+          .action-button,
+          .primary-button,
+          .delete-button {
             display: none;
           }
 
@@ -2226,17 +2401,56 @@ export default function AdminSobrecuposPage() {
             margin-left: 0;
           }
 
-          .action-button,
-          .primary-button,
-          .delete-button {
-            display: none;
-          }
-
           .wizard-step,
           .preview-card,
           .sobrecupo-item {
             box-shadow: none;
             border: 1px solid #000;
+          }
+        }
+
+        /* ===================
+           SMOOTH SCROLLING
+        =================== */
+        html {
+          scroll-behavior: smooth;
+        }
+
+        .content-area {
+          scroll-behavior: smooth;
+        }
+
+        /* ===================
+           FOCUS MANAGEMENT
+        =================== */
+        .sidebar:focus-within {
+          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3);
+        }
+
+        /* ===================
+           LOADING STATES
+        =================== */
+        .loading-state p {
+          font-style: italic;
+          color: var(--text-secondary);
+        }
+
+        /* ===================
+           HIGH CONTRAST MODE
+        =================== */
+        @media (prefers-contrast: high) {
+          .nav-item.active {
+            background: #000000;
+            color: #ffffff;
+          }
+
+          .primary-button, .action-button.primary {
+            background: #000000;
+          }
+
+          .doctor-card.selected {
+            border-color: #000000;
+            background: #ffffff;
           }
         }
       `}</style>
