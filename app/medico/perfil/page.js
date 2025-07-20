@@ -26,8 +26,6 @@ export default function PerfilMedico() {
     AniosExperiencia: '', // Años de experiencia
     Titulos: '', // Títulos y certificaciones
     Hospital: '', // Hospital o clínica principal
-    ConsultaOnline: false, // Si atiende consultas online
-    PrecioConsulta: '', // Precio de consulta
   });
 
   const especialidades = [
@@ -72,8 +70,6 @@ export default function PerfilMedico() {
           AniosExperiencia: data.fields?.AniosExperiencia || '',
           Titulos: data.fields?.Titulos || '',
           Hospital: data.fields?.Hospital || '',
-          ConsultaOnline: data.fields?.ConsultaOnline || false,
-          PrecioConsulta: data.fields?.PrecioConsulta || '',
         });
       }
     } catch (error) {
@@ -417,40 +413,6 @@ export default function PerfilMedico() {
             </div>
           </div>
 
-          {/* Consultas y Precios */}
-          <div className="form-section">
-            <h3 className="section-title">💰 Consultas y Tarifas</h3>
-            
-            <div className="input-group">
-              <label className="checkbox-item">
-                <input
-                  type="checkbox"
-                  checked={doctorData.ConsultaOnline}
-                  onChange={(e) => setDoctorData({...doctorData, ConsultaOnline: e.target.checked})}
-                  className="checkbox-input"
-                />
-                <span className="checkbox-custom"></span>
-                <span className="checkbox-label">Ofrezco consultas online</span>
-              </label>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">Precio de Consulta (CLP)</label>
-              <input
-                type="number"
-                value={doctorData.PrecioConsulta}
-                onChange={(e) => setDoctorData({...doctorData, PrecioConsulta: e.target.value})}
-                className="form-input"
-                placeholder="45000"
-                min="0"
-                step="1000"
-              />
-              <div className="input-help">
-                Precio sugerido para consulta presencial (opcional)
-              </div>
-            </div>
-          </div>
-
           {/* Seguridad */}
           <div className="form-section">
             <h3 className="section-title">🔐 Seguridad</h3>
@@ -487,6 +449,13 @@ export default function PerfilMedico() {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           color: #1a1a1a;
           padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        @media (min-width: 768px) {
+          .perfil-container {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0ebff 100%);
+            padding: 0;
+          }
         }
 
         .loading-screen {
@@ -579,11 +548,33 @@ export default function PerfilMedico() {
           box-sizing: border-box;
         }
 
+        @media (min-width: 768px) {
+          .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 32px 24px;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .form-container {
+            max-width: 900px;
+            padding: 40px 32px;
+          }
+        }
+
         .perfil-form {
           background: white;
           border-radius: 16px;
           overflow: hidden;
           box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        @media (min-width: 768px) {
+          .perfil-form {
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+          }
         }
 
         .form-section {
@@ -593,6 +584,38 @@ export default function PerfilMedico() {
 
         .form-section:last-of-type {
           border-bottom: none;
+        }
+
+        @media (min-width: 768px) {
+          .form-section {
+            padding: 32px 24px;
+          }
+          
+          .form-section:not(.photo-section) {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+          }
+
+          .form-section .section-title {
+            grid-column: 1 / -1;
+            margin-bottom: 24px;
+          }
+
+          .form-section .input-group:last-child {
+            grid-column: 1 / -1;
+          }
+
+          .form-section .checkbox-group {
+            grid-column: 1 / -1;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .form-section {
+            padding: 40px 32px;
+          }
         }
 
         .photo-section {
@@ -628,6 +651,15 @@ export default function PerfilMedico() {
           overflow: hidden;
           border: 4px solid #f0f0f0;
           background: #f8f8f8;
+        }
+
+        @media (min-width: 768px) {
+          .photo-preview {
+            width: 140px;
+            height: 140px;
+            border-radius: 70px;
+            border-width: 5px;
+          }
         }
 
         .profile-image {
@@ -832,6 +864,24 @@ export default function PerfilMedico() {
           width: calc(100% - 32px);
         }
 
+        @media (min-width: 768px) {
+          .save-btn {
+            margin: 32px 24px 24px;
+            width: calc(100% - 48px);
+            padding: 18px;
+            font-size: 16px;
+            border-radius: 14px;
+          }
+        }
+
+        @media (min-width: 1024px) {
+          .save-btn {
+            margin: 40px 32px 32px;
+            width: calc(100% - 64px);
+            padding: 20px;
+          }
+        }
+
         .save-btn:disabled {
           opacity: 0.5;
           cursor: not-allowed;
@@ -872,6 +922,50 @@ export default function PerfilMedico() {
           .photo-preview {
             width: 90px;
             height: 90px;
+          }
+        }
+
+        /* Mejoras para iPhone específico */
+        @media (max-width: 414px) and (-webkit-min-device-pixel-ratio: 2) {
+          .form-input, .form-select, .form-textarea {
+            font-size: 16px;
+            padding: 14px 16px;
+          }
+          
+          .save-btn {
+            padding: 18px;
+            font-size: 16px;
+          }
+          
+          .upload-btn {
+            padding: 12px 24px;
+            font-size: 14px;
+          }
+        }
+
+        /* Desktop específico */
+        @media (min-width: 1200px) {
+          .form-container {
+            max-width: 1000px;
+            padding: 48px 40px;
+          }
+          
+          .form-section {
+            padding: 48px 40px;
+          }
+          
+          .form-section:not(.photo-section) {
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+          }
+          
+          .section-title {
+            font-size: 18px;
+          }
+          
+          .form-input, .form-select, .form-textarea {
+            padding: 14px 16px;
+            font-size: 16px;
           }
         }
 
