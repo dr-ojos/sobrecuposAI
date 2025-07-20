@@ -484,7 +484,7 @@ function MedicoDashboard() {
             </div>
           </div>
           <button onClick={handleLogout} className="logout-btn">
-            <span className="logout-icon">→</span>
+            <span className="logout-text">Salir</span>
           </button>
         </div>
       </header>
@@ -661,10 +661,15 @@ function MedicoDashboard() {
                           <span className="relative-time">{getTimeFromNow(sobrecupo.fields?.Fecha, sobrecupo.fields?.Hora)}</span>
                         </div>
                       </div>
-                      <div className="status-container">
+                      <div className="card-actions">
                         <div className={`status-badge ${sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'available' : 'reserved'}`}>
                           {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'Disponible' : 'Reservado'}
                         </div>
+                        <button className="delete-btn" onClick={(e) => { e.stopPropagation(); /* Aquí iría la función de borrar */ }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"/>
+                          </svg>
+                        </button>
                       </div>
                     </div>
                     <div className="timeline-body">
@@ -772,27 +777,27 @@ function MedicoDashboard() {
         }
 
         .logout-btn {
-          background: rgba(0, 0, 0, 0.05);
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(0, 0, 0, 0.08);
           border-radius: 12px;
-          width: 44px;
-          height: 44px;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: all 0.3s ease;
+          padding: 0.5rem 0.75rem;
         }
 
         .logout-btn:hover {
           background: rgba(0, 0, 0, 0.08);
-          transform: translateY(-2px);
+          transform: translateY(-1px);
         }
 
-        .logout-icon {
+        .logout-text {
           color: #1d1d1f;
-          font-size: 18px;
-          font-weight: bold;
+          font-size: 0.85rem;
+          font-weight: 600;
+          letter-spacing: -0.2px;
         }
 
         .main-content {
@@ -1415,6 +1420,20 @@ function MedicoDashboard() {
             gap: 0.625rem;
           }
 
+          .card-actions {
+            gap: 0.4rem;
+          }
+
+          .delete-btn {
+            width: 24px;
+            height: 24px;
+          }
+
+          .delete-btn svg {
+            width: 14px;
+            height: 14px;
+          }
+
           .date-block {
             min-width: 38px;
             padding: 0.4rem;
@@ -1499,6 +1518,21 @@ function MedicoDashboard() {
           .timeline-header {
             margin-bottom: 0.5rem;
             gap: 0.5rem;
+          }
+
+          .card-actions {
+            gap: 0.35rem;
+          }
+
+          .delete-btn {
+            width: 22px;
+            height: 22px;
+          }
+
+          .delete-btn svg {
+            width: 12px;
+            height: 12px;
+            stroke-width: 1.8;
           }
 
           .date-block {
