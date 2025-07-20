@@ -1,10 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
-  experimental: {
-    serverComponentsExternalPackages: ['sharp', 'onnxruntime-node']
-  },
+  serverExternalPackages: ['sharp', 'onnxruntime-node'],
   images: {
     remotePatterns: [
       {
