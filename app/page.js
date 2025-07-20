@@ -8,92 +8,14 @@ export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Estados para el chat embebido
-  const [showEmbeddedChat, setShowEmbeddedChat] = useState(false);
-  const [chatMessages, setChatMessages] = useState([
-    { 
-      from: "bot", 
-      text: "¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar sobrecupos médicos. ¿Qué especialista necesitas?",
-      timestamp: new Date()
-    }
-  ]);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
-  const [chatSession, setChatSession] = useState({});
-  const chatEndRef = useRef();
-
   // Función para navegar al chat completo
   const goToChat = () => {
     router.push('/chat');
   };
 
-  // Función para abrir chat embebido
-  const openEmbeddedChat = () => {
-    setShowEmbeddedChat(true);
-  };
-
   // Función para ir al login de médicos
   const goToMedicoLogin = () => {
     router.push('/auth/signin');
-  };
-
-  // Función para WhatsApp
-  const openWhatsApp = () => {
-    const message = "Hola, necesito un sobrecupo médico";
-    const whatsappUrl = `https://wa.me/56912345678?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
-  // Función para enviar mensaje en chat embebido
-  const sendEmbeddedMessage = async (message = null) => {
-    const messageToSend = message || chatInput;
-    if (!messageToSend.trim()) return;
-
-    // Agregar mensaje del usuario
-    const userMessage = {
-      from: "user",
-      text: messageToSend,
-      timestamp: new Date()
-    };
-    setChatMessages(prev => [...prev, userMessage]);
-    setChatInput("");
-    setChatLoading(true);
-
-    try {
-      // Conectar con tu API existente
-      const response = await fetch("/api/bot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          message: messageToSend, 
-          session: chatSession 
-        })
-      });
-      
-      const data = await response.json();
-      
-      setTimeout(() => {
-        const botMessage = {
-          from: "bot",
-          text: data.text || "Perfecto, te estoy buscando las mejores opciones disponibles...",
-          timestamp: new Date()
-        };
-        setChatMessages(prev => [...prev, botMessage]);
-        setChatLoading(false);
-        setChatSession(data.session || {});
-      }, 800);
-
-    } catch (error) {
-      setTimeout(() => {
-        const errorMessage = {
-          from: "bot", 
-          text: "❌ Error de conexión. Puedes probar en WhatsApp o intentar de nuevo.",
-          timestamp: new Date()
-        };
-        setChatMessages(prev => [...prev, errorMessage]);
-        setChatLoading(false);
-      }, 800);
-    }
   };
 
   useEffect(() => {
@@ -111,12 +33,6 @@ export default function Home() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
-
-  useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chatMessages]);
 
   // Logo SVG Component (tu logo real)
   const SobrecuposLogo = ({ size = 48, className = "" }) => (
@@ -165,7 +81,7 @@ export default function Home() {
             className={`logo-container ${isVisible ? 'visible' : ''}`}
           >
             <div className="logo-glow">
-              <SobrecuposLogo size={64} className="sobrecupos-logo" />
+              <SobrecuposLogo size={120} className="sobrecupos-logo" />
               <div className="logo-text">
                 <span className="logo-main">Sobrecupos</span>
                 <span className="logo-ai">AI</span>
@@ -184,34 +100,16 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Botones CTA mejorados */}
+          {/* Botón CTA original mejorado */}
           <div className={`cta-section ${isVisible ? 'visible' : ''}`}>
-            <div className="cta-buttons-grid">
-              <AnimatedButton 
-                onClick={openEmbeddedChat}
-                primary
-              >
-                <span className="button-icon">💬</span>
-                Chat Rápido
-                <span className="button-arrow">→</span>
-              </AnimatedButton>
-              
-              <AnimatedButton 
-                onClick={openWhatsApp}
-                whatsapp
-              >
-                <span className="button-icon">📱</span>
-                WhatsApp
-              </AnimatedButton>
-              
-              <AnimatedButton 
-                onClick={goToChat}
-                secondary
-              >
-                <span className="button-icon">🚀</span>
-                Chat Completo
-              </AnimatedButton>
-            </div>
+            <AnimatedButton 
+              onClick={goToChat}
+              primary
+            >
+              <span className="button-icon">💬</span>
+              Comenzar Chat
+              <span className="button-arrow">→</span>
+            </AnimatedButton>
           </div>
 
           {/* Indicador de confianza minimalista */}
@@ -425,7 +323,7 @@ export default function Home() {
             No esperes más para cuidar tu salud. Agenda un sobrecupo y recibe la atención que necesitas al instante.
           </p>
           <div className="cta-buttons">
-            <AnimatedButton onClick={openEmbeddedChat} primary>
+            <AnimatedButton onClick={goToChat} primary>
               <span className="button-icon">💬</span>
               Agendar sobrecupo
             </AnimatedButton>
@@ -684,6 +582,13 @@ export default function Home() {
           opacity: 0;
           transform: translateY(30px);
           transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          text-align: center;
+          position: relative;
+          padding: 2rem 0;
         }
 
         .cta-section.visible {
