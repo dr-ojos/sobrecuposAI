@@ -1,1105 +1,860 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import { useRef, useEffect, useState } from "react";
+"use client";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function Home() {
-  const router = useRouter();
-  const logoRef = useRef();
-  const [isVisible, setIsVisible] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [chatInput, setChatInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-
-  // Función para manejar el envío del chat
-  const handleChatSubmit = (e) => {
-    e.preventDefault();
-    if (chatInput.trim()) {
-      // Navegar al chat con el mensaje inicial
-      router.push(`/chat?initial=${encodeURIComponent(chatInput.trim())}`);
+export default function ChatPage() {
+  const [messages, setMessages] = useState([
+    {
+      from: "bot",
+      text: "🤖\n¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.",
+      timestamp: new Date()
     }
-  };
+  ]);
+  const [input, setInput] = useState("");
+  const [session, setSession] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [hasProcessedInitial, setHasProcessedInitial] = useState(false);
+  const endRef = useRef(null);
+  const inputRef = useRef(null);
+  const searchParams = useSearchParams();
 
-  // Función para navegar al chat vacío
-  const goToChat = () => {
-    router.push('/chat');
-  };
+  // ✅ Procesar mensaje inicial de la homepage
+  useEffect(() => {
+    const initialMessage = searchParams.get('initial');
+    
+    if (initialMessage && !hasProcessedInitial) {
+      setHasProcessedInitial(true);
+      
+      // Agregar mensaje del usuario automáticamente
+      setMessages((msgs) => [...msgs, {
+        from: "user",
+        text: initialMessage,
+        timestamp: new Date()
+      }]);
+      
+      // Procesar el mensaje automáticamente
+      setTimeout(() => {
+        processInitialMessage(initialMessage);
+      }, 1000);
+    }
+  }, [searchParams, hasProcessedInitial]);
 
-  // Función para ir al login de médicos
-  const goToMedicoLogin = () => {
-    router.push('/auth/signin');
+  // ✅ Función para procesar mensaje inicial
+  const processInitialMessage = async (message) => {
+    setLoading(true);
+    setIsTyping(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const res = await fetch("/api/bot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: message,
+          session: {}
+        }),
+      });
+      
+      const data = await res.json();
+      
+      setIsTyping(false);
+      
+      // Manejar respuestas múltiples
+      if (Array.isArray(data.text)) {
+        data.text.forEach((t, index) => {
+          setTimeout(() => {
+            setMessages((msgs) => [...msgs, { 
+              from: "bot", 
+              text: t,
+              timestamp: new Date()
+            }]);
+          }, index * 500);
+        });
+      } else if (typeof data.text === "string" && data.text.includes("\n\n")) {
+        const parts = data.text.split("\n\n");
+        parts.forEach((t, index) => {
+          setTimeout(() => {
+            setMessages((msgs) => [...msgs, { 
+              from: "bot", 
+              text: t,
+              timestamp: new Date()
+            }]);
+          }, index * 500);
+        });
+      } else {
+        setMessages((msgs) => [...msgs, { 
+          from: "bot", 
+          text: data.text,
+          timestamp: new Date()
+        }]);
+      }
+      setSession(data.session || {});
+    } catch (error) {
+      setIsTyping(false);
+      setMessages((msgs) => [...msgs, { 
+        from: "bot", 
+        text: "❌ Error de conexión. Intenta de nuevo.",
+        timestamp: new Date()
+      }]);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
-    // Animación inicial más suave
-    setTimeout(() => setIsVisible(true), 500);
-    
-    // Efecto parallax muy sutil
-    const handleMouseMove = (e) => {
-      setMousePos({
-        x: (e.clientX / window.innerWidth - 0.5) * 10,
-        y: (e.clientY / window.innerHeight - 0.5) * 10
-      });
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Fix para scroll en móviles cuando aparece teclado
+  useEffect(() => {
+    const handleFocus = () => {
+      setTimeout(() => {
+        if (endRef.current) {
+          endRef.current.scrollIntoView({ 
+            behavior: "smooth", 
+            block: "end",
+            inline: "nearest"
+          });
+        }
+      }, 100);
+    };
+
+    const handleResize = () => {
+      setTimeout(() => {
+        if (endRef.current) {
+          endRef.current.scrollIntoView({ 
+            behavior: "auto", 
+            block: "end" 
+          });
+        }
+      }, 50);
+    };
+
+    const preventZoom = (e) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+
+    const preventViewportChange = () => {
+      const viewport = document.querySelector('meta[name=viewport]');
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+      }
     };
     
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener("focusin", handleFocus);
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("touchstart", preventZoom, { passive: false });
+    
+    preventViewportChange();
+    
+    return () => {
+      window.removeEventListener("focusin", handleFocus);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("touchstart", preventZoom);
+    };
   }, []);
 
-  return (
-    <main className="homepage">
-      {/* Fondo con gradiente suave y elegante */}
-      <div className="bg-gradient" />
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+    
+    const userMsg = { 
+      from: "user", 
+      text: input,
+      timestamp: new Date()
+    };
+    
+    setMessages((msgs) => [...msgs, userMsg]);
+    setInput("");
+    setLoading(true);
+    setIsTyping(true);
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      {/* Elementos flotantes minimalistas */}
-      <div className="floating-elements">
-        <div className="element element-1" style={{transform: `translate(${mousePos.x * 0.3}px, ${mousePos.y * 0.3}px)`}}>💊</div>
-        <div className="element element-2" style={{transform: `translate(${mousePos.x * -0.2}px, ${mousePos.y * 0.2}px)`}}>🩺</div>
-        <div className="element element-3" style={{transform: `translate(${mousePos.x * 0.4}px, ${mousePos.y * -0.3}px)`}}>⚡</div>
-      </div>
+      const res = await fetch("/api/bot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: input, 
+          session 
+        }),
+      });
+      const data = await res.json();
+      
+      setIsTyping(false);
+      
+      // Manejar respuestas múltiples
+      if (Array.isArray(data.text)) {
+        data.text.forEach((t, index) => {
+          setTimeout(() => {
+            setMessages((msgs) => [...msgs, { 
+              from: "bot", 
+              text: t,
+              timestamp: new Date()
+            }]);
+          }, index * 500);
+        });
+      } else if (typeof data.text === "string" && data.text.includes("\n\n")) {
+        const parts = data.text.split("\n\n");
+        parts.forEach((t, index) => {
+          setTimeout(() => {
+            setMessages((msgs) => [...msgs, { 
+              from: "bot", 
+              text: t,
+              timestamp: new Date()
+            }]);
+          }, index * 500);
+        });
+      } else {
+        setMessages((msgs) => [...msgs, { 
+          from: "bot", 
+          text: data.text,
+          timestamp: new Date()
+        }]);
+      }
+      setSession(data.session || {});
+    } catch {
+      setIsTyping(false);
+      setMessages((msgs) =>
+        [...msgs, { 
+          from: "bot", 
+          text: "❌ Error de conexión. Intenta de nuevo.",
+          timestamp: new Date()
+        }]
+      );
+    }
+    setLoading(false);
+  };
 
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="content-wrapper">
-          {/* Logo principal mejorado */}
-          <div 
-            ref={logoRef}
-            className={`logo-container ${isVisible ? 'visible' : ''}`}
-          >
-            <div className="logo-glow">
-              <div className="logo-text">
-                <span className="logo-main">Sobrecupos</span>
-                <span className="logo-ai">AI</span>
-              </div>
+  const formatTime = (timestamp) => {
+    return timestamp.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  // Sugerencias simples - solo cuando es el primer mensaje
+  const quickSuggestions = [
+    "Necesito oftalmólogo urgente",
+    "Consulta con cardiólogo", 
+    "Dolor de cabeza frecuente",
+    "Chequeo médico general",
+    "Necesito dermatólogo"
+  ];
+
+  const handleSuggestionClick = (suggestion) => {
+    setInput(suggestion);
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className="chat-container">
+      {/* Header mejorado */}
+      <header className="chat-header">
+        <div className="header-content">
+          <div className="bot-avatar">
+            <div className="avatar-gradient">
+              <span className="bot-icon">🤖</span>
             </div>
+            <div className="status-indicator"></div>
           </div>
-
-          {/* Tagline simplificado y más directo */}
-          <div className={`tagline ${isVisible ? 'visible' : ''}`}>
-            <h1>Encuentra tu cita médica al instante</h1>
-            <p className="subtitle">
-              <strong>Menos tiempo</strong> esperando, <strong>más tiempo</strong> cuidándote.
+          <div className="header-info">
+            <h1 className="bot-name">Sobrecupos AI</h1>
+            <p className="bot-status">
+              {isTyping ? "Escribiendo..." : "En línea"}
             </p>
           </div>
+          <button className="header-menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="1" fill="currentColor"/>
+              <circle cx="19" cy="12" r="1" fill="currentColor"/>
+              <circle cx="5" cy="12" r="1" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+      </header>
 
-          {/* Chat Input Principal - Estilo ChatGPT */}
-          <div className={`chat-container ${isVisible ? 'visible' : ''}`}>
-            <div className="chat-wrapper">
-              <form onSubmit={handleChatSubmit} className="chat-form">
-                <div className="chat-input-container">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => {
-                      setChatInput(e.target.value);
-                      setIsTyping(e.target.value.length > 0);
-                    }}
-                    placeholder="Busco un neurólogo para mañana..."
-                    className="chat-input"
-                    autoFocus
-                  />
-                  <button 
-                    type="submit"
-                    className={`send-button ${isTyping ? 'active' : ''}`}
-                    disabled={!chatInput.trim()}
-                  >
-                    <span className="send-icon">→</span>
-                  </button>
+      {/* Área de mensajes */}
+      <main className="chat-messages">
+        <div className="messages-container">
+          {messages.map((msg, i) => (
+            <div key={i} className={`message-wrapper ${msg.from}`}>
+              <div className={`message ${msg.from}`}>
+                {msg.from === "bot" && (
+                  <div className="message-avatar">
+                    <span>🤖</span>
+                  </div>
+                )}
+                <div className="message-content">
+                  <div className="message-bubble">
+                    <p style={{whiteSpace: 'pre-line'}}>{msg.text}</p>
+                  </div>
+                  <div className="message-time">
+                    {formatTime(msg.timestamp)}
+                  </div>
                 </div>
-              </form>
-              <div className="chat-suggestions">
-                <button 
-                  onClick={() => setChatInput('Necesito un cardiólogo urgente')}
-                  className="suggestion-chip"
-                >
-                  💓 Cardiólogo urgente
-                </button>
-                <button 
-                  onClick={() => setChatInput('Busco dermatólogo para esta semana')}
-                  className="suggestion-chip"
-                >
-                  👨‍⚕️ Dermatólogo esta semana
-                </button>
-                <button 
-                  onClick={() => setChatInput('¿Hay pediatras disponibles hoy?')}
-                  className="suggestion-chip"
-                >
-                  👶 Pediatra hoy
-                </button>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Sección ¿Cómo funciona? - Simplificada */}
-      <section className="how-it-works">
-        <div className="section-container">
-          <h2 className="section-title">¿Cómo funciona?</h2>
-          <div className="steps-grid">
-            <div className="step-card">
-              <div className="step-icon">💬</div>
-              <h3 className="step-title">Conversa</h3>
-              <p className="step-description">
-                Cuéntame qué especialista necesitas, cuándo y dónde.
-              </p>
-            </div>
-            
-            <div className="step-card">
-              <div className="step-icon">🔍</div>
-              <h3 className="step-title">Busco</h3>
-              <p className="step-description">
-                Encuentro los sobrecupos disponibles que se ajusten a tus necesidades.
-              </p>
-            </div>
-            
-            <div className="step-card">
-              <div className="step-icon">📅</div>
-              <h3 className="step-title">Agendas</h3>
-              <p className="step-description">
-                Te ayudo a agendar directamente con el profesional disponible.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Sección ¿Por qué elegir Sobrecupos? - Simplificada */}
-      <section className="benefits">
-        <div className="section-container">
-          <h2 className="section-title">¿Por qué elegir Sobrecupos?</h2>
-          <div className="benefits-grid">
-            <div className="benefit-card">
-              <div className="benefit-icon">⚡</div>
-              <h3 className="benefit-title">Velocidad</h3>
-              <p className="benefit-description">
-                Encuentra citas médicas en minutos, no en semanas.
-              </p>
-            </div>
-            
-            <div className="benefit-card">
-              <div className="benefit-icon">🤖</div>
-              <h3 className="benefit-title">Inteligencia Artificial</h3>
-              <p className="benefit-description">
-                Conversación natural que entiende exactamente lo que necesitas.
-              </p>
-            </div>
-            
-            <div className="benefit-card">
-              <div className="benefit-icon">🏥</div>
-              <h3 className="benefit-title">Profesionales Verificados</h3>
-              <p className="benefit-description">
-                Solo médicos registrados y acreditados por la Superintendencia de Salud.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Final - Simplificado */}
-      <section className="final-cta">
-        <div className="section-container">
-          <h2 className="cta-title">¿Listo para encontrar tu cita?</h2>
-          <p className="cta-subtitle">
-            Comienza ahora mismo y encuentra el sobrecupo que necesitas.
-          </p>
-          <div className="cta-buttons">
-            <AnimatedButton onClick={goToChat} primary>
-              <span className="button-icon">💬</span>
-              Empezar ahora
-            </AnimatedButton>
-            <AnimatedButton onClick={goToMedicoLogin}>
-              <span className="button-icon">👨‍⚕️</span>
-              Soy médico
-            </AnimatedButton>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer - Simplificado */}
-      <footer className="footer">
-        <div className="footer-container">
-          <div className="footer-content">
-            <div className="footer-section">
-              <div className="footer-logo">
-                <span className="logo-main">Sobrecupos</span>
-                <span className="logo-ai">AI</span>
-              </div>
-              <p className="footer-description">
-                Conectando pacientes con médicos disponibles al instante.
-              </p>
-            </div>
-            
-            <div className="footer-section">
-              <h4 className="footer-title">Pacientes</h4>
-              <ul className="footer-links">
-                <li><a href="/chat">Buscar sobrecupos</a></li>
-                <li><a href="/como-funciona">Cómo funciona</a></li>
-              </ul>
-            </div>
-            
-            <div className="footer-section">
-              <h4 className="footer-title">Médicos</h4>
-              <ul className="footer-links">
-                <li><a href="/auth/signin">Iniciar sesión</a></li>
-                <li><a href="/registro-medico">Registrarse</a></li>
-              </ul>
-            </div>
-            
-            <div className="footer-section">
-              <h4 className="footer-title">Legal</h4>
-              <ul className="footer-links">
-                <li><a href="/terminos">Términos de uso</a></li>
-                <li><a href="/privacidad">Privacidad</a></li>
-                <li><a href="/contacto">Contacto</a></li>
-              </ul>
-            </div>
-          </div>
+          ))}
           
-          <div className="footer-bottom">
-            <p className="footer-copyright">
-              © 2025 Sobrecupos AI. Todos los derechos reservados.
-            </p>
-            <div className="footer-social">
-              <a href="mailto:hola@sobrecupos.ai" className="social-link">📧</a>
-              <a href="#" className="social-link">📱</a>
+          {/* Indicador de typing */}
+          {isTyping && (
+            <div className="message-wrapper bot">
+              <div className="message bot">
+                <div className="message-avatar">
+                  <span>🤖</span>
+                </div>
+                <div className="message-content">
+                  <div className="typing-indicator">
+                    <div className="typing-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={endRef} />
+        </div>
+      </main>
+
+      {/* Input mejorado */}
+      <footer className="chat-input-container">
+        {/* Sugerencias simples solo en el primer mensaje */}
+        {messages.length === 1 && !hasProcessedInitial && (
+          <div className="simple-suggestions">
+            <p className="suggestions-label">Prueba preguntando</p>
+            <div className="suggestions-carousel">
+              {quickSuggestions.map((suggestion, i) => (
+                <button
+                  key={i}
+                  className="suggestion-chip"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
             </div>
           </div>
-        </div>
+        )}
+
+        <form className="chat-form" onSubmit={sendMessage}>
+          <div className="input-wrapper">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Escribe tu mensaje..."
+              className="chat-input"
+              disabled={loading}
+              autoFocus
+            />
+            <button
+              type="submit"
+              className={`send-button ${input.trim() ? 'active' : ''}`}
+              disabled={loading || !input.trim()}
+            >
+              {loading ? (
+                <div className="loading-spinner"></div>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path 
+                    d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
+        </form>
       </footer>
 
       <style jsx>{`
-        .homepage {
-          min-height: 100vh;
+        .chat-container {
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
           position: relative;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-          overflow-x: hidden;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
-        .bg-gradient {
+        /* Header */
+        .chat-header {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          padding: 1rem 1.5rem;
+          padding-top: calc(1rem + env(safe-area-inset-top, 0px));
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, 
-            #f8faff 0%, 
-            #e8f2ff 30%, 
-            #dde9ff 60%, 
-            #f0f8ff 100%);
-          background-size: 400% 400%;
-          animation: subtleShift 30s ease infinite;
-          z-index: -2;
+          z-index: 1000;
         }
 
-        @keyframes subtleShift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-
-        .floating-elements {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          pointer-events: none;
-          z-index: -1;
-        }
-
-        .element {
-          position: absolute;
-          font-size: 2rem;
-          opacity: 0.04;
-          animation: gentleFloat 12s ease-in-out infinite;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
-        }
-
-        .element-1 { top: 15%; right: 20%; animation-delay: 0s; }
-        .element-2 { bottom: 20%; left: 15%; animation-delay: 4s; }
-        .element-3 { top: 45%; left: 25%; animation-delay: 8s; }
-
-        @keyframes gentleFloat {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.04; }
-          50% { transform: translateY(-20px) rotate(3deg); opacity: 0.08; }
-        }
-
-        /* Hero Section */
-        .hero-section {
-          min-height: 100vh;
+        .header-content {
           display: flex;
           align-items: center;
-          justify-content: center;
-          position: relative;
-          z-index: 1;
-        }
-
-        .content-wrapper {
-          text-align: center;
-          max-width: 900px;
-          padding: 2rem;
-          position: relative;
-        }
-
-        .logo-container {
-          margin-bottom: 3rem;
-          opacity: 0;
-          transform: translateY(40px) scale(0.95);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .logo-container.visible {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-
-        .logo-glow {
-          position: relative;
-          display: inline-block;
-        }
-
-        .logo-glow::before {
-          content: '';
-          position: absolute;
-          top: -20px;
-          left: -20px;
-          right: -20px;
-          bottom: -20px;
-          background: linear-gradient(45deg, #007aff, #5856d6, #34c759, #007aff);
-          border-radius: 40px;
-          opacity: 0.1;
-          filter: blur(40px);
-          animation: logoGlow 8s ease-in-out infinite;
-        }
-
-        @keyframes logoGlow {
-          0%, 100% { opacity: 0.08; transform: scale(1); }
-          50% { opacity: 0.15; transform: scale(1.05); }
-        }
-
-        .logo-text {
-          position: relative;
-          background: linear-gradient(135deg, #1d1d1f 0%, #515154 50%, #1d1d1f 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          font-size: 5rem;
-          font-weight: 900;
-          letter-spacing: -0.04em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .logo-ai {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 50%, #007aff 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .tagline {
-          margin-bottom: 4rem;
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
-        }
-
-        .tagline.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .tagline h1 {
-          font-size: 3.5rem;
-          font-weight: 800;
-          color: #1d1d1f;
-          margin-bottom: 1.5rem;
-          line-height: 1.1;
-          letter-spacing: -0.03em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .subtitle {
-          font-size: 1.5rem;
-          color: #424245;
-          line-height: 1.4;
-          font-weight: 400;
-          margin-bottom: 1.5rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .subtitle strong {
-          color: #1d1d1f;
-          font-weight: 700;
-        }
-
-        /* Chat Container - Estilo ChatGPT */
-        .chat-container {
-          margin-bottom: 4rem;
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
-        }
-
-        .chat-container.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .chat-wrapper {
-          max-width: 700px;
+          gap: 1rem;
+          max-width: 800px;
           margin: 0 auto;
         }
 
-        .chat-form {
-          margin-bottom: 2rem;
+        .bot-avatar {
+          position: relative;
         }
 
-        .chat-input-container {
-          position: relative;
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(20px);
-          border: 2px solid rgba(0,122,255,0.1);
-          border-radius: 24px;
-          padding: 1.5rem 5rem 1.5rem 2rem;
-          box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-          transition: all 0.3s ease;
+        .avatar-gradient {
+          width: 44px;
+          height: 44px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-radius: 50%;
           display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .bot-icon {
+          font-size: 1.5rem;
+        }
+
+        .status-indicator {
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          width: 12px;
+          height: 12px;
+          background: #34c759;
+          border: 2px solid white;
+          border-radius: 50%;
+        }
+
+        .header-info {
+          flex: 1;
+        }
+
+        .bot-name {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #1d1d1f;
+          margin: 0;
+          line-height: 1.2;
+        }
+
+        .bot-status {
+          font-size: 0.85rem;
+          color: #8e8e93;
+          margin: 0;
+          line-height: 1.2;
+        }
+
+        .header-menu {
+          background: none;
+          border: none;
+          color: #8e8e93;
+          padding: 8px;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .header-menu:hover {
+          background: rgba(0, 0, 0, 0.05);
+          color: #1d1d1f;
+        }
+
+        /* Mensajes */
+        .chat-messages {
+          flex: 1;
+          overflow-y: auto;
+          padding: calc(90px + env(safe-area-inset-top, 0px)) 0 140px 0;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .messages-container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 0 1.5rem;
+        }
+
+        .message-wrapper {
+          margin-bottom: 1.5rem;
+          display: flex;
+          align-items: flex-start;
+        }
+
+        .message-wrapper.user {
+          justify-content: flex-end;
+        }
+
+        .message {
+          display: flex;
+          gap: 0.75rem;
+          max-width: 85%;
+        }
+
+        .message.user {
+          flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+          width: 32px;
+          height: 32px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          font-size: 1rem;
+        }
+
+        .message-content {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .message.user .message-content {
+          align-items: flex-end;
+        }
+
+        .message-bubble {
+          background: white;
+          border-radius: 20px;
+          padding: 0.875rem 1.125rem;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          position: relative;
+          max-width: 100%;
+          word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          border: none;
+        }
+
+        .message-bubble p {
+          margin: 0;
+          line-height: 1.4;
+          font-size: 0.95rem;
+          color: #1d1d1f;
+        }
+
+        .message.user .message-bubble p {
+          color: white;
+        }
+
+        .message-time {
+          font-size: 0.75rem;
+          color: #8e8e93;
+          margin: 0 0.5rem;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+          background: white;
+          border-radius: 20px;
+          padding: 1rem 1.25rem;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .typing-dots {
+          display: flex;
+          gap: 4px;
           align-items: center;
         }
 
-        .chat-input-container:focus-within {
+        .typing-dots span {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #007aff;
+          animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+          0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.4;
+          }
+          30% {
+            transform: translateY(-10px);
+            opacity: 1;
+          }
+        }
+
+        /* Sugerencias simples */
+        .simple-suggestions {
+          margin-bottom: 1rem;
+          max-width: 800px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .suggestions-label {
+          font-size: 0.8rem;
+          color: #8e8e93;
+          margin: 0 0 0.5rem;
+          font-weight: 400;
+          text-align: center;
+        }
+
+        .suggestions-carousel {
+          display: flex;
+          gap: 0.5rem;
+          overflow-x: auto;
+          padding: 0.25rem 0;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .suggestions-carousel::-webkit-scrollbar {
+          display: none;
+        }
+
+        .suggestion-chip {
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          border-radius: 16px;
+          padding: 0.5rem 0.875rem;
+          font-size: 0.8rem;
+          color: #6e6e73;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          flex-shrink: 0;
+          font-weight: 400;
+          font-family: inherit;
+        }
+
+        .suggestion-chip:hover {
+          background: rgba(255, 255, 255, 0.95);
+          border-color: rgba(0, 0, 0, 0.15);
+          color: #1d1d1f;
+        }
+
+        .suggestion-chip:active {
+          transform: scale(0.98);
+        }
+
+        /* Input */
+        .chat-input-container {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-top: 1px solid rgba(0, 0, 0, 0.06);
+          padding: 1rem 1.5rem;
+          padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          box-sizing: border-box;
+        }
+
+        .chat-form {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          background: white;
+          border: 2px solid rgba(0, 0, 0, 0.08);
+          border-radius: 24px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+          transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
           border-color: #007aff;
-          box-shadow: 0 12px 50px rgba(0,122,255,0.15);
-          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 122, 255, 0.15);
         }
 
         .chat-input {
-          width: 100%;
+          flex: 1;
           border: none;
           background: transparent;
-          font-size: 1.1rem;
+          padding: 1rem 1.25rem;
+          font-size: 1rem;
           color: #1d1d1f;
           outline: none;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
+          border-radius: 24px;
+          font-family: inherit;
         }
 
         .chat-input::placeholder {
           color: #8e8e93;
-          font-weight: 400;
+        }
+
+        .chat-input:disabled {
+          opacity: 0.6;
         }
 
         .send-button {
-          position: absolute;
-          right: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 44px;
-          height: 44px;
+          background: #007aff;
           border: none;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
+          margin-right: 4px;
           cursor: pointer;
           transition: all 0.3s ease;
           display: flex;
           align-items: center;
           justify-content: center;
-          opacity: 0.6;
+          color: white;
+          opacity: 0.5;
         }
 
         .send-button.active {
           opacity: 1;
-          transform: translateY(-50%) scale(1.05);
-          box-shadow: 0 6px 20px rgba(0,122,255,0.3);
+          transform: scale(1.05);
+          box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .send-button:hover.active {
+          background: #0056cc;
+          transform: scale(1.08);
         }
 
         .send-button:disabled {
           opacity: 0.3;
           cursor: not-allowed;
+          transform: none;
         }
 
-        .send-icon {
-          color: white;
-          font-size: 1.2rem;
-          font-weight: bold;
-          transform: translateX(1px);
+        .loading-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
         }
 
-        .chat-suggestions {
-          display: flex;
-          gap: 1rem;
-          justify-content: center;
-          flex-wrap: wrap;
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
 
-        .suggestion-chip {
-          background: rgba(255,255,255,0.8);
-          border: 1px solid rgba(0,122,255,0.2);
-          border-radius: 20px;
-          padding: 0.8rem 1.5rem;
-          font-size: 0.9rem;
-          color: #007aff;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 500;
-        }
-
-        .suggestion-chip:hover {
-          background: rgba(0,122,255,0.1);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 15px rgba(0,122,255,0.2);
-        }
-
-        /* Secciones */
-        .section-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 2rem;
-        }
-
-        section {
-          padding: 6rem 0;
-          position: relative;
-        }
-
-        .section-title {
-          font-size: 2.8rem;
-          font-weight: 800;
-          color: #1d1d1f;
-          text-align: center;
-          margin-bottom: 4rem;
-          letter-spacing: -0.02em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        /* Cómo funciona */
-        .how-it-works {
-          background: rgba(255,255,255,0.4);
-          backdrop-filter: blur(20px);
-        }
-
-        .steps-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 3rem;
-          margin-top: 4rem;
-        }
-
-        .step-card {
-          text-align: center;
-          padding: 3rem 2rem;
-          background: rgba(255,255,255,0.8);
-          border-radius: 24px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-          transition: all 0.4s ease;
-          border: 1px solid rgba(255,255,255,0.9);
-        }
-
-        .step-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-        }
-
-        .step-icon {
-          font-size: 4rem;
-          margin-bottom: 2rem;
-          display: block;
-        }
-
-        .step-title {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1d1d1f;
-          margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .step-description {
-          font-size: 1rem;
-          color: #424245;
-          line-height: 1.6;
-          font-weight: 400;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        /* Beneficios */
-        .benefits-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 3rem;
-          margin-top: 4rem;
-        }
-
-        .benefit-card {
-          padding: 3rem 2rem;
-          background: rgba(255,255,255,0.7);
-          border-radius: 24px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-          transition: all 0.4s ease;
-          border: 1px solid rgba(255,255,255,0.8);
-        }
-
-        .benefit-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-        }
-
-        .benefit-icon {
-          font-size: 3.5rem;
-          margin-bottom: 1.5rem;
-          display: block;
-        }
-
-        .benefit-title {
-          font-size: 1.4rem;
-          font-weight: 700;
-          color: #1d1d1f;
-          margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .benefit-description {
-          font-size: 1rem;
-          color: #424245;
-          line-height: 1.6;
-          font-weight: 400;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        /* CTA Final */
-        .final-cta {
-          background: linear-gradient(135deg, rgba(0,122,255,0.05), rgba(88,86,214,0.05));
-          text-align: center;
-        }
-
-        .cta-title {
-          font-size: 2.5rem;
-          font-weight: 800;
-          color: #1d1d1f;
-          margin-bottom: 1.5rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .cta-subtitle {
-          font-size: 1.2rem;
-          color: #424245;
-          margin-bottom: 3rem;
-          max-width: 600px;
-          margin-left: auto;
-          margin-right: auto;
-          line-height: 1.5;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .cta-buttons {
-          display: flex;
-          gap: 2rem;
-          justify-content: center;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-
-        /* Footer */
-        .footer {
-          background: linear-gradient(135deg, #1d1d1f 0%, #2d2d30 100%);
-          color: white;
-          padding: 5rem 0 2rem;
-        }
-
-        .footer-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 2rem;
-        }
-
-        .footer-content {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 3rem;
-          margin-bottom: 3rem;
-        }
-
-        .footer-section h4 {
-          font-size: 1.1rem;
-          font-weight: 700;
-          margin-bottom: 1.5rem;
-          color: white;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-logo {
-          font-size: 1.8rem;
-          font-weight: 900;
-          margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-logo .logo-ai {
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .footer-description {
-          color: #a1a1a6;
-          line-height: 1.6;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-links {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-
-        .footer-links li {
-          margin-bottom: 0.8rem;
-        }
-
-        .footer-links a {
-          color: #a1a1a6;
-          text-decoration: none;
-          transition: color 0.2s ease;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-links a:hover {
-          color: #007aff;
-        }
-
-        .footer-bottom {
-          border-top: 1px solid #48484a;
-          padding-top: 2rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 1rem;
-        }
-
-        .footer-copyright {
-          color: #a1a1a6;
-          font-size: 0.9rem;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-social {
-          display: flex;
-          gap: 1rem;
-        }
-
-        .social-link {
-          font-size: 1.2rem;
-          text-decoration: none;
-          transition: transform 0.2s ease;
-        }
-
-        .social-link:hover {
-          transform: scale(1.1);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-          .section-container {
-            padding: 0 1.5rem;
-          }
-
-          .steps-grid, .benefits-grid {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-          }
-
-          .chat-suggestions {
-            gap: 0.8rem;
-          }
-
-          .suggestion-chip {
-            font-size: 0.85rem;
-            padding: 0.7rem 1.2rem;
-          }
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
-          .logo-text {
-            font-size: 3.5rem;
+          .chat-header {
+            padding: 0.75rem 1rem;
+            padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
           }
 
-          .tagline h1 {
-            font-size: 2.5rem;
-            line-height: 1.2;
-            margin-bottom: 1.2rem;
+          .header-content {
+            gap: 0.75rem;
           }
 
-          .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 1.2rem;
+          .avatar-gradient {
+            width: 40px;
+            height: 40px;
           }
 
-          .section-title {
-            font-size: 2.2rem;
-            margin-bottom: 3rem;
+          .bot-icon {
+            font-size: 1.3rem;
           }
 
-          .steps-grid, .benefits-grid {
-            grid-template-columns: 1fr;
-            gap: 2rem;
-          }
-
-          .cta-buttons {
-            flex-direction: column;
-            gap: 1rem;
-          }
-
-          .content-wrapper {
-            padding: 1rem;
-          }
-
-          section {
-            padding: 4rem 0;
-          }
-
-          .footer-content {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-          }
-
-          .footer-bottom {
-            flex-direction: column;
-            text-align: center;
-            gap: 1.5rem;
-          }
-
-          .chat-input-container {
-            padding: 1.2rem 4.5rem 1.2rem 1.5rem;
-          }
-
-          .chat-input {
+          .bot-name {
             font-size: 1rem;
           }
 
-          .send-button {
-            width: 40px;
-            height: 40px;
-            right: 0.8rem;
+          .bot-status {
+            font-size: 0.8rem;
           }
 
-          .chat-suggestions {
-            flex-direction: column;
-            align-items: center;
-            gap: 0.8rem;
-          }
-
-          .suggestion-chip {
-            width: 100%;
-            max-width: 300px;
-            text-align: center;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .logo-text {
-            font-size: 2.8rem;
-          }
-
-          .tagline h1 {
-            font-size: 2rem;
-            line-height: 1.1;
-          }
-
-          .subtitle {
-            font-size: 1.1rem;
-          }
-
-          .section-title {
-            font-size: 1.8rem;
-            margin-bottom: 2rem;
-          }
-
-          .step-card, .benefit-card {
-            padding: 2rem 1.5rem;
-          }
-
-          .content-wrapper {
-            padding: 0.5rem;
-          }
-
-          .section-container {
+          .messages-container {
             padding: 0 1rem;
           }
 
-          .footer-content {
-            grid-template-columns: 1fr;
-            gap: 2rem;
+          .message {
+            max-width: 90%;
           }
 
-          .cta-title {
-            font-size: 2rem;
+          .message-bubble {
+            padding: 0.75rem 1rem;
           }
 
-          .cta-subtitle {
-            font-size: 1.1rem;
+          .message-bubble p {
+            font-size: 0.9rem;
           }
 
           .chat-input-container {
-            padding: 1rem 4rem 1rem 1.2rem;
-            border-radius: 20px;
+            padding: 0.75rem 1rem;
+            padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
           }
 
           .chat-input {
+            padding: 0.875rem 1rem;
             font-size: 0.95rem;
           }
 
           .send-button {
             width: 36px;
             height: 36px;
-            right: 0.7rem;
-          }
-
-          .send-icon {
-            font-size: 1rem;
           }
 
           .suggestion-chip {
-            font-size: 0.8rem;
-            padding: 0.6rem 1rem;
-          }
-        }
-
-        @media (max-width: 320px) {
-          .logo-text {
-            font-size: 2.4rem;
-          }
-
-          .tagline h1 {
-            font-size: 1.8rem;
-          }
-
-          .section-title {
-            font-size: 1.6rem;
-          }
-
-          .step-card, .benefit-card {
-            padding: 1.5rem 1rem;
-          }
-
-          .chat-input-container {
-            padding: 0.9rem 3.5rem 0.9rem 1rem;
-          }
-
-          .send-button {
-            width: 32px;
-            height: 32px;
-            right: 0.5rem;
-          }
-        }
-      `}</style>
-    </main>
-  );
-}
-
-// Botón CTA mejorado estilo Apple
-function AnimatedButton({ children, onClick, primary = false }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`animated-btn ${primary ? 'primary' : 'secondary'}`}
-    >
-      {children}
-      <style jsx>{`
-        .animated-btn {
-          border: none;
-          padding: 1rem 2.5rem;
-          font-size: 1.1rem;
-          font-weight: 600;
-          border-radius: 50px;
-          cursor: pointer;
-          position: relative;
-          overflow: hidden;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          display: inline-flex;
-          align-items: center;
-          gap: 0.8rem;
-          text-decoration: none;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          min-width: 200px;
-          justify-content: center;
-          backdrop-filter: blur(20px);
-        }
-
-        .animated-btn.primary {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-          color: white;
-          box-shadow: 0 8px 30px rgba(0, 122, 255, 0.3);
-        }
-
-        .animated-btn.secondary {
-          background: rgba(255, 255, 255, 0.8);
-          color: #007aff;
-          border: 1px solid rgba(0, 122, 255, 0.2);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .animated-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          transition: left 0.6s ease;
-        }
-
-        .animated-btn:hover {
-          transform: translateY(-2px);
-        }
-
-        .animated-btn.primary:hover {
-          box-shadow: 0 12px 40px rgba(0, 122, 255, 0.4);
-        }
-
-        .animated-btn.secondary:hover {
-          background: rgba(255, 255, 255, 0.95);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .animated-btn:hover::before {
-          left: 100%;
-        }
-
-        .animated-btn:active {
-          transform: translateY(0);
-        }
-
-        .button-icon {
-          transition: transform 0.3s ease;
-        }
-
-        .animated-btn:hover .button-icon {
-          transform: scale(1.1);
-        }
-
-        @media (max-width: 768px) {
-          .animated-btn {
-            width: 100%;
-            max-width: 280px;
-            padding: 1rem 2rem;
-            font-size: 1rem;
+            font-size: 0.75rem;
+            padding: 0.4rem 0.75rem;
           }
         }
 
         @media (max-width: 480px) {
-          .animated-btn {
-            width: 90%;
-            max-width: 260px;
-            padding: 0.9rem 1.8rem;
-            font-size: 0.95rem;
-            min-width: 180px;
+          .message {
+            max-width: 95%;
+          }
+
+          .message-bubble {
+            padding: 0.7rem 0.9rem;
+          }
+
+          .message-bubble p {
+            font-size: 0.85rem;
+          }
+
+          .chat-input {
+            padding: 0.8rem 0.9rem;
+            font-size: 0.9rem;
+          }
+
+          .send-button {
+            width: 34px;
+            height: 34px;
           }
         }
       `}</style>
-    </button>
+    </div>
   );
 }
