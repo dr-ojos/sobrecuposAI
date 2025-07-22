@@ -75,8 +75,16 @@ export default function Home() {
 
           <div className={`chat-container ${isVisible ? 'visible' : ''}`}>
             <div className="chat-wrapper">
-              <div className="bot-greeting">
-                ¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.
+              {/* Saludo como mensaje de chat */}
+              <div className="chat-greeting">
+                <div className="bot-message">
+                  <div className="bot-avatar">
+                    <span>🤖</span>
+                  </div>
+                  <div className="message-bubble">
+                    ¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.
+                  </div>
+                </div>
               </div>
               
               <form onSubmit={handleChatSubmit} className="chat-form">
@@ -101,25 +109,47 @@ export default function Home() {
                   </button>
                 </div>
               </form>
-              <div className="chat-suggestions">
-                <button 
-                  onClick={() => setChatInput('Necesito un cardiólogo urgente')}
-                  className="suggestion-chip"
-                >
-                  💓 Cardiólogo urgente
-                </button>
-                <button 
-                  onClick={() => setChatInput('Busco dermatólogo para esta semana')}
-                  className="suggestion-chip"
-                >
-                  👨‍⚕️ Dermatólogo esta semana
-                </button>
-                <button 
-                  onClick={() => setChatInput('¿Hay pediatras disponibles hoy?')}
-                  className="suggestion-chip"
-                >
-                  👶 Pediatra hoy
-                </button>
+              
+              {/* Sugerencias como tarjetas carrusel */}
+              <div className="suggestions-section">
+                <p className="suggestions-title">Prueba preguntando:</p>
+                <div className="suggestions-carousel">
+                  <div 
+                    className="suggestion-card"
+                    onClick={() => setChatInput('Necesito un cardiólogo urgente')}
+                  >
+                    <div className="card-title">Cardiólogo urgente</div>
+                    <div className="card-description">Busco atención cardiológica para esta semana</div>
+                  </div>
+                  <div 
+                    className="suggestion-card"
+                    onClick={() => setChatInput('Busco dermatólogo para esta semana')}
+                  >
+                    <div className="card-title">Dermatólogo</div>
+                    <div className="card-description">Necesito consulta dermatológica pronto</div>
+                  </div>
+                  <div 
+                    className="suggestion-card"
+                    onClick={() => setChatInput('Hay pediatras disponibles hoy')}
+                  >
+                    <div className="card-title">Pediatra hoy</div>
+                    <div className="card-description">Busco pediatra para mi hijo urgente</div>
+                  </div>
+                  <div 
+                    className="suggestion-card"
+                    onClick={() => setChatInput('Necesito oftalmólogo esta semana')}
+                  >
+                    <div className="card-title">Oftalmólogo</div>
+                    <div className="card-description">Problemas de visión, necesito cita</div>
+                  </div>
+                  <div 
+                    className="suggestion-card"
+                    onClick={() => setChatInput('Busco psicólogo disponible')}
+                  >
+                    <div className="card-title">Psicólogo</div>
+                    <div className="card-description">Necesito apoyo psicológico pronto</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -456,24 +486,130 @@ export default function Home() {
           margin: 0 auto;
         }
 
-        .bot-greeting {
-          background: rgba(255,255,255,0.9);
-          border: 1px solid rgba(0,122,255,0.1);
-          border-radius: 16px;
-          padding: 1.5rem 2rem;
-          margin-bottom: 1.5rem;
+        /* Saludo como mensaje de chat */
+        .chat-greeting {
+          margin-bottom: 2rem;
+        }
+
+        .bot-message {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.75rem;
+          max-width: 85%;
+        }
+
+        .bot-avatar {
+          width: 32px;
+          height: 32px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
           font-size: 1rem;
+          box-shadow: 0 2px 8px rgba(0,122,255,0.3);
+        }
+
+        .message-bubble {
+          background: rgba(255,255,255,0.95);
+          border: 1px solid rgba(0,122,255,0.1);
+          border-radius: 18px;
+          border-top-left-radius: 4px;
+          padding: 1rem 1.25rem;
+          font-size: 0.95rem;
           color: #424245;
-          line-height: 1.5;
+          line-height: 1.4;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
           font-weight: 400;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
           backdrop-filter: blur(20px);
-          text-align: center;
+          position: relative;
+        }
+
+        .message-bubble::before {
+          content: '';
+          position: absolute;
+          top: 8px;
+          left: -6px;
+          width: 12px;
+          height: 12px;
+          background: rgba(255,255,255,0.95);
+          border: 1px solid rgba(0,122,255,0.1);
+          border-right: none;
+          border-bottom: none;
+          transform: rotate(-45deg);
+          backdrop-filter: blur(20px);
         }
 
         .chat-form {
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
+        }
+
+        /* Sección de sugerencias mejorada */
+        .suggestions-section {
+          text-align: left;
+        }
+
+        .suggestions-title {
+          font-size: 0.9rem;
+          color: #8e8e93;
+          margin: 0 0 1rem 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-weight: 500;
+        }
+
+        .suggestions-carousel {
+          display: flex;
+          gap: 1rem;
+          overflow-x: auto;
+          padding: 0.5rem 0 1rem 0;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .suggestions-carousel::-webkit-scrollbar {
+          display: none;
+        }
+
+        .suggestion-card {
+          background: rgba(255,255,255,0.9);
+          border: 1px solid rgba(0,0,0,0.08);
+          border-radius: 12px;
+          padding: 1rem;
+          min-width: 160px;
+          max-width: 160px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          backdrop-filter: blur(20px);
+        }
+
+        .suggestion-card:hover {
+          background: rgba(255,255,255,0.95);
+          border-color: rgba(0,122,255,0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(0,122,255,0.12);
+        }
+
+        .card-title {
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #1d1d1f;
+          margin-bottom: 0.5rem;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          line-height: 1.2;
+        }
+
+        .card-description {
+          font-size: 0.75rem;
+          color: #8e8e93;
+          line-height: 1.3;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-weight: 400;
         }
 
         .chat-input-container {
@@ -545,13 +681,6 @@ export default function Home() {
           font-size: 1.2rem;
           font-weight: bold;
           transform: translateX(1px);
-        }
-
-        .chat-suggestions {
-          display: flex;
-          gap: 1rem;
-          justify-content: center;
-          flex-wrap: wrap;
         }
 
         .suggestion-chip {
@@ -850,8 +979,12 @@ export default function Home() {
           .chat-input-container { padding: 1.2rem 4.5rem 1.2rem 1.5rem; }
           .chat-input { font-size: 1rem; }
           .send-button { width: 40px; height: 40px; right: 0.8rem; }
-          .chat-suggestions { flex-direction: column; align-items: center; gap: 0.8rem; }
-          .suggestion-chip { width: 100%; max-width: 300px; text-align: center; }
+          .suggestions-carousel { gap: 0.8rem; }
+          .suggestion-card { min-width: 140px; max-width: 140px; padding: 0.875rem; }
+          .card-title { font-size: 0.8rem; }
+          .card-description { font-size: 0.7rem; }
+          .bot-avatar { width: 28px; height: 28px; font-size: 0.9rem; }
+          .message-bubble { padding: 0.875rem 1rem; font-size: 0.9rem; }
         }
 
         @media (max-width: 480px) {
