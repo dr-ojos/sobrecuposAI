@@ -14,12 +14,11 @@ export default function Home() {
   const handleChatSubmit = (e) => {
     e.preventDefault();
     if (chatInput.trim()) {
-      // Navegar al chat con el mensaje inicial
       router.push(`/chat?initial=${encodeURIComponent(chatInput.trim())}`);
     }
   };
 
-  // Función para navegar al chat vacío
+  // Función para navegar al chat
   const goToChat = () => {
     router.push('/chat');
   };
@@ -73,7 +72,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Tagline simplificado y más directo */}
+          {/* Tagline simplificado */}
           <div className={`tagline ${isVisible ? 'visible' : ''}`}>
             <h1>Encuentra tu cita médica al instante</h1>
             <p className="subtitle">
@@ -81,7 +80,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Chat Input Principal - Estilo ChatGPT */}
+          {/* Chat Input Principal - NUEVA FUNCIONALIDAD */}
           <div className={`chat-container ${isVisible ? 'visible' : ''}`}>
             <div className="chat-wrapper">
               <form onSubmit={handleChatSubmit} className="chat-form">
@@ -128,10 +127,22 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* Botón CTA original */}
+          <div className={`cta-section ${isVisible ? 'visible' : ''}`}>
+            <AnimatedButton 
+              onClick={goToChat}
+              primary
+            >
+              <span className="button-icon">💬</span>
+              Comenzar Chat
+              <span className="button-arrow">→</span>
+            </AnimatedButton>
+          </div>
         </div>
       </section>
 
-      {/* Sección ¿Cómo funciona? - Simplificada */}
+      {/* Resto de las secciones originales */}
       <section className="how-it-works">
         <div className="section-container">
           <h2 className="section-title">¿Cómo funciona?</h2>
@@ -163,7 +174,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sección ¿Por qué elegir Sobrecupos? - Simplificada */}
       <section className="benefits">
         <div className="section-container">
           <h2 className="section-title">¿Por qué elegir Sobrecupos?</h2>
@@ -195,7 +205,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Final - Simplificado */}
       <section className="final-cta">
         <div className="section-container">
           <h2 className="cta-title">¿Listo para encontrar tu cita?</h2>
@@ -215,7 +224,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer - Simplificado */}
       <footer className="footer">
         <div className="footer-container">
           <div className="footer-content">
@@ -323,7 +331,6 @@ export default function Home() {
           50% { transform: translateY(-20px) rotate(3deg); opacity: 0.08; }
         }
 
-        /* Hero Section */
         .hero-section {
           min-height: 100vh;
           display: flex;
@@ -396,7 +403,7 @@ export default function Home() {
         }
 
         .tagline {
-          margin-bottom: 4rem;
+          margin-bottom: 3rem;
           opacity: 0;
           transform: translateY(30px);
           transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
@@ -431,9 +438,9 @@ export default function Home() {
           font-weight: 700;
         }
 
-        /* Chat Container - Estilo ChatGPT */
+        /* Chat Container - NUEVO */
         .chat-container {
-          margin-bottom: 4rem;
+          margin-bottom: 3rem;
           opacity: 0;
           transform: translateY(30px);
           transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
@@ -550,7 +557,24 @@ export default function Home() {
           box-shadow: 0 4px 15px rgba(0,122,255,0.2);
         }
 
-        /* Secciones */
+        .cta-section {
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.9s;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          text-align: center;
+          position: relative;
+          padding: 2rem 0;
+        }
+
+        .cta-section.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
         .section-container {
           max-width: 1200px;
           margin: 0 auto;
@@ -572,7 +596,6 @@ export default function Home() {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        /* Cómo funciona */
         .how-it-works {
           background: rgba(255,255,255,0.4);
           backdrop-filter: blur(20px);
@@ -622,7 +645,6 @@ export default function Home() {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        /* Beneficios */
         .benefits-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -666,7 +688,6 @@ export default function Home() {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        /* CTA Final */
         .final-cta {
           background: linear-gradient(135deg, rgba(0,122,255,0.05), rgba(88,86,214,0.05));
           text-align: center;
@@ -699,7 +720,6 @@ export default function Home() {
           flex-wrap: wrap;
         }
 
-        /* Footer */
         .footer {
           background: linear-gradient(135deg, #1d1d1f 0%, #2d2d30 100%);
           color: white;
@@ -800,206 +820,55 @@ export default function Home() {
           transform: scale(1.1);
         }
 
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-          .section-container {
-            padding: 0 1.5rem;
-          }
-
-          .steps-grid, .benefits-grid {
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-          }
-
-          .chat-suggestions {
-            gap: 0.8rem;
-          }
-
-          .suggestion-chip {
-            font-size: 0.85rem;
-            padding: 0.7rem 1.2rem;
-          }
-        }
-
         @media (max-width: 768px) {
-          .logo-text {
-            font-size: 3.5rem;
-          }
-
-          .tagline h1 {
-            font-size: 2.5rem;
-            line-height: 1.2;
-            margin-bottom: 1.2rem;
-          }
-
-          .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 1.2rem;
-          }
-
-          .section-title {
-            font-size: 2.2rem;
-            margin-bottom: 3rem;
-          }
-
-          .steps-grid, .benefits-grid {
-            grid-template-columns: 1fr;
-            gap: 2rem;
-          }
-
-          .cta-buttons {
-            flex-direction: column;
-            gap: 1rem;
-          }
-
-          .content-wrapper {
-            padding: 1rem;
-          }
-
-          section {
-            padding: 4rem 0;
-          }
-
-          .footer-content {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2rem;
-          }
-
-          .footer-bottom {
-            flex-direction: column;
-            text-align: center;
-            gap: 1.5rem;
-          }
-
-          .chat-input-container {
-            padding: 1.2rem 4.5rem 1.2rem 1.5rem;
-          }
-
-          .chat-input {
-            font-size: 1rem;
-          }
-
-          .send-button {
-            width: 40px;
-            height: 40px;
-            right: 0.8rem;
-          }
-
-          .chat-suggestions {
-            flex-direction: column;
-            align-items: center;
-            gap: 0.8rem;
-          }
-
-          .suggestion-chip {
-            width: 100%;
-            max-width: 300px;
-            text-align: center;
-          }
+          .logo-text { font-size: 3.5rem; }
+          .tagline h1 { font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.2rem; }
+          .subtitle { font-size: 1.2rem; margin-bottom: 1.2rem; }
+          .section-title { font-size: 2.2rem; margin-bottom: 3rem; }
+          .steps-grid, .benefits-grid { grid-template-columns: 1fr; gap: 2rem; }
+          .cta-buttons { flex-direction: column; gap: 1rem; }
+          .content-wrapper { padding: 1rem; }
+          section { padding: 4rem 0; }
+          .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+          .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
+          .chat-input-container { padding: 1.2rem 4.5rem 1.2rem 1.5rem; }
+          .chat-input { font-size: 1rem; }
+          .send-button { width: 40px; height: 40px; right: 0.8rem; }
+          .chat-suggestions { flex-direction: column; align-items: center; gap: 0.8rem; }
+          .suggestion-chip { width: 100%; max-width: 300px; text-align: center; }
         }
 
         @media (max-width: 480px) {
-          .logo-text {
-            font-size: 2.8rem;
-          }
-
-          .tagline h1 {
-            font-size: 2rem;
-            line-height: 1.1;
-          }
-
-          .subtitle {
-            font-size: 1.1rem;
-          }
-
-          .section-title {
-            font-size: 1.8rem;
-            margin-bottom: 2rem;
-          }
-
-          .step-card, .benefit-card {
-            padding: 2rem 1.5rem;
-          }
-
-          .content-wrapper {
-            padding: 0.5rem;
-          }
-
-          .section-container {
-            padding: 0 1rem;
-          }
-
-          .footer-content {
-            grid-template-columns: 1fr;
-            gap: 2rem;
-          }
-
-          .cta-title {
-            font-size: 2rem;
-          }
-
-          .cta-subtitle {
-            font-size: 1.1rem;
-          }
-
-          .chat-input-container {
-            padding: 1rem 4rem 1rem 1.2rem;
-            border-radius: 20px;
-          }
-
-          .chat-input {
-            font-size: 0.95rem;
-          }
-
-          .send-button {
-            width: 36px;
-            height: 36px;
-            right: 0.7rem;
-          }
-
-          .send-icon {
-            font-size: 1rem;
-          }
-
-          .suggestion-chip {
-            font-size: 0.8rem;
-            padding: 0.6rem 1rem;
-          }
+          .logo-text { font-size: 2.8rem; }
+          .tagline h1 { font-size: 2rem; line-height: 1.1; }
+          .subtitle { font-size: 1.1rem; }
+          .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
+          .step-card, .benefit-card { padding: 2rem 1.5rem; }
+          .content-wrapper { padding: 0.5rem; }
+          .section-container { padding: 0 1rem; }
+          .footer-content { grid-template-columns: 1fr; gap: 2rem; }
+          .cta-title { font-size: 2rem; }
+          .cta-subtitle { font-size: 1.1rem; }
+          .chat-input-container { padding: 1rem 4rem 1rem 1.2rem; border-radius: 20px; }
+          .chat-input { font-size: 0.95rem; }
+          .send-button { width: 36px; height: 36px; right: 0.7rem; }
+          .send-icon { font-size: 1rem; }
+          .suggestion-chip { font-size: 0.8rem; padding: 0.6rem 1rem; }
         }
 
         @media (max-width: 320px) {
-          .logo-text {
-            font-size: 2.4rem;
-          }
-
-          .tagline h1 {
-            font-size: 1.8rem;
-          }
-
-          .section-title {
-            font-size: 1.6rem;
-          }
-
-          .step-card, .benefit-card {
-            padding: 1.5rem 1rem;
-          }
-
-          .chat-input-container {
-            padding: 0.9rem 3.5rem 0.9rem 1rem;
-          }
-
-          .send-button {
-            width: 32px;
-            height: 32px;
-            right: 0.5rem;
-          }
+          .logo-text { font-size: 2.4rem; }
+          .tagline h1 { font-size: 1.8rem; }
+          .section-title { font-size: 1.6rem; }
+          .step-card, .benefit-card { padding: 1.5rem 1rem; }
+          .chat-input-container { padding: 0.9rem 3.5rem 0.9rem 1rem; }
+          .send-button { width: 32px; height: 32px; right: 0.5rem; }
         }
       `}</style>
     </main>
   );
 }
 
-// Botón CTA mejorado estilo Apple
 function AnimatedButton({ children, onClick, primary = false }) {
   return (
     <button
@@ -1073,8 +942,12 @@ function AnimatedButton({ children, onClick, primary = false }) {
           transform: translateY(0);
         }
 
-        .button-icon {
+        .button-icon, .button-arrow {
           transition: transform 0.3s ease;
+        }
+
+        .animated-btn:hover .button-arrow {
+          transform: translateX(4px);
         }
 
         .animated-btn:hover .button-icon {
