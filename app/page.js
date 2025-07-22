@@ -96,9 +96,12 @@ export default function Home() {
                   </div>
                 </div>
                 
-                {/* Mensaje del bot */}
+                {/* Mensajes con avatar del bot */}
                 <div className="preview-messages">
                   <div className="preview-message bot-msg">
+                    <div className="bot-avatar-small">
+                      <span>🤖</span>
+                    </div>
                     <div className="msg-bubble">
                       ¡Hola! 👋 ¿En qué te puedo ayudar? Cuéntame tus síntomas o qué especialista necesitas.
                     </div>
@@ -489,7 +492,7 @@ export default function Home() {
           padding: 12px 16px;
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 8px;
           border-bottom: 1px solid rgba(0,122,255,0.08);
         }
 
@@ -502,10 +505,12 @@ export default function Home() {
           align-items: center;
           justify-content: center;
           font-size: 0.9rem;
+          flex-shrink: 0;
         }
 
         .preview-info {
           flex: 1;
+          text-align: left;
         }
 
         .preview-name {
@@ -532,11 +537,28 @@ export default function Home() {
           margin-bottom: 12px;
           display: flex;
           align-items: flex-start;
+          gap: 8px;
+        }
+
+        .preview-message.bot-msg {
+          justify-content: flex-start;
         }
 
         .preview-message.user-msg {
           justify-content: flex-end;
           animation: slideInFromRight 0.3s ease-out;
+        }
+
+        .bot-avatar-small {
+          width: 24px;
+          height: 24px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.75rem;
+          flex-shrink: 0;
         }
 
         .msg-bubble {
@@ -545,6 +567,7 @@ export default function Home() {
           border-radius: 12px;
           font-size: 0.85rem;
           line-height: 1.4;
+          text-align: left;
         }
 
         .bot-msg .msg-bubble {
