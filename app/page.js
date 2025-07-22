@@ -689,7 +689,7 @@ export default function Home() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -699,7 +699,7 @@ export default function Home() {
         }
 
         .expanding-message {
-          color: white;
+          color: #1d1d1f;
           font-size: 1.1rem;
           font-weight: 500;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
