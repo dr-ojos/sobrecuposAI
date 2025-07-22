@@ -370,22 +370,26 @@ export default function Home() {
 
         .hero-section {
           min-height: 100vh;
+          min-height: 100dvh; /* Usar viewport dinámico en móviles */
           display: flex;
           align-items: center;
           justify-content: center;
           position: relative;
           z-index: 1;
+          padding: 2rem 0; /* Agregar padding vertical */
         }
 
         .content-wrapper {
           text-align: center;
           max-width: 900px;
-          padding: 2rem;
+          padding: 1rem 2rem; /* Reducir padding en móviles */
           position: relative;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .logo-container {
-          margin-bottom: 3rem;
+          margin-bottom: 2rem; /* Reducir espacio */
           opacity: 0;
           transform: translateY(40px) scale(0.95);
           transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -426,7 +430,7 @@ export default function Home() {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          font-size: 5rem;
+          font-size: clamp(2.5rem, 8vw, 5rem); /* Responsive font size */
           font-weight: 900;
           letter-spacing: -0.04em;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -440,7 +444,7 @@ export default function Home() {
         }
 
         .tagline {
-          margin-bottom: 3rem;
+          margin-bottom: 2rem; /* Reducir espacio */
           opacity: 0;
           transform: translateY(30px);
           transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
@@ -452,21 +456,21 @@ export default function Home() {
         }
 
         .tagline h1 {
-          font-size: 3.5rem;
+          font-size: clamp(1.8rem, 6vw, 3.5rem); /* Responsive font size */
           font-weight: 800;
           color: #1d1d1f;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
           line-height: 1.1;
           letter-spacing: -0.03em;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .subtitle {
-          font-size: 1.5rem;
+          font-size: clamp(1rem, 3.5vw, 1.5rem);
           color: #424245;
           line-height: 1.4;
           font-weight: 400;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
@@ -476,14 +480,14 @@ export default function Home() {
         }
 
         .cta-text {
-          font-size: 1.25rem;
+          font-size: clamp(0.95rem, 3vw, 1.25rem);
           color: #007aff;
           font-weight: 600;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .chat-container {
-          margin-bottom: 3rem;
+          margin-bottom: 2rem;
           opacity: 0;
           transform: translateY(30px);
           transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
@@ -497,18 +501,19 @@ export default function Home() {
         .chat-wrapper {
           max-width: 700px;
           margin: 0 auto;
+          width: 100%;
         }
 
         /* Saludo como mensaje de chat */
         .chat-greeting {
-          margin-bottom: 2rem;
+          margin-bottom: 1.5rem;
         }
 
         .bot-message {
           display: flex;
           align-items: flex-start;
           gap: 0.75rem;
-          max-width: 85%;
+          max-width: 100%; /* Cambiar de 85% a 100% */
         }
 
         .bot-avatar {
@@ -538,6 +543,8 @@ export default function Home() {
           box-shadow: 0 2px 12px rgba(0,0,0,0.08);
           backdrop-filter: blur(20px);
           position: relative;
+          flex: 1;
+          word-wrap: break-word;
         }
 
         .message-bubble::before {
@@ -608,23 +615,6 @@ export default function Home() {
           box-shadow: 0 4px 16px rgba(0,122,255,0.12);
         }
 
-        .card-title {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #1d1d1f;
-          margin-bottom: 0.5rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          line-height: 1.2;
-        }
-
-        .card-description {
-          font-size: 0.75rem;
-          color: #8e8e93;
-          line-height: 1.3;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-        }
-
         .card-text {
           font-size: 0.8rem;
           color: #8e8e93;
@@ -645,6 +635,8 @@ export default function Home() {
           transition: all 0.3s ease;
           display: flex;
           align-items: center;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .chat-input-container:focus-within:not(.expanding) {
@@ -670,84 +662,7 @@ export default function Home() {
           transform: scale(1.05) translateY(-10px);
           box-shadow: 0 20px 60px rgba(0,122,255,0.25);
           border-color: #007aff;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .send-button.expanding {
-          transform: translateY(-50%) scale(1.2);
-          background: linear-gradient(135deg, #34c759, #007aff);
-          box-shadow: 0 8px 25px rgba(52,199,89,0.4);
-          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .expansion-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 24px;
-          opacity: 0;
-          animation: expandOverlay 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        .expanding-message {
-          color: #1d1d1f;
-          font-size: 1.1rem;
-          font-weight: 500;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          text-align: center;
-          padding: 0 2rem;
-          transform: translateY(20px);
-          opacity: 0;
-          animation: showMessage 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
-        }
-
-        @keyframes expandOverlay {
-          0% {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          50% {
-            opacity: 0.95;
-            transform: scale(1.02);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        @keyframes showMessage {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .chat-container.expanding {
-          transform: scale(1.02);
-          transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .chat-greeting.fade-out,
-        .suggestions-section.fade-out {
-          opacity: 0;
-          transform: translateY(-20px);
-          transition: all 0.4s ease;
-        }
-
-        .chat-input-container.expanding {
-          transform: scale(1.05) translateY(-10px);
-          box-shadow: 0 20px 60px rgba(0,122,255,0.25);
-          border-color: #007aff;
-          background: rgba(255,255,255,1);
+          background: linear-gradient(135deg, #007aff, #5856d6);
           transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
           overflow: hidden;
@@ -861,25 +776,6 @@ export default function Home() {
           transform: translateX(1px);
         }
 
-        .suggestion-chip {
-          background: rgba(255,255,255,0.8);
-          border: 1px solid rgba(0,122,255,0.2);
-          border-radius: 20px;
-          padding: 0.8rem 1.5rem;
-          font-size: 0.9rem;
-          color: #007aff;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 500;
-        }
-
-        .suggestion-chip:hover {
-          background: rgba(0,122,255,0.1);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 15px rgba(0,122,255,0.2);
-        }
-
         .cta-section {
           opacity: 0;
           transform: translateY(30px);
@@ -890,7 +786,7 @@ export default function Home() {
           width: 100%;
           text-align: center;
           position: relative;
-          padding: 2rem 0;
+          padding: 1rem 0;
         }
 
         .cta-section.visible {
@@ -901,20 +797,20 @@ export default function Home() {
         .section-container {
           max-width: 1200px;
           margin: 0 auto;
-          padding: 0 2rem;
+          padding: 0 1rem;
         }
 
         section {
-          padding: 6rem 0;
+          padding: 4rem 0;
           position: relative;
         }
 
         .section-title {
-          font-size: 2.8rem;
+          font-size: clamp(1.8rem, 5vw, 2.8rem);
           font-weight: 800;
           color: #1d1d1f;
           text-align: center;
-          margin-bottom: 4rem;
+          margin-bottom: 3rem;
           letter-spacing: -0.02em;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
@@ -926,14 +822,14 @@ export default function Home() {
 
         .steps-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 3rem;
-          margin-top: 4rem;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 2rem;
+          margin-top: 3rem;
         }
 
         .step-card {
           text-align: center;
-          padding: 3rem 2rem;
+          padding: 2rem 1.5rem;
           background: rgba(255,255,255,0.8);
           border-radius: 24px;
           box-shadow: 0 8px 30px rgba(0,0,0,0.08);
@@ -947,13 +843,13 @@ export default function Home() {
         }
 
         .step-icon {
-          font-size: 4rem;
-          margin-bottom: 2rem;
+          font-size: 3rem;
+          margin-bottom: 1.5rem;
           display: block;
         }
 
         .step-title {
-          font-size: 1.5rem;
+          font-size: 1.3rem;
           font-weight: 700;
           color: #1d1d1f;
           margin-bottom: 1rem;
@@ -961,7 +857,7 @@ export default function Home() {
         }
 
         .step-description {
-          font-size: 1rem;
+          font-size: 0.95rem;
           color: #424245;
           line-height: 1.6;
           font-weight: 400;
@@ -970,13 +866,13 @@ export default function Home() {
 
         .benefits-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 3rem;
-          margin-top: 4rem;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 2rem;
+          margin-top: 3rem;
         }
 
         .benefit-card {
-          padding: 3rem 2rem;
+          padding: 2rem 1.5rem;
           background: rgba(255,255,255,0.7);
           border-radius: 24px;
           box-shadow: 0 8px 30px rgba(0,0,0,0.08);
@@ -990,13 +886,13 @@ export default function Home() {
         }
 
         .benefit-icon {
-          font-size: 3.5rem;
+          font-size: 3rem;
           margin-bottom: 1.5rem;
           display: block;
         }
 
         .benefit-title {
-          font-size: 1.4rem;
+          font-size: 1.3rem;
           font-weight: 700;
           color: #1d1d1f;
           margin-bottom: 1rem;
@@ -1004,7 +900,7 @@ export default function Home() {
         }
 
         .benefit-description {
-          font-size: 1rem;
+          font-size: 0.95rem;
           color: #424245;
           line-height: 1.6;
           font-weight: 400;
@@ -1017,7 +913,7 @@ export default function Home() {
         }
 
         .cta-title {
-          font-size: 2.5rem;
+          font-size: clamp(1.8rem, 5vw, 2.5rem);
           font-weight: 800;
           color: #1d1d1f;
           margin-bottom: 1.5rem;
@@ -1025,9 +921,9 @@ export default function Home() {
         }
 
         .cta-subtitle {
-          font-size: 1.2rem;
+          font-size: clamp(1rem, 3vw, 1.2rem);
           color: #424245;
-          margin-bottom: 3rem;
+          margin-bottom: 2.5rem;
           max-width: 600px;
           margin-left: auto;
           margin-right: auto;
@@ -1037,7 +933,7 @@ export default function Home() {
 
         .cta-buttons {
           display: flex;
-          gap: 2rem;
+          gap: 1.5rem;
           justify-content: center;
           align-items: center;
           flex-wrap: wrap;
@@ -1046,26 +942,26 @@ export default function Home() {
         .footer {
           background: linear-gradient(135deg, #1d1d1f 0%, #2d2d30 100%);
           color: white;
-          padding: 5rem 0 2rem;
+          padding: 4rem 0 2rem;
         }
 
         .footer-container {
           max-width: 1200px;
           margin: 0 auto;
-          padding: 0 2rem;
+          padding: 0 1rem;
         }
 
         .footer-content {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 3rem;
-          margin-bottom: 3rem;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 2rem;
+          margin-bottom: 2rem;
         }
 
         .footer-section h4 {
           font-size: 1.1rem;
           font-weight: 700;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1rem;
           color: white;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
@@ -1143,60 +1039,239 @@ export default function Home() {
           transform: scale(1.1);
         }
 
+        /* MEJORAS ESPECÍFICAS PARA MÓVILES */
+
+        /* Pantallas pequeñas (móviles) */
         @media (max-width: 768px) {
-          .logo-text { font-size: 3.5rem; }
-          .tagline h1 { font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.2rem; }
-          .subtitle { font-size: 1.2rem; margin-bottom: 1.2rem; }
-          .section-title { font-size: 2.2rem; margin-bottom: 3rem; }
-          .steps-grid, .benefits-grid { grid-template-columns: 1fr; gap: 2rem; }
-          .cta-buttons { flex-direction: column; gap: 1rem; }
-          .content-wrapper { padding: 1rem; }
-          section { padding: 4rem 0; }
-          .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
-          .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
-          .chat-input-container { padding: 1.2rem 4.5rem 1.2rem 1.5rem; }
-          .chat-input { font-size: 1rem; }
-          .send-button { width: 40px; height: 40px; right: 0.8rem; }
-          .suggestions-carousel { gap: 0.8rem; }
-          .suggestion-card { min-width: 140px; max-width: 140px; padding: 0.875rem; }
-          .card-title { font-size: 0.8rem; }
-          .card-description { font-size: 0.7rem; }
-          .card-text { font-size: 0.75rem; }
-          .bot-avatar { width: 28px; height: 28px; font-size: 0.9rem; }
-          .message-bubble { padding: 0.875rem 1rem; font-size: 0.9rem; }
+          .hero-section {
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: 1rem 0;
+          }
+
+          .content-wrapper {
+            padding: 1rem;
+          }
+
+          .logo-container {
+            margin-bottom: 1.5rem;
+          }
+
+          .tagline {
+            margin-bottom: 1.5rem;
+          }
+
+          .chat-container {
+            margin-bottom: 1.5rem;
+          }
+
+          .chat-greeting {
+            margin-bottom: 1rem;
+          }
+
+          .bot-avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 0.9rem;
+          }
+
+          .message-bubble {
+            padding: 0.875rem 1rem;
+            font-size: 0.9rem;
+          }
+
+          .chat-input-container {
+            padding: 1.2rem 4.5rem 1.2rem 1.5rem;
+          }
+
+          .chat-input {
+            font-size: 1rem;
+          }
+
+          .send-button {
+            width: 40px;
+            height: 40px;
+            right: 0.8rem;
+          }
+
+          .suggestions-carousel {
+            gap: 0.8rem;
+          }
+
+          .suggestion-card {
+            min-width: 140px;
+            max-width: 140px;
+            padding: 0.875rem;
+          }
+
+          .card-text {
+            font-size: 0.75rem;
+          }
+
+          .section-container {
+            padding: 0 1rem;
+          }
+
+          .steps-grid,
+          .benefits-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+          }
+
+          .cta-buttons {
+            flex-direction: column;
+            gap: 1rem;
+          }
+
+          .footer-content {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+          }
+
+          .footer-bottom {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+          }
         }
 
+        /* Pantallas muy pequeñas */
         @media (max-width: 480px) {
-          .logo-text { font-size: 2.8rem; }
-          .tagline h1 { font-size: 2rem; line-height: 1.1; }
-          .subtitle { font-size: 1.1rem; }
-          .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
-          .step-card, .benefit-card { padding: 2rem 1.5rem; }
-          .content-wrapper { padding: 0.5rem; }
-          .section-container { padding: 0 1rem; }
-          .footer-content { grid-template-columns: 1fr; gap: 2rem; }
-          .cta-title { font-size: 2rem; }
-          .cta-subtitle { font-size: 1.1rem; }
-          .chat-input-container { padding: 1rem 4rem 1rem 1.2rem; border-radius: 20px; }
-          .chat-input { font-size: 0.95rem; }
-          .send-button { width: 36px; height: 36px; right: 0.7rem; }
-          .send-icon { font-size: 1rem; }
-          .suggestion-card { min-width: 120px; max-width: 120px; padding: 0.75rem; }
-          .card-title { font-size: 0.75rem; margin-bottom: 0.4rem; }
-          .card-description { font-size: 0.65rem; }
-          .suggestions-carousel { gap: 0.7rem; }
-          .bot-avatar { width: 26px; height: 26px; font-size: 0.85rem; }
-          .message-bubble { padding: 0.75rem 0.875rem; font-size: 0.85rem; }
-          .suggestions-title { font-size: 0.8rem; }
+          .hero-section {
+            padding: 0.5rem 0;
+          }
+
+          .content-wrapper {
+            padding: 0.5rem;
+          }
+
+          .logo-container {
+            margin-bottom: 1rem;
+          }
+
+          .tagline {
+            margin-bottom: 1rem;
+          }
+
+          .chat-container {
+            margin-bottom: 1rem;
+          }
+
+          .chat-greeting {
+            margin-bottom: 0.8rem;
+          }
+
+          .bot-avatar {
+            width: 26px;
+            height: 26px;
+            font-size: 0.85rem;
+          }
+
+          .message-bubble {
+            padding: 0.75rem 0.875rem;
+            font-size: 0.85rem;
+          }
+
+          .chat-input-container {
+            padding: 1rem 4rem 1rem 1.2rem;
+            border-radius: 20px;
+          }
+
+          .chat-input {
+            font-size: 0.95rem;
+          }
+
+          .send-button {
+            width: 36px;
+            height: 36px;
+            right: 0.7rem;
+          }
+
+          .send-icon {
+            font-size: 1rem;
+          }
+
+          .suggestions-carousel {
+            gap: 0.7rem;
+          }
+
+          .suggestion-card {
+            min-width: 120px;
+            max-width: 120px;
+            padding: 0.75rem;
+          }
+
+          .card-text {
+            font-size: 0.7rem;
+          }
+
+          .suggestions-title {
+            font-size: 0.8rem;
+          }
+
+          .cta-section {
+            padding: 0.5rem 0;
+          }
+
+          .step-card,
+          .benefit-card {
+            padding: 1.5rem 1rem;
+          }
+
+          .footer-content {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+          }
         }
 
+        /* Pantallas extra pequeñas */
         @media (max-width: 320px) {
-          .logo-text { font-size: 2.4rem; }
-          .tagline h1 { font-size: 1.8rem; }
-          .section-title { font-size: 1.6rem; }
-          .step-card, .benefit-card { padding: 1.5rem 1rem; }
-          .chat-input-container { padding: 0.9rem 3.5rem 0.9rem 1rem; }
-          .send-button { width: 32px; height: 32px; right: 0.5rem; }
+          .content-wrapper {
+            padding: 0.25rem;
+          }
+
+          .chat-input-container {
+            padding: 0.9rem 3.5rem 0.9rem 1rem;
+          }
+
+          .send-button {
+            width: 32px;
+            height: 32px;
+            right: 0.5rem;
+          }
+
+          .suggestion-card {
+            min-width: 110px;
+            max-width: 110px;
+            padding: 0.6rem;
+          }
+
+          .card-text {
+            font-size: 0.65rem;
+          }
+        }
+
+        /* Ajustes para viewport dinámico */
+        @supports (height: 100dvh) {
+          .hero-section {
+            min-height: 100dvh;
+          }
+        }
+
+        /* Mejoras para scroll horizontal */
+        .suggestions-carousel {
+          scroll-snap-type: x mandatory;
+        }
+
+        .suggestion-card {
+          scroll-snap-align: start;
+        }
+
+        /* Prevenir zoom en iOS en inputs */
+        @media screen and (max-width: 768px) {
+          .chat-input {
+            font-size: 16px;
+          }
         }
       `}</style>
     </main>
@@ -1213,8 +1288,8 @@ function AnimatedButton({ children, onClick, primary = false }) {
       <style jsx>{`
         .animated-btn {
           border: none;
-          padding: 1rem 2.5rem;
-          font-size: 1.1rem;
+          padding: 1rem 2rem;
+          font-size: 1rem;
           font-weight: 600;
           border-radius: 50px;
           cursor: pointer;
@@ -1223,12 +1298,13 @@ function AnimatedButton({ children, onClick, primary = false }) {
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           display: inline-flex;
           align-items: center;
-          gap: 0.8rem;
+          gap: 0.6rem;
           text-decoration: none;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          min-width: 200px;
+          min-width: 180px;
           justify-content: center;
           backdrop-filter: blur(20px);
+          box-sizing: border-box;
         }
 
         .animated-btn.primary {
@@ -1292,8 +1368,9 @@ function AnimatedButton({ children, onClick, primary = false }) {
           .animated-btn {
             width: 100%;
             max-width: 280px;
-            padding: 1rem 2rem;
-            font-size: 1rem;
+            padding: 0.9rem 1.5rem;
+            font-size: 0.95rem;
+            min-width: 200px;
           }
         }
 
@@ -1301,9 +1378,19 @@ function AnimatedButton({ children, onClick, primary = false }) {
           .animated-btn {
             width: 90%;
             max-width: 260px;
-            padding: 0.9rem 1.8rem;
-            font-size: 0.95rem;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.9rem;
             min-width: 180px;
+          }
+        }
+
+        @media (max-width: 320px) {
+          .animated-btn {
+            width: 95%;
+            max-width: 240px;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            min-width: 160px;
           }
         }
       `}</style>
