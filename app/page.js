@@ -83,7 +83,7 @@ export default function Home() {
 
           <div className={`chat-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
             <div className="chat-wrapper">
-              {/* NUEVA MINI VENTANA DE CHAT - Similar al chat real */}
+              {/* MINI VENTANA DE CHAT ACTUALIZADA CON TARJETAS INTEGRADAS */}
               <div className={`chat-preview-window ${chatExpanding ? 'fade-out' : ''}`}>
                 {/* Header del chat como el real */}
                 <div className="chat-preview-header">
@@ -113,91 +113,88 @@ export default function Home() {
                     </div>
                   )}
                 </div>
-              </div>
-              
-              {/* Sugerencias ANTES del input - como en el artefacto anterior */}
-              <div className={`suggestions-section ${chatExpanding ? 'fade-out' : ''}`}>
-                <p className="suggestions-title">Prueba con:</p>
-                <div className="suggestions-carousel">
-                  <div className="suggestion-card" onClick={() => setChatInput("Necesito oftalmólogo urgente")}>
-                    <h4 className="card-title">Necesito oftalmólogo urgente</h4>
-                    <p className="card-description">Consulta de ojos</p>
+
+                {/* TARJETAS DE PREGUNTAS INTEGRADAS DENTRO DEL CHAT - SIN TÍTULO */}
+                <div className={`integrated-suggestions ${chatExpanding ? 'fade-out' : ''}`}>
+                  <div className="integrated-cards-scroll">
+                    <div className="integrated-card" onClick={() => setChatInput("Necesito oftalmólogo urgente")}>
+                      Necesito oftalmólogo urgente
+                    </div>
+                    <div className="integrated-card" onClick={() => setChatInput("Consulta con cardiólogo")}>
+                      Consulta con cardiólogo
+                    </div>
+                    <div className="integrated-card" onClick={() => setChatInput("Dolor de cabeza frecuente")}>
+                      Dolor de cabeza frecuente
+                    </div>
+                    <div className="integrated-card" onClick={() => setChatInput("Chequeo médico general")}>
+                      Chequeo médico general
+                    </div>
+                    <div className="integrated-card" onClick={() => setChatInput("Necesito dermatólogo")}>
+                      Necesito dermatólogo
+                    </div>
                   </div>
-                  <div className="suggestion-card" onClick={() => setChatInput("Consulta con cardiólogo")}>
-                    <h4 className="card-title">Consulta con cardiólogo</h4>
-                    <p className="card-description">Salud del corazón</p>
-                  </div>
-                  <div className="suggestion-card" onClick={() => setChatInput("Dolor de cabeza frecuente")}>
-                    <h4 className="card-title">Dolor de cabeza frecuente</h4>
-                    <p className="card-description">Síntomas neurológicos</p>
-                  </div>
-                  <div className="suggestion-card" onClick={() => setChatInput("Chequeo médico general")}>
-                    <h4 className="card-title">Chequeo médico general</h4>
-                    <p className="card-description">Medicina preventiva</p>
-                  </div>
-                  <div className="suggestion-card" onClick={() => setChatInput("Necesito dermatólogo")}>
-                    <p className="card-text">Necesito dermatólogo</p>
-                  </div>
+                </div>
+
+                {/* Input integrado al final dentro del chat */}
+                <div className={`integrated-input-section ${chatExpanding ? 'expanding' : ''}`}>
+                  <form onSubmit={handleChatSubmit} className="integrated-form">
+                    <div className="integrated-input-container">
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => {
+                          setChatInput(e.target.value);
+                          setIsTyping(e.target.value.length > 0);
+                        }}
+                        placeholder="Busco un oftalmólogo..."
+                        className="integrated-input"
+                        autoFocus
+                        disabled={chatExpanding}
+                      />
+                      <button 
+                        type="submit"
+                        className={`integrated-send-btn ${isTyping ? 'active' : ''} ${chatExpanding ? 'expanding' : ''}`}
+                        disabled={!chatInput.trim() || chatExpanding}
+                      >
+                        {chatExpanding ? (
+                          <span className="spinner"></span>
+                        ) : (
+                          <span className="send-icon">➤</span>
+                        )}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
 
-              {/* Input al FINAL */}
-              <form onSubmit={handleChatSubmit} className="chat-form">
-                <div className={`chat-input-container ${chatExpanding ? 'expanding' : ''}`}>
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => {
-                      setChatInput(e.target.value);
-                      setIsTyping(e.target.value.length > 0);
-                    }}
-                    placeholder="Busco un oftalmólogo..."
-                    className="chat-input"
-                    autoFocus
-                    disabled={chatExpanding}
-                  />
-                  <button 
-                    type="submit"
-                    className={`send-button ${isTyping ? 'active' : ''} ${chatExpanding ? 'expanding' : ''}`}
-                    disabled={!chatInput.trim() || chatExpanding}
-                  >
-                    <span className="send-icon">→</span>
-                  </button>
-                  
-                  {/* Overlay de expansión */}
-                  {chatExpanding && (
-                    <div className="expansion-overlay">
-                      <div className="expanding-message">
-                        {chatInput}
-                      </div>
-                    </div>
-                  )}
+              {chatExpanding && (
+                <div className="expansion-overlay">
+                  <div className="expanding-message">Abriendo chat...</div>
                 </div>
-              </form>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Resto del contenido original */}
       <section className="how-it-works">
         <div className="section-container">
           <h2 className="section-title">¿Cómo funciona?</h2>
           <div className="steps-grid">
             <div className="step-card">
               <div className="step-number">1</div>
-              <h3>Cuéntanos qué necesitas</h3>
-              <p>Describe tus síntomas o el especialista que buscas</p>
+              <h3>Cuéntanos tus síntomas</h3>
+              <p>Describe lo que sientes o qué especialista necesitas</p>
             </div>
             <div className="step-card">
               <div className="step-number">2</div>
-              <h3>Encontramos tu sobrecupo</h3>
-              <p>Nuestro AI busca disponibilidad en tiempo real</p>
+              <h3>Encuentra sobrecupos</h3>
+              <p>Te mostramos las horas disponibles de último minuto</p>
             </div>
             <div className="step-card">
               <div className="step-number">3</div>
-              <h3>Reserva al instante</h3>
-              <p>Confirma tu cita directamente por WhatsApp</p>
+              <h3>Reserva tu hora</h3>
+              <p>Confirma tu cita médica en segundos</p>
             </div>
           </div>
         </div>
@@ -205,27 +202,27 @@ export default function Home() {
 
       <section className="benefits">
         <div className="section-container">
-          <h2 className="section-title">Beneficios</h2>
+          <h2 className="section-title">Beneficios para ti</h2>
           <div className="benefits-grid">
             <div className="benefit-card">
               <div className="benefit-icon">⚡</div>
-              <h3>Respuesta inmediata</h3>
-              <p>Encuentra sobrecupos en segundos, no en horas</p>
+              <h3>Atención rápida</h3>
+              <p>Accede a citas médicas de último minuto cuando más lo necesitas</p>
             </div>
             <div className="benefit-card">
               <div className="benefit-icon">🎯</div>
-              <h3>100% personalizado</h3>
-              <p>Adaptado a tu ubicación y necesidades específicas</p>
-            </div>
-            <div className="benefit-card">
-              <div className="benefit-icon">💬</div>
-              <h3>Súper fácil</h3>
-              <p>Todo por WhatsApp, sin apps ni registros complicados</p>
+              <h3>Búsqueda inteligente</h3>
+              <p>Nuestra IA encuentra el especialista perfecto según tus síntomas</p>
             </div>
             <div className="benefit-card">
               <div className="benefit-icon">💰</div>
-              <h3>Precios transparentes</h3>
-              <p>Conoce el precio antes de reservar, sin sorpresas</p>
+              <h3>Ahorra tiempo</h3>
+              <p>No más llamadas ni esperas, todo en segundos desde tu celular</p>
+            </div>
+            <div className="benefit-card">
+              <div className="benefit-icon">✅</div>
+              <h3>100% confiable</h3>
+              <p>Médicos verificados y sobrecupos reales confirmados al instante</p>
             </div>
           </div>
         </div>
@@ -234,16 +231,11 @@ export default function Home() {
       <section className="cta-section">
         <div className="section-container">
           <div className="cta-content">
-            <h2 className="cta-title">¿Listo para encontrar tu sobrecupo?</h2>
-            <p className="cta-subtitle">Únete a miles de pacientes que ya reservan más rápido</p>
-            <div className="cta-buttons">
-              <AnimatedButton onClick={goToChat} primary>
-                Empezar ahora
-              </AnimatedButton>
-              <AnimatedButton onClick={() => router.push('/registro')}>
-                Registrarse como paciente
-              </AnimatedButton>
-            </div>
+            <h2 className="cta-title">¿Listo para sentirte mejor?</h2>
+            <p className="cta-subtitle">Encuentra tu sobrecupo médico ahora</p>
+            <AnimatedButton onClick={goToChat} primary>
+              Comenzar chat
+            </AnimatedButton>
           </div>
         </div>
       </section>
@@ -393,34 +385,17 @@ export default function Home() {
           display: inline-block;
         }
 
-        .logo-glow::before {
-          content: '';
-          position: absolute;
-          top: -20px;
-          left: -20px;
-          right: -20px;
-          bottom: -20px;
-          background: radial-gradient(circle, rgba(0,122,255,0.15) 0%, transparent 70%);
-          border-radius: 50%;
-          filter: blur(20px);
-          animation: logoGlow 4s ease-in-out infinite alternate;
-        }
-
-        @keyframes logoGlow {
-          from { opacity: 0.3; transform: scale(0.95); }
-          to { opacity: 0.6; transform: scale(1.05); }
-        }
-
         .logo-text {
           font-size: 3.5rem;
           font-weight: 800;
-          letter-spacing: -0.02em;
-          position: relative;
-          z-index: 1;
+          letter-spacing: -1px;
+          display: inline-flex;
+          align-items: baseline;
+          gap: 0.3rem;
         }
 
         .logo-main {
-          background: linear-gradient(135deg, #1d1d1f 0%, #424245 50%, #1d1d1f 100%);
+          background: linear-gradient(135deg, #1d1d1f 0%, #424245 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -431,31 +406,21 @@ export default function Home() {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          position: relative;
+          font-size: 0.85em;
+          font-weight: 900;
+          animation: aiPulse 3s ease-in-out infinite;
         }
 
-        .logo-ai::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 3px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          border-radius: 2px;
-          animation: underlineGlow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes underlineGlow {
-          from { opacity: 0.6; transform: scaleX(0.8); }
-          to { opacity: 1; transform: scaleX(1); }
+        @keyframes aiPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
         }
 
         .tagline {
-          margin-bottom: 3rem;
           opacity: 0;
           transform: translateY(30px);
           transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+          margin-bottom: 3rem;
         }
 
         .tagline.visible {
@@ -469,20 +434,19 @@ export default function Home() {
           color: #1d1d1f;
           margin-bottom: 1.5rem;
           line-height: 1.2;
-          letter-spacing: -0.01em;
         }
 
         .subtitle {
-          font-size: 1.3rem;
+          font-size: 1.4rem;
           color: #424245;
           margin-bottom: 1rem;
-          line-height: 1.4;
+          font-weight: 400;
         }
 
         .cta-text {
           font-size: 1.1rem;
-          color: #8e8e93;
-          margin: 0;
+          color: #6e6e73;
+          font-weight: 400;
         }
 
         /* NUEVA MINI VENTANA DE CHAT */
@@ -510,7 +474,6 @@ export default function Home() {
           backdrop-filter: blur(20px);
           border: 1px solid rgba(0,122,255,0.1);
           border-radius: 16px;
-          margin-bottom: 1.5rem;
           box-shadow: 0 4px 20px rgba(0,0,0,0.08);
           overflow: hidden;
           transition: all 0.4s ease;
@@ -594,66 +557,124 @@ export default function Home() {
           background: #007aff;
           color: white;
           border-radius: 12px 12px 2px 12px;
+          animation: bubbleIn 0.3s ease-out;
         }
 
         @keyframes slideInFromRight {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+          from { transform: translateX(20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Resto de estilos originales */
-        .chat-form {
-          margin-bottom: 1.5rem;
+        @keyframes bubbleIn {
+          from { transform: scale(0.8); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
         }
 
-        .chat-input-container {
-          position: relative;
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(20px);
-          border: 2px solid rgba(0,122,255,0.1);
-          border-radius: 24px;
-          padding: 1.5rem 5rem 1.5rem 2rem;
-          box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-          transition: all 0.3s ease;
+        /* TARJETAS DE PREGUNTAS INTEGRADAS */
+        .integrated-suggestions {
+          padding: 12px 16px;
+          background: #fafafa;
+          border-top: 1px solid rgba(0,122,255,0.08);
+        }
+
+        .integrated-suggestions.fade-out {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+
+        .integrated-cards-scroll {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 8px 0;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+
+        .integrated-cards-scroll::-webkit-scrollbar {
+          display: none;
+        }
+
+        .integrated-card {
+          background: white;
+          border: 1px solid #e5e5e7;
+          border-radius: 10px;
+          padding: 10px 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+          min-width: 180px;
+          max-width: 260px;
+          font-size: 13px;
+          color: #6e6e73;
+          line-height: 1.4;
+          text-align: left;
+        }
+
+        .integrated-card:hover {
+          background: #f5f5f7;
+          border-color: #c7c7cc;
+          transform: translateY(-1px);
+        }
+
+        .integrated-card:active {
+          transform: scale(0.98);
+        }
+
+        /* INPUT INTEGRADO */
+        .integrated-input-section {
+          padding: 12px 16px;
+          background: white;
+          border-top: 1px solid rgba(0,122,255,0.08);
+        }
+
+        .integrated-input-section.expanding {
+          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+        }
+
+        .integrated-form {
+          margin: 0;
+        }
+
+        .integrated-input-container {
           display: flex;
           align-items: center;
+          gap: 10px;
+          background: #f5f5f7;
+          border-radius: 20px;
+          padding: 6px 6px 6px 16px;
+          transition: all 0.3s ease;
         }
 
-        .chat-input-container:focus-within:not(.expanding) {
-          border-color: #007aff;
-          box-shadow: 0 12px 50px rgba(0,122,255,0.15);
-          transform: translateY(-2px);
+        .integrated-input-section.expanding .integrated-input-container {
+          transform: scale(1.02);
+          box-shadow: 0 8px 24px rgba(0,122,255,0.15);
+          background: white;
         }
 
-        .chat-input {
+        .integrated-input {
           flex: 1;
           border: none;
+          background: none;
           outline: none;
-          font-size: 1.1rem;
+          font-size: 15px;
+          padding: 8px 0;
           color: #1d1d1f;
-          background: transparent;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-family: inherit;
         }
 
-        .chat-input::placeholder {
+        .integrated-input::placeholder {
           color: #8e8e93;
-          font-weight: 400;
         }
 
-        .send-button {
-          position: absolute;
-          right: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 44px;
-          height: 44px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+        .integrated-input:disabled {
+          opacity: 0.6;
+        }
+
+        .integrated-send-btn {
+          width: 32px;
+          height: 32px;
+          background: #007aff;
           border: none;
           border-radius: 50%;
           color: white;
@@ -661,52 +682,67 @@ export default function Home() {
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          opacity: 0.6;
-          transform: translateY(-50%) scale(0.9);
-          box-shadow: 0 4px 12px rgba(0,122,255,0.3);
+          transition: all 0.3s ease;
+          flex-shrink: 0;
+          opacity: 0.5;
         }
 
-        .send-button.active {
+        .integrated-send-btn.active {
           opacity: 1;
-          transform: translateY(-50%) scale(1);
+          transform: scale(1.05);
         }
 
-        .send-button:hover.active {
-          transform: translateY(-50%) scale(1.05);
-          box-shadow: 0 6px 20px rgba(0,122,255,0.4);
+        .integrated-send-btn:hover.active {
+          background: #0056cc;
+        }
+
+        .integrated-send-btn:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+
+        .integrated-send-btn.expanding {
+          animation: rotate 1s linear infinite;
         }
 
         .send-icon {
-          font-size: 1.2rem;
-          font-weight: bold;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        /* Animaciones de expansión */
+        .spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes rotate {
+          to { transform: rotate(360deg); }
+        }
+
+        /* Animación de expansión */
         .chat-container.expanding {
-          transform: scale(1.02);
-          transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+          animation: expandChat 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
 
-        .chat-greeting.fade-out,
-        .suggestions-section.fade-out {
-          opacity: 0;
-          transform: translateY(-20px);
-          transition: all 0.4s ease;
-        }
-
-        .chat-input-container.expanding {
-          transform: scale(1.05) translateY(-10px);
-          box-shadow: 0 20px 60px rgba(0,122,255,0.25);
-          border-color: #007aff;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
+        @keyframes expandChat {
+          to {
+            transform: scale(20) translateY(-50vh);
+            opacity: 0;
+          }
         }
 
         .expansion-overlay {
-          position: absolute;
+          position: fixed;
           top: 0;
           left: 0;
           right: 0;
@@ -716,7 +752,13 @@ export default function Home() {
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 10;
+          z-index: 100;
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
         .expanding-message {
@@ -731,89 +773,33 @@ export default function Home() {
           50% { opacity: 0.7; transform: scale(1.05); }
         }
 
-        /* Sección de sugerencias */
-        .suggestions-section {
-          text-align: left;
-        }
-
-        .suggestions-title {
-          font-size: 0.9rem;
-          color: #8e8e93;
-          margin: 0 0 1rem 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 500;
-        }
-
-        .suggestions-carousel {
-          display: flex;
-          gap: 1rem;
-          overflow-x: auto;
-          padding: 0.5rem 0 1rem 0;
-          scroll-behavior: smooth;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-
-        .suggestions-carousel::-webkit-scrollbar {
-          display: none;
-        }
-
-        .suggestion-card {
-          background: rgba(255,255,255,0.9);
-          border: 1px solid rgba(0,0,0,0.08);
-          border-radius: 12px;
-          padding: 1rem;
-          min-width: 160px;
-          max-width: 160px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          flex-shrink: 0;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-          backdrop-filter: blur(20px);
-        }
-
-        .suggestion-card:hover {
-          background: rgba(255,255,255,0.95);
-          border-color: rgba(0,122,255,0.2);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(0,122,255,0.12);
-        }
-
-        .card-title {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #1d1d1f;
-          margin-bottom: 0.5rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          line-height: 1.2;
-        }
-
-        .card-description {
-          font-size: 0.75rem;
-          color: #8e8e93;
-          line-height: 1.3;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-        }
-
-        .card-text {
-          font-size: 0.8rem;
-          color: #8e8e93;
-          line-height: 1.4;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-          text-align: center;
-        }
-
-        /* Resto de secciones originales */
+        /* Secciones adicionales */
         .how-it-works,
         .benefits,
         .cta-section,
         .for-doctors {
           padding: 5rem 2rem;
-          background: rgba(255, 255, 255, 0.8);
-          backdrop-filter: blur(10px);
+          position: relative;
+          z-index: 1;
+        }
+
+        .how-it-works {
+          background: rgba(255,255,255,0.8);
+          backdrop-filter: blur(20px);
+        }
+
+        .benefits {
+          background: transparent;
+        }
+
+        .cta-section {
+          background: rgba(255,255,255,0.9);
+          backdrop-filter: blur(20px);
+        }
+
+        .for-doctors {
+          background: #1d1d1f;
+          color: white;
         }
 
         .section-container {
@@ -827,33 +813,32 @@ export default function Home() {
           text-align: center;
           margin-bottom: 3rem;
           color: #1d1d1f;
-          letter-spacing: -0.01em;
         }
 
-        .steps-grid,
-        .benefits-grid {
+        .for-doctors .section-title,
+        .for-doctors h2 {
+          color: white;
+        }
+
+        .steps-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 2rem;
           margin-top: 3rem;
         }
 
-        .step-card,
-        .benefit-card {
-          background: rgba(255, 255, 255, 0.9);
-          padding: 3rem 2rem;
-          border-radius: 1.5rem;
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+        .step-card {
+          background: white;
+          padding: 2rem;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
           text-align: center;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          transition: transform 0.3s ease;
         }
 
-        .step-card:hover,
-        .benefit-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 50px rgba(0, 0, 0, 0.12);
+        .step-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
         .step-number {
@@ -865,118 +850,138 @@ export default function Home() {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.8rem;
+          font-size: 1.5rem;
           font-weight: 700;
           margin: 0 auto 1.5rem;
-          box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
         }
 
-        .benefit-icon {
-          font-size: 3rem;
-          margin-bottom: 1.5rem;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
-
-        .step-card h3,
-        .benefit-card h3 {
-          font-size: 1.4rem;
-          font-weight: 600;
+        .step-card h3 {
+          font-size: 1.3rem;
           margin-bottom: 1rem;
           color: #1d1d1f;
         }
 
-        .step-card p,
-        .benefit-card p {
-          color: #424245;
+        .step-card p {
+          color: #6e6e73;
           line-height: 1.6;
-          font-size: 1rem;
         }
 
-        .cta-section {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-          color: white;
-          position: relative;
-          overflow: hidden;
+        .benefits-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 2rem;
         }
 
-        .cta-section::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="1" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-          opacity: 0.3;
+        .benefit-card {
+          background: rgba(255,255,255,0.9);
+          backdrop-filter: blur(20px);
+          padding: 2rem;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+          transition: all 0.3s ease;
         }
 
-        .cta-content {
+        .benefit-card:hover {
+          transform: translateY(-5px);
+          background: rgba(255,255,255,0.95);
+          box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .benefit-icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+          display: block;
+        }
+
+        .benefit-card h3 {
+          font-size: 1.3rem;
+          margin-bottom: 1rem;
+          color: #1d1d1f;
+        }
+
+        .benefit-card p {
+          color: #6e6e73;
+          line-height: 1.6;
+        }
+
+        .cta-content,
+        .doctor-content {
           text-align: center;
-          position: relative;
-          z-index: 1;
+          max-width: 600px;
+          margin: 0 auto;
         }
 
         .cta-title {
-          font-size: 2.8rem;
+          font-size: 2.5rem;
           font-weight: 700;
           margin-bottom: 1rem;
-          letter-spacing: -0.01em;
+          color: #1d1d1f;
         }
 
         .cta-subtitle {
-          font-size: 1.3rem;
-          margin-bottom: 2.5rem;
-          opacity: 0.9;
-        }
-
-        .cta-buttons {
-          display: flex;
-          gap: 1.5rem;
-          justify-content: center;
-          flex-wrap: wrap;
-        }
-
-        .for-doctors {
-          background: #1d1d1f;
-          color: white;
-          text-align: center;
+          font-size: 1.2rem;
+          color: #6e6e73;
+          margin-bottom: 2rem;
         }
 
         .doctor-content h2 {
-          font-size: 2.2rem;
-          margin-bottom: 1rem;
+          font-size: 2.5rem;
           font-weight: 700;
+          margin-bottom: 1rem;
         }
 
         .doctor-content p {
           font-size: 1.2rem;
           margin-bottom: 2rem;
-          opacity: 0.8;
+          opacity: 0.9;
         }
 
+        /* Footer */
         .footer {
-          background: #000;
+          background: #1d1d1f;
           color: white;
-          padding: 4rem 2rem 2rem;
+          padding: 3rem 0 2rem;
+          position: relative;
+          z-index: 1;
         }
 
         .footer-container {
           max-width: 1200px;
           margin: 0 auto;
+          padding: 0 2rem;
         }
 
         .footer-content {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 3rem;
           margin-bottom: 3rem;
         }
 
+        .footer-logo {
+          font-size: 1.5rem;
+          font-weight: 800;
+          margin-bottom: 1rem;
+          display: flex;
+          align-items: baseline;
+          gap: 0.2rem;
+        }
+
+        .footer-logo .logo-main {
+          color: white;
+        }
+
+        .footer-logo .logo-ai {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
         .footer-column h4 {
+          margin-bottom: 1rem;
           font-size: 1.1rem;
           font-weight: 600;
-          margin-bottom: 1.5rem;
-          color: #007aff;
         }
 
         .footer-column ul {
@@ -984,34 +989,26 @@ export default function Home() {
           padding: 0;
         }
 
-        .footer-column ul li {
-          margin-bottom: 0.8rem;
+        .footer-column li {
+          margin-bottom: 0.5rem;
         }
 
-        .footer-column ul li a {
-          color: #8e8e93;
+        .footer-column a {
+          color: rgba(255,255,255,0.8);
           text-decoration: none;
-          transition: color 0.2s ease;
+          transition: color 0.3s ease;
         }
 
-        .footer-column ul li a:hover {
+        .footer-column a:hover {
           color: #007aff;
         }
 
-        .footer-logo {
-          font-size: 1.8rem;
-          font-weight: 800;
-          margin-bottom: 1rem;
-        }
-
         .footer-bottom {
-          border-top: 1px solid #333;
+          border-top: 1px solid rgba(255,255,255,0.1);
           padding-top: 2rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          flex-wrap: wrap;
-          gap: 1rem;
         }
 
         .footer-social {
@@ -1020,40 +1017,15 @@ export default function Home() {
         }
 
         .social-link {
-          color: #8e8e93;
-          text-decoration: none;
-          transition: color 0.2s ease;
-          font-size: 1.2rem;
+          font-size: 1.5rem;
+          transition: transform 0.3s ease;
         }
 
         .social-link:hover {
-          color: #007aff;
+          transform: scale(1.2);
         }
 
-        /* Media Queries - MEJORADO RESPONSIVE PARA IPHONE */
-        @media (max-width: 1024px) {
-          .logo-text { font-size: 3rem; }
-          .tagline h1 { font-size: 2.2rem; }
-          .subtitle { font-size: 1.2rem; }
-          .section-title { font-size: 2.2rem; margin-bottom: 2.5rem; }
-          .steps-grid, .benefits-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-          .step-card, .benefit-card { padding: 2.5rem 1.5rem; }
-          .cta-buttons { flex-direction: column; align-items: center; }
-          .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
-          .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
-          
-          /* Chat responsive para tablet */
-          .chat-container { max-width: 600px; }
-          .chat-input-container { padding: 1.2rem 4.5rem 1.2rem 1.5rem; }
-          .chat-input { font-size: 1rem; }
-          .send-button { width: 40px; height: 40px; right: 0.8rem; }
-          .suggestions-carousel { gap: 0.8rem; }
-          .suggestion-card { min-width: 140px; max-width: 140px; padding: 0.875rem; }
-          .card-title { font-size: 0.8rem; }
-          .card-description { font-size: 0.7rem; }
-          .card-text { font-size: 0.75rem; }
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
           .hero-section { 
             padding: 1rem; 
@@ -1087,27 +1059,16 @@ export default function Home() {
           .chat-preview-window {
             margin-bottom: 1rem;
           }
-          .chat-input-container { 
-            padding: 1rem 3.5rem 1rem 1rem;
-            margin: 0 0.5rem;
+          
+          /* Tarjetas integradas responsive */
+          .integrated-card {
+            min-width: 150px;
+            font-size: 12px;
+            padding: 8px 12px;
           }
-          .chat-input { font-size: 0.95rem; }
-          .send-button { width: 36px; height: 36px; right: 0.7rem; }
-          .suggestions-carousel { 
-            gap: 0.6rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-          }
-          .suggestion-card { 
-            min-width: 130px; 
-            max-width: 130px; 
-            padding: 0.75rem 0.5rem;
-          }
-          .card-title { font-size: 0.75rem; }
-          .card-description { font-size: 0.65rem; }
-          .suggestions-title { 
-            font-size: 0.8rem; 
-            padding-left: 0.5rem;
+          
+          .integrated-input {
+            font-size: 14px;
           }
         }
 
@@ -1144,50 +1105,53 @@ export default function Home() {
             margin: 0 0.25rem 1rem;
             border-radius: 12px;
           }
-          .chat-input-container { 
-            padding: 0.875rem 3.25rem 0.875rem 0.875rem; 
+          
+          /* Tarjetas y input ajustados para iPhone */
+          .integrated-suggestions {
+            padding: 10px 12px;
+          }
+          
+          .integrated-cards-scroll {
+            gap: 6px;
+            padding: 6px 0;
+          }
+          
+          .integrated-card {
+            min-width: 120px;
+            max-width: 120px;
+            padding: 8px 10px;
+            font-size: 11px;
+            border-radius: 8px;
+          }
+          
+          .integrated-input-section {
+            padding: 10px 12px;
+          }
+          
+          .integrated-input-container {
+            padding: 5px 5px 5px 14px;
             border-radius: 18px;
-            margin: 0 0.25rem;
           }
-          .chat-input { font-size: 16px; } /* Evita zoom en iOS */
-          .send-button { 
-            width: 32px; 
-            height: 32px; 
-            right: 0.5rem; 
+          
+          .integrated-input {
+            font-size: 16px; /* Evita zoom en iOS */
+            padding: 6px 0;
           }
-          .send-icon { font-size: 0.9rem; }
-          .suggestions-carousel { 
-            gap: 0.5rem;
-            padding: 0.5rem 0.25rem 1rem;
+          
+          .integrated-send-btn {
+            width: 28px;
+            height: 28px;
           }
-          .suggestion-card { 
-            min-width: 110px; 
-            max-width: 110px; 
-            padding: 0.625rem 0.375rem;
-            border-radius: 10px;
+          
+          .send-icon {
+            font-size: 12px;
           }
-          .card-title { 
-            font-size: 0.7rem; 
-            margin-bottom: 0.25rem;
-            line-height: 1.1;
-          }
-          .card-description { 
-            font-size: 0.6rem; 
-            line-height: 1.2;
-          }
-          .card-text {
-            font-size: 0.65rem;
-            line-height: 1.3;
-          }
-          .suggestions-title { 
-            font-size: 0.75rem; 
-            padding-left: 0.25rem;
-            margin-bottom: 0.75rem;
-          }
+          
           .preview-messages {
             padding: 12px;
             min-height: 80px;
           }
+          
           .msg-bubble {
             font-size: 0.8rem;
             padding: 6px 10px;
@@ -1208,83 +1172,46 @@ export default function Home() {
           .chat-preview-window {
             margin: 0 0 0.75rem;
           }
-          .chat-input-container {
-            padding: 0.75rem 3rem 0.75rem 0.75rem;
-            margin: 0;
-          }
-          .send-button {
-            width: 28px;
-            height: 28px;
-            right: 0.4rem;
-          }
-          .send-icon { font-size: 0.8rem; }
-          .suggestions-carousel {
-            gap: 0.4rem;
-            padding: 0.4rem 0 0.75rem;
-          }
-          .suggestion-card {
+          
+          .integrated-card {
             min-width: 100px;
             max-width: 100px;
-            padding: 0.5rem 0.3rem;
+            padding: 6px 8px;
+            font-size: 10px;
           }
-          .card-title {
-            font-size: 0.65rem;
-            margin-bottom: 0.2rem;
-          }
-          .card-description {
-            font-size: 0.55rem;
-          }
-          .card-text {
-            font-size: 0.6rem;
-          }
-          .suggestions-title {
-            font-size: 0.7rem;
-            margin-bottom: 0.5rem;
-          }
-        }
-
-        @media (max-width: 320px) {
-          .logo-text { font-size: 1.8rem; }
-          .tagline h1 { font-size: 1.2rem; }
-          .section-title { font-size: 1.4rem; }
-          .step-card, .benefit-card { padding: 1rem; }
           
-          /* Chat para pantallas muy pequeñas */
-          .chat-input-container { 
-            padding: 0.625rem 2.75rem 0.625rem 0.625rem; 
+          .integrated-cards-scroll {
+            gap: 4px;
           }
-          .send-button { 
-            width: 26px; 
-            height: 26px; 
-            right: 0.3rem; 
+          
+          .integrated-input-container {
+            padding: 4px 4px 4px 12px;
           }
-          .send-icon { font-size: 0.7rem; }
-          .suggestions-carousel { gap: 0.3rem; }
-          .suggestion-card { 
-            min-width: 85px; 
-            max-width: 85px; 
-            padding: 0.4rem 0.25rem;
+          
+          .integrated-send-btn {
+            width: 26px;
+            height: 26px;
           }
-          .card-title { font-size: 0.6rem; }
-          .card-description { font-size: 0.5rem; }
-          .card-text { font-size: 0.55rem; }
-          .suggestions-title { font-size: 0.65rem; }
+          
+          .send-icon {
+            font-size: 11px;
+          }
         }
 
         /* Mejoras específicas para iOS Safari */
         @supports (-webkit-touch-callout: none) {
-          .chat-input {
+          .integrated-input {
             -webkit-appearance: none;
             -webkit-border-radius: 18px;
           }
           
-          .send-button {
+          .integrated-send-btn {
             -webkit-appearance: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
           }
           
-          .suggestion-card {
+          .integrated-card {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
           }
@@ -1307,70 +1234,38 @@ function AnimatedButton({ children, onClick, primary = false }) {
     <button
       onClick={onClick}
       className={`animated-btn ${primary ? 'primary' : 'secondary'}`}
+      style={{
+        padding: '1rem 2rem',
+        fontSize: '1.1rem',
+        fontWeight: '600',
+        border: 'none',
+        borderRadius: '12px',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        fontFamily: 'inherit',
+        background: primary 
+          ? 'linear-gradient(135deg, #007aff, #5856d6)' 
+          : 'rgba(255,255,255,0.9)',
+        color: primary ? 'white' : '#007aff',
+        backdropFilter: 'blur(20px)',
+        boxShadow: primary
+          ? '0 4px 20px rgba(0,122,255,0.3)'
+          : '0 4px 20px rgba(0,0,0,0.08)',
+      }}
+      onMouseOver={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = primary
+          ? '0 8px 30px rgba(0,122,255,0.4)'
+          : '0 8px 30px rgba(0,0,0,0.12)';
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = primary
+          ? '0 4px 20px rgba(0,122,255,0.3)'
+          : '0 4px 20px rgba(0,0,0,0.08)';
+      }}
     >
       {children}
-      <style jsx>{`
-        .animated-btn {
-          padding: 1.2rem 2.5rem;
-          font-size: 1.1rem;
-          font-weight: 600;
-          border: none;
-          border-radius: 50px;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          text-decoration: none;
-          display: inline-block;
-          position: relative;
-          overflow: hidden;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .animated-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          transition: left 0.5s;
-        }
-
-        .animated-btn:hover::before {
-          left: 100%;
-        }
-
-        .animated-btn.primary {
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
-          box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
-        }
-
-        .animated-btn.secondary {
-          background: rgba(255, 255, 255, 0.9);
-          color: #007aff;
-          border: 2px solid rgba(0, 122, 255, 0.2);
-          backdrop-filter: blur(10px);
-        }
-
-        .animated-btn:hover {
-          transform: translateY(-3px);
-        }
-
-        .animated-btn.primary:hover {
-          box-shadow: 0 8px 30px rgba(0, 122, 255, 0.4);
-        }
-
-        .animated-btn.secondary:hover {
-          background: rgba(255, 255, 255, 1);
-          border-color: rgba(0, 122, 255, 0.4);
-          box-shadow: 0 8px 30px rgba(0, 122, 255, 0.15);
-        }
-
-        .animated-btn:active {
-          transform: translateY(-1px);
-        }
-      `}</style>
     </button>
   );
 }
