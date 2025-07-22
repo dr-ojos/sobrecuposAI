@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from 'react';
 
 export default function Home() {
   const router = useRouter();
@@ -10,7 +10,6 @@ export default function Home() {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  // Función para manejar el envío del chat
   const handleChatSubmit = (e) => {
     e.preventDefault();
     if (chatInput.trim()) {
@@ -18,21 +17,17 @@ export default function Home() {
     }
   };
 
-  // Función para navegar al chat
   const goToChat = () => {
     router.push('/chat');
   };
 
-  // Función para ir al login de médicos
   const goToMedicoLogin = () => {
     router.push('/auth/signin');
   };
 
   useEffect(() => {
-    // Animación inicial más suave
     setTimeout(() => setIsVisible(true), 500);
     
-    // Efecto parallax muy sutil
     const handleMouseMove = (e) => {
       setMousePos({
         x: (e.clientX / window.innerWidth - 0.5) * 10,
@@ -46,20 +41,16 @@ export default function Home() {
 
   return (
     <main className="homepage">
-      {/* Fondo con gradiente suave y elegante */}
       <div className="bg-gradient" />
       
-      {/* Elementos flotantes minimalistas */}
       <div className="floating-elements">
         <div className="element element-1" style={{transform: `translate(${mousePos.x * 0.3}px, ${mousePos.y * 0.3}px)`}}>💊</div>
         <div className="element element-2" style={{transform: `translate(${mousePos.x * -0.2}px, ${mousePos.y * 0.2}px)`}}>🩺</div>
         <div className="element element-3" style={{transform: `translate(${mousePos.x * 0.4}px, ${mousePos.y * -0.3}px)`}}>⚡</div>
       </div>
 
-      {/* Hero Section */}
       <section className="hero-section">
         <div className="content-wrapper">
-          {/* Logo principal mejorado */}
           <div 
             ref={logoRef}
             className={`logo-container ${isVisible ? 'visible' : ''}`}
@@ -72,17 +63,22 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Tagline simplificado */}
           <div className={`tagline ${isVisible ? 'visible' : ''}`}>
-            <h1>Encuentra tu cita médica al instante</h1>
+            <h1>Encuentra tu Sobrecupo médico</h1>
             <p className="subtitle">
-              <strong>Menos tiempo</strong> esperando, <strong>más tiempo</strong> cuidándote.
+              <strong>Más tiempo</strong> sano, <strong>menos tiempo</strong> enfermo.
+            </p>
+            <p className="cta-text">
+              Chatea conmigo y encuentra un sobrecupo.
             </p>
           </div>
 
-          {/* Chat Input Principal - NUEVA FUNCIONALIDAD */}
           <div className={`chat-container ${isVisible ? 'visible' : ''}`}>
             <div className="chat-wrapper">
+              <div className="bot-greeting">
+                ¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.
+              </div>
+              
               <form onSubmit={handleChatSubmit} className="chat-form">
                 <div className="chat-input-container">
                   <input
@@ -92,7 +88,7 @@ export default function Home() {
                       setChatInput(e.target.value);
                       setIsTyping(e.target.value.length > 0);
                     }}
-                    placeholder="Busco un neurólogo para mañana..."
+                    placeholder="Busco un oftalmólogo..."
                     className="chat-input"
                     autoFocus
                   />
@@ -128,7 +124,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Botón CTA original */}
           <div className={`cta-section ${isVisible ? 'visible' : ''}`}>
             <AnimatedButton 
               onClick={goToChat}
@@ -142,7 +137,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Resto de las secciones originales */}
       <section className="how-it-works">
         <div className="section-container">
           <h2 className="section-title">¿Cómo funciona?</h2>
@@ -438,7 +432,13 @@ export default function Home() {
           font-weight: 700;
         }
 
-        /* Chat Container - NUEVO */
+        .cta-text {
+          font-size: 1.25rem;
+          color: #007aff;
+          font-weight: 600;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
         .chat-container {
           margin-bottom: 3rem;
           opacity: 0;
@@ -454,6 +454,22 @@ export default function Home() {
         .chat-wrapper {
           max-width: 700px;
           margin: 0 auto;
+        }
+
+        .bot-greeting {
+          background: rgba(255,255,255,0.9);
+          border: 1px solid rgba(0,122,255,0.1);
+          border-radius: 16px;
+          padding: 1.5rem 2rem;
+          margin-bottom: 1.5rem;
+          font-size: 1rem;
+          color: #424245;
+          line-height: 1.5;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-weight: 400;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+          backdrop-filter: blur(20px);
+          text-align: center;
         }
 
         .chat-form {
