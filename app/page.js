@@ -9,11 +9,19 @@ export default function Home() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [chatExpanding, setChatExpanding] = useState(false);
 
+  // Función para manejar el envío del chat con efecto de expansión
   const handleChatSubmit = (e) => {
     e.preventDefault();
-    if (chatInput.trim()) {
-      router.push(`/chat?initial=${encodeURIComponent(chatInput.trim())}`);
+    if (chatInput.trim() && !chatExpanding) {
+      // 1. Trigger expansion animation
+      setChatExpanding(true);
+      
+      // 2. After expansion animation, navigate to chat
+      setTimeout(() => {
+        router.push(`/chat?initial=${encodeURIComponent(chatInput.trim())}`);
+      }, 800);
     }
   };
 
@@ -73,10 +81,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div className={`chat-container ${isVisible ? 'visible' : ''}`}>
+          <div className={`chat-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
             <div className="chat-wrapper">
               {/* Saludo como mensaje de chat */}
-              <div className="chat-greeting">
+              <div className={`chat-greeting ${chatExpanding ? 'fade-out' : ''}`}>
                 <div className="bot-message">
                   <div className="bot-avatar">
                     <span>🤖</span>
@@ -88,7 +96,7 @@ export default function Home() {
               </div>
               
               <form onSubmit={handleChatSubmit} className="chat-form">
-                <div className="chat-input-container">
+                <div className={`chat-input-container ${chatExpanding ? 'expanding' : ''}`}>
                   <input
                     type="text"
                     value={chatInput}
@@ -99,55 +107,60 @@ export default function Home() {
                     placeholder="Busco un oftalmólogo..."
                     className="chat-input"
                     autoFocus
+                    disabled={chatExpanding}
                   />
                   <button 
                     type="submit"
-                    className={`send-button ${isTyping ? 'active' : ''}`}
-                    disabled={!chatInput.trim()}
+                    className={`send-button ${isTyping ? 'active' : ''} ${chatExpanding ? 'expanding' : ''}`}
+                    disabled={!chatInput.trim() || chatExpanding}
                   >
                     <span className="send-icon">→</span>
                   </button>
+                  
+                  {/* Overlay de expansión */}
+                  {chatExpanding && (
+                    <div className="expansion-overlay">
+                      <div className="expanding-message">
+                        {chatInput}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </form>
               
               {/* Sugerencias como tarjetas carrusel */}
-              <div className="suggestions-section">
+              <div className={`suggestions-section ${chatExpanding ? 'fade-out' : ''}`}>
                 <p className="suggestions-title">Prueba preguntando:</p>
                 <div className="suggestions-carousel">
                   <div 
                     className="suggestion-card"
                     onClick={() => setChatInput('Necesito un cardiólogo urgente')}
                   >
-                    <div className="card-title">Cardiólogo urgente</div>
-                    <div className="card-description">Busco atención cardiológica para esta semana</div>
+                    <div className="card-text">Busco atención cardiológica para esta semana</div>
                   </div>
                   <div 
                     className="suggestion-card"
                     onClick={() => setChatInput('Busco dermatólogo para esta semana')}
                   >
-                    <div className="card-title">Dermatólogo</div>
-                    <div className="card-description">Necesito consulta dermatológica pronto</div>
+                    <div className="card-text">Necesito consulta dermatológica pronto</div>
                   </div>
                   <div 
                     className="suggestion-card"
                     onClick={() => setChatInput('Hay pediatras disponibles hoy')}
                   >
-                    <div className="card-title">Pediatra hoy</div>
-                    <div className="card-description">Busco pediatra para mi hijo urgente</div>
+                    <div className="card-text">Busco pediatra para mi hijo urgente</div>
                   </div>
                   <div 
                     className="suggestion-card"
                     onClick={() => setChatInput('Necesito oftalmólogo esta semana')}
                   >
-                    <div className="card-title">Oftalmólogo</div>
-                    <div className="card-description">Problemas de visión, necesito cita</div>
+                    <div className="card-text">Problemas de visión, necesito cita</div>
                   </div>
                   <div 
                     className="suggestion-card"
                     onClick={() => setChatInput('Busco psicólogo disponible')}
                   >
-                    <div className="card-title">Psicólogo</div>
-                    <div className="card-description">Necesito apoyo psicológico pronto</div>
+                    <div className="card-text">Necesito apoyo psicológico pronto</div>
                   </div>
                 </div>
               </div>
@@ -612,6 +625,15 @@ export default function Home() {
           font-weight: 400;
         }
 
+        .card-text {
+          font-size: 0.8rem;
+          color: #8e8e93;
+          line-height: 1.4;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-weight: 400;
+          text-align: center;
+        }
+
         .chat-input-container {
           position: relative;
           background: rgba(255,255,255,0.95);
@@ -625,10 +647,166 @@ export default function Home() {
           align-items: center;
         }
 
-        .chat-input-container:focus-within {
+        .chat-input-container:focus-within:not(.expanding) {
           border-color: #007aff;
           box-shadow: 0 12px 50px rgba(0,122,255,0.15);
           transform: translateY(-2px);
+        }
+
+        /* Animaciones de expansión */
+        .chat-container.expanding {
+          transform: scale(1.02);
+          transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chat-greeting.fade-out,
+        .suggestions-section.fade-out {
+          opacity: 0;
+          transform: translateY(-20px);
+          transition: all 0.4s ease;
+        }
+
+        .chat-input-container.expanding {
+          transform: scale(1.05) translateY(-10px);
+          box-shadow: 0 20px 60px rgba(0,122,255,0.25);
+          border-color: #007aff;
+          background: rgba(255,255,255,1);
+          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .send-button.expanding {
+          transform: translateY(-50%) scale(1.2);
+          background: linear-gradient(135deg, #34c759, #007aff);
+          box-shadow: 0 8px 25px rgba(52,199,89,0.4);
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .expansion-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 24px;
+          opacity: 0;
+          animation: expandOverlay 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .expanding-message {
+          color: white;
+          font-size: 1.1rem;
+          font-weight: 500;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          text-align: center;
+          padding: 0 2rem;
+          transform: translateY(20px);
+          opacity: 0;
+          animation: showMessage 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+        }
+
+        @keyframes expandOverlay {
+          0% {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          50% {
+            opacity: 0.95;
+            transform: scale(1.02);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes showMessage {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .chat-container.expanding {
+          transform: scale(1.02);
+          transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .chat-greeting.fade-out,
+        .suggestions-section.fade-out {
+          opacity: 0;
+          transform: translateY(-20px);
+          transition: all 0.4s ease;
+        }
+
+        .chat-input-container.expanding {
+          transform: scale(1.05) translateY(-10px);
+          box-shadow: 0 20px 60px rgba(0,122,255,0.25);
+          border-color: #007aff;
+          background: rgba(255,255,255,1);
+          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .send-button.expanding {
+          transform: translateY(-50%) scale(1.2);
+          background: linear-gradient(135deg, #34c759, #007aff);
+          box-shadow: 0 8px 25px rgba(52,199,89,0.4);
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .expansion-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 24px;
+          opacity: 0;
+          animation: expandOverlay 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .expanding-message {
+          color: white;
+          font-size: 1.1rem;
+          font-weight: 500;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          text-align: center;
+          padding: 0 2rem;
+          transform: translateY(20px);
+          opacity: 0;
+          animation: showMessage 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+        }
+
+        @keyframes expandOverlay {
+          0% {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          50% {
+            opacity: 0.95;
+            transform: scale(1.02);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes showMessage {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .chat-input {
@@ -983,6 +1161,7 @@ export default function Home() {
           .suggestion-card { min-width: 140px; max-width: 140px; padding: 0.875rem; }
           .card-title { font-size: 0.8rem; }
           .card-description { font-size: 0.7rem; }
+          .card-text { font-size: 0.75rem; }
           .bot-avatar { width: 28px; height: 28px; font-size: 0.9rem; }
           .message-bubble { padding: 0.875rem 1rem; font-size: 0.9rem; }
         }
@@ -1002,7 +1181,13 @@ export default function Home() {
           .chat-input { font-size: 0.95rem; }
           .send-button { width: 36px; height: 36px; right: 0.7rem; }
           .send-icon { font-size: 1rem; }
-          .suggestion-chip { font-size: 0.8rem; padding: 0.6rem 1rem; }
+          .suggestion-card { min-width: 120px; max-width: 120px; padding: 0.75rem; }
+          .card-title { font-size: 0.75rem; margin-bottom: 0.4rem; }
+          .card-description { font-size: 0.65rem; }
+          .suggestions-carousel { gap: 0.7rem; }
+          .bot-avatar { width: 26px; height: 26px; font-size: 0.85rem; }
+          .message-bubble { padding: 0.75rem 0.875rem; font-size: 0.85rem; }
+          .suggestions-title { font-size: 0.8rem; }
         }
 
         @media (max-width: 320px) {
