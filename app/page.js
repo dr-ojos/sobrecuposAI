@@ -1,247 +1,259 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import { useRef, useEffect, useState } from 'react';
+// app/page.js - Página principal optimizada para iPhone
+'use client'
 
-export default function Home() {
-  const router = useRouter();
-  const logoRef = useRef();
-  const [isVisible, setIsVisible] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [chatInput, setChatInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [chatExpanding, setChatExpanding] = useState(false);
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
-  // Función para manejar el envío del chat con efecto de expansión
-  const handleChatSubmit = (e) => {
-    e.preventDefault();
-    if (chatInput.trim() && !chatExpanding) {
-      // 1. Trigger expansion animation
-      setChatExpanding(true);
-      
-      // 2. After expansion animation, navigate to chat
-      setTimeout(() => {
-        router.push(`/chat?initial=${encodeURIComponent(chatInput.trim())}`);
-      }, 800);
-    }
-  };
-
-  const goToChat = () => {
-    router.push('/chat');
-  };
-
-  const goToMedicoLogin = () => {
-    router.push('/auth/signin');
-  };
+export default function HomePage() {
+  const router = useRouter()
+  const [isVisible, setIsVisible] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    setTimeout(() => setIsVisible(true), 500);
-    
-    const handleMouseMove = (e) => {
-      setMousePos({
-        x: (e.clientX / window.innerWidth - 0.5) * 10,
-        y: (e.clientY / window.innerHeight - 0.5) * 10
-      });
-    };
-    
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+    // Animación de entrada
+    const timer = setTimeout(() => {
+      setIsVisible(true)
+    }, 100)
+
+    // Marcar como cargado para optimizaciones
+    setIsLoaded(true)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Navegación optimizada
+  const goToChat = () => {
+    // WhatsApp con mensaje predefinido
+    const message = encodeURIComponent('Hola, necesito un sobrecupo médico urgente 🩺')
+    window.open(`https://wa.me/56912345678?text=${message}`, '_blank')
+  }
+
+  const goToMedicoLogin = () => {
+    router.push('/auth/signin')
+  }
+
+  const goToRegistro = () => {
+    router.push('/registro')
+  }
+
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id)
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      })
+    }
+  }
+
+  // Componente AnimatedButton reutilizable
+  const AnimatedButton = ({ children, onClick, primary = false, secondary = false, large = false, className = "" }) => (
+    <button
+      onClick={onClick}
+      className={`animated-button ${primary ? 'primary' : ''} ${secondary ? 'secondary' : ''} ${large ? 'large' : ''} ${className}`}
+    >
+      {children}
+    </button>
+  )
 
   return (
-    <main className="homepage">
-      <div className="bg-gradient" />
-      
-      <div className="floating-elements">
-        <div className="element element-1" style={{transform: `translate(${mousePos.x * 0.3}px, ${mousePos.y * 0.3}px)`}}>💊</div>
-        <div className="element element-2" style={{transform: `translate(${mousePos.x * -0.2}px, ${mousePos.y * 0.2}px)`}}>🩺</div>
-        <div className="element element-3" style={{transform: `translate(${mousePos.x * 0.4}px, ${mousePos.y * -0.3}px)`}}>⚡</div>
-      </div>
-
-      <section className="hero-section">
-        <div className="content-wrapper">
-          <div 
-            ref={logoRef}
-            className={`logo-container ${isVisible ? 'visible' : ''}`}
-          >
-            <div className="logo-glow">
-              <div className="logo-text">
-                <span className="logo-main">Sobrecupos</span>
-                <span className="logo-ai">AI</span>
-              </div>
-            </div>
+    <div className="landing-page">
+      {/* Header optimizado para iPhone */}
+      <header className="mobile-header">
+        <nav className="nav-container">
+          <div className="nav-brand">
+            <span className="logo-main">Sobrecupos</span>
+            <span className="logo-ai">AI</span>
           </div>
+          <AnimatedButton onClick={goToMedicoLogin} className="nav-login-btn">
+            Soy médico
+          </AnimatedButton>
+        </nav>
+      </header>
 
-          <div className={`tagline ${isVisible ? 'visible' : ''}`}>
-            <h1>Encuentra tu Sobrecupo médico</h1>
-            <p className="subtitle">
-              <strong>Más tiempo</strong> sano, <strong>menos tiempo</strong> enfermo.
-            </p>
-            <p className="cta-text">
-              Chatea conmigo y encuentra un sobrecupo.
-            </p>
+      {/* Hero Section */}
+      <section className={`hero-section ${isVisible ? 'visible' : ''}`}>
+        <div className="hero-container">
+          {/* Badge superior */}
+          <div className="hero-badge">
+            <span className="badge-icon">🩺</span>
+            <span className="badge-text">Más tiempo sano, menos tiempo enfermo</span>
           </div>
-
-          <div className={`chat-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
-            <div className="chat-wrapper">
-              {/* Saludo como mensaje de chat */}
-              <div className={`chat-greeting ${chatExpanding ? 'fade-out' : ''}`}>
-                <div className="bot-message">
-                  <div className="bot-avatar">
-                    <span>🤖</span>
-                  </div>
-                  <div className="message-bubble">
-                    ¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.
-                  </div>
-                </div>
-              </div>
-              
-              <form onSubmit={handleChatSubmit} className="chat-form">
-                <div className={`chat-input-container ${chatExpanding ? 'expanding' : ''}`}>
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => {
-                      setChatInput(e.target.value);
-                      setIsTyping(e.target.value.length > 0);
-                    }}
-                    placeholder="Busco un oftalmólogo..."
-                    className="chat-input"
-                    autoFocus
-                    disabled={chatExpanding}
-                  />
-                  <button 
-                    type="submit"
-                    className={`send-button ${isTyping ? 'active' : ''} ${chatExpanding ? 'expanding' : ''}`}
-                    disabled={!chatInput.trim() || chatExpanding}
-                  >
-                    <span className="send-icon">→</span>
-                  </button>
-                  
-                  {/* Overlay de expansión */}
-                  {chatExpanding && (
-                    <div className="expansion-overlay">
-                      <div className="expanding-message">
-                        {chatInput}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </form>
-              
-              {/* Sugerencias como tarjetas carrusel */}
-              <div className={`suggestions-section ${chatExpanding ? 'fade-out' : ''}`}>
-                <p className="suggestions-title">Prueba preguntando:</p>
-                <div className="suggestions-carousel">
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Necesito un cardiólogo urgente')}
-                  >
-                    <div className="card-text">Busco atención cardiológica para esta semana</div>
-                  </div>
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Busco dermatólogo para esta semana')}
-                  >
-                    <div className="card-text">Necesito consulta dermatológica pronto</div>
-                  </div>
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Hay pediatras disponibles hoy')}
-                  >
-                    <div className="card-text">Busco pediatra para mi hijo urgente</div>
-                  </div>
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Necesito oftalmólogo esta semana')}
-                  >
-                    <div className="card-text">Problemas de visión, necesito cita</div>
-                  </div>
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Busco psicólogo disponible')}
-                  >
-                    <div className="card-text">Necesito apoyo psicológico pronto</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className={`cta-section ${isVisible ? 'visible' : ''}`}>
-            <AnimatedButton 
-              onClick={goToChat}
-              primary
-            >
-              <span className="button-icon">💬</span>
-              Comenzar Chat
-              <span className="button-arrow">→</span>
+          
+          {/* Título principal */}
+          <h1 className="hero-title">
+            Encuentra tu
+            <span className="title-highlight"> sobrecupo médico </span>
+            al instante
+          </h1>
+          
+          {/* Descripción */}
+          <p className="hero-description">
+            Te conectamos con médicos disponibles hoy mismo. 
+            Sin esperas, sin trámites complicados.
+          </p>
+          
+          {/* Botones de acción */}
+          <div className="hero-buttons">
+            <AnimatedButton onClick={goToChat} primary large>
+              <span className="button-icon">📱</span>
+              <span className="button-text">Buscar sobrecupo</span>
+            </AnimatedButton>
+            
+            <AnimatedButton onClick={() => scrollToSection('como-funciona')} secondary>
+              <span className="button-text">¿Cómo funciona?</span>
+              <span className="button-arrow">↓</span>
             </AnimatedButton>
           </div>
         </div>
+        
+        {/* Elementos decorativos animados */}
+        <div className="hero-bg-elements" aria-hidden="true">
+          <div className="floating-element element-1">🏥</div>
+          <div className="floating-element element-2">⚕️</div>
+          <div className="floating-element element-3">💊</div>
+          <div className="floating-element element-4">🩹</div>
+        </div>
       </section>
 
-      <section className="how-it-works">
+      {/* Sección: Cómo funciona */}
+      <section id="como-funciona" className="how-it-works">
         <div className="section-container">
-          <h2 className="section-title">¿Cómo funciona?</h2>
-          <div className="steps-grid">
-            <div className="step-card">
-              <div className="step-icon">💬</div>
-              <h3 className="step-title">Conversa</h3>
-              <p className="step-description">
-                Cuéntame qué especialista necesitas, cuándo y dónde.
-              </p>
+          <div className="section-header">
+            <h2 className="section-title">¿Cómo funciona?</h2>
+            <p className="section-subtitle">En 3 simples pasos tienes tu cita médica</p>
+          </div>
+          
+          <div className="steps-container">
+            {[
+              {
+                number: "1",
+                title: "Contacta por WhatsApp",
+                description: "Envía un mensaje con tu especialidad médica necesaria",
+                icon: "💬"
+              },
+              {
+                number: "2", 
+                title: "Te encontramos opciones",
+                description: "Nuestro sistema busca sobrecupos disponibles para hoy",
+                icon: "🔍"
+              },
+              {
+                number: "3",
+                title: "Confirmas y listo",
+                description: "Recibes todos los detalles de tu cita confirmada",
+                icon: "✅"
+              }
+            ].map((step, index) => (
+              <div key={index} className="step-card">
+                <div className="step-number">{step.number}</div>
+                <div className="step-content">
+                  <h3 className="step-title">{step.title}</h3>
+                  <p className="step-description">{step.description}</p>
+                </div>
+                <div className="step-icon">{step.icon}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sección: Estadísticas */}
+      <section className="stats-section">
+        <div className="section-container">
+          <div className="stats-grid">
+            {[
+              { number: "+500", label: "Pacientes atendidos" },
+              { number: "24h", label: "Tiempo promedio" },
+              { number: "15+", label: "Especialidades" }
+            ].map((stat, index) => (
+              <div key={index} className="stat-item">
+                <div className="stat-number">{stat.number}</div>
+                <div className="stat-label">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sección: Testimonios */}
+      <section className="testimonials-section">
+        <div className="section-container">
+          <h2 className="section-title">Lo que dicen nuestros pacientes</h2>
+          
+          <div className="testimonials-container">
+            {[
+              {
+                text: "En solo 2 horas tenía mi cita con un cardiólogo. Increíble servicio.",
+                author: "Carlos M.",
+                location: "Santiago",
+                avatar: "👨"
+              },
+              {
+                text: "Mi hija necesitaba un pediatra urgente. Los contacté y en la tarde ya estábamos en consulta.",
+                author: "María P.", 
+                location: "Valparaíso",
+                avatar: "👩"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="testimonial-card">
+                <div className="testimonial-content">
+                  <p className="testimonial-text">"{testimonial.text}"</p>
+                  <div className="testimonial-author">
+                    <div className="author-avatar">{testimonial.avatar}</div>
+                    <div className="author-info">
+                      <div className="author-name">{testimonial.author}</div>
+                      <div className="author-location">{testimonial.location}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sección: Para médicos */}
+      <section className="medicos-section">
+        <div className="section-container">
+          <div className="medicos-content">
+            <div className="medicos-icon">👨‍⚕️</div>
+            <h2 className="medicos-title">¿Eres médico?</h2>
+            <p className="medicos-description">
+              Únete a nuestra plataforma y monetiza tus sobrecupos. 
+              Aumenta tu flujo de pacientes de manera inteligente.
+            </p>
+            <div className="medicos-benefits">
+              <div className="benefit-item">
+                <span className="benefit-icon">💰</span>
+                <span className="benefit-text">Ingresos adicionales</span>
+              </div>
+              <div className="benefit-item">
+                <span className="benefit-icon">📅</span>
+                <span className="benefit-text">Gestión automática</span>
+              </div>
+              <div className="benefit-item">
+                <span className="benefit-icon">📊</span>
+                <span className="benefit-text">Panel de control</span>
+              </div>
             </div>
-            
-            <div className="step-card">
-              <div className="step-icon">🔍</div>
-              <h3 className="step-title">Busco</h3>
-              <p className="step-description">
-                Encuentro los sobrecupos disponibles que se ajusten a tus necesidades.
-              </p>
-            </div>
-            
-            <div className="step-card">
-              <div className="step-icon">📅</div>
-              <h3 className="step-title">Agendas</h3>
-              <p className="step-description">
-                Te ayudo a agendar directamente con el profesional disponible.
-              </p>
+            <div className="medicos-buttons">
+              <AnimatedButton onClick={goToMedicoLogin} primary>
+                <span className="button-icon">👨‍⚕️</span>
+                Iniciar sesión
+              </AnimatedButton>
+              <AnimatedButton 
+                onClick={() => window.open('https://wa.me/56912345678?text=Quiero%20registrarme%20como%20médico', '_blank')} 
+                secondary
+              >
+                Registrarse
+              </AnimatedButton>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="benefits">
-        <div className="section-container">
-          <h2 className="section-title">¿Por qué elegir Sobrecupos?</h2>
-          <div className="benefits-grid">
-            <div className="benefit-card">
-              <div className="benefit-icon">⚡</div>
-              <h3 className="benefit-title">Velocidad</h3>
-              <p className="benefit-description">
-                Encuentra citas médicas en minutos, no en semanas.
-              </p>
-            </div>
-            
-            <div className="benefit-card">
-              <div className="benefit-icon">🤖</div>
-              <h3 className="benefit-title">Inteligencia Artificial</h3>
-              <p className="benefit-description">
-                Conversación natural que entiende exactamente lo que necesitas.
-              </p>
-            </div>
-            
-            <div className="benefit-card">
-              <div className="benefit-icon">🏥</div>
-              <h3 className="benefit-title">Profesionales Verificados</h3>
-              <p className="benefit-description">
-                Solo médicos registrados y acreditados por la Superintendencia de Salud.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      {/* CTA Final */}
       <section className="final-cta">
         <div className="section-container">
           <h2 className="cta-title">¿Listo para encontrar tu cita?</h2>
@@ -249,18 +261,19 @@ export default function Home() {
             Comienza ahora mismo y encuentra el sobrecupo que necesitas.
           </p>
           <div className="cta-buttons">
-            <AnimatedButton onClick={() => window.open('https://wa.me/56912345678?text=Hola%2C%20quiero%20registrarme%20como%20m%C3%A9dico%20en%20Sobrecupos', '_blank')} primary>
+            <AnimatedButton onClick={goToChat} primary large>
               <span className="button-icon">📱</span>
-              Registro médicos
+              <span className="button-text">Buscar mi sobrecupo</span>
             </AnimatedButton>
-            <AnimatedButton onClick={goToMedicoLogin}>
-              <span className="button-icon">👨‍⚕️</span>
-              Soy médico
+            <AnimatedButton onClick={goToRegistro} secondary>
+              <span className="button-icon">📝</span>
+              <span className="button-text">Registrarme como paciente</span>
             </AnimatedButton>
           </div>
         </div>
       </section>
 
+      {/* Footer */}
       <footer className="footer">
         <div className="footer-container">
           <div className="footer-content">
@@ -274,29 +287,23 @@ export default function Home() {
               </p>
             </div>
             
-            <div className="footer-section">
-              <h4 className="footer-title">Pacientes</h4>
-              <ul className="footer-links">
-                <li><a href="/chat">Buscar sobrecupos</a></li>
-                <li><a href="/como-funciona">Cómo funciona</a></li>
-              </ul>
-            </div>
-            
-            <div className="footer-section">
-              <h4 className="footer-title">Médicos</h4>
-              <ul className="footer-links">
-                <li><a href="/auth/signin">Iniciar sesión</a></li>
-                <li><a href="/registro-medico">Registrarse</a></li>
-              </ul>
-            </div>
-            
-            <div className="footer-section">
-              <h4 className="footer-title">Legal</h4>
-              <ul className="footer-links">
-                <li><a href="/terminos">Términos de uso</a></li>
-                <li><a href="/privacidad">Privacidad</a></li>
-                <li><a href="/contacto">Contacto</a></li>
-              </ul>
+            <div className="footer-links-grid">
+              <div className="footer-column">
+                <h4 className="footer-title">Pacientes</h4>
+                <ul className="footer-links">
+                  <li><button onClick={goToChat}>Buscar sobrecupos</button></li>
+                  <li><button onClick={() => scrollToSection('como-funciona')}>Cómo funciona</button></li>
+                  <li><button onClick={goToRegistro}>Registrarse</button></li>
+                </ul>
+              </div>
+              
+              <div className="footer-column">
+                <h4 className="footer-title">Médicos</h4>
+                <ul className="footer-links">
+                  <li><button onClick={goToMedicoLogin}>Iniciar sesión</button></li>
+                  <li><button onClick={() => window.open('https://wa.me/56912345678?text=Quiero%20registrarme%20como%20médico', '_blank')}>Registrarse</button></li>
+                </ul>
+              </div>
             </div>
           </div>
           
@@ -304,780 +311,539 @@ export default function Home() {
             <p className="footer-copyright">
               © 2025 Sobrecupos AI. Todos los derechos reservados.
             </p>
-            <div className="footer-social">
-              <a href="mailto:hola@sobrecupos.ai" className="social-link">📧</a>
-              <a href="#" className="social-link">📱</a>
+            <div className="footer-legal">
+              <button onClick={() => router.push('/terminos')}>Términos</button>
+              <button onClick={() => router.push('/privacidad')}>Privacidad</button>
+              <button onClick={() => window.open('https://wa.me/56912345678?text=Necesito%20ayuda', '_blank')}>Contacto</button>
             </div>
           </div>
         </div>
       </footer>
 
+      {/* Estilos integrados optimizados para iPhone */}
       <style jsx>{`
-        .homepage {
+        /* Reset y base */
+        .landing-page {
           min-height: 100vh;
-          position: relative;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          background: linear-gradient(135deg, #f8faff 0%, #e8f4ff 100%);
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+          color: #1d1d1f;
           overflow-x: hidden;
+          position: relative;
         }
 
-        .bg-gradient {
-          position: fixed;
+        /* Header optimizado */
+        .mobile-header {
+          position: sticky;
           top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, 
-            #f8faff 0%, 
-            #e8f2ff 30%, 
-            #dde9ff 60%, 
-            #f0f8ff 100%);
-          background-size: 400% 400%;
-          animation: subtleShift 30s ease infinite;
-          z-index: -2;
+          z-index: 1000;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          padding-top: env(safe-area-inset-top);
         }
 
-        @keyframes subtleShift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
+        .nav-container {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
         }
 
-        .floating-elements {
-          position: fixed;
+        .nav-brand {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+        }
+
+        .logo-main {
+          font-size: 20px;
+          font-weight: 800;
+          color: #1d1d1f;
+          letter-spacing: -0.02em;
+        }
+
+        .logo-ai {
+          font-size: 20px;
+          font-weight: 800;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        /* Botones animados */
+        .animated-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          border: none;
+          border-radius: 28px;
+          font-family: inherit;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          -webkit-tap-highlight-color: transparent;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .animated-button:active {
+          transform: scale(0.95);
+        }
+
+        .animated-button.primary {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          padding: 14px 32px;
+          font-size: 16px;
+          box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+          min-width: 200px;
+        }
+
+        .animated-button.primary.large {
+          padding: 16px 40px;
+          font-size: 17px;
+          min-width: 240px;
+        }
+
+        .animated-button.primary:active {
+          box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+        }
+
+        .animated-button.secondary {
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          color: #007aff;
+          border: 1px solid rgba(0, 122, 255, 0.2);
+          padding: 12px 24px;
+          font-size: 15px;
+        }
+
+        .animated-button.secondary:active {
+          background: rgba(255, 255, 255, 0.9);
+        }
+
+        .nav-login-btn {
+          background: rgba(0, 122, 255, 0.1);
+          color: #007aff;
+          border: 1px solid rgba(0, 122, 255, 0.2);
+          border-radius: 20px;
+          padding: 8px 16px;
+          font-size: 14px;
+        }
+
+        .nav-login-btn:active {
+          background: rgba(0, 122, 255, 0.15);
+        }
+
+        /* Hero Section */
+        .hero-section {
+          padding: 40px 16px 60px;
+          text-align: center;
+          position: relative;
+          overflow: hidden;
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.6s ease;
+        }
+
+        .hero-section.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .hero-container {
+          max-width: 380px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 2;
+        }
+
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(0, 122, 255, 0.15);
+          border-radius: 24px;
+          padding: 8px 16px;
+          margin-bottom: 24px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #007aff;
+        }
+
+        .hero-title {
+          font-size: 32px;
+          font-weight: 800;
+          line-height: 1.2;
+          margin-bottom: 16px;
+          letter-spacing: -0.02em;
+        }
+
+        .title-highlight {
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .hero-description {
+          font-size: 17px;
+          line-height: 1.4;
+          color: #6e6e73;
+          margin-bottom: 32px;
+          font-weight: 400;
+        }
+
+        .hero-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .button-icon {
+          font-size: 16px;
+        }
+
+        .button-arrow {
+          font-size: 14px;
+          transition: transform 0.2s ease;
+        }
+
+        /* Elementos flotantes */
+        .hero-bg-elements {
+          position: absolute;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
           pointer-events: none;
-          z-index: -1;
-        }
-
-        .element {
-          position: absolute;
-          font-size: 2rem;
-          opacity: 0.04;
-          animation: gentleFloat 12s ease-in-out infinite;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
-        }
-
-        .element-1 { top: 15%; right: 20%; animation-delay: 0s; }
-        .element-2 { bottom: 20%; left: 15%; animation-delay: 4s; }
-        .element-3 { top: 45%; left: 25%; animation-delay: 8s; }
-
-        @keyframes gentleFloat {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.04; }
-          50% { transform: translateY(-20px) rotate(3deg); opacity: 0.08; }
-        }
-
-        .hero-section {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          z-index: 1;
-        }
-
-        .content-wrapper {
-          text-align: center;
-          max-width: 900px;
-          padding: 2rem;
-          position: relative;
-        }
-
-        .logo-container {
-          margin-bottom: 3rem;
-          opacity: 0;
-          transform: translateY(40px) scale(0.95);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .logo-container.visible {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-
-        .logo-glow {
-          position: relative;
-          display: inline-block;
-        }
-
-        .logo-glow::before {
-          content: '';
-          position: absolute;
-          top: -20px;
-          left: -20px;
-          right: -20px;
-          bottom: -20px;
-          background: linear-gradient(45deg, #007aff, #5856d6, #34c759, #007aff);
-          border-radius: 40px;
           opacity: 0.1;
-          filter: blur(40px);
-          animation: logoGlow 8s ease-in-out infinite;
         }
 
-        @keyframes logoGlow {
-          0%, 100% { opacity: 0.08; transform: scale(1); }
-          50% { opacity: 0.15; transform: scale(1.05); }
-        }
-
-        .logo-text {
-          position: relative;
-          background: linear-gradient(135deg, #1d1d1f 0%, #515154 50%, #1d1d1f 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          font-size: 5rem;
-          font-weight: 900;
-          letter-spacing: -0.04em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .logo-ai {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 50%, #007aff 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .tagline {
-          margin-bottom: 3rem;
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
-        }
-
-        .tagline.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .tagline h1 {
-          font-size: 3.5rem;
-          font-weight: 800;
-          color: #1d1d1f;
-          margin-bottom: 1.5rem;
-          line-height: 1.1;
-          letter-spacing: -0.03em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .subtitle {
-          font-size: 1.5rem;
-          color: #424245;
-          line-height: 1.4;
-          font-weight: 400;
-          margin-bottom: 1.5rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .subtitle strong {
-          color: #1d1d1f;
-          font-weight: 700;
-        }
-
-        .cta-text {
-          font-size: 1.25rem;
-          color: #007aff;
-          font-weight: 600;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .chat-container {
-          margin-bottom: 3rem;
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
-        }
-
-        .chat-container.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .chat-wrapper {
-          max-width: 700px;
-          margin: 0 auto;
-        }
-
-        /* Saludo como mensaje de chat */
-        .chat-greeting {
-          margin-bottom: 2rem;
-        }
-
-        .bot-message {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.75rem;
-          max-width: 85%;
-        }
-
-        .bot-avatar {
-          width: 32px;
-          height: 32px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-          font-size: 1rem;
-          box-shadow: 0 2px 8px rgba(0,122,255,0.3);
-        }
-
-        .message-bubble {
-          background: rgba(255,255,255,0.95);
-          border: 1px solid rgba(0,122,255,0.1);
-          border-radius: 18px;
-          border-top-left-radius: 4px;
-          padding: 1rem 1.25rem;
-          font-size: 0.95rem;
-          color: #424245;
-          line-height: 1.4;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-          backdrop-filter: blur(20px);
-          position: relative;
-        }
-
-        .message-bubble::before {
-          content: '';
+        .floating-element {
           position: absolute;
-          top: 8px;
-          left: -6px;
-          width: 12px;
-          height: 12px;
-          background: rgba(255,255,255,0.95);
-          border: 1px solid rgba(0,122,255,0.1);
-          border-right: none;
-          border-bottom: none;
-          transform: rotate(-45deg);
-          backdrop-filter: blur(20px);
+          font-size: 24px;
+          animation: float 6s ease-in-out infinite;
         }
 
-        .chat-form {
-          margin-bottom: 1.5rem;
+        .element-1 { top: 20%; left: 15%; animation-delay: 0s; }
+        .element-2 { top: 60%; right: 20%; animation-delay: 1s; }
+        .element-3 { top: 80%; left: 20%; animation-delay: 2s; }
+        .element-4 { top: 40%; right: 15%; animation-delay: 3s; }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(5deg); }
         }
 
-        /* Sección de sugerencias mejorada */
-        .suggestions-section {
-          text-align: left;
-        }
-
-        .suggestions-title {
-          font-size: 0.9rem;
-          color: #8e8e93;
-          margin: 0 0 1rem 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 500;
-        }
-
-        .suggestions-carousel {
-          display: flex;
-          gap: 1rem;
-          overflow-x: auto;
-          padding: 0.5rem 0 1rem 0;
-          scroll-behavior: smooth;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-
-        .suggestions-carousel::-webkit-scrollbar {
-          display: none;
-        }
-
-        .suggestion-card {
-          background: rgba(255,255,255,0.9);
-          border: 1px solid rgba(0,0,0,0.08);
-          border-radius: 12px;
-          padding: 1rem;
-          min-width: 160px;
-          max-width: 160px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          flex-shrink: 0;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-          backdrop-filter: blur(20px);
-        }
-
-        .suggestion-card:hover {
-          background: rgba(255,255,255,0.95);
-          border-color: rgba(0,122,255,0.2);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(0,122,255,0.12);
-        }
-
-        .card-title {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #1d1d1f;
-          margin-bottom: 0.5rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          line-height: 1.2;
-        }
-
-        .card-description {
-          font-size: 0.75rem;
-          color: #8e8e93;
-          line-height: 1.3;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-        }
-
-        .card-text {
-          font-size: 0.8rem;
-          color: #8e8e93;
-          line-height: 1.4;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-          text-align: center;
-        }
-
-        .chat-input-container {
-          position: relative;
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(20px);
-          border: 2px solid rgba(0,122,255,0.1);
-          border-radius: 24px;
-          padding: 1.5rem 5rem 1.5rem 2rem;
-          box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-        }
-
-        .chat-input-container:focus-within:not(.expanding) {
-          border-color: #007aff;
-          box-shadow: 0 12px 50px rgba(0,122,255,0.15);
-          transform: translateY(-2px);
-        }
-
-        /* Animaciones de expansión */
-        .chat-container.expanding {
-          transform: scale(1.02);
-          transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .chat-greeting.fade-out,
-        .suggestions-section.fade-out {
-          opacity: 0;
-          transform: translateY(-20px);
-          transition: all 0.4s ease;
-        }
-
-        .chat-input-container.expanding {
-          transform: scale(1.05) translateY(-10px);
-          box-shadow: 0 20px 60px rgba(0,122,255,0.25);
-          border-color: #007aff;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .send-button.expanding {
-          transform: translateY(-50%) scale(1.2);
-          background: linear-gradient(135deg, #34c759, #007aff);
-          box-shadow: 0 8px 25px rgba(52,199,89,0.4);
-          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .expansion-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 24px;
-          opacity: 0;
-          animation: expandOverlay 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        .expanding-message {
-          color: #1d1d1f;
-          font-size: 1.1rem;
-          font-weight: 500;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          text-align: center;
-          padding: 0 2rem;
-          transform: translateY(20px);
-          opacity: 0;
-          animation: showMessage 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
-        }
-
-        @keyframes expandOverlay {
-          0% {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          50% {
-            opacity: 0.95;
-            transform: scale(1.02);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        @keyframes showMessage {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .chat-container.expanding {
-          transform: scale(1.02);
-          transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .chat-greeting.fade-out,
-        .suggestions-section.fade-out {
-          opacity: 0;
-          transform: translateY(-20px);
-          transition: all 0.4s ease;
-        }
-
-        .chat-input-container.expanding {
-          transform: scale(1.05) translateY(-10px);
-          box-shadow: 0 20px 60px rgba(0,122,255,0.25);
-          border-color: #007aff;
-          background: rgba(255,255,255,1);
-          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .send-button.expanding {
-          transform: translateY(-50%) scale(1.2);
-          background: linear-gradient(135deg, #34c759, #007aff);
-          box-shadow: 0 8px 25px rgba(52,199,89,0.4);
-          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .expansion-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 24px;
-          opacity: 0;
-          animation: expandOverlay 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        .expanding-message {
-          color: white;
-          font-size: 1.1rem;
-          font-weight: 500;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          text-align: center;
-          padding: 0 2rem;
-          transform: translateY(20px);
-          opacity: 0;
-          animation: showMessage 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
-        }
-
-        @keyframes expandOverlay {
-          0% {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          50% {
-            opacity: 0.95;
-            transform: scale(1.02);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        @keyframes showMessage {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .chat-input {
-          width: 100%;
-          border: none;
-          background: transparent;
-          font-size: 1.1rem;
-          color: #1d1d1f;
-          outline: none;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-        }
-
-        .chat-input::placeholder {
-          color: #8e8e93;
-          font-weight: 400;
-        }
-
-        .send-button {
-          position: absolute;
-          right: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 44px;
-          height: 44px;
-          border: none;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          border-radius: 50%;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0.6;
-        }
-
-        .send-button.active {
-          opacity: 1;
-          transform: translateY(-50%) scale(1.05);
-          box-shadow: 0 6px 20px rgba(0,122,255,0.3);
-        }
-
-        .send-button:disabled {
-          opacity: 0.3;
-          cursor: not-allowed;
-        }
-
-        .send-icon {
-          color: white;
-          font-size: 1.2rem;
-          font-weight: bold;
-          transform: translateX(1px);
-        }
-
-        .suggestion-chip {
-          background: rgba(255,255,255,0.8);
-          border: 1px solid rgba(0,122,255,0.2);
-          border-radius: 20px;
-          padding: 0.8rem 1.5rem;
-          font-size: 0.9rem;
-          color: #007aff;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 500;
-        }
-
-        .suggestion-chip:hover {
-          background: rgba(0,122,255,0.1);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 15px rgba(0,122,255,0.2);
-        }
-
-        .cta-section {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.9s;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 100%;
-          text-align: center;
-          position: relative;
-          padding: 2rem 0;
-        }
-
-        .cta-section.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
+        /* Secciones generales */
         .section-container {
-          max-width: 1200px;
+          max-width: 380px;
           margin: 0 auto;
-          padding: 0 2rem;
-        }
-
-        section {
-          padding: 6rem 0;
-          position: relative;
+          padding: 0 16px;
         }
 
         .section-title {
-          font-size: 2.8rem;
+          font-size: 28px;
           font-weight: 800;
-          color: #1d1d1f;
           text-align: center;
-          margin-bottom: 4rem;
+          margin-bottom: 8px;
           letter-spacing: -0.02em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
+        .section-subtitle {
+          font-size: 16px;
+          color: #6e6e73;
+          text-align: center;
+          margin-bottom: 32px;
+          font-weight: 400;
+        }
+
+        /* Cómo funciona */
         .how-it-works {
-          background: rgba(255,255,255,0.4);
-          backdrop-filter: blur(20px);
+          padding: 60px 0;
+          background: white;
         }
 
-        .steps-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 3rem;
-          margin-top: 4rem;
+        .section-header {
+          margin-bottom: 40px;
+        }
+
+        .steps-container {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
         }
 
         .step-card {
-          text-align: center;
-          padding: 3rem 2rem;
-          background: rgba(255,255,255,0.8);
-          border-radius: 24px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-          transition: all 0.4s ease;
-          border: 1px solid rgba(255,255,255,0.9);
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          background: rgba(248, 250, 255, 0.6);
+          border: 1px solid rgba(0, 122, 255, 0.08);
+          border-radius: 20px;
+          padding: 20px;
+          transition: all 0.3s ease;
         }
 
-        .step-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        .step-number {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+          color: white;
+          border-radius: 50%;
+          font-size: 16px;
+          font-weight: 800;
+          flex-shrink: 0;
         }
 
-        .step-icon {
-          font-size: 4rem;
-          margin-bottom: 2rem;
-          display: block;
+        .step-content {
+          flex: 1;
         }
 
         .step-title {
-          font-size: 1.5rem;
+          font-size: 16px;
           font-weight: 700;
+          margin-bottom: 4px;
           color: #1d1d1f;
-          margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .step-description {
-          font-size: 1rem;
-          color: #424245;
-          line-height: 1.6;
-          font-weight: 400;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 14px;
+          color: #6e6e73;
+          line-height: 1.4;
         }
 
-        .benefits-grid {
+        .step-icon {
+          font-size: 20px;
+          opacity: 0.7;
+        }
+
+        /* Stats */
+        .stats-section {
+          padding: 50px 0;
+          background: linear-gradient(135deg, #007aff, #5856d6);
+        }
+
+        .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 3rem;
-          margin-top: 4rem;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 20px;
+          text-align: center;
         }
 
-        .benefit-card {
-          padding: 3rem 2rem;
-          background: rgba(255,255,255,0.7);
-          border-radius: 24px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-          transition: all 0.4s ease;
-          border: 1px solid rgba(255,255,255,0.8);
+        .stat-item {
+          color: white;
         }
 
-        .benefit-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        .stat-number {
+          font-size: 32px;
+          font-weight: 800;
+          line-height: 1;
+          margin-bottom: 4px;
+        }
+
+        .stat-label {
+          font-size: 13px;
+          opacity: 0.9;
+          font-weight: 500;
+        }
+
+        /* Testimonials */
+        .testimonials-section {
+          padding: 60px 0;
+          background: #fafbff;
+        }
+
+        .testimonials-container {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          margin-top: 32px;
+        }
+
+        .testimonial-card {
+          background: white;
+          border-radius: 20px;
+          padding: 20px;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .testimonial-text {
+          font-size: 15px;
+          line-height: 1.5;
+          color: #1d1d1f;
+          margin-bottom: 16px;
+          font-style: italic;
+        }
+
+        .testimonial-author {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .author-avatar {
+          width: 40px;
+          height: 40px;
+          background: #f0f0f0;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+        }
+
+        .author-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1d1d1f;
+        }
+
+        .author-location {
+          font-size: 12px;
+          color: #6e6e73;
+        }
+
+        /* Sección médicos */
+        .medicos-section {
+          padding: 60px 0;
+          background: white;
+        }
+
+        .medicos-content {
+          text-align: center;
+        }
+
+        .medicos-icon {
+          font-size: 48px;
+          margin-bottom: 16px;
+        }
+
+        .medicos-title {
+          font-size: 28px;
+          font-weight: 800;
+          margin-bottom: 12px;
+          letter-spacing: -0.02em;
+        }
+
+        .medicos-description {
+          font-size: 16px;
+          color: #6e6e73;
+          margin-bottom: 24px;
+          line-height: 1.4;
+        }
+
+        .medicos-benefits {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          margin-bottom: 32px;
+        }
+
+        .benefit-item {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          background: rgba(248, 250, 255, 0.6);
+          border: 1px solid rgba(0, 122, 255, 0.08);
+          border-radius: 12px;
+          padding: 12px 16px;
         }
 
         .benefit-icon {
-          font-size: 3.5rem;
-          margin-bottom: 1.5rem;
-          display: block;
+          font-size: 18px;
         }
 
-        .benefit-title {
-          font-size: 1.4rem;
-          font-weight: 700;
+        .benefit-text {
+          font-size: 14px;
+          font-weight: 600;
           color: #1d1d1f;
-          margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        .benefit-description {
-          font-size: 1rem;
-          color: #424245;
-          line-height: 1.6;
-          font-weight: 400;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        .medicos-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          align-items: center;
         }
 
+        /* CTA Final */
         .final-cta {
-          background: linear-gradient(135deg, rgba(0,122,255,0.05), rgba(88,86,214,0.05));
+          padding: 60px 0;
+          background: white;
           text-align: center;
         }
 
         .cta-title {
-          font-size: 2.5rem;
+          font-size: 28px;
           font-weight: 800;
-          color: #1d1d1f;
-          margin-bottom: 1.5rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          margin-bottom: 12px;
+          letter-spacing: -0.02em;
         }
 
         .cta-subtitle {
-          font-size: 1.2rem;
-          color: #424245;
-          margin-bottom: 3rem;
-          max-width: 600px;
-          margin-left: auto;
-          margin-right: auto;
-          line-height: 1.5;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 16px;
+          color: #6e6e73;
+          margin-bottom: 32px;
+          line-height: 1.4;
         }
 
         .cta-buttons {
           display: flex;
-          gap: 2rem;
-          justify-content: center;
+          flex-direction: column;
+          gap: 12px;
           align-items: center;
-          flex-wrap: wrap;
         }
 
+        /* Footer */
         .footer {
-          background: linear-gradient(135deg, #1d1d1f 0%, #2d2d30 100%);
+          background: #1d1d1f;
           color: white;
-          padding: 5rem 0 2rem;
+          padding: 40px 0 20px;
         }
 
         .footer-container {
-          max-width: 1200px;
+          max-width: 380px;
           margin: 0 auto;
-          padding: 0 2rem;
+          padding: 0 16px;
         }
 
         .footer-content {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 3rem;
-          margin-bottom: 3rem;
+          margin-bottom: 32px;
         }
 
-        .footer-section h4 {
-          font-size: 1.1rem;
-          font-weight: 700;
-          margin-bottom: 1.5rem;
-          color: white;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        .footer-section {
+          margin-bottom: 24px;
         }
 
         .footer-logo {
-          font-size: 1.8rem;
-          font-weight: 900;
-          margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          margin-bottom: 12px;
+        }
+
+        .footer-logo .logo-main {
+          font-size: 18px;
+          font-weight: 800;
+          color: white;
         }
 
         .footer-logo .logo-ai {
+          font-size: 18px;
+          font-weight: 800;
           background: linear-gradient(135deg, #007aff, #5856d6);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -1085,228 +851,306 @@ export default function Home() {
         }
 
         .footer-description {
+          font-size: 14px;
           color: #a1a1a6;
-          line-height: 1.6;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          line-height: 1.4;
+        }
+
+        .footer-links-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+        }
+
+        .footer-title {
+          font-size: 14px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          color: white;
         }
 
         .footer-links {
           list-style: none;
-          padding: 0;
-          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
         }
 
-        .footer-links li {
-          margin-bottom: 0.8rem;
-        }
-
-        .footer-links a {
+        .footer-links button {
+          background: none;
+          border: none;
           color: #a1a1a6;
-          text-decoration: none;
+          font-size: 13px;
+          cursor: pointer;
+          padding: 0;
+          text-align: left;
           transition: color 0.2s ease;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          -webkit-tap-highlight-color: transparent;
+          font-family: inherit;
         }
 
-        .footer-links a:hover {
+        .footer-links button:active {
           color: #007aff;
         }
 
         .footer-bottom {
-          border-top: 1px solid #48484a;
-          padding-top: 2rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 1rem;
+          border-top: 1px solid #333;
+          padding-top: 16px;
+          text-align: center;
         }
 
         .footer-copyright {
-          color: #a1a1a6;
-          font-size: 0.9rem;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 12px;
+          color: #8e8e93;
+          margin-bottom: 8px;
         }
 
-        .footer-social {
+        .footer-legal {
           display: flex;
-          gap: 1rem;
+          justify-content: center;
+          gap: 16px;
         }
 
-        .social-link {
-          font-size: 1.2rem;
-          text-decoration: none;
-          transition: transform 0.2s ease;
+        .footer-legal button {
+          background: none;
+          border: none;
+          color: #8e8e93;
+          font-size: 12px;
+          cursor: pointer;
+          padding: 4px 0;
+          font-family: inherit;
+          -webkit-tap-highlight-color: transparent;
         }
 
-        .social-link:hover {
-          transform: scale(1.1);
+        .footer-legal button:active {
+          color: #007aff;
         }
 
-        @media (max-width: 768px) {
-          .logo-text { font-size: 3.5rem; }
-          .tagline h1 { font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.2rem; }
-          .subtitle { font-size: 1.2rem; margin-bottom: 1.2rem; }
-          .section-title { font-size: 2.2rem; margin-bottom: 3rem; }
-          .steps-grid, .benefits-grid { grid-template-columns: 1fr; gap: 2rem; }
-          .cta-buttons { flex-direction: column; gap: 1rem; }
-          .content-wrapper { padding: 1rem; }
-          section { padding: 4rem 0; }
-          .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
-          .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
-          .chat-input-container { padding: 1.2rem 4.5rem 1.2rem 1.5rem; }
-          .chat-input { font-size: 1rem; }
-          .send-button { width: 40px; height: 40px; right: 0.8rem; }
-          .suggestions-carousel { gap: 0.8rem; }
-          .suggestion-card { min-width: 140px; max-width: 140px; padding: 0.875rem; }
-          .card-title { font-size: 0.8rem; }
-          .card-description { font-size: 0.7rem; }
-          .card-text { font-size: 0.75rem; }
-          .bot-avatar { width: 28px; height: 28px; font-size: 0.9rem; }
-          .message-bubble { padding: 0.875rem 1rem; font-size: 0.9rem; }
+        /* Media queries para diferentes iPhones */
+        @media (max-width: 430px) {
+          .hero-title {
+            font-size: 28px;
+          }
+          
+          .section-title {
+            font-size: 24px;
+          }
+
+          .medicos-title,
+          .cta-title {
+            font-size: 24px;
+          }
         }
 
-        @media (max-width: 480px) {
-          .logo-text { font-size: 2.8rem; }
-          .tagline h1 { font-size: 2rem; line-height: 1.1; }
-          .subtitle { font-size: 1.1rem; }
-          .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
-          .step-card, .benefit-card { padding: 2rem 1.5rem; }
-          .content-wrapper { padding: 0.5rem; }
-          .section-container { padding: 0 1rem; }
-          .footer-content { grid-template-columns: 1fr; gap: 2rem; }
-          .cta-title { font-size: 2rem; }
-          .cta-subtitle { font-size: 1.1rem; }
-          .chat-input-container { padding: 1rem 4rem 1rem 1.2rem; border-radius: 20px; }
-          .chat-input { font-size: 0.95rem; }
-          .send-button { width: 36px; height: 36px; right: 0.7rem; }
-          .send-icon { font-size: 1rem; }
-          .suggestion-card { min-width: 120px; max-width: 120px; padding: 0.75rem; }
-          .card-title { font-size: 0.75rem; margin-bottom: 0.4rem; }
-          .card-description { font-size: 0.65rem; }
-          .suggestions-carousel { gap: 0.7rem; }
-          .bot-avatar { width: 26px; height: 26px; font-size: 0.85rem; }
-          .message-bubble { padding: 0.75rem 0.875rem; font-size: 0.85rem; }
-          .suggestions-title { font-size: 0.8rem; }
+        @media (max-width: 375px) {
+          .section-container,
+          .hero-container,
+          .footer-container {
+            max-width: 100%;
+            padding: 0 12px;
+          }
+
+          .nav-container {
+            padding: 10px 12px;
+          }
+
+          .logo-main,
+          .logo-ai {
+            font-size: 18px;
+          }
+
+          .hero-section {
+            padding: 32px 12px 48px;
+          }
+
+          .hero-title {
+            font-size: 26px;
+          }
+
+          .section-title {
+            font-size: 22px;
+          }
+
+          .animated-button.primary {
+            min-width: 180px;
+            padding: 12px 24px;
+            font-size: 15px;
+          }
+
+          .animated-button.primary.large {
+            min-width: 200px;
+            padding: 14px 32px;
+            font-size: 16px;
+          }
         }
 
         @media (max-width: 320px) {
-          .logo-text { font-size: 2.4rem; }
-          .tagline h1 { font-size: 1.8rem; }
-          .section-title { font-size: 1.6rem; }
-          .step-card, .benefit-card { padding: 1.5rem 1rem; }
-          .chat-input-container { padding: 0.9rem 3.5rem 0.9rem 1rem; }
-          .send-button { width: 32px; height: 32px; right: 0.5rem; }
-        }
-      `}</style>
-    </main>
-  );
-}
+          .nav-container {
+            padding: 8px 10px;
+          }
 
-function AnimatedButton({ children, onClick, primary = false }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`animated-btn ${primary ? 'primary' : 'secondary'}`}
-    >
-      {children}
-      <style jsx>{`
-        .animated-btn {
-          border: none;
-          padding: 1rem 2.5rem;
-          font-size: 1.1rem;
-          font-weight: 600;
-          border-radius: 50px;
-          cursor: pointer;
-          position: relative;
-          overflow: hidden;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          display: inline-flex;
-          align-items: center;
-          gap: 0.8rem;
-          text-decoration: none;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          min-width: 200px;
-          justify-content: center;
-          backdrop-filter: blur(20px);
-        }
+          .hero-section {
+            padding: 24px 10px 40px;
+          }
 
-        .animated-btn.primary {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-          color: white;
-          box-shadow: 0 8px 30px rgba(0, 122, 255, 0.3);
-        }
+          .hero-title {
+            font-size: 24px;
+          }
 
-        .animated-btn.secondary {
-          background: rgba(255, 255, 255, 0.8);
-          color: #007aff;
-          border: 1px solid rgba(0, 122, 255, 0.2);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
+          .section-title {
+            font-size: 20px;
+          }
 
-        .animated-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          transition: left 0.6s ease;
-        }
+          .steps-container {
+            gap: 16px;
+          }
 
-        .animated-btn:hover {
-          transform: translateY(-2px);
-        }
+          .step-card {
+            padding: 16px;
+          }
 
-        .animated-btn.primary:hover {
-          box-shadow: 0 12px 40px rgba(0, 122, 255, 0.4);
-        }
+          .stats-grid {
+            gap: 16px;
+          }
 
-        .animated-btn.secondary:hover {
-          background: rgba(255, 255, 255, 0.95);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-        }
+          .stat-number {
+            font-size: 28px;
+          }
 
-        .animated-btn:hover::before {
-          left: 100%;
-        }
+          .testimonials-container {
+            gap: 12px;
+          }
 
-        .animated-btn:active {
-          transform: translateY(0);
-        }
-
-        .button-icon, .button-arrow {
-          transition: transform 0.3s ease;
-        }
-
-        .animated-btn:hover .button-arrow {
-          transform: translateX(4px);
-        }
-
-        .animated-btn:hover .button-icon {
-          transform: scale(1.1);
-        }
-
-        @media (max-width: 768px) {
-          .animated-btn {
-            width: 100%;
-            max-width: 280px;
-            padding: 1rem 2rem;
-            font-size: 1rem;
+          .testimonial-card {
+            padding: 16px;
           }
         }
 
-        @media (max-width: 480px) {
-          .animated-btn {
-            width: 90%;
-            max-width: 260px;
-            padding: 0.9rem 1.8rem;
-            font-size: 0.95rem;
-            min-width: 180px;
+        /* Mejoras específicas para iPhone Safari */
+        @supports (-webkit-touch-callout: none) {
+          .animated-button {
+            -webkit-appearance: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+          }
+
+          .hero-section,
+          .how-it-works,
+          .stats-section,
+          .testimonials-section,
+          .medicos-section,
+          .final-cta {
+            -webkit-overflow-scrolling: touch;
+          }
+        }
+
+        /* Soporte para notch y safe areas */
+        @supports (padding: max(0px)) {
+          .mobile-header {
+            padding-top: max(12px, env(safe-area-inset-top));
+          }
+          
+          .footer {
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+          }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .landing-page {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            color: #f2f2f7;
+          }
+
+          .mobile-header {
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+          }
+
+          .logo-main {
+            color: #f2f2f7;
+          }
+
+          .nav-login-btn {
+            background: rgba(0, 122, 255, 0.15);
+            border-color: rgba(0, 122, 255, 0.3);
+          }
+
+          .how-it-works,
+          .testimonials-section,
+          .medicos-section,
+          .final-cta {
+            background: #1c1c1e;
+          }
+
+          .step-card,
+          .testimonial-card {
+            background: #2c2c2e;
+            border-color: rgba(255, 255, 255, 0.1);
+          }
+
+          .hero-description,
+          .section-subtitle,
+          .step-description,
+          .medicos-description,
+          .cta-subtitle {
+            color: #98989d;
+          }
+
+          .testimonial-text,
+          .step-title,
+          .benefit-text,
+          .author-name {
+            color: #f2f2f7;
+          }
+
+          .author-location {
+            color: #98989d;
+          }
+
+          .author-avatar {
+            background: #3a3a3c;
+          }
+
+          .benefit-item,
+          .step-card {
+            background: rgba(58, 58, 60, 0.3);
+            border-color: rgba(255, 255, 255, 0.08);
+          }
+        }
+
+        /* Animaciones reducidas para accesibilidad */
+        @media (prefers-reduced-motion: reduce) {
+          .hero-section,
+          .floating-element,
+          .animated-button {
+            animation: none;
+            transition: none;
+          }
+
+          .hero-section {
+            opacity: 1;
+            transform: none;
+          }
+        }
+
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+          .mobile-header {
+            border-bottom: 2px solid;
+          }
+
+          .animated-button {
+            border: 2px solid currentColor;
+          }
+
+          .step-card,
+          .testimonial-card,
+          .benefit-item {
+            border: 2px solid;
           }
         }
       `}</style>
-    </button>
-  );
+    </div>
+  )
 }
