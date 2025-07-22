@@ -81,120 +81,161 @@ export default function Home() {
             </p>
           </div>
 
-          <div className={`chat-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
-            <div className="chat-wrapper">
-              {/* Saludo como mensaje de chat */}
-              <div className={`chat-greeting ${chatExpanding ? 'fade-out' : ''}`}>
-                <div className="bot-message">
-                  <div className="bot-avatar">
+          {/* NUEVA SECCIÓN DE CHAT MEJORADA */}
+          <div className={`chat-preview-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
+            {/* Marco del teléfono */}
+            <div className="phone-frame">
+              {/* Header del chat similar a WhatsApp */}
+              <div className="chat-header">
+                <div className="chat-header-info">
+                  <div className="bot-avatar-header">
                     <span>🤖</span>
                   </div>
-                  <div className="message-bubble">
-                    ¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.
+                  <div className="header-text">
+                    <div className="contact-name">Sobrecupos AI</div>
+                    <div className="status">En línea</div>
                   </div>
+                </div>
+                <div className="header-actions">
+                  <button className="header-btn">📞</button>
+                  <button className="header-btn">⋮</button>
                 </div>
               </div>
-              
-              <form onSubmit={handleChatSubmit} className="chat-form">
-                <div className={`chat-input-container ${chatExpanding ? 'expanding' : ''}`}>
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => {
-                      setChatInput(e.target.value);
-                      setIsTyping(e.target.value.length > 0);
-                    }}
-                    placeholder="Busco un oftalmólogo..."
-                    className="chat-input"
-                    autoFocus
-                    disabled={chatExpanding}
-                  />
-                  <button 
-                    type="submit"
-                    className={`send-button ${isTyping ? 'active' : ''} ${chatExpanding ? 'expanding' : ''}`}
-                    disabled={!chatInput.trim() || chatExpanding}
-                  >
-                    <span className="send-icon">→</span>
-                  </button>
-                  
-                  {/* Overlay de expansión */}
-                  {chatExpanding && (
-                    <div className="expansion-overlay">
-                      <div className="expanding-message">
-                        {chatInput}
-                      </div>
+
+              {/* Área de conversación */}
+              <div className="chat-messages">
+                {/* Mensaje del bot */}
+                <div className={`message-row bot ${chatExpanding ? 'fade-out' : ''}`}>
+                  <div className="message-bubble bot-bubble">
+                    <div className="message-text">
+                      ¡Hola! 👋 ¿En qué te puedo ayudar? Cuéntame tus síntomas o qué especialista necesitas.
                     </div>
-                  )}
-                </div>
-              </form>
-              
-              {/* Sugerencias como tarjetas carrusel */}
-              <div className={`suggestions-section ${chatExpanding ? 'fade-out' : ''}`}>
-                <p className="suggestions-title">Prueba preguntando:</p>
-                <div className="suggestions-carousel">
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Tengo vista borrosa últimamente')}
-                  >
-                    <div className="card-text">Tengo vista borrosa últimamente</div>
-                  </div>
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Me duelen los ojos constantemente')}
-                  >
-                    <div className="card-text">Me duelen los ojos constantemente</div>
-                  </div>
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Necesito control oftalmológico urgente')}
-                  >
-                    <div className="card-text">Necesito control oftalmológico urgente</div>
-                  </div>
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Veo manchas negras flotando')}
-                  >
-                    <div className="card-text">Veo manchas negras flotando</div>
-                  </div>
-                  <div 
-                    className="suggestion-card"
-                    onClick={() => setChatInput('Busco oftalmólogo para esta semana')}
-                  >
-                    <div className="card-text">Busco oftalmólogo para esta semana</div>
+                    <div className="message-time">11:40</div>
                   </div>
                 </div>
+
+                {/* Mensaje de ejemplo del usuario (si está escribiendo) */}
+                {chatInput && (
+                  <div className="message-row user preview">
+                    <div className="message-bubble user-bubble">
+                      <div className="message-text">{chatInput}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Overlay de expansión */}
+                {chatExpanding && (
+                  <div className="expansion-overlay">
+                    <div className="expanding-message">
+                      Conectando con Sobrecupos AI...
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input de chat */}
+              <div className="chat-input-section">
+                <form onSubmit={handleChatSubmit} className="input-form">
+                  <div className="input-container">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => {
+                        setChatInput(e.target.value);
+                        setIsTyping(e.target.value.length > 0);
+                      }}
+                      placeholder="Escribe tu mensaje..."
+                      className="message-input"
+                      disabled={chatExpanding}
+                    />
+                    <button 
+                      type="submit"
+                      className={`send-btn ${isTyping ? 'active' : ''}`}
+                      disabled={!chatInput.trim() || chatExpanding}
+                    >
+                      <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M1.101 21.757L23.8 12.028L1.101 2.3l.011 7.912l13.623 1.816l-13.623 1.817l-.011 7.912z"/>
+                      </svg>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            {/* Sugerencias rápidas debajo del teléfono */}
+            <div className={`quick-suggestions ${chatExpanding ? 'fade-out' : ''}`}>
+              <p className="suggestions-title">Sugerencias populares:</p>
+              <div className="suggestions-grid">
+                <button
+                  className="suggestion-pill"
+                  onClick={() => {
+                    setChatInput("Necesito oftalmólogo urgente");
+                    setIsTyping(true);
+                  }}
+                >
+                  Necesito oftalmólogo urgente
+                </button>
+                <button
+                  className="suggestion-pill"
+                  onClick={() => {
+                    setChatInput("Consulta con cardiólogo");
+                    setIsTyping(true);
+                  }}
+                >
+                  Consulta con cardiólogo
+                </button>
+                <button
+                  className="suggestion-pill"
+                  onClick={() => {
+                    setChatInput("Dolor de cabeza frecuente");
+                    setIsTyping(true);
+                  }}
+                >
+                  Dolor de cabeza frecuente
+                </button>
+                <button
+                  className="suggestion-pill"
+                  onClick={() => {
+                    setChatInput("Chequeo médico general");
+                    setIsTyping(true);
+                  }}
+                >
+                  Chequeo médico general
+                </button>
+                <button
+                  className="suggestion-pill"
+                  onClick={() => {
+                    setChatInput("Necesito dermatólogo");
+                    setIsTyping(true);
+                  }}
+                >
+                  Necesito dermatólogo
+                </button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Resto de las secciones existentes */}
       <section className="how-it-works">
         <div className="section-container">
           <h2 className="section-title">¿Cómo funciona?</h2>
           <div className="steps-grid">
             <div className="step-card">
-              <div className="step-icon">💬</div>
-              <h3 className="step-title">Conversa</h3>
-              <p className="step-description">
-                Cuéntame qué especialista necesitas, cuándo y dónde.
-              </p>
+              <div className="step-number">1</div>
+              <h3>Cuéntanos qué necesitas</h3>
+              <p>Describe tus síntomas o el especialista que buscas</p>
             </div>
-            
             <div className="step-card">
-              <div className="step-icon">🔍</div>
-              <h3 className="step-title">Busco</h3>
-              <p className="step-description">
-                Encuentro los sobrecupos disponibles que se ajusten a tus necesidades.
-              </p>
+              <div className="step-number">2</div>
+              <h3>Encontramos tu sobrecupo</h3>
+              <p>Nuestro AI busca disponibilidad en tiempo real</p>
             </div>
-            
             <div className="step-card">
-              <div className="step-icon">📅</div>
-              <h3 className="step-title">Agendas</h3>
-              <p className="step-description">
-                Te ayudo a agendar directamente con el profesional disponible.
-              </p>
+              <div className="step-number">3</div>
+              <h3>Reserva al instante</h3>
+              <p>Confirma tu cita directamente por WhatsApp</p>
             </div>
           </div>
         </div>
@@ -202,49 +243,56 @@ export default function Home() {
 
       <section className="benefits">
         <div className="section-container">
-          <h2 className="section-title">¿Por qué elegir Sobrecupos?</h2>
+          <h2 className="section-title">Beneficios</h2>
           <div className="benefits-grid">
             <div className="benefit-card">
               <div className="benefit-icon">⚡</div>
-              <h3 className="benefit-title">Velocidad</h3>
-              <p className="benefit-description">
-                Encuentra citas médicas en minutos, no en semanas.
-              </p>
+              <h3>Respuesta inmediata</h3>
+              <p>Encuentra sobrecupos en segundos, no en horas</p>
             </div>
-            
             <div className="benefit-card">
-              <div className="benefit-icon">🤖</div>
-              <h3 className="benefit-title">Inteligencia Artificial</h3>
-              <p className="benefit-description">
-                Conversación natural que entiende exactamente lo que necesitas.
-              </p>
+              <div className="benefit-icon">🎯</div>
+              <h3>100% personalizado</h3>
+              <p>Adaptado a tu ubicación y necesidades específicas</p>
             </div>
-            
             <div className="benefit-card">
-              <div className="benefit-icon">🏥</div>
-              <h3 className="benefit-title">Profesionales Verificados</h3>
-              <p className="benefit-description">
-                Solo médicos registrados y acreditados por la Superintendencia de Salud.
-              </p>
+              <div className="benefit-icon">💬</div>
+              <h3>Súper fácil</h3>
+              <p>Todo por WhatsApp, sin apps ni registros complicados</p>
+            </div>
+            <div className="benefit-card">
+              <div className="benefit-icon">💰</div>
+              <h3>Precios transparentes</h3>
+              <p>Conoce el precio antes de reservar, sin sorpresas</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="final-cta">
+      <section className="cta-section">
         <div className="section-container">
-          <h2 className="cta-title">¿Listo para encontrar tu cita?</h2>
-          <p className="cta-subtitle">
-            Comienza ahora mismo y encuentra el sobrecupo que necesitas.
-          </p>
-          <div className="cta-buttons">
-            <AnimatedButton onClick={() => window.open('https://wa.me/56912345678?text=Hola%2C%20quiero%20registrarme%20como%20m%C3%A9dico%20en%20Sobrecupos', '_blank')} primary>
-              <span className="button-icon">📱</span>
-              Registro médicos
-            </AnimatedButton>
+          <div className="cta-content">
+            <h2 className="cta-title">¿Listo para encontrar tu sobrecupo?</h2>
+            <p className="cta-subtitle">Únete a miles de pacientes que ya reservan más rápido</p>
+            <div className="cta-buttons">
+              <AnimatedButton onClick={goToChat} primary>
+                Empezar ahora
+              </AnimatedButton>
+              <AnimatedButton onClick={() => router.push('/registro')}>
+                Registrarse como paciente
+              </AnimatedButton>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="for-doctors">
+        <div className="section-container">
+          <div className="doctor-content">
+            <h2>¿Eres médico?</h2>
+            <p>Monetiza tus sobrecupos y llegues a más pacientes</p>
             <AnimatedButton onClick={goToMedicoLogin}>
-              <span className="button-icon">👨‍⚕️</span>
-              Soy médico
+              Portal médico
             </AnimatedButton>
           </div>
         </div>
@@ -253,49 +301,42 @@ export default function Home() {
       <footer className="footer">
         <div className="footer-container">
           <div className="footer-content">
-            <div className="footer-section">
+            <div className="footer-column">
               <div className="footer-logo">
                 <span className="logo-main">Sobrecupos</span>
                 <span className="logo-ai">AI</span>
               </div>
-              <p className="footer-description">
-                Conectando pacientes con médicos disponibles al instante.
-              </p>
+              <p>Conectando pacientes con sobrecupos médicos disponibles</p>
             </div>
-            
-            <div className="footer-section">
-              <h4 className="footer-title">Pacientes</h4>
-              <ul className="footer-links">
+            <div className="footer-column">
+              <h4>Pacientes</h4>
+              <ul>
                 <li><a href="/chat">Buscar sobrecupos</a></li>
-                <li><a href="/como-funciona">Cómo funciona</a></li>
+                <li><a href="/registro">Registrarse</a></li>
+                <li><a href="#como-funciona">Cómo funciona</a></li>
               </ul>
             </div>
-            
-            <div className="footer-section">
-              <h4 className="footer-title">Médicos</h4>
-              <ul className="footer-links">
+            <div className="footer-column">
+              <h4>Médicos</h4>
+              <ul>
                 <li><a href="/auth/signin">Iniciar sesión</a></li>
-                <li><a href="/registro-medico">Registrarse</a></li>
+                <li><a href="/medico/registro">Registrarse</a></li>
+                <li><a href="/admin">Admin</a></li>
               </ul>
             </div>
-            
-            <div className="footer-section">
-              <h4 className="footer-title">Legal</h4>
-              <ul className="footer-links">
-                <li><a href="/terminos">Términos de uso</a></li>
-                <li><a href="/privacidad">Privacidad</a></li>
-                <li><a href="/contacto">Contacto</a></li>
+            <div className="footer-column">
+              <h4>Contacto</h4>
+              <ul>
+                <li><a href="mailto:hola@sobrecupos.com">hola@sobrecupos.com</a></li>
+                <li><a href="tel:+56912345678">+56 9 1234 5678</a></li>
               </ul>
             </div>
           </div>
-          
           <div className="footer-bottom">
-            <p className="footer-copyright">
-              © 2025 Sobrecupos AI. Todos los derechos reservados.
-            </p>
-            <div className="footer-social">
-              <a href="mailto:hola@sobrecupos.ai" className="social-link">📧</a>
-              <a href="#" className="social-link">📱</a>
+            <p>&copy; 2024 Sobrecupos AI. Todos los derechos reservados.</p>
+            <div className="footer-links">
+              <a href="/privacidad">Privacidad</a>
+              <a href="/terminos">Términos</a>
             </div>
           </div>
         </div>
@@ -305,7 +346,6 @@ export default function Home() {
         .homepage {
           min-height: 100vh;
           position: relative;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
           overflow-x: hidden;
         }
 
@@ -313,29 +353,18 @@ export default function Home() {
           position: fixed;
           top: 0;
           left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, 
-            #f8faff 0%, 
-            #e8f2ff 30%, 
-            #dde9ff 60%, 
-            #f0f8ff 100%);
-          background-size: 400% 400%;
-          animation: subtleShift 30s ease infinite;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           z-index: -2;
-        }
-
-        @keyframes subtleShift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
         }
 
         .floating-elements {
           position: fixed;
           top: 0;
           left: 0;
-          right: 0;
-          bottom: 0;
+          width: 100%;
+          height: 100%;
           pointer-events: none;
           z-index: -1;
         }
@@ -343,100 +372,79 @@ export default function Home() {
         .element {
           position: absolute;
           font-size: 2rem;
-          opacity: 0.04;
-          animation: gentleFloat 12s ease-in-out infinite;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+          opacity: 0.1;
+          animation: float 6s ease-in-out infinite;
         }
 
-        .element-1 { top: 15%; right: 20%; animation-delay: 0s; }
-        .element-2 { bottom: 20%; left: 15%; animation-delay: 4s; }
-        .element-3 { top: 45%; left: 25%; animation-delay: 8s; }
+        .element-1 { top: 20%; left: 10%; animation-delay: 0s; }
+        .element-2 { top: 60%; right: 15%; animation-delay: 2s; }
+        .element-3 { bottom: 30%; left: 20%; animation-delay: 4s; }
 
-        @keyframes gentleFloat {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.04; }
-          50% { transform: translateY(-20px) rotate(3deg); opacity: 0.08; }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
         }
 
         .hero-section {
           min-height: 100vh;
-          min-height: 100dvh; /* Usar viewport dinámico en móviles */
           display: flex;
           align-items: center;
           justify-content: center;
+          text-align: center;
+          padding: 2rem 1rem;
           position: relative;
-          z-index: 1;
-          padding: 2rem 0; /* Agregar padding vertical */
         }
 
         .content-wrapper {
-          text-align: center;
-          max-width: 900px;
-          padding: 1rem 2rem; /* Reducir padding en móviles */
-          position: relative;
+          max-width: 1200px;
           width: 100%;
-          box-sizing: border-box;
         }
 
         .logo-container {
-          margin-bottom: 2rem; /* Reducir espacio */
+          margin-bottom: 2rem;
           opacity: 0;
-          transform: translateY(40px) scale(0.95);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateY(30px);
+          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .logo-container.visible {
           opacity: 1;
-          transform: translateY(0) scale(1);
+          transform: translateY(0);
         }
 
         .logo-glow {
           position: relative;
-          display: inline-block;
-        }
-
-        .logo-glow::before {
-          content: '';
-          position: absolute;
-          top: -20px;
-          left: -20px;
-          right: -20px;
-          bottom: -20px;
-          background: linear-gradient(45deg, #007aff, #5856d6, #34c759, #007aff);
-          border-radius: 40px;
-          opacity: 0.1;
-          filter: blur(40px);
-          animation: logoGlow 8s ease-in-out infinite;
-        }
-
-        @keyframes logoGlow {
-          0%, 100% { opacity: 0.08; transform: scale(1); }
-          50% { opacity: 0.15; transform: scale(1.05); }
         }
 
         .logo-text {
+          font-size: 3.5rem;
+          font-weight: 800;
+          color: white;
+          margin-bottom: 1rem;
           position: relative;
-          background: linear-gradient(135deg, #1d1d1f 0%, #515154 50%, #1d1d1f 100%);
+          display: inline-block;
+        }
+
+        .logo-main {
+          background: linear-gradient(45deg, #fff, #e0e7ff);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          font-size: clamp(2.5rem, 8vw, 5rem); /* Responsive font size */
-          font-weight: 900;
-          letter-spacing: -0.04em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         .logo-ai {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 50%, #007aff 100%);
+          background: linear-gradient(45deg, #60a5fa, #34d399);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          position: relative;
         }
 
         .tagline {
-          margin-bottom: 2rem; /* Reducir espacio */
+          margin-bottom: 3rem;
           opacity: 0;
           transform: translateY(30px);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
         }
 
         .tagline.visible {
@@ -445,414 +453,378 @@ export default function Home() {
         }
 
         .tagline h1 {
-          font-size: clamp(1.8rem, 6vw, 3.5rem); /* Responsive font size */
-          font-weight: 800;
-          color: #1d1d1f;
+          font-size: 2.5rem;
+          font-weight: 700;
+          color: white;
           margin-bottom: 1rem;
-          line-height: 1.1;
-          letter-spacing: -0.03em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          line-height: 1.2;
         }
 
         .subtitle {
-          font-size: clamp(1rem, 3.5vw, 1.5rem);
-          color: #424245;
-          line-height: 1.4;
-          font-weight: 400;
+          font-size: 1.3rem;
+          color: rgba(255, 255, 255, 0.9);
           margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .subtitle strong {
-          color: #1d1d1f;
-          font-weight: 700;
+          line-height: 1.4;
         }
 
         .cta-text {
-          font-size: clamp(0.95rem, 3vw, 1.25rem);
-          color: #007aff;
-          font-weight: 600;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 1.1rem;
+          color: rgba(255, 255, 255, 0.8);
+          margin: 0;
         }
 
-        .chat-container {
-          margin-bottom: 2rem;
+        /* NUEVA SECCIÓN DE CHAT MEJORADA */
+        .chat-preview-container {
           opacity: 0;
           transform: translateY(30px);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
+          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
+          max-width: 400px;
+          margin: 0 auto;
         }
 
-        .chat-container.visible {
+        .chat-preview-container.visible {
           opacity: 1;
           transform: translateY(0);
         }
 
-        .chat-wrapper {
-          max-width: 700px;
-          margin: 0 auto;
-          width: 100%;
+        .chat-preview-container.expanding {
+          transform: scale(1.05) translateY(-10px);
+          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Saludo como mensaje de chat */
-        .chat-greeting {
-          margin-bottom: 1.5rem;
+        /* Marco del teléfono */
+        .phone-frame {
+          background: #000;
+          border-radius: 25px;
+          padding: 8px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+          position: relative;
+          overflow: hidden;
+          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .bot-message {
+        .phone-frame::before {
+          content: '';
+          position: absolute;
+          top: 12px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 120px;
+          height: 4px;
+          background: #333;
+          border-radius: 2px;
+          z-index: 10;
+        }
+
+        .chat-preview-container.expanding .phone-frame {
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+          background: linear-gradient(135deg, #1a1a1a, #000);
+        }
+
+        /* Header del chat */
+        .chat-header {
+          background: #075e54;
           display: flex;
-          align-items: flex-start;
-          gap: 0.75rem;
-          max-width: 100%; /* Cambiar de 85% a 100% */
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 16px;
+          padding-top: 20px;
         }
 
-        .bot-avatar {
-          width: 32px;
-          height: 32px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+        .chat-header-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .bot-avatar-header {
+          width: 36px;
+          height: 36px;
+          background: linear-gradient(135deg, #25d366, #128c7e);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
-          font-size: 1rem;
-          box-shadow: 0 2px 8px rgba(0,122,255,0.3);
+          font-size: 1.2rem;
         }
 
-        .message-bubble {
-          background: rgba(255,255,255,0.95);
-          border: 1px solid rgba(0,122,255,0.1);
-          border-radius: 18px;
-          border-top-left-radius: 4px;
-          padding: 1rem 1.25rem;
-          font-size: 0.95rem;
-          color: #424245;
-          line-height: 1.4;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-          backdrop-filter: blur(20px);
-          position: relative;
-          flex: 1;
-          word-wrap: break-word;
+        .header-text {
+          color: white;
         }
 
-        .message-bubble::before {
-          content: '';
-          position: absolute;
-          top: 8px;
-          left: -6px;
-          width: 12px;
-          height: 12px;
-          background: rgba(255,255,255,0.95);
-          border: 1px solid rgba(0,122,255,0.1);
-          border-right: none;
-          border-bottom: none;
-          transform: rotate(-45deg);
-          backdrop-filter: blur(20px);
+        .contact-name {
+          font-weight: 600;
+          font-size: 16px;
+          margin-bottom: 2px;
         }
 
-        .chat-form {
-          margin-bottom: 1.5rem;
+        .status {
+          font-size: 12px;
+          opacity: 0.8;
         }
 
-        /* Sección de sugerencias mejorada */
-        .suggestions-section {
-          text-align: left;
-        }
-
-        .suggestions-title {
-          font-size: 0.9rem;
-          color: #8e8e93;
-          margin: 0 0 1rem 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 500;
-        }
-
-        .suggestions-carousel {
+        .header-actions {
           display: flex;
-          gap: 1rem;
-          overflow-x: auto;
-          padding: 0.5rem 0 1rem 0;
-          scroll-behavior: smooth;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
+          gap: 16px;
         }
 
-        .suggestions-carousel::-webkit-scrollbar {
-          display: none;
-        }
-
-        .suggestion-card {
-          background: rgba(255,255,255,0.9);
-          border: 1px solid rgba(0,0,0,0.08);
-          border-radius: 12px;
-          padding: 1rem;
-          min-width: 160px;
-          max-width: 160px;
+        .header-btn {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 18px;
           cursor: pointer;
-          transition: all 0.3s ease;
-          flex-shrink: 0;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-          backdrop-filter: blur(20px);
+          opacity: 0.8;
+          transition: opacity 0.2s;
         }
 
-        .suggestion-card:hover {
-          background: rgba(255,255,255,0.95);
-          border-color: rgba(0,122,255,0.2);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(0,122,255,0.12);
+        .header-btn:hover {
+          opacity: 1;
         }
 
-        .card-text {
-          font-size: 0.8rem;
-          color: #8e8e93;
-          line-height: 1.4;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
-          text-align: center;
-        }
-
-        .chat-input-container {
-          position: relative;
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(20px);
-          border: 2px solid rgba(0,122,255,0.1);
-          border-radius: 24px;
-          padding: 1.5rem 5rem 1.5rem 2rem;
-          box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-          transition: all 0.3s ease;
+        /* Área de mensajes */
+        .chat-messages {
+          background: #e5ddd5;
+          background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4d4aa' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+          min-height: 300px;
+          padding: 16px;
           display: flex;
-          align-items: center;
-          width: 100%;
-          box-sizing: border-box;
+          flex-direction: column;
+          gap: 12px;
+          justify-content: flex-end;
+          position: relative;
         }
 
-        .chat-input-container:focus-within:not(.expanding) {
-          border-color: #007aff;
-          box-shadow: 0 12px 50px rgba(0,122,255,0.15);
-          transform: translateY(-2px);
-        }
-
-        /* Animaciones de expansión */
-        .chat-container.expanding {
-          transform: scale(1.02);
-          transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .chat-greeting.fade-out,
-        .suggestions-section.fade-out {
-          opacity: 0;
-          transform: translateY(-20px);
+        .message-row {
+          display: flex;
+          align-items: flex-end;
+          gap: 8px;
+          margin-bottom: 4px;
           transition: all 0.4s ease;
         }
 
-        .chat-input-container.expanding {
-          transform: scale(1.05) translateY(-10px);
-          box-shadow: 0 20px 60px rgba(0,122,255,0.25);
-          border-color: #007aff;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        .message-row.bot {
+          justify-content: flex-start;
+        }
+
+        .message-row.user {
+          justify-content: flex-end;
+        }
+
+        .message-row.user.preview {
+          animation: slideInFromRight 0.3s ease-out;
+        }
+
+        .message-row.fade-out {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+
+        .message-bubble {
+          max-width: 80%;
+          padding: 8px 12px;
+          border-radius: 8px;
           position: relative;
-          overflow: hidden;
+          font-size: 14px;
+          line-height: 1.4;
         }
 
-        .send-button.expanding {
-          transform: translateY(-50%) scale(1.2);
-          background: linear-gradient(135deg, #34c759, #007aff);
-          box-shadow: 0 8px 25px rgba(52,199,89,0.4);
-          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        .bot-bubble {
+          background: white;
+          border-radius: 8px 8px 8px 2px;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
+        .user-bubble {
+          background: #dcf8c6;
+          border-radius: 8px 8px 2px 8px;
+          margin-left: auto;
+        }
+
+        .message-text {
+          margin-bottom: 4px;
+        }
+
+        .message-time {
+          font-size: 11px;
+          color: #666;
+          text-align: right;
+        }
+
+        /* Overlay de expansión */
         .expansion-overlay {
           position: absolute;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          background: rgba(0, 0, 0, 0.8);
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 24px;
-          opacity: 0;
-          animation: expandOverlay 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          z-index: 10;
+          backdrop-filter: blur(4px);
         }
 
         .expanding-message {
           color: white;
-          font-size: 1.1rem;
-          font-weight: 500;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 16px;
+          font-weight: 600;
           text-align: center;
-          padding: 0 2rem;
-          transform: translateY(20px);
-          opacity: 0;
-          animation: showMessage 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+          animation: pulse 1s infinite;
         }
 
-        @keyframes expandOverlay {
-          0% {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          50% {
-            opacity: 0.95;
-            transform: scale(1.02);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
         }
 
-        @keyframes showMessage {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        /* Input de chat */
+        .chat-input-section {
+          background: #f0f0f0;
+          padding: 8px 16px 12px;
         }
 
-        .chat-input {
+        .input-form {
           width: 100%;
-          border: none;
-          background: transparent;
-          font-size: 1.1rem;
-          color: #1d1d1f;
-          outline: none;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          font-weight: 400;
         }
 
-        .chat-input::placeholder {
-          color: #8e8e93;
-          font-weight: 400;
-        }
-
-        .send-button {
-          position: absolute;
-          right: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 44px;
-          height: 44px;
-          border: none;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          border-radius: 50%;
-          cursor: pointer;
-          transition: all 0.3s ease;
+        .input-container {
           display: flex;
           align-items: center;
-          justify-content: center;
+          background: white;
+          border-radius: 20px;
+          padding: 8px 16px;
+          gap: 12px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-input {
+          flex: 1;
+          border: none;
+          outline: none;
+          font-size: 15px;
+          background: transparent;
+          padding: 4px 0;
+        }
+
+        .message-input::placeholder {
+          color: #999;
+        }
+
+        .message-input:disabled {
           opacity: 0.6;
         }
 
-        .send-button.active {
-          opacity: 1;
-          transform: translateY(-50%) scale(1.05);
-          box-shadow: 0 6px 20px rgba(0,122,255,0.3);
+        .send-btn {
+          background: #25d366;
+          border: none;
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          cursor: pointer;
+          transition: all 0.2s;
+          opacity: 0.5;
+          transform: scale(0.9);
         }
 
-        .send-button:disabled {
-          opacity: 0.3;
+        .send-btn.active {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        .send-btn:hover.active {
+          background: #128c7e;
+        }
+
+        .send-btn:disabled {
           cursor: not-allowed;
         }
 
-        .send-icon {
-          color: white;
-          font-size: 1.2rem;
-          font-weight: bold;
-          transform: translateX(1px);
-        }
-
-        .cta-section {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.9s;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 100%;
+        /* Sugerencias rápidas */
+        .quick-suggestions {
+          margin-top: 2rem;
           text-align: center;
-          position: relative;
-          padding: 1rem 0;
+          transition: all 0.4s ease;
         }
 
-        .cta-section.visible {
-          opacity: 1;
-          transform: translateY(0);
+        .quick-suggestions.fade-out {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+
+        .suggestions-title {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.8);
+          margin-bottom: 1rem;
+        }
+
+        .suggestions-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          justify-content: center;
+          max-width: 100%;
+        }
+
+        .suggestion-pill {
+          background: rgba(255, 255, 255, 0.2);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: white;
+          padding: 8px 16px;
+          border-radius: 20px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.3s;
+          backdrop-filter: blur(10px);
+        }
+
+        .suggestion-pill:hover {
+          background: rgba(255, 255, 255, 0.3);
+          border-color: rgba(255, 255, 255, 0.5);
+          transform: translateY(-2px);
+        }
+
+        /* Animaciones */
+        @keyframes slideInFromRight {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        /* Resto de estilos existentes */
+        .how-it-works,
+        .benefits,
+        .cta-section,
+        .for-doctors {
+          padding: 5rem 2rem;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
         }
 
         .section-container {
           max-width: 1200px;
           margin: 0 auto;
-          padding: 0 1rem;
-        }
-
-        section {
-          padding: 4rem 0;
-          position: relative;
         }
 
         .section-title {
-          font-size: clamp(1.8rem, 5vw, 2.8rem);
-          font-weight: 800;
-          color: #1d1d1f;
+          font-size: 2.5rem;
+          font-weight: 700;
           text-align: center;
           margin-bottom: 3rem;
-          letter-spacing: -0.02em;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          color: #1a1a1a;
         }
 
-        .how-it-works {
-          background: rgba(255,255,255,0.4);
-          backdrop-filter: blur(20px);
-        }
-
-        .steps-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 2rem;
-          margin-top: 3rem;
-        }
-
-        .step-card {
-          text-align: center;
-          padding: 2rem 1.5rem;
-          background: rgba(255,255,255,0.8);
-          border-radius: 24px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-          transition: all 0.4s ease;
-          border: 1px solid rgba(255,255,255,0.9);
-        }
-
-        .step-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-        }
-
-        .step-icon {
-          font-size: 3rem;
-          margin-bottom: 1.5rem;
-          display: block;
-        }
-
-        .step-title {
-          font-size: 1.3rem;
-          font-weight: 700;
-          color: #1d1d1f;
-          margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .step-description {
-          font-size: 0.95rem;
-          color: #424245;
-          line-height: 1.6;
-          font-weight: 400;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
+        .steps-grid,
         .benefits-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -860,407 +832,240 @@ export default function Home() {
           margin-top: 3rem;
         }
 
+        .step-card,
         .benefit-card {
-          padding: 2rem 1.5rem;
-          background: rgba(255,255,255,0.7);
-          border-radius: 24px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-          transition: all 0.4s ease;
-          border: 1px solid rgba(255,255,255,0.8);
+          background: white;
+          padding: 2rem;
+          border-radius: 1rem;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+          text-align: center;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
+        .step-card:hover,
         .benefit-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+          transform: translateY(-5px);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .step-number {
+          width: 50px;
+          height: 50px;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin: 0 auto 1rem;
         }
 
         .benefit-icon {
           font-size: 3rem;
-          margin-bottom: 1.5rem;
-          display: block;
-        }
-
-        .benefit-title {
-          font-size: 1.3rem;
-          font-weight: 700;
-          color: #1d1d1f;
           margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        .benefit-description {
-          font-size: 0.95rem;
-          color: #424245;
+        .step-card h3,
+        .benefit-card h3 {
+          font-size: 1.3rem;
+          font-weight: 600;
+          margin-bottom: 1rem;
+          color: #1a1a1a;
+        }
+
+        .step-card p,
+        .benefit-card p {
+          color: #666;
           line-height: 1.6;
-          font-weight: 400;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        .final-cta {
-          background: linear-gradient(135deg, rgba(0,122,255,0.05), rgba(88,86,214,0.05));
+        .cta-section {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+        }
+
+        .cta-content {
           text-align: center;
         }
 
         .cta-title {
-          font-size: clamp(1.8rem, 5vw, 2.5rem);
-          font-weight: 800;
-          color: #1d1d1f;
-          margin-bottom: 1.5rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 2.5rem;
+          font-weight: 700;
+          margin-bottom: 1rem;
         }
 
         .cta-subtitle {
-          font-size: clamp(1rem, 3vw, 1.2rem);
-          color: #424245;
-          margin-bottom: 2.5rem;
-          max-width: 600px;
-          margin-left: auto;
-          margin-right: auto;
-          line-height: 1.5;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 1.2rem;
+          margin-bottom: 2rem;
+          opacity: 0.9;
         }
 
         .cta-buttons {
           display: flex;
-          gap: 1.5rem;
+          gap: 1rem;
           justify-content: center;
-          align-items: center;
           flex-wrap: wrap;
         }
 
-        .footer {
-          background: linear-gradient(135deg, #1d1d1f 0%, #2d2d30 100%);
+        .for-doctors {
+          background: #1a1a1a;
           color: white;
-          padding: 4rem 0 2rem;
+          text-align: center;
+        }
+
+        .doctor-content h2 {
+          font-size: 2rem;
+          margin-bottom: 1rem;
+        }
+
+        .doctor-content p {
+          font-size: 1.1rem;
+          margin-bottom: 2rem;
+          opacity: 0.8;
+        }
+
+        .footer {
+          background: #0a0a0a;
+          color: white;
+          padding: 3rem 2rem 2rem;
         }
 
         .footer-container {
           max-width: 1200px;
           margin: 0 auto;
-          padding: 0 1rem;
         }
 
         .footer-content {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          grid-template-columns: repeat(4, 1fr);
           gap: 2rem;
           margin-bottom: 2rem;
         }
 
-        .footer-section h4 {
+        .footer-column h4 {
           font-size: 1.1rem;
-          font-weight: 700;
+          font-weight: 600;
           margin-bottom: 1rem;
-          color: white;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          color: #60a5fa;
+        }
+
+        .footer-column ul {
+          list-style: none;
+          padding: 0;
+        }
+
+        .footer-column ul li {
+          margin-bottom: 0.5rem;
+        }
+
+        .footer-column ul li a {
+          color: #ccc;
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+
+        .footer-column ul li a:hover {
+          color: #60a5fa;
         }
 
         .footer-logo {
-          font-size: 1.8rem;
-          font-weight: 900;
+          font-size: 1.5rem;
+          font-weight: 800;
           margin-bottom: 1rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-logo .logo-ai {
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .footer-description {
-          color: #a1a1a6;
-          line-height: 1.6;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-links {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-
-        .footer-links li {
-          margin-bottom: 0.8rem;
-        }
-
-        .footer-links a {
-          color: #a1a1a6;
-          text-decoration: none;
-          transition: color 0.2s ease;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-links a:hover {
-          color: #007aff;
         }
 
         .footer-bottom {
-          border-top: 1px solid #48484a;
+          border-top: 1px solid #333;
           padding-top: 2rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          flex-wrap: wrap;
-          gap: 1rem;
         }
 
-        .footer-copyright {
-          color: #a1a1a6;
-          font-size: 0.9rem;
-          margin: 0;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .footer-social {
+        .footer-links {
           display: flex;
-          gap: 1rem;
+          gap: 2rem;
         }
 
-        .social-link {
-          font-size: 1.2rem;
+        .footer-links a {
+          color: #ccc;
           text-decoration: none;
-          transition: transform 0.2s ease;
+          transition: color 0.2s ease;
         }
 
-        .social-link:hover {
-          transform: scale(1.1);
+        .footer-links a:hover {
+          color: #60a5fa;
         }
 
-        /* MEJORAS ESPECÍFICAS PARA MÓVILES */
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+          .logo-text { font-size: 3rem; }
+          .tagline h1 { font-size: 2.2rem; }
+          .subtitle { font-size: 1.2rem; }
+          .section-title { font-size: 2.2rem; }
+          .steps-grid, .benefits-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+          .cta-buttons { flex-direction: column; align-items: center; }
+        }
 
-        /* Pantallas pequeñas (móviles) */
         @media (max-width: 768px) {
-          .hero-section {
-            min-height: 100vh;
-            min-height: 100dvh;
-            padding: 1rem 0;
-          }
-
-          .content-wrapper {
-            padding: 1rem;
-          }
-
-          .logo-container {
-            margin-bottom: 1.5rem;
-          }
-
-          .tagline {
-            margin-bottom: 1.5rem;
-          }
-
-          .chat-container {
-            margin-bottom: 1.5rem;
-          }
-
-          .chat-greeting {
-            margin-bottom: 1rem;
-          }
-
-          .bot-avatar {
-            width: 28px;
-            height: 28px;
-            font-size: 0.9rem;
-          }
-
-          .message-bubble {
-            padding: 0.875rem 1rem;
-            font-size: 0.9rem;
-          }
-
-          .chat-input-container {
-            padding: 1.2rem 4.5rem 1.2rem 1.5rem;
-          }
-
-          .chat-input {
-            font-size: 1rem;
-          }
-
-          .send-button {
-            width: 40px;
-            height: 40px;
-            right: 0.8rem;
-          }
-
-          .suggestions-carousel {
-            gap: 0.8rem;
-          }
-
-          .suggestion-card {
-            min-width: 140px;
-            max-width: 140px;
-            padding: 0.875rem;
-          }
-
-          .card-text {
-            font-size: 0.75rem;
-          }
-
-          .section-container {
-            padding: 0 1rem;
-          }
-
-          .steps-grid,
-          .benefits-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-          }
-
-          .cta-buttons {
-            flex-direction: column;
-            gap: 1rem;
-          }
-
-          .footer-content {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-          }
-
-          .footer-bottom {
-            flex-direction: column;
-            text-align: center;
-            gap: 1rem;
-          }
+          .hero-section { padding: 1rem; }
+          .logo-text { font-size: 2.5rem; }
+          .tagline h1 { font-size: 1.8rem; }
+          .subtitle { font-size: 1.1rem; }
+          .section-title { font-size: 2rem; margin-bottom: 2rem; }
+          .step-card, .benefit-card { padding: 1.5rem; }
+          .steps-grid, .benefits-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+          .how-it-works, .benefits, .cta-section, .for-doctors { padding: 3rem 1rem; }
+          .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+          .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
+          
+          /* Chat mobile optimizations */
+          .chat-preview-container { max-width: 350px; }
+          .phone-frame { border-radius: 20px; padding: 6px; }
+          .chat-messages { min-height: 250px; padding: 12px; }
+          .suggestions-grid { flex-direction: column; align-items: center; }
+          .suggestion-pill { min-width: 200px; }
         }
 
-        /* Pantallas muy pequeñas */
         @media (max-width: 480px) {
-          .hero-section {
-            padding: 0.5rem 0;
+          .logo-text { font-size: 2.2rem; }
+          .tagline h1 { font-size: 1.6rem; line-height: 1.1; }
+          .subtitle { font-size: 1rem; }
+          .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
+          .step-card, .benefit-card { padding: 1.25rem; }
+          .content-wrapper { padding: 0.5rem; }
+          .section-container { padding: 0 1rem; }
+          .footer-content { grid-template-columns: 1fr; gap: 2rem; }
+          .cta-title { font-size: 1.8rem; }
+          .cta-subtitle { font-size: 1rem; }
+          
+          /* Chat mobile optimizations */
+          .chat-preview-container { max-width: 320px; }
+          .chat-messages { min-height: 220px; padding: 10px; }
+          .message-bubble { font-size: 13px; padding: 6px 10px; }
+          .contact-name { font-size: 14px; }
+          .status { font-size: 11px; }
+          .message-input { font-size: 14px; }
+          .send-btn { width: 32px; height: 32px; }
+          .suggestions-grid { gap: 6px; }
+          .suggestion-pill { 
+            min-width: 150px; 
+            font-size: 11px; 
+            padding: 6px 12px; 
           }
-
-          .content-wrapper {
-            padding: 0.5rem;
-          }
-
-          .logo-container {
-            margin-bottom: 1rem;
-          }
-
-          .tagline {
-            margin-bottom: 1rem;
-          }
-
-          .chat-container {
-            margin-bottom: 1rem;
-          }
-
-          .chat-greeting {
-            margin-bottom: 0.8rem;
-          }
-
-          .bot-avatar {
-            width: 26px;
-            height: 26px;
-            font-size: 0.85rem;
-          }
-
-          .message-bubble {
-            padding: 0.75rem 0.875rem;
-            font-size: 0.85rem;
-          }
-
-          .chat-input-container {
-            padding: 1rem 4rem 1rem 1.2rem;
-            border-radius: 20px;
-          }
-
-          .chat-input {
-            font-size: 0.95rem;
-          }
-
-          .send-button {
-            width: 36px;
-            height: 36px;
-            right: 0.7rem;
-          }
-
-          .send-icon {
-            font-size: 1rem;
-          }
-
-          .suggestions-carousel {
-            gap: 0.7rem;
-          }
-
-          .suggestion-card {
-            min-width: 120px;
-            max-width: 120px;
-            padding: 0.75rem;
-          }
-
-          .card-text {
-            font-size: 0.7rem;
-          }
-
-          .suggestions-title {
-            font-size: 0.8rem;
-          }
-
-          .cta-section {
-            padding: 0.5rem 0;
-          }
-
-          .step-card,
-          .benefit-card {
-            padding: 1.5rem 1rem;
-          }
-
-          .footer-content {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-          }
+          .suggestions-title { font-size: 12px; }
         }
 
-        /* Pantallas extra pequeñas */
         @media (max-width: 320px) {
-          .content-wrapper {
-            padding: 0.25rem;
-          }
-
-          .chat-input-container {
-            padding: 0.9rem 3.5rem 0.9rem 1rem;
-          }
-
-          .send-button {
-            width: 32px;
-            height: 32px;
-            right: 0.5rem;
-          }
-
-          .suggestion-card {
-            min-width: 110px;
-            max-width: 110px;
-            padding: 0.6rem;
-          }
-
-          .card-text {
-            font-size: 0.65rem;
-          }
-        }
-
-        /* Ajustes para viewport dinámico */
-        @supports (height: 100dvh) {
-          .hero-section {
-            min-height: 100dvh;
-          }
-        }
-
-        /* Mejoras para scroll horizontal */
-        .suggestions-carousel {
-          scroll-snap-type: x mandatory;
-        }
-
-        .suggestion-card {
-          scroll-snap-align: start;
-        }
-
-        /* Prevenir zoom en iOS en inputs */
-        @media screen and (max-width: 768px) {
-          .chat-input {
-            font-size: 16px;
-          }
+          .logo-text { font-size: 1.8rem; }
+          .tagline h1 { font-size: 1.4rem; }
+          .section-title { font-size: 1.6rem; }
+          .step-card, .benefit-card { padding: 1rem; }
+          .chat-preview-container { max-width: 280px; }
+          .phone-frame { border-radius: 18px; padding: 4px; }
+          .chat-messages { min-height: 200px; }
         }
       `}</style>
     </main>
@@ -1276,48 +1081,30 @@ function AnimatedButton({ children, onClick, primary = false }) {
       {children}
       <style jsx>{`
         .animated-btn {
-          border: none;
           padding: 1rem 2rem;
-          font-size: 1rem;
+          font-size: 1.1rem;
           font-weight: 600;
+          border: none;
           border-radius: 50px;
           cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          text-decoration: none;
+          display: inline-block;
           position: relative;
           overflow: hidden;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          display: inline-flex;
-          align-items: center;
-          gap: 0.6rem;
-          text-decoration: none;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          min-width: 180px;
-          justify-content: center;
-          backdrop-filter: blur(20px);
-          box-sizing: border-box;
         }
 
         .animated-btn.primary {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+          background: linear-gradient(45deg, #60a5fa, #34d399);
           color: white;
-          box-shadow: 0 8px 30px rgba(0, 122, 255, 0.3);
+          box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
         }
 
         .animated-btn.secondary {
-          background: rgba(255, 255, 255, 0.8);
-          color: #007aff;
-          border: 1px solid rgba(0, 122, 255, 0.2);
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .animated-btn::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          transition: left 0.6s ease;
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          backdrop-filter: blur(10px);
         }
 
         .animated-btn:hover {
@@ -1325,62 +1112,16 @@ function AnimatedButton({ children, onClick, primary = false }) {
         }
 
         .animated-btn.primary:hover {
-          box-shadow: 0 12px 40px rgba(0, 122, 255, 0.4);
+          box-shadow: 0 8px 25px rgba(96, 165, 250, 0.4);
         }
 
         .animated-btn.secondary:hover {
-          background: rgba(255, 255, 255, 0.95);
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .animated-btn:hover::before {
-          left: 100%;
+          background: rgba(255, 255, 255, 0.3);
+          border-color: rgba(255, 255, 255, 0.5);
         }
 
         .animated-btn:active {
           transform: translateY(0);
-        }
-
-        .button-icon, .button-arrow {
-          transition: transform 0.3s ease;
-        }
-
-        .animated-btn:hover .button-arrow {
-          transform: translateX(4px);
-        }
-
-        .animated-btn:hover .button-icon {
-          transform: scale(1.1);
-        }
-
-        @media (max-width: 768px) {
-          .animated-btn {
-            width: 100%;
-            max-width: 280px;
-            padding: 0.9rem 1.5rem;
-            font-size: 0.95rem;
-            min-width: 200px;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .animated-btn {
-            width: 90%;
-            max-width: 260px;
-            padding: 0.8rem 1.2rem;
-            font-size: 0.9rem;
-            min-width: 180px;
-          }
-        }
-
-        @media (max-width: 320px) {
-          .animated-btn {
-            width: 95%;
-            max-width: 240px;
-            padding: 0.75rem 1rem;
-            font-size: 0.85rem;
-            min-width: 160px;
-          }
         }
       `}</style>
     </button>
