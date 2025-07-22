@@ -29,10 +29,6 @@ export default function Home() {
     router.push('/chat');
   };
 
-  const goToMedicoLogin = () => {
-    router.push('/auth/signin');
-  };
-
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 500);
     
@@ -243,18 +239,6 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="for-doctors">
-        <div className="section-container">
-          <div className="doctor-content">
-            <h2>¿Eres médico?</h2>
-            <p>Monetiza tus sobrecupos y llegues a más pacientes</p>
-            <AnimatedButton onClick={goToMedicoLogin}>
-              Portal médico
-            </AnimatedButton>
-          </div>
-        </div>
-      </section>
-
       <footer className="footer">
         <div className="footer-container">
           <div className="footer-content">
@@ -457,8 +441,9 @@ export default function Home() {
           opacity: 0;
           transform: translateY(40px);
           transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
-          max-width: 700px;
+          max-width: 100%;
           margin: 0 auto;
+          padding: 0 1rem;
         }
 
         .chat-container.visible {
@@ -467,7 +452,7 @@ export default function Home() {
         }
 
         .chat-wrapper {
-          max-width: 700px;
+          max-width: 100%;
           margin: 0 auto;
         }
 
@@ -480,6 +465,7 @@ export default function Home() {
           box-shadow: 0 4px 20px rgba(0,0,0,0.08);
           overflow: hidden;
           transition: all 0.4s ease;
+          margin: 0;
         }
 
         .chat-preview-window.fade-out {
@@ -799,8 +785,7 @@ export default function Home() {
         /* Secciones adicionales */
         .how-it-works,
         .benefits,
-        .cta-section,
-        .for-doctors {
+        .cta-section {
           padding: 5rem 2rem;
           position: relative;
           z-index: 1;
@@ -820,11 +805,6 @@ export default function Home() {
           backdrop-filter: blur(20px);
         }
 
-        .for-doctors {
-          background: #1d1d1f;
-          color: white;
-        }
-
         .section-container {
           max-width: 1200px;
           margin: 0 auto;
@@ -836,11 +816,6 @@ export default function Home() {
           text-align: center;
           margin-bottom: 3rem;
           color: #1d1d1f;
-        }
-
-        .for-doctors .section-title,
-        .for-doctors h2 {
-          color: white;
         }
 
         .steps-grid {
@@ -927,8 +902,7 @@ export default function Home() {
           line-height: 1.6;
         }
 
-        .cta-content,
-        .doctor-content {
+        .cta-content {
           text-align: center;
           max-width: 600px;
           margin: 0 auto;
@@ -936,6 +910,16 @@ export default function Home() {
 
         .cta-title {
           font-size: 2.5rem;
+          font-weight: 700;
+          margin-bottom: 1rem;
+          color: #1d1d1f;
+        }
+
+        .cta-subtitle {
+          font-size: 1.2rem;
+          color: #6e6e73;
+          margin-bottom: 2rem;
+        } 2.5rem;
           font-weight: 700;
           margin-bottom: 1rem;
           color: #1d1d1f;
@@ -1066,7 +1050,7 @@ export default function Home() {
           .section-title { font-size: 2rem; margin-bottom: 2rem; }
           .step-card, .benefit-card { padding: 1.5rem; }
           .steps-grid, .benefits-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-          .how-it-works, .benefits, .cta-section, .for-doctors { padding: 3rem 1rem; }
+          .how-it-works, .benefits, .cta-section { padding: 3rem 1rem; }
           .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
           .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
           
@@ -1074,13 +1058,14 @@ export default function Home() {
           .chat-container { 
             max-width: 100%;
             margin-top: 1rem;
+            padding: 0 0.75rem;
           }
           .chat-wrapper {
             max-width: 100%;
-            padding: 0 0.5rem;
+            padding: 0;
           }
           .chat-preview-window {
-            margin-bottom: 1rem;
+            margin: 0;
           }
           
           /* Tarjetas integradas responsive */
