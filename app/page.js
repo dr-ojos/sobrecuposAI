@@ -115,6 +115,33 @@ export default function Home() {
                 </div>
               </div>
               
+              {/* Sugerencias ANTES del input - como en el artefacto anterior */}
+              <div className={`suggestions-section ${chatExpanding ? 'fade-out' : ''}`}>
+                <p className="suggestions-title">Prueba con:</p>
+                <div className="suggestions-carousel">
+                  <div className="suggestion-card" onClick={() => setChatInput("Necesito oftalmólogo urgente")}>
+                    <h4 className="card-title">Necesito oftalmólogo urgente</h4>
+                    <p className="card-description">Consulta de ojos</p>
+                  </div>
+                  <div className="suggestion-card" onClick={() => setChatInput("Consulta con cardiólogo")}>
+                    <h4 className="card-title">Consulta con cardiólogo</h4>
+                    <p className="card-description">Salud del corazón</p>
+                  </div>
+                  <div className="suggestion-card" onClick={() => setChatInput("Dolor de cabeza frecuente")}>
+                    <h4 className="card-title">Dolor de cabeza frecuente</h4>
+                    <p className="card-description">Síntomas neurológicos</p>
+                  </div>
+                  <div className="suggestion-card" onClick={() => setChatInput("Chequeo médico general")}>
+                    <h4 className="card-title">Chequeo médico general</h4>
+                    <p className="card-description">Medicina preventiva</p>
+                  </div>
+                  <div className="suggestion-card" onClick={() => setChatInput("Necesito dermatólogo")}>
+                    <p className="card-text">Necesito dermatólogo</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Input al FINAL */}
               <form onSubmit={handleChatSubmit} className="chat-form">
                 <div className={`chat-input-container ${chatExpanding ? 'expanding' : ''}`}>
                   <input
@@ -147,32 +174,6 @@ export default function Home() {
                   )}
                 </div>
               </form>
-              
-              {/* Sugerencias como tarjetas carrusel */}
-              <div className={`suggestions-section ${chatExpanding ? 'fade-out' : ''}`}>
-                <p className="suggestions-title">Prueba con:</p>
-                <div className="suggestions-carousel">
-                  <div className="suggestion-card" onClick={() => setChatInput("Necesito oftalmólogo urgente")}>
-                    <h4 className="card-title">Necesito oftalmólogo urgente</h4>
-                    <p className="card-description">Consulta de ojos</p>
-                  </div>
-                  <div className="suggestion-card" onClick={() => setChatInput("Consulta con cardiólogo")}>
-                    <h4 className="card-title">Consulta con cardiólogo</h4>
-                    <p className="card-description">Salud del corazón</p>
-                  </div>
-                  <div className="suggestion-card" onClick={() => setChatInput("Dolor de cabeza frecuente")}>
-                    <h4 className="card-title">Dolor de cabeza frecuente</h4>
-                    <p className="card-description">Síntomas neurológicos</p>
-                  </div>
-                  <div className="suggestion-card" onClick={() => setChatInput("Chequeo médico general")}>
-                    <h4 className="card-title">Chequeo médico general</h4>
-                    <p className="card-description">Medicina preventiva</p>
-                  </div>
-                  <div className="suggestion-card" onClick={() => setChatInput("Necesito dermatólogo")}>
-                    <p className="card-text">Necesito dermatólogo</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1029,7 +1030,7 @@ export default function Home() {
           color: #007aff;
         }
 
-        /* Media Queries - Originales */
+        /* Media Queries - MEJORADO RESPONSIVE PARA IPHONE */
         @media (max-width: 1024px) {
           .logo-text { font-size: 3rem; }
           .tagline h1 { font-size: 2.2rem; }
@@ -1040,6 +1041,9 @@ export default function Home() {
           .cta-buttons { flex-direction: column; align-items: center; }
           .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
           .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
+          
+          /* Chat responsive para tablet */
+          .chat-container { max-width: 600px; }
           .chat-input-container { padding: 1.2rem 4.5rem 1.2rem 1.5rem; }
           .chat-input { font-size: 1rem; }
           .send-button { width: 40px; height: 40px; right: 0.8rem; }
@@ -1051,8 +1055,16 @@ export default function Home() {
         }
 
         @media (max-width: 768px) {
-          .hero-section { padding: 1rem; }
-          .content-wrapper { padding: 1rem; }
+          .hero-section { 
+            padding: 1rem; 
+            min-height: auto;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+          }
+          .content-wrapper { 
+            padding: 1rem; 
+            max-width: 100%;
+          }
           .logo-text { font-size: 2.5rem; }
           .tagline h1 { font-size: 1.8rem; }
           .subtitle { font-size: 1.1rem; }
@@ -1062,45 +1074,228 @@ export default function Home() {
           .how-it-works, .benefits, .cta-section, .for-doctors { padding: 3rem 1rem; }
           .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
           .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
-          .chat-input-container { padding: 1.2rem 4.5rem 1.2rem 1.5rem; }
-          .chat-input { font-size: 1rem; }
-          .send-button { width: 40px; height: 40px; right: 0.8rem; }
-          .suggestions-carousel { gap: 0.8rem; }
-          .suggestion-card { min-width: 140px; max-width: 140px; padding: 0.875rem; }
-          .card-title { font-size: 0.8rem; }
-          .card-description { font-size: 0.7rem; }
-          .card-text { font-size: 0.75rem; }
+          
+          /* Chat responsive para móvil */
+          .chat-container { 
+            max-width: 100%;
+            margin-top: 1rem;
+          }
+          .chat-wrapper {
+            max-width: 100%;
+            padding: 0 0.5rem;
+          }
+          .chat-preview-window {
+            margin-bottom: 1rem;
+          }
+          .chat-input-container { 
+            padding: 1rem 3.5rem 1rem 1rem;
+            margin: 0 0.5rem;
+          }
+          .chat-input { font-size: 0.95rem; }
+          .send-button { width: 36px; height: 36px; right: 0.7rem; }
+          .suggestions-carousel { 
+            gap: 0.6rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+          }
+          .suggestion-card { 
+            min-width: 130px; 
+            max-width: 130px; 
+            padding: 0.75rem 0.5rem;
+          }
+          .card-title { font-size: 0.75rem; }
+          .card-description { font-size: 0.65rem; }
+          .suggestions-title { 
+            font-size: 0.8rem; 
+            padding-left: 0.5rem;
+          }
         }
 
         @media (max-width: 480px) {
-          .logo-text { font-size: 2.8rem; }
-          .tagline h1 { font-size: 2rem; line-height: 1.1; }
-          .subtitle { font-size: 1.1rem; }
+          .logo-text { font-size: 2.2rem; }
+          .tagline { margin-bottom: 2rem; }
+          .tagline h1 { 
+            font-size: 1.6rem; 
+            line-height: 1.2; 
+            margin-bottom: 1rem;
+          }
+          .subtitle { font-size: 1rem; }
+          .cta-text { font-size: 0.9rem; }
           .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
-          .step-card, .benefit-card { padding: 2rem 1.5rem; }
-          .content-wrapper { padding: 0.5rem; }
+          .step-card, .benefit-card { padding: 1.25rem; }
+          .content-wrapper { padding: 0.75rem; }
           .section-container { padding: 0 1rem; }
           .footer-content { grid-template-columns: 1fr; gap: 2rem; }
-          .cta-title { font-size: 2rem; }
-          .cta-subtitle { font-size: 1.1rem; }
-          .chat-input-container { padding: 1rem 4rem 1rem 1.2rem; border-radius: 20px; }
-          .chat-input { font-size: 0.95rem; }
-          .send-button { width: 36px; height: 36px; right: 0.7rem; }
-          .send-icon { font-size: 1rem; }
-          .suggestion-card { min-width: 120px; max-width: 120px; padding: 0.75rem; }
-          .card-title { font-size: 0.75rem; margin-bottom: 0.4rem; }
-          .card-description { font-size: 0.65rem; }
-          .suggestions-carousel { gap: 0.7rem; }
-          .suggestions-title { font-size: 0.8rem; }
+          .cta-title { font-size: 1.8rem; }
+          .cta-subtitle { font-size: 1rem; }
+          
+          /* Chat optimizado para iPhone */
+          .hero-section {
+            padding: 0.75rem;
+            padding-top: 1rem;
+          }
+          .chat-container {
+            margin-top: 0.75rem;
+          }
+          .chat-wrapper {
+            padding: 0;
+          }
+          .chat-preview-window {
+            margin: 0 0.25rem 1rem;
+            border-radius: 12px;
+          }
+          .chat-input-container { 
+            padding: 0.875rem 3.25rem 0.875rem 0.875rem; 
+            border-radius: 18px;
+            margin: 0 0.25rem;
+          }
+          .chat-input { font-size: 16px; } /* Evita zoom en iOS */
+          .send-button { 
+            width: 32px; 
+            height: 32px; 
+            right: 0.5rem; 
+          }
+          .send-icon { font-size: 0.9rem; }
+          .suggestions-carousel { 
+            gap: 0.5rem;
+            padding: 0.5rem 0.25rem 1rem;
+          }
+          .suggestion-card { 
+            min-width: 110px; 
+            max-width: 110px; 
+            padding: 0.625rem 0.375rem;
+            border-radius: 10px;
+          }
+          .card-title { 
+            font-size: 0.7rem; 
+            margin-bottom: 0.25rem;
+            line-height: 1.1;
+          }
+          .card-description { 
+            font-size: 0.6rem; 
+            line-height: 1.2;
+          }
+          .card-text {
+            font-size: 0.65rem;
+            line-height: 1.3;
+          }
+          .suggestions-title { 
+            font-size: 0.75rem; 
+            padding-left: 0.25rem;
+            margin-bottom: 0.75rem;
+          }
+          .preview-messages {
+            padding: 12px;
+            min-height: 80px;
+          }
+          .msg-bubble {
+            font-size: 0.8rem;
+            padding: 6px 10px;
+          }
+        }
+
+        @media (max-width: 375px) {
+          .logo-text { font-size: 2rem; }
+          .tagline h1 { font-size: 1.4rem; }
+          .hero-section {
+            padding: 0.5rem;
+          }
+          .content-wrapper {
+            padding: 0.5rem;
+          }
+          
+          /* Chat ultra responsive para iPhone SE y similares */
+          .chat-preview-window {
+            margin: 0 0 0.75rem;
+          }
+          .chat-input-container {
+            padding: 0.75rem 3rem 0.75rem 0.75rem;
+            margin: 0;
+          }
+          .send-button {
+            width: 28px;
+            height: 28px;
+            right: 0.4rem;
+          }
+          .send-icon { font-size: 0.8rem; }
+          .suggestions-carousel {
+            gap: 0.4rem;
+            padding: 0.4rem 0 0.75rem;
+          }
+          .suggestion-card {
+            min-width: 100px;
+            max-width: 100px;
+            padding: 0.5rem 0.3rem;
+          }
+          .card-title {
+            font-size: 0.65rem;
+            margin-bottom: 0.2rem;
+          }
+          .card-description {
+            font-size: 0.55rem;
+          }
+          .card-text {
+            font-size: 0.6rem;
+          }
+          .suggestions-title {
+            font-size: 0.7rem;
+            margin-bottom: 0.5rem;
+          }
         }
 
         @media (max-width: 320px) {
-          .logo-text { font-size: 2.4rem; }
-          .tagline h1 { font-size: 1.8rem; }
-          .section-title { font-size: 1.6rem; }
-          .step-card, .benefit-card { padding: 1.5rem 1rem; }
-          .chat-input-container { padding: 0.9rem 3.5rem 0.9rem 1rem; }
-          .send-button { width: 32px; height: 32px; right: 0.5rem; }
+          .logo-text { font-size: 1.8rem; }
+          .tagline h1 { font-size: 1.2rem; }
+          .section-title { font-size: 1.4rem; }
+          .step-card, .benefit-card { padding: 1rem; }
+          
+          /* Chat para pantallas muy pequeñas */
+          .chat-input-container { 
+            padding: 0.625rem 2.75rem 0.625rem 0.625rem; 
+          }
+          .send-button { 
+            width: 26px; 
+            height: 26px; 
+            right: 0.3rem; 
+          }
+          .send-icon { font-size: 0.7rem; }
+          .suggestions-carousel { gap: 0.3rem; }
+          .suggestion-card { 
+            min-width: 85px; 
+            max-width: 85px; 
+            padding: 0.4rem 0.25rem;
+          }
+          .card-title { font-size: 0.6rem; }
+          .card-description { font-size: 0.5rem; }
+          .card-text { font-size: 0.55rem; }
+          .suggestions-title { font-size: 0.65rem; }
+        }
+
+        /* Mejoras específicas para iOS Safari */
+        @supports (-webkit-touch-callout: none) {
+          .chat-input {
+            -webkit-appearance: none;
+            -webkit-border-radius: 18px;
+          }
+          
+          .send-button {
+            -webkit-appearance: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+          }
+          
+          .suggestion-card {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+          }
+        }
+
+        /* Safe area para iPhone con notch */
+        @supports (padding: max(0px)) {
+          .hero-section {
+            padding-top: max(1rem, env(safe-area-inset-top));
+            padding-bottom: max(2rem, env(safe-area-inset-bottom));
+          }
         }
       `}</style>
     </main>
