@@ -134,48 +134,37 @@ export default function Home() {
                 <div className="suggestions-carousel">
                   <div 
                     className="suggestion-card"
-                    onClick={() => setChatInput('Necesito un cardiólogo urgente')}
+                    onClick={() => setChatInput('Tengo vista borrosa últimamente')}
                   >
-                    <div className="card-text">Busco atención cardiológica para esta semana</div>
+                    <div className="card-text">Tengo vista borrosa últimamente</div>
                   </div>
                   <div 
                     className="suggestion-card"
-                    onClick={() => setChatInput('Busco dermatólogo para esta semana')}
+                    onClick={() => setChatInput('Me duelen los ojos constantemente')}
                   >
-                    <div className="card-text">Necesito consulta dermatológica pronto</div>
+                    <div className="card-text">Me duelen los ojos constantemente</div>
                   </div>
                   <div 
                     className="suggestion-card"
-                    onClick={() => setChatInput('Hay pediatras disponibles hoy')}
+                    onClick={() => setChatInput('Necesito control oftalmológico urgente')}
                   >
-                    <div className="card-text">Busco pediatra para mi hijo urgente</div>
+                    <div className="card-text">Necesito control oftalmológico urgente</div>
                   </div>
                   <div 
                     className="suggestion-card"
-                    onClick={() => setChatInput('Necesito oftalmólogo esta semana')}
+                    onClick={() => setChatInput('Veo manchas negras flotando')}
                   >
-                    <div className="card-text">Problemas de visión, necesito cita</div>
+                    <div className="card-text">Veo manchas negras flotando</div>
                   </div>
                   <div 
                     className="suggestion-card"
-                    onClick={() => setChatInput('Busco psicólogo disponible')}
+                    onClick={() => setChatInput('Busco oftalmólogo para esta semana')}
                   >
-                    <div className="card-text">Necesito apoyo psicológico pronto</div>
+                    <div className="card-text">Busco oftalmólogo para esta semana</div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className={`cta-section ${isVisible ? 'visible' : ''}`}>
-            <AnimatedButton 
-              onClick={goToChat}
-              primary
-            >
-              <span className="button-icon">💬</span>
-              Comenzar Chat
-              <span className="button-arrow">→</span>
-            </AnimatedButton>
           </div>
         </div>
       </section>
