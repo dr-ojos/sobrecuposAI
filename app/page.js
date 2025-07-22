@@ -249,9 +249,9 @@ export default function Home() {
             Comienza ahora mismo y encuentra el sobrecupo que necesitas.
           </p>
           <div className="cta-buttons">
-            <AnimatedButton onClick={goToChat} primary>
-              <span className="button-icon">💬</span>
-              Empezar ahora
+            <AnimatedButton onClick={() => window.open('https://wa.me/56912345678?text=Hola%2C%20quiero%20registrarme%20como%20m%C3%A9dico%20en%20Sobrecupos', '_blank')} primary>
+              <span className="button-icon">📱</span>
+              Registro médicos
             </AnimatedButton>
             <AnimatedButton onClick={goToMedicoLogin}>
               <span className="button-icon">👨‍⚕️</span>
@@ -670,7 +670,7 @@ export default function Home() {
           transform: scale(1.05) translateY(-10px);
           box-shadow: 0 20px 60px rgba(0,122,255,0.25);
           border-color: #007aff;
-          background: rgba(255,255,255,1);
+          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
           transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
           overflow: hidden;
