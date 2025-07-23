@@ -102,15 +102,6 @@ export default function Home() {
                       ¡Hola! 👋 ¿En qué te puedo ayudar? Cuéntame tus síntomas o qué especialista necesitas.
                     </div>
                   </div>
-                  
-                  {/* Mensaje del usuario preview */}
-                  {chatInput && (
-                    <div className="preview-message user-msg">
-                      <div className="msg-bubble user-bubble">
-                        {chatInput}
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* TARJETAS DE PREGUNTAS INTEGRADAS DENTRO DEL CHAT - CON TÍTULO */}
@@ -118,32 +109,52 @@ export default function Home() {
                   <p className="suggestions-hint">Prueba preguntando:</p>
                   <div className="integrated-cards-scroll">
                     <div className="integrated-card" onClick={() => {
-                      setChatInput("Tengo visión borrosa hace 3 días");
-                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                      const question = "Tengo visión borrosa hace 3 días";
+                      setChatInput(question);
+                      setChatExpanding(true);
+                      setTimeout(() => {
+                        router.push(`/chat?initial=${encodeURIComponent(question)}`);
+                      }, 800);
                     }}>
                       Tengo visión borrosa hace 3 días
                     </div>
                     <div className="integrated-card" onClick={() => {
-                      setChatInput("Necesito revisar mi graduación de lentes");
-                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                      const question = "Necesito revisar mi graduación de lentes";
+                      setChatInput(question);
+                      setChatExpanding(true);
+                      setTimeout(() => {
+                        router.push(`/chat?initial=${encodeURIComponent(question)}`);
+                      }, 800);
                     }}>
                       Necesito revisar mi graduación de lentes
                     </div>
                     <div className="integrated-card" onClick={() => {
-                      setChatInput("Me duelen los ojos con la luz");
-                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                      const question = "Me duelen los ojos con la luz";
+                      setChatInput(question);
+                      setChatExpanding(true);
+                      setTimeout(() => {
+                        router.push(`/chat?initial=${encodeURIComponent(question)}`);
+                      }, 800);
                     }}>
                       Me duelen los ojos con la luz
                     </div>
                     <div className="integrated-card" onClick={() => {
-                      setChatInput("Veo manchas flotantes");
-                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                      const question = "Veo manchas flotantes";
+                      setChatInput(question);
+                      setChatExpanding(true);
+                      setTimeout(() => {
+                        router.push(`/chat?initial=${encodeURIComponent(question)}`);
+                      }, 800);
                     }}>
                       Veo manchas flotantes
                     </div>
                     <div className="integrated-card" onClick={() => {
-                      setChatInput("Urgente: ojo rojo y dolor intenso");
-                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                      const question = "Urgente: ojo rojo y dolor intenso";
+                      setChatInput(question);
+                      setChatExpanding(true);
+                      setTimeout(() => {
+                        router.push(`/chat?initial=${encodeURIComponent(question)}`);
+                      }, 800);
                     }}>
                       Urgente: ojo rojo y dolor intenso
                     </div>
