@@ -117,20 +117,20 @@ export default function Home() {
                 <div className={`integrated-suggestions ${chatExpanding ? 'fade-out' : ''}`}>
                   <p className="suggestions-hint">Prueba preguntando:</p>
                   <div className="integrated-cards-scroll">
-                    <div className="integrated-card" onClick={() => setChatInput("Necesito oftalmólogo urgente")}>
-                      Necesito oftalmólogo urgente
+                    <div className="integrated-card" onClick={() => setChatInput("Tengo visión borrosa hace 3 días")}>
+                      Tengo visión borrosa hace 3 días
                     </div>
-                    <div className="integrated-card" onClick={() => setChatInput("Consulta con cardiólogo")}>
-                      Consulta con cardiólogo
+                    <div className="integrated-card" onClick={() => setChatInput("Necesito revisar mi graduación de lentes")}>
+                      Necesito revisar mi graduación de lentes
                     </div>
-                    <div className="integrated-card" onClick={() => setChatInput("Dolor de cabeza frecuente")}>
-                      Dolor de cabeza frecuente
+                    <div className="integrated-card" onClick={() => setChatInput("Me duelen los ojos con la luz")}>
+                      Me duelen los ojos con la luz
                     </div>
-                    <div className="integrated-card" onClick={() => setChatInput("Chequeo médico general")}>
-                      Chequeo médico general
+                    <div className="integrated-card" onClick={() => setChatInput("Veo manchas flotantes")}>
+                      Veo manchas flotantes
                     </div>
-                    <div className="integrated-card" onClick={() => setChatInput("Necesito dermatólogo")}>
-                      Necesito dermatólogo
+                    <div className="integrated-card" onClick={() => setChatInput("Urgente: ojo rojo y dolor intenso")}>
+                      Urgente: ojo rojo y dolor intenso
                     </div>
                   </div>
                 </div>
@@ -1111,19 +1111,35 @@ export default function Home() {
             padding: 0.75rem;
             padding-top: 1rem;
           }
+          
+          .content-wrapper { 
+            padding: 0.75rem 0 0 0; /* Sin padding lateral */
+          }
+          
           .chat-container {
             margin-top: 0.75rem;
             padding: 0;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
           }
+          
           .chat-wrapper {
             padding: 0;
+            width: 100%;
           }
+          
           .chat-preview-window {
             margin: 0;
             border-radius: 0;
-            border-left: none;
-            border-right: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: none;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            box-shadow: none;
+          }
+          
+          .chat-preview-header {
+            border-radius: 0;
           }
           
           /* Hacer ventana más grande */
@@ -1133,9 +1149,10 @@ export default function Home() {
             max-height: 180px;
           }
           
-          /* Tarjetas y input ajustados para iPhone */
+          /* Tarjetas más cuadradas para oftalmología */
           .integrated-suggestions {
             padding: 12px 16px;
+            background: #fafafa;
           }
           
           .suggestions-hint {
@@ -1150,19 +1167,21 @@ export default function Home() {
           }
           
           .integrated-card {
-            min-width: 140px;
-            max-width: 140px;
-            padding: 10px 12px;
-            font-size: 12px;
-            border-radius: 10px;
+            min-width: 160px;
+            max-width: 160px;
+            padding: 14px 16px;
+            font-size: 13px;
+            border-radius: 8px;
             background: white;
             border: 1px solid #e5e5e7;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
           }
           
           .integrated-card:active {
             background: #f5f5f7;
             transform: scale(0.98);
+            box-shadow: 0 0 1px rgba(0,0,0,0.1);
           }
           
           .integrated-input-section {
@@ -1190,11 +1209,6 @@ export default function Home() {
             font-size: 14px;
           }
           
-          .preview-messages {
-            padding: 16px;
-            min-height: 100px;
-          }
-          
           .msg-bubble {
             font-size: 0.9rem;
             padding: 8px 12px;
@@ -1214,10 +1228,16 @@ export default function Home() {
             padding: 0.5rem;
           }
           .content-wrapper {
-            padding: 0.5rem;
+            padding: 0.5rem 0 0 0;
           }
           
           /* Chat ultra responsive para iPhone SE y similares - SIN BORDES */
+          .chat-container {
+            width: 100vw;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+          }
+          
           .chat-preview-window {
             margin: 0;
             border-radius: 0;
@@ -1225,15 +1245,11 @@ export default function Home() {
             border-right: none;
           }
           
-          .chat-container {
-            padding: 0;
-          }
-          
           .integrated-card {
-            min-width: 130px;
-            max-width: 130px;
-            padding: 9px 11px;
-            font-size: 11px;
+            min-width: 150px;
+            max-width: 150px;
+            padding: 12px 14px;
+            font-size: 12px;
           }
           
           .integrated-cards-scroll {
