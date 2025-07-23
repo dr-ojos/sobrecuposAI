@@ -13,7 +13,7 @@ export default function Home() {
 
   // Función para manejar el envío del chat con efecto de expansión
   const handleChatSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (chatInput.trim() && !chatExpanding) {
       // 1. Trigger expansion animation
       setChatExpanding(true);
@@ -117,19 +117,34 @@ export default function Home() {
                 <div className={`integrated-suggestions ${chatExpanding ? 'fade-out' : ''}`}>
                   <p className="suggestions-hint">Prueba preguntando:</p>
                   <div className="integrated-cards-scroll">
-                    <div className="integrated-card" onClick={() => setChatInput("Tengo visión borrosa hace 3 días")}>
+                    <div className="integrated-card" onClick={() => {
+                      setChatInput("Tengo visión borrosa hace 3 días");
+                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                    }}>
                       Tengo visión borrosa hace 3 días
                     </div>
-                    <div className="integrated-card" onClick={() => setChatInput("Necesito revisar mi graduación de lentes")}>
+                    <div className="integrated-card" onClick={() => {
+                      setChatInput("Necesito revisar mi graduación de lentes");
+                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                    }}>
                       Necesito revisar mi graduación de lentes
                     </div>
-                    <div className="integrated-card" onClick={() => setChatInput("Me duelen los ojos con la luz")}>
+                    <div className="integrated-card" onClick={() => {
+                      setChatInput("Me duelen los ojos con la luz");
+                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                    }}>
                       Me duelen los ojos con la luz
                     </div>
-                    <div className="integrated-card" onClick={() => setChatInput("Veo manchas flotantes")}>
+                    <div className="integrated-card" onClick={() => {
+                      setChatInput("Veo manchas flotantes");
+                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                    }}>
                       Veo manchas flotantes
                     </div>
-                    <div className="integrated-card" onClick={() => setChatInput("Urgente: ojo rojo y dolor intenso")}>
+                    <div className="integrated-card" onClick={() => {
+                      setChatInput("Urgente: ojo rojo y dolor intenso");
+                      setTimeout(() => handleChatSubmit(new Event('submit')), 100);
+                    }}>
                       Urgente: ojo rojo y dolor intenso
                     </div>
                   </div>
@@ -1108,20 +1123,29 @@ export default function Home() {
           
           /* Chat optimizado para iPhone - SIN BORDES */
           .hero-section {
-            padding: 0.75rem;
+            padding: 0;
             padding-top: 1rem;
           }
           
           .content-wrapper { 
-            padding: 0.75rem 0 0 0; /* Sin padding lateral */
+            padding: 0; /* Sin padding en ningún lado */
+            max-width: 100%;
+          }
+          
+          .tagline {
+            padding: 0 1rem; /* Padding solo para el texto */
+          }
+          
+          .logo-container {
+            padding: 0 1rem; /* Padding solo para el logo */
           }
           
           .chat-container {
             margin-top: 0.75rem;
             padding: 0;
             width: 100vw;
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
+            margin-left: 0;
+            margin-right: 0;
           }
           
           .chat-wrapper {
@@ -1136,6 +1160,7 @@ export default function Home() {
             border-top: 1px solid rgba(0,0,0,0.05);
             border-bottom: 1px solid rgba(0,0,0,0.05);
             box-shadow: none;
+            width: 100%;
           }
           
           .chat-preview-header {
@@ -1164,6 +1189,8 @@ export default function Home() {
           .integrated-cards-scroll {
             gap: 8px;
             padding: 6px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
           }
           
           .integrated-card {
@@ -1176,6 +1203,8 @@ export default function Home() {
             border: 1px solid #e5e5e7;
             box-shadow: 0 1px 2px rgba(0,0,0,0.04);
             transition: all 0.2s ease;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
           }
           
           .integrated-card:active {
@@ -1225,17 +1254,26 @@ export default function Home() {
           .logo-text { font-size: 2rem; }
           .tagline h1 { font-size: 1.4rem; }
           .hero-section {
-            padding: 0.5rem;
+            padding: 0;
+            padding-top: 0.5rem;
           }
           .content-wrapper {
-            padding: 0.5rem 0 0 0;
+            padding: 0;
+          }
+          
+          .tagline {
+            padding: 0 0.5rem;
+          }
+          
+          .logo-container {
+            padding: 0 0.5rem;
           }
           
           /* Chat ultra responsive para iPhone SE y similares - SIN BORDES */
           .chat-container {
             width: 100vw;
-            margin-left: -0.5rem;
-            margin-right: -0.5rem;
+            margin-left: 0;
+            margin-right: 0;
           }
           
           .chat-preview-window {
