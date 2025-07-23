@@ -113,8 +113,9 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* TARJETAS DE PREGUNTAS INTEGRADAS DENTRO DEL CHAT - SIN TÍTULO */}
+                {/* TARJETAS DE PREGUNTAS INTEGRADAS DENTRO DEL CHAT - CON TÍTULO */}
                 <div className={`integrated-suggestions ${chatExpanding ? 'fade-out' : ''}`}>
+                  <p className="suggestions-hint">Prueba preguntando:</p>
                   <div className="integrated-cards-scroll">
                     <div className="integrated-card" onClick={() => setChatInput("Necesito oftalmólogo urgente")}>
                       Necesito oftalmólogo urgente
@@ -589,6 +590,13 @@ export default function Home() {
         .integrated-suggestions.fade-out {
           opacity: 0;
           transform: translateY(-10px);
+        }
+
+        .suggestions-hint {
+          font-size: 0.8rem;
+          color: #8e8e93;
+          margin: 0 0 8px 0;
+          font-weight: 500;
         }
 
         .integrated-cards-scroll {
@@ -1098,71 +1106,104 @@ export default function Home() {
           .cta-title { font-size: 1.8rem; }
           .cta-subtitle { font-size: 1rem; }
           
-          /* Chat optimizado para iPhone */
+          /* Chat optimizado para iPhone - SIN BORDES */
           .hero-section {
             padding: 0.75rem;
             padding-top: 1rem;
           }
           .chat-container {
             margin-top: 0.75rem;
+            padding: 0;
           }
           .chat-wrapper {
             padding: 0;
           }
           .chat-preview-window {
-            margin: 0 0.25rem 1rem;
-            border-radius: 12px;
+            margin: 0;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+          }
+          
+          /* Hacer ventana más grande */
+          .preview-messages {
+            padding: 16px;
+            min-height: 120px;
+            max-height: 180px;
           }
           
           /* Tarjetas y input ajustados para iPhone */
           .integrated-suggestions {
-            padding: 10px 12px;
+            padding: 12px 16px;
+          }
+          
+          .suggestions-hint {
+            font-size: 0.75rem;
+            margin-bottom: 6px;
+            color: #8e8e93;
           }
           
           .integrated-cards-scroll {
-            gap: 6px;
+            gap: 8px;
             padding: 6px 0;
           }
           
           .integrated-card {
-            min-width: 120px;
-            max-width: 120px;
-            padding: 8px 10px;
-            font-size: 11px;
-            border-radius: 8px;
+            min-width: 140px;
+            max-width: 140px;
+            padding: 10px 12px;
+            font-size: 12px;
+            border-radius: 10px;
+            background: white;
+            border: 1px solid #e5e5e7;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          }
+          
+          .integrated-card:active {
+            background: #f5f5f7;
+            transform: scale(0.98);
           }
           
           .integrated-input-section {
-            padding: 10px 12px;
+            padding: 12px 16px;
           }
           
           .integrated-input-container {
-            padding: 5px 5px 5px 14px;
-            border-radius: 18px;
+            padding: 6px 6px 6px 16px;
+            border-radius: 20px;
+            background: white;
+            border: 1px solid #e5e5e7;
           }
           
           .integrated-input {
-            font-size: 16px; /* Evita zoom en iOS */
-            padding: 6px 0;
+            font-size: 16px;
+            padding: 8px 0;
           }
           
           .integrated-send-btn {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
           }
           
           .send-icon {
-            font-size: 12px;
+            font-size: 14px;
           }
           
           .preview-messages {
-            padding: 12px;
-            min-height: 80px;
+            padding: 16px;
+            min-height: 100px;
           }
           
           .msg-bubble {
+            font-size: 0.9rem;
+            padding: 8px 12px;
+          }
+          
+          .bot-avatar-small {
+            width: 28px;
+            height: 28px;
             font-size: 0.8rem;
-            padding: 6px 10px;
           }
         }
 
@@ -1176,33 +1217,44 @@ export default function Home() {
             padding: 0.5rem;
           }
           
-          /* Chat ultra responsive para iPhone SE y similares */
+          /* Chat ultra responsive para iPhone SE y similares - SIN BORDES */
           .chat-preview-window {
-            margin: 0 0 0.75rem;
+            margin: 0;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+          }
+          
+          .chat-container {
+            padding: 0;
           }
           
           .integrated-card {
-            min-width: 100px;
-            max-width: 100px;
-            padding: 6px 8px;
-            font-size: 10px;
+            min-width: 130px;
+            max-width: 130px;
+            padding: 9px 11px;
+            font-size: 11px;
           }
           
           .integrated-cards-scroll {
-            gap: 4px;
+            gap: 6px;
+          }
+          
+          .suggestions-hint {
+            font-size: 0.7rem;
           }
           
           .integrated-input-container {
-            padding: 4px 4px 4px 12px;
+            padding: 5px 5px 5px 14px;
           }
           
           .integrated-send-btn {
-            width: 26px;
-            height: 26px;
+            width: 30px;
+            height: 30px;
           }
           
           .send-icon {
-            font-size: 11px;
+            font-size: 13px;
           }
         }
 
@@ -1222,6 +1274,25 @@ export default function Home() {
           .integrated-card {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+          }
+          
+          /* Optimización para edge-to-edge en iPhone */
+          @media (max-width: 480px) {
+            .chat-preview-window {
+              border-radius: 0;
+              border: none;
+              border-top: 1px solid rgba(0,122,255,0.08);
+              border-bottom: 1px solid rgba(0,122,255,0.08);
+            }
+            
+            .chat-preview-header {
+              border-radius: 0;
+            }
+            
+            .integrated-suggestions {
+              background: linear-gradient(to bottom, #fafafa, #f8f8f8);
+            }
           }
         }
 
