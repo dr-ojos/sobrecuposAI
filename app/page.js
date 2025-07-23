@@ -18,10 +18,10 @@ export default function Home() {
       // 1. Trigger expansion animation
       setChatExpanding(true);
       
-      // 2. After expansion animation, navigate to chat
+      // 2. Faster navigation - reduced from 800ms to 400ms
       setTimeout(() => {
         router.push(`/chat?initial=${encodeURIComponent(chatInput.trim())}`);
-      }, 800);
+      }, 400);
     }
   };
 
@@ -114,7 +114,7 @@ export default function Home() {
                       setChatExpanding(true);
                       setTimeout(() => {
                         router.push(`/chat?initial=${encodeURIComponent(question)}`);
-                      }, 800);
+                      }, 400);
                     }}>
                       Tengo visión borrosa hace 3 días
                     </div>
@@ -124,7 +124,7 @@ export default function Home() {
                       setChatExpanding(true);
                       setTimeout(() => {
                         router.push(`/chat?initial=${encodeURIComponent(question)}`);
-                      }, 800);
+                      }, 400);
                     }}>
                       Necesito revisar mi graduación de lentes
                     </div>
@@ -134,7 +134,7 @@ export default function Home() {
                       setChatExpanding(true);
                       setTimeout(() => {
                         router.push(`/chat?initial=${encodeURIComponent(question)}`);
-                      }, 800);
+                      }, 400);
                     }}>
                       Me duelen los ojos con la luz
                     </div>
@@ -144,7 +144,7 @@ export default function Home() {
                       setChatExpanding(true);
                       setTimeout(() => {
                         router.push(`/chat?initial=${encodeURIComponent(question)}`);
-                      }, 800);
+                      }, 400);
                     }}>
                       Veo manchas flotantes
                     </div>
@@ -154,7 +154,7 @@ export default function Home() {
                       setChatExpanding(true);
                       setTimeout(() => {
                         router.push(`/chat?initial=${encodeURIComponent(question)}`);
-                      }, 800);
+                      }, 400);
                     }}>
                       Urgente: ojo rojo y dolor intenso
                     </div>
@@ -772,16 +772,37 @@ export default function Home() {
           to { transform: rotate(360deg); }
         }
 
-        /* Animación de expansión */
+        /* Animación de expansión mejorada */
         .chat-container.expanding {
-          animation: expandChat 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          animation: expandChat 0.4s cubic-bezier(0.32, 0, 0.67, 0) forwards;
         }
 
         @keyframes expandChat {
-          to {
-            transform: scale(20) translateY(-50vh);
+          0% {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.1) translateY(-10px);
+            opacity: 0.8;
+          }
+          100% {
+            transform: scale(1.5) translateY(-20vh);
             opacity: 0;
           }
+        }
+
+        .chat-preview-window.fade-out {
+          opacity: 0;
+          transform: scale(1.02);
+          transition: all 0.3s ease-out;
+        }
+
+        .integrated-suggestions.fade-out,
+        .integrated-input-section.expanding {
+          opacity: 0;
+          transform: translateY(10px);
+          transition: all 0.2s ease-out;
         }
 
         .expansion-overlay {
@@ -790,30 +811,42 @@ export default function Home() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(10px);
+          background: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 100;
-          animation: fadeIn 0.3s ease-out;
+          animation: overlayFadeIn 0.3s ease-out;
         }
 
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        @keyframes overlayFadeIn {
+          from { 
+            opacity: 0;
+            background: rgba(255,255,255,0);
+          }
+          to { 
+            opacity: 1;
+            background: #ffffff;
+          }
         }
 
         .expanding-message {
           font-size: 1.1rem;
           color: #007aff;
           font-weight: 600;
-          animation: expandingPulse 1s ease-in-out infinite;
+          opacity: 0;
+          animation: messageAppear 0.3s ease-out 0.1s forwards;
         }
 
-        @keyframes expandingPulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.05); }
+        @keyframes messageAppear {
+          from { 
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to { 
+            opacity: 1;
+            transform: scale(1);
+          }
         }
 
         /* Secciones adicionales */
