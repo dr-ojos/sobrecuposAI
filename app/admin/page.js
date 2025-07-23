@@ -14,6 +14,16 @@ export default function AdminPanelPage() {
   const [msg, setMsg] = useState('');
   const [showDoctorForm, setShowDoctorForm] = useState(false);
   const [showClinicaForm, setShowClinicaForm] = useState(false);
+
+  const [showSobrecupoForm, setShowSobrecupoForm] = useState(false);
+
+  const [sobrecupoForm, setSobrecupoForm] = useState({
+    MedicoNombre: '',
+    Especialidad: '',
+    Fecha: '',
+    Hora: '',
+    Clinica: ''
+  });
   const [editingItem, setEditingItem] = useState(null);
 
   const [doctorForm, setDoctorForm] = useState({
@@ -159,6 +169,39 @@ export default function AdminPanelPage() {
         setMsg('✅ Clínica guardada exitosamente');
       } else {
         setMsg('❌ Error guardando clínica');
+      }
+    } catch (error) {
+      setMsg('❌ Error de conexión');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
+  const handleSobrecupoSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/sobrecupos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sobrecupoForm)
+      });
+
+      if (res.ok) {
+        await fetchSobrecupos();
+        setShowSobrecupoForm(false);
+        setSobrecupoForm({
+          MedicoNombre: '',
+          Especialidad: '',
+          Fecha: '',
+          Hora: '',
+          Clinica: ''
+        });
+        setMsg('✅ Sobrecupo creado exitosamente');
+      } else {
+        setMsg('❌ Error guardando sobrecupo');
       }
     } catch (error) {
       setMsg('❌ Error de conexión');
@@ -342,7 +385,7 @@ export default function AdminPanelPage() {
               <div className="actions-grid">
                 <button 
                   className="quick-action-card"
-                  onClick={() => router.push('/admin')}
+                  onClick={() => setShowSobrecupoForm(true)}
                 >
                   <div className="action-icon">➕</div>
                   <div className="action-title">Crear Sobrecupo</div>
@@ -527,7 +570,7 @@ export default function AdminPanelPage() {
               <h2 className="section-title">Gestión de Sobrecupos</h2>
               <button 
                 className="primary-button"
-                onClick={() => router.push('/admin')}
+                onClick={() => setShowSobrecupoForm(true)}
               >
                 ➕ Crear Sobrecupo
               </button>
@@ -770,6 +813,104 @@ export default function AdminPanelPage() {
                   disabled={loading}
                 >
                   {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Sobrecupo Form Modal */}
+      {showSobrecupoForm && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">Nuevo Sobrecupo</h2>
+              <button
+                className="modal-close"
+                onClick={() => setShowSobrecupoForm(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSobrecupoSubmit} className="modal-form">
+              <div className="form-grid">
+                <div className="form-field">
+                  <label className="field-label">Nombre del Médico</label>
+                  <input
+                    type="text"
+                    value={sobrecupoForm.MedicoNombre}
+                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, MedicoNombre: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Juan Pérez"
+                    required
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Especialidad</label>
+                  <select
+                    value={sobrecupoForm.Especialidad}
+                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, Especialidad: e.target.value})}
+                    className="field-select"
+                    required
+                  >
+                    <option value="">Seleccionar especialidad</option>
+                    {especialidades.map(esp => (
+                      <option key={esp} value={esp}>{esp}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Fecha</label>
+                  <input
+                    type="date"
+                    value={sobrecupoForm.Fecha}
+                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, Fecha: e.target.value})}
+                    className="field-input"
+                    required
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Hora</label>
+                  <input
+                    type="time"
+                    value={sobrecupoForm.Hora}
+                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, Hora: e.target.value})}
+                    className="field-input"
+                    required
+                  />
+                </div>
+
+                <div className="form-field full-width">
+                  <label className="field-label">Clínica</label>
+                  <input
+                    type="text"
+                    value={sobrecupoForm.Clinica}
+                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, Clinica: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Clínica Las Condes"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => setShowSobrecupoForm(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={loading}
+                >
+                  {loading ? 'Guardando...' : 'Guardar'}
                 </button>
               </div>
             </form>
