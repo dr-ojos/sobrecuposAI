@@ -51,6 +51,11 @@ export default function AdminPanelPage() {
   const opcionesAtiende = ['Adultos', 'Niños', 'Ambos'];
   const opcionesSeguros = ['Fonasa', 'Isapres', 'Particular'];
 
+  // Horas disponibles de 09:00 a 19:00 cada 60 min
+  const timeSlots = Array.from({ length: 11 }, (_, i) =>
+    `${(9 + i).toString().padStart(2, '0')}:00`
+  );
+
   useEffect(() => {
     fetchAllData();
   }, []);
@@ -837,14 +842,28 @@ export default function AdminPanelPage() {
               <div className="form-grid">
                 <div className="form-field">
                   <label className="field-label">Nombre del Médico</label>
-                  <input
-                    type="text"
+                  <select
                     value={sobrecupoForm.MedicoNombre}
-                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, MedicoNombre: e.target.value})}
-                    className="field-input"
-                    placeholder="Ej: Juan Pérez"
+                    onChange={(e) => {
+                      const nombre = e.target.value;
+                      const doctor = doctors.find(d => (d.fields || d).Name === nombre);
+                      setSobrecupoForm({
+                        ...sobrecupoForm,
+                        MedicoNombre: nombre,
+                        Especialidad: doctor ? (doctor.fields || doctor).Especialidad : ''
+                      });
+                    }}
+                    className="field-select"
                     required
-                  />
+                  >
+                    <option value="">Seleccionar médico</option>
+                    {doctors.map(doc => {
+                      const nombre = (doc.fields || doc).Name;
+                      return (
+                        <option key={doc.id} value={nombre}>{nombre}</option>
+                      );
+                    })}
+                  </select>
                 </div>
 
                 <div className="form-field">
@@ -875,25 +894,35 @@ export default function AdminPanelPage() {
 
                 <div className="form-field">
                   <label className="field-label">Hora</label>
-                  <input
-                    type="time"
+                  <select
                     value={sobrecupoForm.Hora}
-                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, Hora: e.target.value})}
-                    className="field-input"
+                    onChange={(e) => setSobrecupoForm({ ...sobrecupoForm, Hora: e.target.value })}
+                    className="field-select"
                     required
-                  />
+                  >
+                    <option value="">Seleccionar hora</option>
+                    {timeSlots.map(slot => (
+                      <option key={slot} value={slot}>{slot}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="form-field full-width">
                   <label className="field-label">Clínica</label>
-                  <input
-                    type="text"
+                  <select
                     value={sobrecupoForm.Clinica}
-                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, Clinica: e.target.value})}
-                    className="field-input"
-                    placeholder="Ej: Clínica Las Condes"
+                    onChange={(e) => setSobrecupoForm({ ...sobrecupoForm, Clinica: e.target.value })}
+                    className="field-select"
                     required
-                  />
+                  >
+                    <option value="">Seleccionar clínica</option>
+                    {clinicas.map(cl => {
+                      const nombre = (cl.fields || cl).Nombre;
+                      return (
+                        <option key={cl.id} value={nombre}>{nombre}</option>
+                      );
+                    })}
+                  </select>
                 </div>
               </div>
 
