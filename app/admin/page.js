@@ -17,13 +17,15 @@ export default function AdminPanelPage() {
 
   const [showSobrecupoForm, setShowSobrecupoForm] = useState(false);
 
-  const [sobrecupoForm, setSobrecupoForm] = useState({
-    MedicoNombre: '',
-    Especialidad: '',
-    Fecha: '',
-    Hora: '',
-    Clinica: ''
-  });
+const [sobrecupoForm, setSobrecupoForm] = useState({
+  medico: '',
+  especialidad: '',
+  clinica: '',
+  direccion: '',
+  fecha: '',
+  hora: ''
+});
+
   const [editingItem, setEditingItem] = useState(null);
 
   const [doctorForm, setDoctorForm] = useState({
@@ -184,37 +186,54 @@ export default function AdminPanelPage() {
   };
 
   const handleSobrecupoSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const res = await fetch('/api/sobrecupos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sobrecupoForm)
-      });
-
-      if (res.ok) {
-        await fetchSobrecupos();
-        setShowSobrecupoForm(false);
-        setSobrecupoForm({
-          MedicoNombre: '',
-          Especialidad: '',
-          Fecha: '',
-          Hora: '',
-          Clinica: ''
-        });
-        setMsg('✅ Sobrecupo creado exitosamente');
-      } else {
-        setMsg('❌ Error guardando sobrecupo');
-      }
-    } catch (error) {
-      setMsg('❌ Error de conexión');
-    } finally {
+  try {
+    // Validar que todos los campos estén completos
+    if (!sobrecupoForm.medico || !sobrecupoForm.especialidad || !sobrecupoForm.clinica || 
+        !sobrecupoForm.direccion || !sobrecupoForm.fecha || !sobrecupoForm.hora) {
+      setMsg('❌ Todos los campos son obligatorios');
       setLoading(false);
       setTimeout(() => setMsg(''), 3000);
+      return;
     }
-  };
+
+    console.log('📤 Enviando sobrecupo:', sobrecupoForm);
+
+    const res = await fetch('/api/sobrecupos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sobrecupoForm)
+    });
+
+    const responseData = await res.json();
+    console.log('📥 Respuesta API:', responseData);
+
+    if (res.ok) {
+      await fetchSobrecupos();
+      setShowSobrecupoForm(false);
+      setSobrecupoForm({
+        medico: '',
+        especialidad: '',
+        clinica: '',
+        direccion: '',
+        fecha: '',
+        hora: ''
+      });
+      setMsg('✅ Sobrecupo creado exitosamente');
+    } else {
+      console.error('❌ Error del servidor:', responseData);
+      setMsg(`❌ Error: ${responseData.error || 'Error guardando sobrecupo'}`);
+    }
+  } catch (error) {
+    console.error('❌ Error de conexión:', error);
+    setMsg('❌ Error de conexión');
+  } finally {
+    setLoading(false);
+    setTimeout(() => setMsg(''), 3000);
+  }
+};
 
   const handleDelete = async (type, id) => {
     if (!confirm('¿Estás seguro de eliminar este elemento?')) return;
@@ -827,125 +846,171 @@ export default function AdminPanelPage() {
 
       {/* Sobrecupo Form Modal */}
       {showSobrecupoForm && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <div className="modal-header">
-              <h2 className="modal-title">Nuevo Sobrecupo</h2>
-              <button
-                className="modal-close"
-                onClick={() => setShowSobrecupoForm(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <form onSubmit={handleSobrecupoSubmit} className="modal-form">
-              <div className="form-grid">
-                <div className="form-field">
-                  <label className="field-label">Nombre del Médico</label>
-                  <select
-                    value={sobrecupoForm.MedicoNombre}
-                    onChange={(e) => {
-                      const nombre = e.target.value;
-                      const doctor = doctors.find(d => (d.fields || d).Name === nombre);
-                      setSobrecupoForm({
-                        ...sobrecupoForm,
-                        MedicoNombre: nombre,
-                        Especialidad: doctor ? (doctor.fields || doctor).Especialidad : ''
-                      });
-                    }}
-                    className="field-select"
-                    required
-                  >
-                    <option value="">Seleccionar médico</option>
-                    {doctors.map(doc => {
-                      const nombre = (doc.fields || doc).Name;
-                      return (
-                        <option key={doc.id} value={nombre}>{nombre}</option>
-                      );
-                    })}
-                  </select>
-                </div>
+  <div className="modal-overlay">
+    <div className="modal">
+      <div className="modal-header">
+        <h2 className="modal-title">Nuevo Sobrecupo</h2>
+        <button
+          className="modal-close"
+          onClick={() => {
+            setShowSobrecupoForm(false);
+            setSobrecupoForm({
+              medico: '',
+              especialidad: '',
+              clinica: '',
+              direccion: '',
+              fecha: '',
+              hora: ''
+            });
+          }}
+        >
+          ✕
+        </button>
+      </div>
+      <form onSubmit={handleSobrecupoSubmit} className="modal-form">
+        <div className="form-grid">
+          {/* Selección de Médico */}
+          <div className="form-field">
+            <label className="field-label">👨‍⚕️ Médico</label>
+            <select
+              value={sobrecupoForm.medico}
+              onChange={(e) => {
+                const selectedDoctor = doctors.find(d => d.id === e.target.value);
+                const fields = selectedDoctor?.fields || selectedDoctor;
+                setSobrecupoForm({
+                  ...sobrecupoForm,
+                  medico: e.target.value,
+                  especialidad: fields?.Especialidad || ''
+                });
+              }}
+              className="field-select"
+              required
+            >
+              <option value="">Seleccionar médico</option>
+              {doctors.map(doc => {
+                const fields = doc.fields || doc;
+                return (
+                  <option key={doc.id} value={doc.id}>
+                    {fields.Name} - {fields.Especialidad}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
 
-                <div className="form-field">
-                  <label className="field-label">Especialidad</label>
-                  <select
-                    value={sobrecupoForm.Especialidad}
-                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, Especialidad: e.target.value})}
-                    className="field-select"
-                    required
-                  >
-                    <option value="">Seleccionar especialidad</option>
-                    {especialidades.map(esp => (
-                      <option key={esp} value={esp}>{esp}</option>
-                    ))}
-                  </select>
-                </div>
+          {/* Especialidad (se llena automáticamente) */}
+          <div className="form-field">
+            <label className="field-label">🩺 Especialidad</label>
+            <input
+              type="text"
+              value={sobrecupoForm.especialidad}
+              onChange={(e) => setSobrecupoForm({...sobrecupoForm, especialidad: e.target.value})}
+              className="field-input"
+              placeholder="Se llena automáticamente"
+              required
+            />
+          </div>
 
-                <div className="form-field">
-                  <label className="field-label">Fecha</label>
-                  <input
-                    type="date"
-                    value={sobrecupoForm.Fecha}
-                    onChange={(e) => setSobrecupoForm({...sobrecupoForm, Fecha: e.target.value})}
-                    className="field-input"
-                    required
-                  />
-                </div>
+          {/* Clínica */}
+          <div className="form-field">
+            <label className="field-label">🏥 Clínica</label>
+            <select
+              value={sobrecupoForm.clinica}
+              onChange={(e) => {
+                const selectedClinica = clinicas.find(c => (c.fields || c).Nombre === e.target.value);
+                const fields = selectedClinica?.fields || selectedClinica;
+                setSobrecupoForm({
+                  ...sobrecupoForm,
+                  clinica: e.target.value,
+                  direccion: fields?.Direccion || ''
+                });
+              }}
+              className="field-select"
+              required
+            >
+              <option value="">Seleccionar clínica</option>
+              {clinicas.map(cl => {
+                const nombre = (cl.fields || cl).Nombre;
+                return (
+                  <option key={cl.id} value={nombre}>{nombre}</option>
+                );
+              })}
+            </select>
+          </div>
 
-                <div className="form-field">
-                  <label className="field-label">Hora</label>
-                  <select
-                    value={sobrecupoForm.Hora}
-                    onChange={(e) => setSobrecupoForm({ ...sobrecupoForm, Hora: e.target.value })}
-                    className="field-select"
-                    required
-                  >
-                    <option value="">Seleccionar hora</option>
-                    {timeSlots.map(slot => (
-                      <option key={slot} value={slot}>{slot}</option>
-                    ))}
-                  </select>
-                </div>
+          {/* Dirección (se llena automáticamente) */}
+          <div className="form-field">
+            <label className="field-label">📍 Dirección</label>
+            <input
+              type="text"
+              value={sobrecupoForm.direccion}
+              onChange={(e) => setSobrecupoForm({...sobrecupoForm, direccion: e.target.value})}
+              className="field-input"
+              placeholder="Se llena automáticamente"
+              required
+            />
+          </div>
 
-                <div className="form-field full-width">
-                  <label className="field-label">Clínica</label>
-                  <select
-                    value={sobrecupoForm.Clinica}
-                    onChange={(e) => setSobrecupoForm({ ...sobrecupoForm, Clinica: e.target.value })}
-                    className="field-select"
-                    required
-                  >
-                    <option value="">Seleccionar clínica</option>
-                    {clinicas.map(cl => {
-                      const nombre = (cl.fields || cl).Nombre;
-                      return (
-                        <option key={cl.id} value={nombre}>{nombre}</option>
-                      );
-                    })}
-                  </select>
-                </div>
-              </div>
+          {/* Fecha */}
+          <div className="form-field">
+            <label className="field-label">📅 Fecha</label>
+            <input
+              type="date"
+              value={sobrecupoForm.fecha}
+              onChange={(e) => setSobrecupoForm({...sobrecupoForm, fecha: e.target.value})}
+              className="field-input"
+              min={new Date().toISOString().split('T')[0]}
+              required
+            />
+          </div>
 
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => setShowSobrecupoForm(false)}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="primary-button"
-                  disabled={loading}
-                >
-                  {loading ? 'Guardando...' : 'Guardar'}
-                </button>
-              </div>
-            </form>
+          {/* Hora */}
+          <div className="form-field">
+            <label className="field-label">🕐 Hora</label>
+            <select
+              value={sobrecupoForm.hora}
+              onChange={(e) => setSobrecupoForm({...sobrecupoForm, hora: e.target.value})}
+              className="field-select"
+              required
+            >
+              <option value="">Seleccionar hora</option>
+              {timeSlots.map(slot => (
+                <option key={slot} value={slot}>{slot}</option>
+              ))}
+            </select>
           </div>
         </div>
-      )}
+
+        <div className="modal-actions">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => {
+              setShowSobrecupoForm(false);
+              setSobrecupoForm({
+                medico: '',
+                especialidad: '',
+                clinica: '',
+                direccion: '',
+                fecha: '',
+                hora: ''
+              });
+            }}
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="primary-button"
+            disabled={loading}
+          >
+            {loading ? 'Guardando...' : 'Crear Sobrecupo'}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
 
       <style jsx>{`
         .admin-container {
