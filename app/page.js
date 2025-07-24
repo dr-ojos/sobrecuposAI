@@ -266,49 +266,46 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="footer">
-        <div className="footer-container">
-          <div className="footer-content">
-            <div className="footer-column">
-              <div className="footer-logo">
-                <span className="logo-main">Sobrecupos</span>
-                <span className="logo-ai">AI</span>
-              </div>
-              <p>Conectando pacientes con sobrecupos médicos disponibles</p>
-            </div>
-            <div className="footer-column">
-              <h4>Pacientes</h4>
-              <ul>
-                <li><a href="/chat">Buscar sobrecupos</a></li>
-                <li><a href="/registro">Registrarse</a></li>
-                <li><a href="#como-funciona">Cómo funciona</a></li>
-              </ul>
-            </div>
-            <div className="footer-column">
-              <h4>Médicos</h4>
-              <ul>
-                <li><a href="/auth/signin">Iniciar sesión</a></li>
-                <li><a href="/medico/registro">Registrarse</a></li>
-                <li><a href="/admin">Admin</a></li>
-              </ul>
-            </div>
-            <div className="footer-column">
-              <h4>Contacto</h4>
-              <ul>
-                <li><a href="mailto:hola@sobrecupos.com">hola@sobrecupos.com</a></li>
-                <li><a href="tel:+56912345678">+56 9 1234 5678</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <p>&copy; 2024 Sobrecupos AI. Todos los derechos reservados.</p>
-            <div className="footer-social">
-              <a href="mailto:hola@sobrecupos.ai" className="social-link">📧</a>
-              <a href="#" className="social-link">📱</a>
-            </div>
-          </div>
+<footer className="footer">
+  <div className="footer-container">
+    <div className="footer-content">
+      <div className="footer-column">
+        <div className="footer-logo">
+          <span className="logo-main">Sobrecupos</span>
+          <span className="logo-ai">AI</span>
         </div>
-      </footer>
+        <p>Conectando pacientes con médicos</p>
+      </div>
+      <div className="footer-column">
+        <h4>Pacientes</h4>
+        <ul>
+          <li><a href="/chat">Buscar sobrecupos</a></li>
+          <li><a href="/registro">Registrarse para WhatsApp</a></li>
+          <li><a href="#como-funciona">Cómo funciona</a></li>
+        </ul>
+      </div>
+      <div className="footer-column">
+        <h4>Médicos</h4>
+        <ul>
+          <li><a href="/auth/signin">Iniciar sesión</a></li>
+        </ul>
+      </div>
+      <div className="footer-column">
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="mailto:contacto@sobrecupos.com">contacto@sobrecupos.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div className="footer-bottom">
+      <p>&copy; 2025 Sobrecupos AI. Todos los derechos reservados.</p>
+      <div className="footer-social">
+        <a href="mailto:contacto@sobrecupos.com" className="social-link">📧</a>
+        <a href="#" className="social-link">📱</a>
+      </div>
+    </div>
+  </div>
+</footer>  
 
       <style jsx>{`
         .homepage {
