@@ -133,22 +133,22 @@ export default function Home() {
                   <div className="suggestions-label">Prueba preguntando:</div>
                   <div className="suggestions-scroll">
                     <div className="suggestion-card" onClick={() => selectSuggestion('Tengo visión borrosa hace 3 días')}>
-                      <div className="card-text">Visión borrosa hace 3 días</div>
+                      <div className="card-text">Tengo visión borrosa hace 3 días</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Necesito revisar mi graduación de lentes')}>
-                      <div className="card-text">Revisar graduación de lentes</div>
+                      <div className="card-text">Necesito receta de lentes</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Me duelen los ojos con la luz')}>
-                      <div className="card-text">Dolor de ojos con luz</div>
+                      <div className="card-text">Me pican mucho los ojos</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Veo manchas flotantes en el ojo')}>
-                      <div className="card-text">Manchas flotantes</div>
+                      <div className="card-text">Veo puntos flotando</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Ojo rojo e irritado desde ayer')}>
-                      <div className="card-text">Ojo rojo e irritado</div>
+                      <div className="card-text">Tengo los ojos rojos e irritados</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Pérdida súbita de visión parcial')}>
-                      <div className="card-text">Pérdida de visión</div>
+                      <div className="card-text">Tengo conjuntivitis</div>
                     </div>
                   </div>
                 </div>
