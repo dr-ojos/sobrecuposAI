@@ -89,17 +89,14 @@ export default function Home() {
             <div className="chat-wrapper">
               <div className="chat-section">
                 {/* Título fuera del input */}
-                <h2 className="chat-title">¿En qué te puedo ayudar a buscar un sobrecupo?</h2>
-                <p className="chat-subtitle">
-                  Dime tus síntomas o el médico o especialidad que necesitas
-                </p>
+                <h2 className="chat-title">¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.</h2>
 
                 {/* INPUT HERO - Solo el área gris */}
                 <div className={`input-hero ${chatExpanding ? 'expanding' : ''}`}>
                   <div className="input-wrapper">
                     <textarea 
                       className="chat-input" 
-                      placeholder="Busco un dermatólogo para revisar un lunar que me ha salido en el brazo..."
+                      placeholder="Ejemplo: Tengo visión borrosa y dolor de cabeza desde ayer..."
                       value={chatInput}
                       onChange={(e) => {
                         setChatInput(e.target.value);
@@ -136,22 +133,22 @@ export default function Home() {
                   <div className="suggestions-label">Prueba preguntando:</div>
                   <div className="suggestions-scroll">
                     <div className="suggestion-card" onClick={() => selectSuggestion('Tengo visión borrosa hace 3 días')}>
-                      <div className="card-text">Tengo visión borrosa hace 3 días</div>
+                      <div className="card-text">Visión borrosa hace 3 días</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Necesito revisar mi graduación de lentes')}>
-                      <div className="card-text">Necesito revisar mi graduación de lentes</div>
+                      <div className="card-text">Revisar graduación de lentes</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Me duelen los ojos con la luz')}>
-                      <div className="card-text">Me duelen los ojos con la luz</div>
+                      <div className="card-text">Dolor de ojos con luz</div>
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Veo manchas flotantes')}>
-                      <div className="card-text">Veo manchas flotantes</div>
+                    <div className="suggestion-card" onClick={() => selectSuggestion('Veo manchas flotantes en el ojo')}>
+                      <div className="card-text">Manchas flotantes</div>
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Urgente: ojo rojo y dolor intenso')}>
-                      <div className="card-text">Urgente: ojo rojo y dolor intenso</div>
+                    <div className="suggestion-card" onClick={() => selectSuggestion('Ojo rojo e irritado desde ayer')}>
+                      <div className="card-text">Ojo rojo e irritado</div>
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Busco cardiólogo para chequeo')}>
-                      <div className="card-text">Busco cardiólogo para chequeo</div>
+                    <div className="suggestion-card" onClick={() => selectSuggestion('Pérdida súbita de visión parcial')}>
+                      <div className="card-text">Pérdida de visión</div>
                     </div>
                   </div>
                 </div>
@@ -457,20 +454,13 @@ export default function Home() {
 
         /* Títulos fuera del input */
         .chat-title {
-          font-size: 1.8rem;
-          font-weight: 600;
-          color: #1d1d1f;
-          text-align: center;
-          margin-bottom: 0.5rem;
-          line-height: 1.3;
-        }
-
-        .chat-subtitle {
-          font-size: 1rem;
-          color: #6e6e73;
+          font-size: 1.1rem;
+          font-weight: 500;
+          color: #4a5568;
           text-align: center;
           margin-bottom: 2rem;
           line-height: 1.5;
+          max-width: 500px;
         }
 
         /* INPUT HERO - Solo el área gris */
@@ -517,7 +507,8 @@ export default function Home() {
         }
 
         .chat-input::placeholder {
-          color: #9ca3af;
+          color: #a0aec0;
+          font-size: 1rem;
         }
 
         .chat-input:disabled {
@@ -956,11 +947,8 @@ export default function Home() {
           
           /* Chat responsive */
           .chat-title {
-            font-size: 1.5rem;
-          }
-
-          .chat-subtitle {
-            font-size: 0.9rem;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
           }
 
           .input-wrapper {
@@ -1007,11 +995,8 @@ export default function Home() {
           }
 
           .chat-title {
-            font-size: 1.3rem;
-          }
-
-          .chat-subtitle {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
           }
 
           .input-wrapper {
@@ -1063,11 +1048,8 @@ export default function Home() {
           }
           
           .chat-title {
-            font-size: 1.2rem;
-          }
-          
-          .chat-subtitle {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            margin-bottom: 1.2rem;
           }
           
           .input-wrapper {
