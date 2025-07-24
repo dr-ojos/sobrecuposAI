@@ -133,22 +133,22 @@ export default function Home() {
                   <div className="suggestions-label">Prueba preguntando:</div>
                   <div className="suggestions-scroll">
                     <div className="suggestion-card" onClick={() => selectSuggestion('Tengo visión borrosa hace 3 días')}>
-                      <div className="card-text">Tengo visión borrosa hace 3 días</div>
+                      <div className="card-text">Visión borrosa hace 3 días</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Necesito revisar mi graduación de lentes')}>
-                      <div className="card-text">Necesito receta de lentes</div>
+                      <div className="card-text">Revisar graduación de lentes</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Me duelen los ojos con la luz')}>
-                      <div className="card-text">Me pican mucho los ojos</div>
+                      <div className="card-text">Dolor de ojos con luz</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Veo manchas flotantes en el ojo')}>
-                      <div className="card-text">Veo puntos flotando</div>
+                      <div className="card-text">Manchas flotantes</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Ojo rojo e irritado desde ayer')}>
-                      <div className="card-text">Tengo los ojos rojos e irritados</div>
+                      <div className="card-text">Ojo rojo e irritado</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Pérdida súbita de visión parcial')}>
-                      <div className="card-text">Tengo conjuntivitis</div>
+                      <div className="card-text">Pérdida de visión</div>
                     </div>
                   </div>
                 </div>
@@ -484,6 +484,7 @@ export default function Home() {
           min-height: 120px;
           transition: all 0.2s ease;
           box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          position: relative;
         }
 
         .input-wrapper:focus-within {
@@ -504,6 +505,7 @@ export default function Home() {
           min-height: 80px;
           line-height: 1.5;
           padding: 0;
+          padding-right: 3rem;
           vertical-align: top;
         }
 
@@ -516,7 +518,7 @@ export default function Home() {
           opacity: 0.6;
         }
 
-        /* Botón redondo con flecha */
+        /* Botón redondo con flecha - ABAJO A LA DERECHA */
         .send-button {
           width: 32px;
           height: 32px;
@@ -530,8 +532,9 @@ export default function Home() {
           justify-content: center;
           transition: all 0.2s ease;
           flex-shrink: 0;
-          align-self: flex-start;
-          margin-top: 0.5rem;
+          position: absolute;
+          bottom: 1rem;
+          right: 1rem;
           opacity: 0.6;
         }
 
@@ -961,10 +964,16 @@ export default function Home() {
             min-height: 100px;
             padding: 0.8rem;
             align-items: flex-start;
+            position: relative;
+          }
+
+          .chat-input {
+            padding-right: 2.5rem;
           }
 
           .send-button {
-            margin-top: 0.3rem;
+            bottom: 0.8rem;
+            right: 0.8rem;
           }
 
           .suggestion-card {
@@ -1010,15 +1019,18 @@ export default function Home() {
             min-height: 100px;
             padding: 0.8rem;
             align-items: flex-start;
-          }
-
-          .send-button {
-            margin-top: 0.3rem;
+            position: relative;
           }
 
           .chat-input {
             font-size: 1rem;
             min-height: 60px;
+            padding-right: 2.5rem;
+          }
+
+          .send-button {
+            bottom: 0.8rem;
+            right: 0.8rem;
           }
 
           .suggestion-card {
@@ -1065,15 +1077,18 @@ export default function Home() {
             min-height: 90px;
             padding: 0.7rem;
             align-items: flex-start;
+            position: relative;
           }
 
-          .send-button {
-            margin-top: 0.2rem;
-          }
-          
           .chat-input {
             font-size: 0.95rem;
             min-height: 50px;
+            padding-right: 2.2rem;
+          }
+
+          .send-button {
+            bottom: 0.7rem;
+            right: 0.7rem;
           }
           
           .suggestion-card {
