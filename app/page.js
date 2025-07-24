@@ -476,7 +476,7 @@ export default function Home() {
 
         .input-wrapper {
           display: flex;
-          align-items: flex-end;
+          align-items: flex-start;
           background: #f8f9fa;
           border: 1px solid #f8f9fa;
           border-radius: 12px;
@@ -504,6 +504,7 @@ export default function Home() {
           min-height: 80px;
           line-height: 1.5;
           padding: 0;
+          vertical-align: top;
         }
 
         .chat-input::placeholder {
@@ -529,7 +530,8 @@ export default function Home() {
           justify-content: center;
           transition: all 0.2s ease;
           flex-shrink: 0;
-          align-self: flex-end;
+          align-self: flex-start;
+          margin-top: 0.5rem;
           opacity: 0.6;
         }
 
@@ -607,10 +609,14 @@ export default function Home() {
           cursor: pointer;
           transition: all 0.2s ease;
           flex-shrink: 0;
-          min-width: 140px;
-          max-width: 160px;
+          min-width: 120px;
+          max-width: 130px;
+          min-height: 80px;
           text-align: center;
           box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .suggestion-card:hover {
@@ -954,16 +960,17 @@ export default function Home() {
           .input-wrapper {
             min-height: 100px;
             padding: 0.8rem;
+            align-items: flex-start;
           }
 
-          .chat-input {
-            font-size: 1rem;
-            min-height: 60px;
+          .send-button {
+            margin-top: 0.3rem;
           }
 
           .suggestion-card {
-            min-width: 120px;
-            max-width: 140px;
+            min-width: 110px;
+            max-width: 120px;
+            min-height: 70px;
             padding: 0.6rem;
           }
 
@@ -1002,6 +1009,11 @@ export default function Home() {
           .input-wrapper {
             min-height: 100px;
             padding: 0.8rem;
+            align-items: flex-start;
+          }
+
+          .send-button {
+            margin-top: 0.3rem;
           }
 
           .chat-input {
@@ -1009,13 +1021,10 @@ export default function Home() {
             min-height: 60px;
           }
 
-          .suggestions-label {
-            font-size: 0.8rem;
-          }
-
           .suggestion-card {
-            min-width: 110px;
-            max-width: 130px;
+            min-width: 100px;
+            max-width: 110px;
+            min-height: 65px;
             padding: 0.5rem;
           }
 
@@ -1055,6 +1064,11 @@ export default function Home() {
           .input-wrapper {
             min-height: 90px;
             padding: 0.7rem;
+            align-items: flex-start;
+          }
+
+          .send-button {
+            margin-top: 0.2rem;
           }
           
           .chat-input {
@@ -1063,8 +1077,9 @@ export default function Home() {
           }
           
           .suggestion-card {
-            min-width: 100px;
-            max-width: 120px;
+            min-width: 90px;
+            max-width: 100px;
+            min-height: 60px;
             padding: 0.4rem;
           }
           
