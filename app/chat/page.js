@@ -386,7 +386,7 @@ function ChatComponent() {
         )}
 
         <form className="chat-form" onSubmit={sendMessage}>
-          <div className="input-wrapper">
+          <div className="input-container">
             <textarea
               ref={inputRef}
               rows={1}
@@ -403,7 +403,8 @@ function ChatComponent() {
               disabled={loading}
               autoFocus
               style={{
-                height: Math.min(Math.max(52, (input.split('\n').length) * 24 + 28), 120) + 'px'
+                height: Math.min(Math.max(52, (input.split('\n').length) * 24 + 28), 120) + 'px',
+                paddingRight: '50px'
               }}
             />
             <button
@@ -414,7 +415,7 @@ function ChatComponent() {
               {loading ? (
                 <div className="loading-spinner"></div>
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path 
                     d="M12 19V5M5 12l7-7 7 7" 
                     stroke="currentColor" 
@@ -881,10 +882,9 @@ function ChatComponent() {
           }
 
           .send-button {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             right: 8px;
-            bottom: 8px;
           }
 
           .suggestion-chip {
@@ -917,10 +917,9 @@ function ChatComponent() {
           }
 
           .send-button {
-            width: 28px;
-            height: 28px;
-            right: 6px;
-            bottom: 8px;
+            width: 26px;
+            height: 26px;
+            right: 7px;
           }
 
           .chat-input-container {
