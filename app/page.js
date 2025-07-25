@@ -463,7 +463,7 @@ export default function Home() {
           max-width: 500px;
         }
 
-        /* INPUT HERO - Solo el área gris */
+        /* INPUT HERO - Solo el área gris con glassmorphism */
         .input-hero {
           width: 100%;
           margin-bottom: 1.5rem;
@@ -477,20 +477,29 @@ export default function Home() {
         .input-wrapper {
           display: flex;
           align-items: flex-start;
-          background: #f8f9fa;
-          border: 1px solid #f8f9fa;
-          border-radius: 12px;
+          background: rgba(248, 249, 250, 0.8);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 20px;
           padding: 1rem;
           min-height: 120px;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          box-shadow: 
+            0 4px 24px rgba(0, 0, 0, 0.06),
+            0 1px 4px rgba(0, 0, 0, 0.02),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
           position: relative;
         }
 
         .input-wrapper:focus-within {
-          border-color: #f8f9fa;
-          background: #f8f9fa;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+          border-color: rgba(0, 122, 255, 0.3);
+          background: rgba(255, 255, 255, 0.9);
+          box-shadow: 
+            0 8px 32px rgba(0, 122, 255, 0.12),
+            0 2px 8px rgba(0, 122, 255, 0.06),
+            0 0 0 4px rgba(0, 122, 255, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
         }
 
         .chat-input {
@@ -518,11 +527,11 @@ export default function Home() {
           opacity: 0.6;
         }
 
-        /* Botón redondo con flecha - ABAJO A LA DERECHA */
+        /* Botón redondo con flecha - ABAJO A LA DERECHA con glassmorphism */
         .send-button {
-          width: 32px;
-          height: 32px;
-          background: #6b7280;
+          width: 36px;
+          height: 36px;
+          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
           border: none;
           border-radius: 50%;
           color: white;
@@ -530,22 +539,35 @@ export default function Home() {
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s ease;
+          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           flex-shrink: 0;
           position: absolute;
           bottom: 1rem;
           right: 1rem;
           opacity: 0.6;
+          transform: scale(0.9);
+          box-shadow: 
+            0 4px 16px rgba(0, 122, 255, 0.3),
+            0 1px 4px rgba(0, 122, 255, 0.2);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
         }
 
         .send-button.active {
-          background: #007aff;
+          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
           color: white;
           opacity: 1;
+          transform: scale(1);
+          box-shadow: 
+            0 6px 24px rgba(0, 122, 255, 0.4),
+            0 2px 8px rgba(0, 122, 255, 0.3);
         }
 
         .send-button:hover.active {
-          background: #0056cc;
+          transform: scale(1.05);
+          box-shadow: 
+            0 8px 32px rgba(0, 122, 255, 0.5),
+            0 4px 12px rgba(0, 122, 255, 0.4);
         }
 
         .send-button:disabled {
@@ -605,28 +627,35 @@ export default function Home() {
         }
 
         .suggestion-card {
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 16px;
           padding: 0.75rem;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           flex-shrink: 0;
           min-width: 120px;
           max-width: 130px;
           min-height: 80px;
           text-align: center;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          box-shadow: 
+            0 4px 16px rgba(0, 0, 0, 0.04),
+            0 1px 4px rgba(0, 0, 0, 0.02);
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
         .suggestion-card:hover {
-          background: #f9fafb;
-          border-color: #d1d5db;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          background: rgba(255, 255, 255, 0.95);
+          border-color: rgba(0, 122, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 
+            0 8px 24px rgba(0, 122, 255, 0.08),
+            0 2px 8px rgba(0, 122, 255, 0.04),
+            0 1px 0 rgba(255, 255, 255, 0.4) inset;
         }
 
         .suggestion-card:active {
@@ -965,6 +994,7 @@ export default function Home() {
             padding: 0.8rem;
             align-items: flex-start;
             position: relative;
+            border-radius: 18px;
           }
 
           .chat-input {
@@ -974,6 +1004,8 @@ export default function Home() {
           .send-button {
             bottom: 0.8rem;
             right: 0.8rem;
+            width: 32px;
+            height: 32px;
           }
 
           .suggestion-card {
@@ -981,6 +1013,7 @@ export default function Home() {
             max-width: 120px;
             min-height: 70px;
             padding: 0.6rem;
+            border-radius: 14px;
           }
 
           .card-text {
@@ -1020,6 +1053,7 @@ export default function Home() {
             padding: 0.8rem;
             align-items: flex-start;
             position: relative;
+            border-radius: 16px;
           }
 
           .chat-input {
@@ -1031,6 +1065,8 @@ export default function Home() {
           .send-button {
             bottom: 0.8rem;
             right: 0.8rem;
+            width: 32px;
+            height: 32px;
           }
 
           .suggestion-card {
@@ -1038,6 +1074,7 @@ export default function Home() {
             max-width: 110px;
             min-height: 65px;
             padding: 0.5rem;
+            border-radius: 12px;
           }
 
           .card-text {
@@ -1078,6 +1115,7 @@ export default function Home() {
             padding: 0.7rem;
             align-items: flex-start;
             position: relative;
+            border-radius: 14px;
           }
 
           .chat-input {
@@ -1089,6 +1127,8 @@ export default function Home() {
           .send-button {
             bottom: 0.7rem;
             right: 0.7rem;
+            width: 28px;
+            height: 28px;
           }
           
           .suggestion-card {
@@ -1096,6 +1136,7 @@ export default function Home() {
             max-width: 100px;
             min-height: 60px;
             padding: 0.4rem;
+            border-radius: 10px;
           }
           
           .card-text {
