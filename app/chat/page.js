@@ -7,7 +7,7 @@ function ChatComponent() {
   const [messages, setMessages] = useState([
     {
       from: "bot",
-      text: "🤖\n¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.",
+      text: "¡Hola! 👋 Soy tu asistente de Sobrecupos y estoy aquí para ayudarte a encontrar la atención médica que necesitas.\n\n¿Cómo te sientes hoy? Cuéntame qué tipo de consulta médica estás buscando o si tienes algún síntoma que te preocupe. Estoy aquí para escucharte y ayudarte. 🩺💙",
       timestamp: new Date()
     }
   ]);
@@ -107,7 +107,7 @@ function ChatComponent() {
       setIsTyping(false);
       setMessages((msgs) => [...msgs, { 
         from: "bot", 
-        text: "❌ Error de conexión. Intenta de nuevo.",
+        text: "Me disculpo, parece que hay un problema de conexión. No te preocupes, puedes intentar nuevamente y estaré aquí para ayudarte. 💙",
         timestamp: new Date()
       }]);
     }
@@ -253,7 +253,7 @@ function ChatComponent() {
       setMessages((msgs) =>
         [...msgs, { 
           from: "bot", 
-          text: "❌ Error de conexión. Intenta de nuevo.",
+          text: "Lo siento, parece que tengo dificultades para conectarme en este momento. Por favor, inténtalo de nuevo. Estoy aquí para ayudarte. 🤗",
           timestamp: new Date()
         }]
       );
@@ -269,11 +269,11 @@ function ChatComponent() {
   };
 
   const quickSuggestions = [
-    "Necesito oftalmólogo urgente",
-    "Consulta con cardiólogo", 
-    "Dolor de cabeza frecuente",
-    "Chequeo médico general",
-    "Necesito dermatólogo"
+    "Necesito un oftalmólogo urgente 👁️",
+    "Busco consulta con cardiólogo ❤️", 
+    "Tengo dolor de cabeza frecuente 🤕",
+    "Quiero un chequeo médico general 🩺",
+    "Necesito ver un dermatólogo 🧴"
   ];
 
   const handleSuggestionClick = (suggestion) => {
@@ -355,7 +355,7 @@ function ChatComponent() {
       <footer className={`chat-input-container ${keyboardOpen ? 'keyboard-open' : ''}`}>
         {messages.length === 1 && !hasProcessedInitial && (
           <div className="simple-suggestions">
-            <p className="suggestions-label">Prueba preguntando</p>
+            <p className="suggestions-label">💬 Cuéntame, ¿en qué puedo ayudarte?</p>
             <div className="suggestions-carousel">
               {quickSuggestions.map((suggestion, i) => (
                 <button
@@ -383,7 +383,7 @@ function ChatComponent() {
                   sendMessage(e);
                 }
               }}
-              placeholder="Escribe tu mensaje..."
+              placeholder="Cuéntame qué necesitas..."
               className="chat-input"
               disabled={loading}
               autoFocus
@@ -723,34 +723,37 @@ function ChatComponent() {
           position: relative;
           display: flex;
           align-items: flex-end;
-          background: white;
-          border: 2px solid rgba(0, 0, 0, 0.08);
+          background: transparent;
+          border: none;
           border-radius: 24px;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
           transition: all 0.3s ease;
-          padding: 4px;
-        }
-
-        .input-wrapper:focus-within {
-          border-color: #007aff;
-          box-shadow: 0 6px 20px rgba(0, 122, 255, 0.15);
+          gap: 8px;
         }
 
         .chat-input {
           flex: 1;
-          border: none;
-          background: transparent;
+          border: 2px solid rgba(255, 255, 255, 0.8);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
           padding: 1rem 1.25rem;
           font-size: 1rem;
           color: #1d1d1f;
           outline: none;
-          border-radius: 20px;
+          border-radius: 24px;
           font-family: inherit;
           resize: none;
           overflow-y: auto;
           line-height: 1.4;
           min-height: 52px;
           max-height: 120px;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+          transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+          border-color: #007aff;
+          box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
+          background: rgba(255, 255, 255, 1);
         }
 
         .chat-input::placeholder {
@@ -767,7 +770,6 @@ function ChatComponent() {
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          margin: 4px;
           cursor: pointer;
           transition: all 0.3s ease;
           display: flex;
@@ -776,6 +778,7 @@ function ChatComponent() {
           color: white;
           opacity: 0.5;
           flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
         }
 
         .send-button.active {
