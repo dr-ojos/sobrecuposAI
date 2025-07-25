@@ -284,22 +284,10 @@ export default function Home() {
           right: 0;
           bottom: 0;
           background: linear-gradient(135deg, 
-            #667eea 0%, 
-            #764ba2 25%, 
-            #f093fb 50%, 
-            #f5576c 75%, 
-            #4facfe 100%);
-          background-size: 400% 400%;
-          animation: gradientShift 20s ease infinite;
+            #e8f5e8 0%, 
+            #f0f8ff 50%, 
+            #e6f3ff 100%);
           z-index: -2;
-        }
-
-        @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          25% { background-position: 100% 50%; }
-          50% { background-position: 100% 100%; }
-          75% { background-position: 0% 100%; }
-          100% { background-position: 0% 50%; }
         }
 
         .floating-elements {
@@ -481,7 +469,7 @@ export default function Home() {
         .input-wrapper {
           display: flex;
           align-items: flex-start;
-          background: rgba(255, 255, 255, 0.9);
+          background: rgba(255, 255, 255, 0.85);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border: 1px solid rgba(255, 255, 255, 0.3);
@@ -490,19 +478,19 @@ export default function Home() {
           min-height: 120px;
           transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           box-shadow: 
-            0 8px 32px rgba(0, 0, 0, 0.1),
-            0 4px 16px rgba(0, 0, 0, 0.06),
+            0 6px 24px rgba(0, 0, 0, 0.06),
+            0 2px 8px rgba(0, 0, 0, 0.04),
             inset 0 1px 0 rgba(255, 255, 255, 0.4);
           position: relative;
         }
 
         .input-wrapper:focus-within {
-          border-color: rgba(0, 122, 255, 0.4);
+          border-color: rgba(0, 122, 255, 0.3);
           background: rgba(255, 255, 255, 0.95);
           box-shadow: 
-            0 12px 40px rgba(0, 122, 255, 0.15),
-            0 4px 16px rgba(0, 122, 255, 0.1),
-            0 0 0 4px rgba(0, 122, 255, 0.15),
+            0 8px 32px rgba(0, 122, 255, 0.12),
+            0 2px 8px rgba(0, 122, 255, 0.06),
+            0 0 0 4px rgba(0, 122, 255, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.5);
         }
 
@@ -631,10 +619,10 @@ export default function Home() {
         }
 
         .suggestion-card {
-          background: rgba(255, 255, 255, 0.9);
+          background: rgba(255, 255, 255, 0.8);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.3);
           border-radius: 16px;
           padding: 0.75rem;
           cursor: pointer;
@@ -645,20 +633,20 @@ export default function Home() {
           min-height: 80px;
           text-align: center;
           box-shadow: 
-            0 6px 20px rgba(0, 0, 0, 0.08),
-            0 2px 8px rgba(0, 0, 0, 0.04);
+            0 4px 16px rgba(0, 0, 0, 0.06),
+            0 1px 4px rgba(0, 0, 0, 0.04);
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
         .suggestion-card:hover {
-          background: rgba(255, 255, 255, 0.98);
-          border-color: rgba(0, 122, 255, 0.3);
-          transform: translateY(-3px);
+          background: rgba(255, 255, 255, 0.95);
+          border-color: rgba(0, 122, 255, 0.25);
+          transform: translateY(-2px);
           box-shadow: 
-            0 12px 32px rgba(0, 122, 255, 0.12),
-            0 4px 16px rgba(0, 122, 255, 0.08),
+            0 8px 24px rgba(0, 122, 255, 0.1),
+            0 2px 8px rgba(0, 122, 255, 0.06),
             0 1px 0 rgba(255, 255, 255, 0.5) inset;
         }
 
