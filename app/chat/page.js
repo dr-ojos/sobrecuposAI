@@ -7,7 +7,7 @@ function ChatComponent() {
   const [messages, setMessages] = useState([
     {
       from: "bot",
-      text: "¡Hola! 👋 Soy tu asistente de Sobrecupos y estoy aquí para ayudarte a encontrar la atención médica que necesitas.\n\n¿Cómo te sientes hoy? Cuéntame qué tipo de consulta médica estás buscando o si tienes algún síntoma que te preocupe. Estoy aquí para escucharte y ayudarte. 🩺💙",
+      text: "¡Hola! 👋 Soy tu asistente de Sobrecupos y estoy aquí para ayudarte a encontrar la atención médica que necesitas.",
       timestamp: new Date()
     }
   ]);
@@ -117,6 +117,21 @@ function ChatComponent() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Enviar segundo mensaje de bienvenida después de un delay
+  useEffect(() => {
+    if (messages.length === 1) {
+      const timer = setTimeout(() => {
+        setMessages(msgs => [...msgs, {
+          from: "bot",
+          text: "¿Cómo te sientes hoy? Cuéntame qué tipo de consulta médica estás buscando o si tienes algún síntoma que te preocupe. Estoy aquí para escucharte y ayudarte. 🩺💙",
+          timestamp: new Date()
+        }]);
+      }, 1500); // Delay de 1.5 segundos
+
+      return () => clearTimeout(timer);
+    }
+  }, [messages.length]);
 
   // Detectar cuando se abre/cierra el teclado en móviles
   useEffect(() => {
@@ -860,14 +875,16 @@ function ChatComponent() {
           }
 
           .chat-input {
-            padding: 0.875rem 1rem;
+            padding: 0.875rem 55px 0.875rem 1rem;
             font-size: 0.95rem;
             min-height: 48px;
           }
 
           .send-button {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
+            right: 6px;
+            bottom: 6px;
           }
 
           .suggestion-chip {
@@ -894,14 +911,16 @@ function ChatComponent() {
           }
 
           .chat-input {
-            padding: 0.8rem 0.9rem;
+            padding: 0.8rem 50px 0.8rem 0.9rem;
             font-size: 0.9rem;
             min-height: 44px;
           }
 
           .send-button {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
+            right: 6px;
+            bottom: 6px;
           }
 
           .chat-input-container {
