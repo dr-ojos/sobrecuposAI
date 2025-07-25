@@ -16,6 +16,7 @@ function ChatComponent() {
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [hasProcessedInitial, setHasProcessedInitial] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const endRef = useRef(null);
   const inputRef = useRef(null);
   const searchParams = useSearchParams();
@@ -117,7 +118,22 @@ function ChatComponent() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Detectar cuando se abre/cierra el teclado en móviles
   useEffect(() => {
+    let initialHeight = window.innerHeight;
+    
+    const handleViewportChange = () => {
+      if (typeof window !== 'undefined') {
+        const currentHeight = window.innerHeight;
+        const heightDifference = initialHeight - currentHeight;
+        setKeyboardOpen(heightDifference > 150);
+      }
+    };
+
+    const handleLoad = () => {
+      initialHeight = window.innerHeight;
+    };
+
     const handleFocus = () => {
       setTimeout(() => {
         if (endRef.current) {
@@ -156,6 +172,9 @@ function ChatComponent() {
     
     window.addEventListener("focusin", handleFocus);
     window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("orientationchange", handleLoad);
+    window.addEventListener("load", handleLoad);
     window.addEventListener("touchstart", preventZoom, { passive: false });
     
     preventViewportChange();
@@ -163,6 +182,9 @@ function ChatComponent() {
     return () => {
       window.removeEventListener("focusin", handleFocus);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("orientationchange", handleLoad);
+      window.removeEventListener("load", handleLoad);
       window.removeEventListener("touchstart", preventZoom);
     };
   }, []);
@@ -330,7 +352,7 @@ function ChatComponent() {
         </div>
       </main>
 
-      <footer className="chat-input-container">
+      <footer className={`chat-input-container ${keyboardOpen ? 'keyboard-open' : ''}`}>
         {messages.length === 1 && !hasProcessedInitial && (
           <div className="simple-suggestions">
             <p className="suggestions-label">Prueba preguntando</p>
@@ -350,15 +372,24 @@ function ChatComponent() {
 
         <form className="chat-form" onSubmit={sendMessage}>
           <div className="input-wrapper">
-            <input
+            <textarea
               ref={inputRef}
-              type="text"
+              rows={1}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage(e);
+                }
+              }}
               placeholder="Escribe tu mensaje..."
               className="chat-input"
               disabled={loading}
               autoFocus
+              style={{
+                height: Math.min(Math.max(52, (input.split('\n').length) * 24 + 28), 120) + 'px'
+              }}
             />
             <button
               type="submit"
@@ -370,9 +401,9 @@ function ChatComponent() {
               ) : (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path 
-                    d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" 
+                    d="M12 19V5M5 12l7-7 7 7" 
                     stroke="currentColor" 
-                    strokeWidth="2" 
+                    strokeWidth="2.5" 
                     strokeLinecap="round" 
                     strokeLinejoin="round"
                   />
@@ -675,6 +706,12 @@ function ChatComponent() {
           right: 0;
           z-index: 1000;
           box-sizing: border-box;
+          transition: transform 0.3s ease;
+        }
+
+        .chat-input-container.keyboard-open {
+          transform: translateY(0);
+          bottom: env(keyboard-inset-height, 0);
         }
 
         .chat-form {
@@ -685,12 +722,13 @@ function ChatComponent() {
         .input-wrapper {
           position: relative;
           display: flex;
-          align-items: center;
+          align-items: flex-end;
           background: white;
           border: 2px solid rgba(0, 0, 0, 0.08);
           border-radius: 24px;
           box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
           transition: all 0.3s ease;
+          padding: 4px;
         }
 
         .input-wrapper:focus-within {
@@ -706,8 +744,13 @@ function ChatComponent() {
           font-size: 1rem;
           color: #1d1d1f;
           outline: none;
-          border-radius: 24px;
+          border-radius: 20px;
           font-family: inherit;
+          resize: none;
+          overflow-y: auto;
+          line-height: 1.4;
+          min-height: 52px;
+          max-height: 120px;
         }
 
         .chat-input::placeholder {
@@ -721,10 +764,10 @@ function ChatComponent() {
         .send-button {
           background: #007aff;
           border: none;
-          width: 40px;
-          height: 40px;
+          width: 44px;
+          height: 44px;
           border-radius: 50%;
-          margin-right: 4px;
+          margin: 4px;
           cursor: pointer;
           transition: all 0.3s ease;
           display: flex;
@@ -732,6 +775,7 @@ function ChatComponent() {
           justify-content: center;
           color: white;
           opacity: 0.5;
+          flex-shrink: 0;
         }
 
         .send-button.active {
@@ -815,16 +859,21 @@ function ChatComponent() {
           .chat-input {
             padding: 0.875rem 1rem;
             font-size: 0.95rem;
+            min-height: 48px;
           }
 
           .send-button {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
           }
 
           .suggestion-chip {
             font-size: 0.75rem;
             padding: 0.4rem 0.75rem;
+          }
+
+          .chat-messages {
+            padding-bottom: 160px;
           }
         }
 
@@ -844,11 +893,25 @@ function ChatComponent() {
           .chat-input {
             padding: 0.8rem 0.9rem;
             font-size: 0.9rem;
+            min-height: 44px;
           }
 
           .send-button {
-            width: 34px;
-            height: 34px;
+            width: 36px;
+            height: 36px;
+          }
+
+          .chat-input-container {
+            padding: 0.5rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+          }
+
+          .input-wrapper {
+            border-radius: 20px;
+          }
+
+          .chat-messages {
+            padding-bottom: 140px;
           }
         }
       `}</style>
