@@ -9,11 +9,41 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [session, setSession] = useState({});
   const [loading, setLoading] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const bottomRef = useRef();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Detectar cuando se abre/cierra el teclado en móviles
+  useEffect(() => {
+    let initialHeight = window.innerHeight;
+    
+    const handleViewportChange = () => {
+      if (typeof window !== 'undefined') {
+        const currentHeight = window.innerHeight;
+        const heightDifference = initialHeight - currentHeight;
+        setKeyboardOpen(heightDifference > 150);
+      }
+    };
+
+    const handleLoad = () => {
+      initialHeight = window.innerHeight;
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleViewportChange);
+      window.addEventListener('orientationchange', handleLoad);
+      window.addEventListener('load', handleLoad);
+      
+      return () => {
+        window.removeEventListener('resize', handleViewportChange);
+        window.removeEventListener('orientationchange', handleLoad);
+        window.removeEventListener('load', handleLoad);
+      };
+    }
+  }, []);
 
   async function sendMessage(e) {
     e.preventDefault();
@@ -105,15 +135,25 @@ export default function Chat() {
         ))}
         <div ref={bottomRef}></div>
       </div>
-      <form className="chat-form" onSubmit={sendMessage}>
-        <input
+      <form className={`chat-form ${keyboardOpen ? 'keyboard-open' : ''}`} onSubmit={sendMessage}>
+        <textarea
           className="chat-input"
           placeholder="Escribe tu mensaje…"
           autoFocus
+          rows={1}
           value={input}
           onChange={e => setInput(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage(e);
+            }
+          }}
           disabled={loading}
-          style={{ fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif' }}
+          style={{ 
+            fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+            height: Math.min(Math.max(50, (input.split('\n').length) * 24 + 26), 120) + 'px'
+          }}
         />
         <button
           type="submit"
@@ -121,12 +161,29 @@ export default function Chat() {
           aria-label="Enviar"
         >
           {loading ? (
-            <span style={{ fontSize: 19, color: "#fff" }}>...</span>
+            <div style={{ width: 20, height: 20, color: "#fff" }}>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10" opacity="0.25"/>
+                <path d="M12 2a10 10 0 0 1 10 10" opacity="0.75">
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    values="0 12 12;360 12 12"
+                    dur="1s"
+                    repeatCount="indefinite"
+                  />
+                </path>
+              </svg>
+            </div>
           ) : (
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <circle cx="14" cy="14" r="14" fill="#23cba7" />
-              <path d="M14 8V20" stroke="#fff" strokeWidth="2.3" strokeLinecap="round"/>
-              <path d="M10.5 12L14 8L17.5 12" stroke="#fff" strokeWidth="2.3" strokeLinecap="round"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path 
+                d="M12 19V5M5 12l7-7 7 7" 
+                stroke="#fff" 
+                strokeWidth="2.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              />
             </svg>
           )}
         </button>
@@ -186,46 +243,66 @@ export default function Chat() {
         }
         .chat-form {
           display: flex;
-          border-top: 1px solid #eee;
-          padding: 16px 10px;
-          background: #f6fafd;
+          border-top: 1px solid #e5e5e7;
+          padding: 16px 12px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
           border-radius: 0 0 16px 16px;
-          align-items: center;
-          gap: 9px;
+          align-items: flex-end;
+          gap: 8px;
+          position: sticky;
+          bottom: 0;
+          z-index: 1000;
+          transition: transform 0.3s ease;
         }
         .chat-input {
           flex: 1;
-          border: none;
-          border-radius: 14px;
-          padding: 18px 17px;
-          font-size: 1.12em;
-          margin-right: 0;
+          border: 1px solid #e5e5e7;
+          border-radius: 20px;
+          padding: 16px 20px;
+          font-size: 1.1em;
+          line-height: 1.3;
           outline: none;
           background: #fff;
-          min-height: 46px;
-          box-shadow: 0 1px 6px #0001;
+          min-height: 50px;
+          max-height: 120px;
+          resize: none;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          transition: all 0.2s ease;
+          overflow-y: auto;
+        }
+        .chat-input:focus {
+          border-color: #007aff;
+          box-shadow: 0 2px 12px rgba(0, 122, 255, 0.15);
         }
         .chat-input:disabled {
           background: #f3f3f3;
+          opacity: 0.7;
         }
         button {
-          background: transparent;
+          background: #007aff;
           border: none;
           padding: 0;
-          margin: 0 2px 0 0;
+          margin: 0;
           border-radius: 50%;
-          width: 46px;
-          height: 46px;
+          width: 50px;
+          height: 50px;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          transition: box-shadow 0.2s;
-          box-shadow: none;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+          flex-shrink: 0;
+        }
+        button:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
         }
         button:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+          transform: none;
         }
         @media (max-width: 650px) {
           .chat-outer {
@@ -234,9 +311,33 @@ export default function Chat() {
             box-shadow: none;
             min-height: 100vh;
             max-width: 100vw;
+            position: relative;
           }
           .chat-header {
             border-radius: 0;
+          }
+          .chat-form {
+            padding: 12px;
+            border-radius: 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid #e5e5e7;
+            z-index: 1000;
+          }
+          .chat-messages {
+            padding-bottom: 100px;
+          }
+          /* Mantener input sobre el teclado en iOS */
+          .chat-form.keyboard-open {
+            transform: translateY(0);
+            position: fixed;
+            bottom: env(keyboard-inset-height, 0);
           }
         }
       `}</style>
