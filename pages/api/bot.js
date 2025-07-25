@@ -284,50 +284,7 @@ export default async function handler(req, res) {
 
   sessions[from] = prevSession || {};
 
-  // 1. VALIDACIÓN INTELIGENTE: ¿Es un mensaje médico?
-  if (!force_gpt && !esMensajeMedico(text) && !esSaludoSimple(text)) {
-    return res.json({ 
-      text: generarRespuestaNoMedica(text),
-      session: sessions[from]
-    });
-  }
-
-  // 2. Manejo de saludos simples con OpenAI para mayor naturalidad
-  if (esSaludoSimple(text) && OPENAI_API_KEY) {
-    try {
-      const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          temperature: 0.8,
-          max_tokens: 60,
-          messages: [
-            {
-              role: "system",
-              content: "Eres Sobrecupos IA, asistente médico chileno muy empático y natural. Responde a saludos de forma cálida, breve y pregunta qué síntomas o especialidad médica necesitan. Usa emojis médicos apropiados. Máximo 2 líneas."
-            },
-            { role: "user", content: text }
-          ]
-        })
-      });
-      const data = await aiRes.json();
-      const response = data.choices?.[0]?.message?.content?.trim() || 
-        "¡Hola! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas o qué especialista necesitas.";
-      
-      return res.json({ text: response, session: sessions[from] });
-    } catch (err) {
-      return res.json({ 
-        text: "¡Hola! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas o qué especialista necesitas.",
-        session: sessions[from]
-      });
-    }
-  }
-
-  // 3. Manejo de sesiones existentes (confirmaciones, datos del paciente, etc.)
+  // 1. Manejo de sesiones existentes PRIMERO (antes de cualquier validación)
   if (sessions[from]?.stage) {
     const currentSession = sessions[from];
     
@@ -534,6 +491,49 @@ export default async function handler(req, res) {
 
       default:
         break;
+    }
+  }
+
+  // 2. VALIDACIÓN INTELIGENTE: ¿Es un mensaje médico? (solo si no hay sesión activa)
+  if (!force_gpt && !esMensajeMedico(text) && !esSaludoSimple(text)) {
+    return res.json({ 
+      text: generarRespuestaNoMedica(text),
+      session: sessions[from]
+    });
+  }
+
+  // 3. Manejo de saludos simples con OpenAI para mayor naturalidad
+  if (esSaludoSimple(text) && OPENAI_API_KEY) {
+    try {
+      const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          temperature: 0.8,
+          max_tokens: 60,
+          messages: [
+            {
+              role: "system",
+              content: "Eres Sobrecupos IA, asistente médico chileno muy empático y natural. Responde a saludos de forma cálida, breve y pregunta qué síntomas o especialidad médica necesitan. Usa emojis médicos apropiados. Máximo 2 líneas."
+            },
+            { role: "user", content: text }
+          ]
+        })
+      });
+      const data = await aiRes.json();
+      const response = data.choices?.[0]?.message?.content?.trim() || 
+        "¡Hola! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas o qué especialista necesitas.";
+      
+      return res.json({ text: response, session: sessions[from] });
+    } catch (err) {
+      return res.json({ 
+        text: "¡Hola! 😊 ¿En qué te puedo ayudar? Cuéntame tus síntomas o qué especialista necesitas.",
+        session: sessions[from]
+      });
     }
   }
 
