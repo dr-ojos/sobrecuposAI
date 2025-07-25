@@ -875,16 +875,16 @@ function ChatComponent() {
           }
 
           .chat-input {
-            padding: 0.875rem 55px 0.875rem 1rem;
+            padding: 0.875rem 45px 0.875rem 1rem;
             font-size: 0.95rem;
             min-height: 48px;
           }
 
           .send-button {
-            width: 36px;
-            height: 36px;
-            right: 6px;
-            bottom: 6px;
+            width: 32px;
+            height: 32px;
+            right: 8px;
+            bottom: 8px;
           }
 
           .suggestion-chip {
@@ -911,16 +911,16 @@ function ChatComponent() {
           }
 
           .chat-input {
-            padding: 0.8rem 50px 0.8rem 0.9rem;
+            padding: 0.8rem 40px 0.8rem 0.9rem;
             font-size: 0.9rem;
             min-height: 44px;
           }
 
           .send-button {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             right: 6px;
-            bottom: 6px;
+            bottom: 8px;
           }
 
           .chat-input-container {
