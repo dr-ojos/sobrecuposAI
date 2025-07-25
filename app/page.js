@@ -284,9 +284,9 @@ export default function Home() {
           right: 0;
           bottom: 0;
           background: linear-gradient(135deg, 
-            #e8f5e8 0%, 
-            #f0f8ff 50%, 
-            #e6f3ff 100%);
+            #d1e7dd 0%, 
+            #cce7ff 50%, 
+            #b6d7ff 100%);
           z-index: -2;
         }
 
