@@ -96,7 +96,7 @@ export default function Home() {
                   <div className="input-wrapper">
                     <textarea 
                       className="chat-input" 
-                      placeholder="Ejemplo: Tengo visión borrosa y dolor de cabeza desde ayer..."
+                      placeholder="Ejemplo: Tengo los ojos rojos y me pican mucho..."
                       value={chatInput}
                       onChange={(e) => {
                         setChatInput(e.target.value);
@@ -135,7 +135,7 @@ export default function Home() {
                     <div className="suggestion-card" onClick={() => selectSuggestion('Tengo visión borrosa hace 3 días')}>
                       <div className="card-text">Visión borrosa hace 3 días</div>
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Necesito revisar mi graduación de lentes')}>
+                    <div className="suggestion-card" onClick={() => selectSuggestion('Me pican mucho los ojos')}>
                       <div className="card-text">Revisar graduación de lentes</div>
                     </div>
                     <div className="suggestion-card" onClick={() => selectSuggestion('Me duelen los ojos con la luz')}>
@@ -147,7 +147,7 @@ export default function Home() {
                     <div className="suggestion-card" onClick={() => selectSuggestion('Ojo rojo e irritado desde ayer')}>
                       <div className="card-text">Ojo rojo e irritado</div>
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Pérdida súbita de visión parcial')}>
+                    <div className="suggestion-card" onClick={() => selectSuggestion('Tengo los ojos rojos')}>
                       <div className="card-text">Pérdida de visión</div>
                     </div>
                   </div>
@@ -177,11 +177,11 @@ export default function Home() {
             <div className="step-card">
               <div className="step-number">2</div>
               <h3>Encuentra sobrecupos</h3>
-              <p>Te mostramos las horas disponibles de último minuto</p>
+              <p>Te mostramos las horas disponibles</p>
             </div>
             <div className="step-card">
               <div className="step-number">3</div>
-              <h3>Reserva tu hora</h3>
+              <h3>Reserva tu Sobrecupos</h3>
               <p>Confirma tu cita médica en segundos</p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function Home() {
             <div className="benefit-card">
               <div className="benefit-icon">⚡</div>
               <h3>Atención rápida</h3>
-              <p>Accede a citas médicas de último minuto cuando más lo necesitas</p>
+              <p>Accede a citas médicas cuando más lo necesitas</p>
             </div>
             <div className="benefit-card">
               <div className="benefit-icon">🎯</div>
