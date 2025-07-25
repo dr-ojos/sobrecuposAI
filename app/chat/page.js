@@ -386,12 +386,17 @@ function ChatComponent() {
         )}
 
         <form className="chat-form" onSubmit={sendMessage}>
-          <div className="input-container">
+          <div className="input-wrapper">
             <textarea
               ref={inputRef}
               rows={1}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                // Auto-resize
+                e.target.style.height = 'auto';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -402,10 +407,6 @@ function ChatComponent() {
               className="chat-input"
               disabled={loading}
               autoFocus
-              style={{
-                height: Math.min(Math.max(52, (input.split('\n').length) * 24 + 28), 120) + 'px',
-                paddingRight: '50px'
-              }}
             />
             <button
               type="submit"
@@ -415,15 +416,7 @@ function ChatComponent() {
               {loading ? (
                 <div className="loading-spinner"></div>
               ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path 
-                    d="M12 19V5M5 12l7-7 7 7" 
-                    stroke="currentColor" 
-                    strokeWidth="2.5" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <div className="arrow-up"></div>
               )}
             </button>
           </div>
@@ -735,92 +728,124 @@ function ChatComponent() {
           margin: 0 auto;
         }
 
+        /* NUEVO DISEÑO DEL INPUT - COMO EN LA PÁGINA PRINCIPAL */
         .input-wrapper {
           position: relative;
           display: flex;
-          align-items: flex-end;
-          background: transparent;
-          border: none;
-          border-radius: 24px;
-          transition: all 0.3s ease;
-          gap: 8px;
+          align-items: flex-start;
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 20px;
+          padding: 1rem;
+          min-height: 60px;
+          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          box-shadow: 
+            0 6px 24px rgba(0, 0, 0, 0.06),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .input-wrapper:focus-within {
+          border-color: rgba(0, 122, 255, 0.3);
+          background: rgba(255, 255, 255, 0.95);
+          box-shadow: 
+            0 8px 32px rgba(0, 122, 255, 0.12),
+            0 2px 8px rgba(0, 122, 255, 0.06),
+            0 0 0 4px rgba(0, 122, 255, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
         }
 
         .chat-input {
           flex: 1;
-          border: 2px solid rgba(255, 255, 255, 0.8);
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          padding: 1rem 1.25rem;
+          border: none;
+          background: none;
+          outline: none;
           font-size: 1rem;
           color: #1d1d1f;
-          outline: none;
-          border-radius: 24px;
           font-family: inherit;
           resize: none;
-          overflow-y: auto;
-          line-height: 1.4;
-          min-height: 52px;
+          min-height: 40px;
           max-height: 120px;
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-          transition: all 0.3s ease;
-        }
-
-        .chat-input:focus {
-          border-color: #007aff;
-          box-shadow: 0 4px 20px rgba(0, 122, 255, 0.2);
-          background: rgba(255, 255, 255, 1);
+          line-height: 1.5;
+          padding: 0;
+          padding-right: 3rem;
+          vertical-align: top;
         }
 
         .chat-input::placeholder {
-          color: #8e8e93;
+          color: #a0aec0;
+          font-size: 1rem;
         }
 
         .chat-input:disabled {
           opacity: 0.6;
         }
 
+        /* BOTÓN FLOTANTE DENTRO DEL INPUT */
         .send-button {
-          background: #007aff;
+          width: 36px;
+          height: 36px;
+          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
           border: none;
-          width: 44px;
-          height: 44px;
           border-radius: 50%;
+          color: white;
           cursor: pointer;
-          transition: all 0.3s ease;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
-          opacity: 0.5;
+          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           flex-shrink: 0;
-          box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+          position: absolute;
+          bottom: 1rem;
+          right: 1rem;
+          opacity: 0.6;
+          transform: scale(0.9);
+          box-shadow: 
+            0 4px 16px rgba(0, 122, 255, 0.3),
+            0 1px 4px rgba(0, 122, 255, 0.2);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
         }
 
         .send-button.active {
+          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+          color: white;
           opacity: 1;
-          transform: scale(1.05);
-          box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+          transform: scale(1);
+          box-shadow: 
+            0 6px 24px rgba(0, 122, 255, 0.4),
+            0 2px 8px rgba(0, 122, 255, 0.3);
         }
 
         .send-button:hover.active {
-          background: #0056cc;
-          transform: scale(1.08);
+          transform: scale(1.05);
+          box-shadow: 
+            0 8px 32px rgba(0, 122, 255, 0.5),
+            0 4px 12px rgba(0, 122, 255, 0.4);
         }
 
         .send-button:disabled {
           opacity: 0.3;
           cursor: not-allowed;
-          transform: none;
+        }
+
+        .arrow-up {
+          width: 0;
+          height: 0;
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          border-bottom: 8px solid currentColor;
         }
 
         .loading-spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top: 2px solid white;
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top: 2px solid currentColor;
           border-radius: 50%;
-          animation: spin 1s linear infinite;
+          animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
@@ -875,16 +900,23 @@ function ChatComponent() {
             padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
           }
 
+          .input-wrapper {
+            min-height: 56px;
+            padding: 0.8rem;
+            border-radius: 18px;
+          }
+
           .chat-input {
-            padding: 0.875rem 45px 0.875rem 1rem;
             font-size: 0.95rem;
-            min-height: 48px;
+            min-height: 36px;
+            padding-right: 2.5rem;
           }
 
           .send-button {
-            width: 30px;
-            height: 30px;
-            right: 8px;
+            width: 32px;
+            height: 32px;
+            bottom: 0.8rem;
+            right: 0.8rem;
           }
 
           .suggestion-chip {
@@ -910,29 +942,64 @@ function ChatComponent() {
             font-size: 0.85rem;
           }
 
-          .chat-input {
-            padding: 0.8rem 40px 0.8rem 0.9rem;
-            font-size: 0.9rem;
-            min-height: 44px;
-          }
-
-          .send-button {
-            width: 26px;
-            height: 26px;
-            right: 7px;
-          }
-
           .chat-input-container {
             padding: 0.5rem;
             padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
           }
 
           .input-wrapper {
-            border-radius: 20px;
+            min-height: 52px;
+            padding: 0.7rem;
+            border-radius: 16px;
+          }
+
+          .chat-input {
+            font-size: 0.9rem;
+            min-height: 32px;
+            padding-right: 2.2rem;
+          }
+
+          .send-button {
+            width: 28px;
+            height: 28px;
+            bottom: 0.7rem;
+            right: 0.7rem;
           }
 
           .chat-messages {
             padding-bottom: 140px;
+          }
+        }
+
+        @media (max-width: 375px) {
+          .input-wrapper {
+            min-height: 48px;
+            padding: 0.6rem;
+            border-radius: 14px;
+          }
+
+          .chat-input {
+            font-size: 0.85rem;
+            min-height: 28px;
+            padding-right: 2rem;
+          }
+
+          .send-button {
+            width: 26px;
+            height: 26px;
+            bottom: 0.6rem;
+            right: 0.6rem;
+          }
+        }
+
+        /* Safe area para iPhone con notch */
+        @supports (padding: max(0px)) {
+          .chat-header {
+            padding-top: max(1rem, env(safe-area-inset-top));
+          }
+          
+          .chat-input-container {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
           }
         }
       `}</style>
