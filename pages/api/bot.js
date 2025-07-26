@@ -76,6 +76,46 @@ function detectarEspecialidadDirecta(text) {
   return null;
 }
 
+// NUEVA FUNCIÓN: Detectar consultas no médicas
+function esConsultaNoMedica(text) {
+  const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  
+  const temasCotidianos = [
+    'pizza', 'comida', 'restaurant', 'comer', 'almuerzo', 'cena', 'desayuno',
+    'clima', 'tiempo', 'lluvia', 'sol', 'temperatura',
+    'futbol', 'deporte', 'partido', 'equipo',
+    'musica', 'cancion', 'cantante', 'banda',
+    'pelicula', 'serie', 'netflix', 'television',
+    'trabajo', 'jefe', 'oficina', 'reunion',
+    'universidad', 'colegio', 'estudiar', 'examen',
+    'viaje', 'vacaciones', 'hotel', 'avion',
+    'dinero', 'plata', 'banco', 'credito',
+    'amor', 'pareja', 'novia', 'novio', 'esposa', 'esposo',
+    'auto', 'carro', 'vehiculo', 'manejar',
+    'casa', 'departamento', 'arriendo', 'mudanza',
+    'computador', 'celular', 'telefono', 'internet',
+    'ropa', 'zapatos', 'comprar', 'tienda'
+  ];
+  
+  // Si contiene algún tema cotidiano y NO contiene términos médicos
+  const contieneTemasCotidianos = temasCotidianos.some(tema => textoLimpio.includes(tema));
+  
+  const terminosMedicos = [
+    'dolor', 'duele', 'molestia', 'sintoma', 'síntoma', 'vision', 'visión', 
+    'ojo', 'ojos', 'cabeza', 'pecho', 'estomago', 'estómago', 'fiebre', 
+    'mareo', 'nausea', 'náusea', 'cansancio', 'fatiga', 'tos', 'gripe',
+    'resfriado', 'alergia', 'picazon', 'picazón', 'roncha', 'sarpullido',
+    'medico', 'médico', 'doctor', 'especialista', 'consulta', 'cita', 'hora',
+    'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'malestar'
+  ];
+  
+  const contieneTerminosMedicos = terminosMedicos.some(termino => 
+    textoLimpio.includes(termino.toLowerCase())
+  );
+  
+  return contieneTemasCotidianos && !contieneTerminosMedicos;
+}
+
 // NUEVA FUNCIÓN: Detectar síntomas y mapear a especialidades
 function detectarEspecialidadPorSintomas(text) {
   const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
@@ -216,6 +256,20 @@ export default async function handler(req, res) {
       console.error("❌ Error obteniendo info médico:", err);
       return { name: "Doctor", email: null };
     }
+  }
+
+  // Si es consulta no médica, redirigir amablemente
+  if (esConsultaNoMedica(text)) {
+    const respuestasAmables = [
+      "Jaja, me encantaría ayudarte con eso, pero soy especialista en temas de salud 😊\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte? Por ejemplo:\n• Síntomas que te preocupen\n• Necesidad de algún especialista\n• Chequeos médicos\n• Consultas de urgencia",
+      
+      "¡Me haces reír! 😄 Aunque me gustaría, no soy experto en eso. Soy Sobrecupos IA y me especializo en ayudarte con temas de salud.\n\n¿Cómo te sientes hoy? ¿Necesitas alguna consulta médica?",
+      
+      "Hmm, eso está fuera de mi área de expertise 😅 Soy tu asistente médico especializado en encontrar sobrecupos.\n\n¿Hay algún tema de salud en el que pueda ayudarte? Cuéntame si tienes algún síntoma o necesitas ver algún especialista."
+    ];
+    
+    const respuestaAleatoria = respuestasAmables[Math.floor(Math.random() * respuestasAmables.length)];
+    return res.json({ text: respuestaAleatoria });
   }
 
   // Si es saludo simple (sin términos médicos), responder con bienvenida
