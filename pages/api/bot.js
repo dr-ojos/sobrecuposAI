@@ -80,6 +80,19 @@ function detectarEspecialidadDirecta(text) {
 function esConsultaNoMedica(text) {
   const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   
+  // Consultas de información general que NO son médicas
+  const consultasGenerales = [
+    'que hora es', 'qué hora es', 'hora es', 'que dia es', 'qué día es',
+    'como estas', 'cómo estás', 'como te llamas', 'cómo te llamas',
+    'quien eres', 'quién eres', 'que eres', 'qué eres',
+    'donde estas', 'dónde estás', 'de donde eres', 'de dónde eres'
+  ];
+  
+  // Si es una consulta general específica, es no médica
+  for (const consulta of consultasGenerales) {
+    if (textoLimpio.includes(consulta)) return true;
+  }
+  
   const temasCotidianos = [
     'pizza', 'comida', 'restaurant', 'comer', 'almuerzo', 'cena', 'desayuno',
     'clima', 'tiempo', 'lluvia', 'sol', 'temperatura',
@@ -97,16 +110,18 @@ function esConsultaNoMedica(text) {
     'ropa', 'zapatos', 'comprar', 'tienda'
   ];
   
-  // Si contiene algún tema cotidiano y NO contiene términos médicos
+  // Si contiene algún tema cotidiano y NO contiene términos médicos específicos
   const contieneTemasCotidianos = temasCotidianos.some(tema => textoLimpio.includes(tema));
   
+  // Términos médicos específicos (removiendo "hora" para evitar conflictos)
   const terminosMedicos = [
     'dolor', 'duele', 'molestia', 'sintoma', 'síntoma', 'vision', 'visión', 
     'ojo', 'ojos', 'cabeza', 'pecho', 'estomago', 'estómago', 'fiebre', 
     'mareo', 'nausea', 'náusea', 'cansancio', 'fatiga', 'tos', 'gripe',
     'resfriado', 'alergia', 'picazon', 'picazón', 'roncha', 'sarpullido',
-    'medico', 'médico', 'doctor', 'especialista', 'consulta', 'cita', 'hora',
-    'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'malestar'
+    'medico', 'médico', 'doctor', 'especialista', 'consulta', 'cita',
+    'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'malestar',
+    'sobrecupo', 'atencion medica', 'atención médica'
   ];
   
   const contieneTerminosMedicos = terminosMedicos.some(termino => 
@@ -261,11 +276,11 @@ export default async function handler(req, res) {
   // Si es consulta no médica, redirigir amablemente
   if (esConsultaNoMedica(text)) {
     const respuestasAmables = [
-      "Jaja, me encantaría ayudarte con eso, pero soy especialista en temas de salud 😊\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte? Por ejemplo:\n• Síntomas que te preocupen\n• Necesidad de algún especialista\n• Chequeos médicos\n• Consultas de urgencia",
+      "No soy un reloj, pero sí soy tu asistente médico 😄\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte? Por ejemplo:\n• Síntomas que te preocupen\n• Necesidad de algún especialista\n• Chequeos médicos\n• Consultas de urgencia",
       
-      "¡Me haces reír! 😄 Aunque me gustaría, no soy experto en eso. Soy Sobrecupos IA y me especializo en ayudarte con temas de salud.\n\n¿Cómo te sientes hoy? ¿Necesitas alguna consulta médica?",
+      "¡Jaja! Para eso tienes tu celular 📱 Yo me especializo en cuidar tu salud.\n\n¿Cómo te sientes hoy? ¿Necesitas alguna consulta médica?",
       
-      "Hmm, eso está fuera de mi área de expertise 😅 Soy tu asistente médico especializado en encontrar sobrecupos.\n\n¿Hay algún tema de salud en el que pueda ayudarte? Cuéntame si tienes algún síntoma o necesitas ver algún especialista."
+      "Esa información la tiene mejor tu teléfono 😅 Yo soy experto en encontrar sobrecupos médicos.\n\n¿Hay algún tema de salud en el que pueda ayudarte? Cuéntame si tienes algún síntoma o necesitas ver algún especialista."
     ];
     
     const respuestaAleatoria = respuestasAmables[Math.floor(Math.random() * respuestasAmables.length)];
