@@ -1,5 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link'; // 🆕 NUEVA IMPORTACIÓN
 import { useRef, useEffect, useState } from 'react';
 
 export default function Home() {
@@ -162,6 +163,28 @@ export default function Home() {
               <div className="expanding-message">Abriendo chat...</div>
             </div>
           )}
+
+          {/* 🆕 NUEVA SECCIÓN: BOTÓN PARA VER SOBRECUPOS */}
+          <div className={`additional-options ${isVisible ? 'visible' : ''}`}>
+            <div className="divider-text">
+              <span>o también puedes</span>
+            </div>
+            <div className="agendar-button-container">
+              <Link 
+                href="/agendar"
+                className="agendar-button"
+              >
+                <div className="button-content">
+                  <span className="button-icon">📅</span>
+                  <div className="button-text">
+                    <span className="button-title">Ver Todos los Sobrecupos</span>
+                    <span className="button-subtitle">Explora todas las citas disponibles</span>
+                  </div>
+                  <span className="button-arrow">→</span>
+                </div>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -725,6 +748,117 @@ export default function Home() {
           }
         }
 
+        /* 🆕 NUEVA SECCIÓN: Botón para agendar sobrecupos */
+        .additional-options {
+          margin-top: 4rem;
+          margin-bottom: 2rem;
+          opacity: 0;
+          transform: translateY(30px);
+          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.9s;
+        }
+
+        .additional-options.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .divider-text {
+          text-align: center;
+          margin-bottom: 2rem;
+          position: relative;
+        }
+
+        .divider-text span {
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          padding: 0.5rem 1.5rem;
+          border-radius: 50px;
+          font-size: 0.9rem;
+          color: #6b7280;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .agendar-button-container {
+          display: flex;
+          justify-content: center;
+        }
+
+        .agendar-button {
+          display: block;
+          text-decoration: none;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 20px;
+          padding: 1.5rem 2rem;
+          max-width: 400px;
+          width: 100%;
+          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.08),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .agendar-button:hover {
+          transform: translateY(-3px);
+          border-color: rgba(0, 122, 255, 0.3);
+          background: rgba(255, 255, 255, 0.98);
+          box-shadow: 
+            0 12px 40px rgba(0, 122, 255, 0.15),
+            0 4px 16px rgba(0, 122, 255, 0.08),
+            0 0 0 1px rgba(0, 122, 255, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .agendar-button:active {
+          transform: translateY(-1px);
+        }
+
+        .button-content {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .button-icon {
+          font-size: 2rem;
+          flex-shrink: 0;
+        }
+
+        .button-text {
+          flex: 1;
+          text-align: left;
+        }
+
+        .button-title {
+          display: block;
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #1d1d1f;
+          margin-bottom: 0.25rem;
+        }
+
+        .button-subtitle {
+          display: block;
+          font-size: 0.9rem;
+          color: #6b7280;
+          font-weight: 400;
+        }
+
+        .button-arrow {
+          font-size: 1.2rem;
+          color: #007aff;
+          flex-shrink: 0;
+          transition: transform 0.3s ease;
+        }
+
+        .agendar-button:hover .button-arrow {
+          transform: translateX(4px);
+        }
+
         /* Secciones adicionales */
         .how-it-works,
         .benefits,
@@ -1011,6 +1145,33 @@ export default function Home() {
           .card-text {
             font-size: 0.8rem;
           }
+
+          /* Responsive para el botón de agendar */
+          .additional-options {
+            margin-top: 3rem;
+            padding: 0 1rem;
+          }
+
+          .agendar-button {
+            padding: 1.25rem 1.5rem;
+            border-radius: 18px;
+          }
+
+          .button-content {
+            gap: 0.75rem;
+          }
+
+          .button-icon {
+            font-size: 1.75rem;
+          }
+
+          .button-title {
+            font-size: 1rem;
+          }
+
+          .button-subtitle {
+            font-size: 0.85rem;
+          }
         }
 
         @media (max-width: 480px) {
@@ -1071,6 +1232,38 @@ export default function Home() {
 
           .card-text {
             font-size: 0.75rem;
+          }
+
+          /* Botón agendar mobile */
+          .additional-options {
+            margin-top: 2.5rem;
+            padding: 0 0.5rem;
+          }
+
+          .agendar-button {
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+          }
+
+          .button-content {
+            gap: 0.6rem;
+          }
+
+          .button-icon {
+            font-size: 1.5rem;
+          }
+
+          .button-title {
+            font-size: 0.95rem;
+          }
+
+          .button-subtitle {
+            font-size: 0.8rem;
+          }
+
+          .divider-text span {
+            font-size: 0.85rem;
+            padding: 0.4rem 1.2rem;
           }
         }
 
@@ -1133,6 +1326,38 @@ export default function Home() {
           
           .card-text {
             font-size: 0.7rem;
+          }
+
+          /* Botón agendar muy pequeño */
+          .additional-options {
+            margin-top: 2rem;
+            padding: 0 0.25rem;
+          }
+
+          .agendar-button {
+            padding: 0.9rem 1rem;
+            border-radius: 14px;
+          }
+
+          .button-content {
+            gap: 0.5rem;
+          }
+
+          .button-icon {
+            font-size: 1.3rem;
+          }
+
+          .button-title {
+            font-size: 0.9rem;
+          }
+
+          .button-subtitle {
+            font-size: 0.75rem;
+          }
+
+          .divider-text span {
+            font-size: 0.8rem;
+            padding: 0.35rem 1rem;
           }
         }
 
