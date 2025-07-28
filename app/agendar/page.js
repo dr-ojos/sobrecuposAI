@@ -160,10 +160,9 @@ const AgendarSobrecuposPage = () => {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('es-CL', {
-        weekday: 'long',
+        weekday: 'short',
         day: 'numeric',
-        month: 'long',
-        year: 'numeric'
+        month: 'short'
       });
     } catch (error) {
       return dateString;
@@ -217,24 +216,17 @@ const AgendarSobrecuposPage = () => {
                   sobrecupo.fields.Prevision ||
                   'Consultar seguros';
     
-    // Si no es el texto por defecto, formatear los seguros
     if (seguros !== 'Consultar seguros') {
-      // Si es un array, unirlo con comas
       if (Array.isArray(seguros)) {
         seguros = seguros.join(', ');
       }
-      // Si es un string, verificar que realmente sea un string
       else if (typeof seguros === 'string') {
-        // Separar palabras que empiecen con mayúscula
         seguros = seguros.replace(/([A-Z])/g, ', $1').trim();
-        // Remover la coma inicial si existe
         if (seguros.startsWith(', ')) {
           seguros = seguros.substring(2);
         }
-        // Limpiar espacios duplicados
         seguros = seguros.replace(/,\s+/g, ', ');
       }
-      // Si no es string ni array, convertir a string
       else {
         seguros = String(seguros);
       }
@@ -253,15 +245,12 @@ const AgendarSobrecuposPage = () => {
     
     if (!atiende || atiende === 'Consultar edades') return '👥 Consultar edades';
     
-    // Si es un array, tomar el primer elemento o unir con comas
     if (Array.isArray(atiende)) {
       atiende = atiende.length > 0 ? atiende[0] : 'Consultar edades';
     }
     
-    // Convertir a string si no lo es
     atiende = String(atiende);
     
-    // Si está concatenado sin espacios, separar palabras
     if (atiende.length > 10 && !atiende.includes(' ')) {
       atiende = atiende.replace(/([A-Z])/g, ' $1').trim();
     }
@@ -276,56 +265,53 @@ const AgendarSobrecuposPage = () => {
       return '👶 Solo Niños';
     }
     
-    // Si no coincide con ningún patrón, mostrar el valor formateado
     return `👥 ${atiende}`;
   };
 
   return (
     <div style={styles.pageContainer}>
-      {/* Header */}
+      {/* Header Mobile First */}
       <header style={styles.header}>
         <div style={styles.headerContainer}>
           <div style={styles.headerContent}>
             <div style={styles.headerLeft}>
-              <div style={styles.logo}>
-                <div style={styles.logoText}>
-                  <span style={styles.logoMain}>S</span>
-                </div>
+              <div style={styles.logoContainer}>
+                <div style={styles.logoIcon}>S</div>
               </div>
               <div>
                 <h1 style={styles.headerTitle}>Sobrecupos</h1>
-                <p style={styles.headerSubtitle}>Agendar cita médica</p>
+                <p style={styles.headerSubtitle}>Agenda tu cita</p>
               </div>
             </div>
             <button onClick={handleBackClick} style={styles.backButton}>
               <span style={styles.backArrow}>←</span>
-              <span>Volver</span>
+              <span style={styles.backText}>Volver</span>
             </button>
           </div>
         </div>
       </header>
 
-      <div style={styles.container}>
-        {/* Título */}
+      {/* Main Content */}
+      <main style={styles.mainContent}>
+        {/* Title Section */}
         <div style={styles.titleSection}>
           <h2 style={styles.mainTitle}>Buscar Sobrecupo</h2>
-          <p style={styles.description}>
-            Encuentra y reserva citas médicas disponibles con especialistas. 
-            Usa los filtros para encontrar exactamente lo que necesitas.
+          <p style={styles.subtitle}>
+            Encuentra y reserva citas médicas disponibles
           </p>
         </div>
 
-        {/* Filtros */}
+        {/* Filters Mobile Optimized */}
         <div style={styles.filtersContainer}>
-          <div style={styles.filtersRow}>
+          <div style={styles.filtersGrid}>
             <div style={styles.filterGroup}>
-              <label style={styles.label}>Especialidad</label>
+              <label style={styles.filterLabel}>Especialidad</label>
               <select
                 value={filters.especialidad}
                 onChange={(e) => setFilters(prev => ({ ...prev, especialidad: e.target.value }))}
-                style={styles.select}
+                style={styles.filterSelect}
               >
-                <option value="">Todas las especialidades</option>
+                <option value="">Todas</option>
                 {getUniqueEspecialidades().map(esp => (
                   <option key={esp} value={esp}>{esp}</option>
                 ))}
@@ -333,38 +319,28 @@ const AgendarSobrecuposPage = () => {
             </div>
 
             <div style={styles.filterGroup}>
-              <label style={styles.label}>Médico</label>
+              <label style={styles.filterLabel}>Médico</label>
               <select
                 value={filters.medico}
                 onChange={(e) => setFilters(prev => ({ ...prev, medico: e.target.value }))}
-                style={styles.select}
+                style={styles.filterSelect}
               >
-                <option value="">Todos los médicos</option>
+                <option value="">Todos</option>
                 {getUniqueMedicos().map(medico => (
                   <option key={medico} value={medico}>{medico}</option>
                 ))}
               </select>
             </div>
 
-            <button onClick={clearFilters} style={styles.clearButton}>
-              Limpiar filtros
-            </button>
-          </div>
-
-          {(filters.especialidad || filters.medico) && (
-            <div style={styles.activeFilters}>
-              <span style={styles.activeFiltersLabel}>Filtros activos:</span>
-              {filters.especialidad && (
-                <span style={styles.filterTag}>{filters.especialidad}</span>
-              )}
-              {filters.medico && (
-                <span style={styles.filterTag}>{filters.medico}</span>
-              )}
+            <div style={styles.filterButtonContainer}>
+              <button onClick={clearFilters} style={styles.clearButton}>
+                Limpiar filtros
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Mensaje */}
+        {/* Message */}
         {message && (
           <div style={{
             ...styles.message,
@@ -376,31 +352,24 @@ const AgendarSobrecuposPage = () => {
           </div>
         )}
 
-        {/* Resultados */}
+        {/* Results Count */}
         <div style={styles.resultsHeader}>
           <h3 style={styles.resultsTitle}>
-            Resultados
-            <span style={styles.resultsCount}>
-              ({filteredSobrecupos.length} disponibles)
-            </span>
+            {filteredSobrecupos.length} sobrecupos disponibles
           </h3>
         </div>
 
+        {/* Results Grid Mobile Optimized */}
         {loading ? (
           <div style={styles.loadingContainer}>
             <div style={styles.spinner}></div>
-            <p style={styles.loadingText}>Cargando sobrecupos disponibles...</p>
+            <p style={styles.loadingText}>Cargando sobrecupos...</p>
           </div>
         ) : filteredSobrecupos.length === 0 ? (
           <div style={styles.emptyContainer}>
             <div style={styles.emptyIcon}>😔</div>
             <h3 style={styles.emptyTitle}>No se encontraron sobrecupos</h3>
-            <p style={styles.emptyDescription}>
-              {sobrecupos.length === 0 
-                ? "No hay sobrecupos disponibles en este momento."
-                : "No hay citas disponibles que coincidan con tus filtros."
-              }
-            </p>
+            <p style={styles.emptyText}>Intenta ajustar los filtros</p>
             {sobrecupos.length > 0 && (
               <button onClick={clearFilters} style={styles.primaryButton}>
                 Ver todos los sobrecupos
@@ -408,240 +377,243 @@ const AgendarSobrecuposPage = () => {
             )}
           </div>
         ) : (
-          <div style={styles.resultsContainer}>
+          <div style={styles.resultsGrid}>
             {filteredSobrecupos.map((sobrecupo) => (
               <div key={sobrecupo.id} style={styles.card}>
-                <div style={styles.cardContent}>
-                  <div style={styles.cardLeft}>
-                    <div style={styles.doctorHeader}>
-                      <div style={styles.avatar}>
-                        {sobrecupo.fields.Médico ? 
-                          sobrecupo.fields.Médico.split(' ').map(n => n[0]).join('').substring(0, 2) : 
-                          'Dr'
-                        }
+                {/* Mobile Layout */}
+                <div style={styles.cardMobile}>
+                  {/* Doctor Header Mobile */}
+                  <div style={styles.doctorHeaderMobile}>
+                    <div style={styles.avatarSmall}>
+                      {sobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                    </div>
+                    <div style={styles.doctorInfoMobile}>
+                      <h3 style={styles.doctorNameMobile}>
+                        {sobrecupo.fields.Médico}
+                      </h3>
+                      <p style={styles.specialtyMobile}>
+                        {sobrecupo.fields.Especialidad}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Details Mobile */}
+                  <div style={styles.detailsMobile}>
+                    <div style={styles.detailRowMobile}>
+                      <span style={styles.detailIconMobile}>📍</span>
+                      <div style={styles.detailTextMobile}>
+                        <span style={styles.clinicNameMobile}>{sobrecupo.fields.Clínica}</span>
+                        <p style={styles.addressMobile}>{sobrecupo.fields.Dirección}</p>
                       </div>
-                      <div style={styles.doctorInfo}>
-                        <h3 style={styles.doctorName}>
-                          {sobrecupo.fields.Médico || 'Médico no especificado'}
+                    </div>
+                    <div style={styles.detailRowMobile}>
+                      <span style={styles.detailIconMobile}>📅</span>
+                      <span style={styles.dateTimeMobile}>
+                        {formatDate(sobrecupo.fields.Fecha)} - {sobrecupo.fields.Hora}
+                      </span>
+                    </div>
+                    <div style={styles.detailRowMobile}>
+                      <span style={styles.detailIconMobile}>💳</span>
+                      <span style={styles.segurosMobile}>{getPrevisiones(sobrecupo)}</span>
+                    </div>
+                  </div>
+
+                  {/* Button Mobile */}
+                  <button
+                    onClick={() => handleReservarClick(sobrecupo)}
+                    style={styles.reserveButtonMobile}
+                  >
+                    Reservar Cita
+                  </button>
+                </div>
+
+                {/* Desktop Layout */}
+                <div style={styles.cardDesktop}>
+                  <div style={styles.cardLeft}>
+                    <div style={styles.doctorHeaderDesktop}>
+                      <div style={styles.avatarLarge}>
+                        {sobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                      </div>
+                      <div>
+                        <h3 style={styles.doctorNameDesktop}>
+                          {sobrecupo.fields.Médico}
                         </h3>
-                        <p style={styles.specialty}>
-                          {sobrecupo.fields.Especialidad || 'Especialidad no especificada'}
+                        <p style={styles.specialtyDesktop}>
+                          {sobrecupo.fields.Especialidad}
                         </p>
                       </div>
                     </div>
-                    
-                    <div style={styles.detailsGrid}>
-                      <div style={styles.detailItem}>
-                        <span style={styles.detailIcon}>🏥</span>
-                        <div style={styles.detailContent}>
-                          <span style={styles.detailLabel}>Clínica:</span>
-                          <span style={styles.detailValue}>
-                            {sobrecupo.fields.Clínica || sobrecupo.fields.Clinica || 'Clínica no especificada'}
+
+                    <div style={styles.detailsGridDesktop}>
+                      <div style={styles.detailsColumn}>
+                        <div style={styles.detailItemDesktop}>
+                          <span style={styles.detailIconDesktop}>🏥</span>
+                          <div>
+                            <p style={styles.detailLabelDesktop}>{sobrecupo.fields.Clínica}</p>
+                            <p style={styles.detailValueDesktop}>{sobrecupo.fields.Dirección}</p>
+                          </div>
+                        </div>
+                        <div style={styles.detailItemDesktop}>
+                          <span style={styles.detailIconDesktop}>📅</span>
+                          <span style={styles.detailValueDesktop}>
+                            {formatDate(sobrecupo.fields.Fecha)} - {sobrecupo.fields.Hora}
                           </span>
                         </div>
                       </div>
-                      
-                      <div style={styles.detailItem}>
-                        <span style={styles.detailIcon}>📍</span>
-                        <div style={styles.detailContent}>
-                          <span style={styles.detailLabel}>Dirección:</span>
-                          <span style={styles.detailValue}>
-                            {sobrecupo.fields.Dirección || sobrecupo.fields.Direccion || 'Dirección no especificada'}
-                          </span>
+                      <div style={styles.detailsColumn}>
+                        <div style={styles.detailItemDesktop}>
+                          <span style={styles.detailIconDesktop}>💳</span>
+                          <span style={styles.detailValueDesktop}>{getPrevisiones(sobrecupo)}</span>
                         </div>
-                      </div>
-                      
-                      <div style={styles.detailItem}>
-                        <span style={styles.detailIcon}>📅</span>
-                        <div style={styles.detailContent}>
-                          <span style={styles.detailLabel}>Fecha y Hora:</span>
-                          <span style={styles.detailValue}>
-                            {formatDate(sobrecupo.fields.Fecha)} - {sobrecupo.fields.Hora || 'Hora no especificada'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div style={styles.detailItem}>
-                        <span style={styles.detailIcon}>💳</span>
-                        <div style={styles.detailContent}>
-                          <span style={styles.detailLabel}>Seguros:</span>
-                          <span style={styles.detailValue}>
-                            {getPrevisiones(sobrecupo)}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div style={styles.detailItem}>
-                        <span style={styles.detailIcon}>👥</span>
-                        <div style={styles.detailContent}>
-                          <span style={styles.detailLabel}>Atiende:</span>
-                          <span style={styles.detailValue}>
-                            {getTipoPacientes(sobrecupo)}
-                          </span>
+                        <div style={styles.detailItemDesktop}>
+                          <span style={styles.detailIconDesktop}>👥</span>
+                          <span style={styles.detailValueDesktop}>Atiende {sobrecupo.fields.Atiende}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
-                  <div style={styles.cardRight}>
-                    <button
-                      onClick={() => handleReservarClick(sobrecupo)}
-                      style={styles.reserveButton}
-                    >
-                      <span style={styles.buttonText}>Reservar Cita</span>
-                    </button>
-                  </div>
+
+                  <button
+                    onClick={() => handleReservarClick(sobrecupo)}
+                    style={styles.reserveButtonDesktop}
+                  >
+                    Reservar Cita
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Modal de Reserva */}
+      {/* Modal Mobile Optimized */}
       {showReservationModal && selectedSobrecupo && (
         <div style={styles.modalOverlay} onClick={(e) => {
           if (e.target === e.currentTarget) {
             handleCloseModal();
           }
         }}>
-          <div style={styles.modal}>
+          <div style={styles.modalContent}>
+            {/* Modal Header */}
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle}>Agendar sobrecupo</h3>
-              <button 
-                onClick={handleCloseModal}
-                style={styles.closeButton}
-              >
+              <button onClick={handleCloseModal} style={styles.closeButton}>
                 ×
               </button>
             </div>
-            
-            <div style={styles.modalInfo}>
-              <div style={styles.modalDoctorHeader}>
-                <div style={styles.modalAvatar}>
-                  {selectedSobrecupo.fields.Médico ? 
-                    selectedSobrecupo.fields.Médico.split(' ').map(n => n[0]).join('').substring(0, 2) : 
-                    'Dr'
-                  }
-                </div>
-                <div>
-                  <p style={styles.modalDoctorName}>
-                    {selectedSobrecupo.fields.Médico || 'Médico no especificado'}
-                  </p>
-                  <p style={styles.modalSpecialty}>
-                    {selectedSobrecupo.fields.Especialidad || 'Especialidad no especificada'}
-                  </p>
-                  <p style={styles.modalClinic}>
-                    {selectedSobrecupo.fields.Clínica || selectedSobrecupo.fields.Clinica}
-                  </p>
-                  <p style={styles.modalDateTime}>
-                    {formatDate(selectedSobrecupo.fields.Fecha)} - {selectedSobrecupo.fields.Hora}
-                  </p>
-                  <p style={styles.modalSeguro}>
-                    Acepta: {getPrevisiones(selectedSobrecupo)}
-                  </p>
+
+            {/* Modal Body */}
+            <div style={styles.modalBody}>
+              {/* Doctor Info Summary */}
+              <div style={styles.modalInfoBox}>
+                <div style={styles.modalDoctorInfo}>
+                  <div style={styles.modalAvatar}>
+                    {selectedSobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                  </div>
+                  <div style={styles.modalDoctorDetails}>
+                    <p style={styles.modalDoctorName}>{selectedSobrecupo.fields.Médico}</p>
+                    <p style={styles.modalSpecialty}>{selectedSobrecupo.fields.Especialidad}</p>
+                    <p style={styles.modalClinicInfo}>{selectedSobrecupo.fields.Clínica}</p>
+                    <p style={styles.modalDateTime}>
+                      {formatDate(selectedSobrecupo.fields.Fecha)} - {selectedSobrecupo.fields.Hora}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div style={styles.form}>
-              <h3 style={styles.formSectionTitle}>Datos personales</h3>
-              <p style={styles.formSubtitle}>Ingresa tus datos para agendar la cita.</p>
-              
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Nombres</label>
-                <input
-                  type="text"
-                  value={reservationData.nombre}
-                  onChange={(e) => setReservationData(prev => ({ ...prev, nombre: e.target.value }))}
-                  style={styles.formInput}
-                  placeholder="Juana Martina"
-                  disabled={reservationLoading}
-                />
-              </div>
+              {/* Form Fields */}
+              <div style={styles.formContainer}>
+                <div style={styles.formField}>
+                  <label style={styles.formLabel}>Nombres *</label>
+                  <input
+                    type="text"
+                    value={reservationData.nombre}
+                    onChange={(e) => setReservationData(prev => ({ ...prev, nombre: e.target.value }))}
+                    style={styles.formInput}
+                    placeholder="Juan Carlos"
+                    disabled={reservationLoading}
+                  />
+                </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Apellidos</label>
-                <input
-                  type="text"
-                  value={reservationData.apellidos || ''}
-                  onChange={(e) => setReservationData(prev => ({ ...prev, apellidos: e.target.value }))}
-                  style={styles.formInput}
-                  placeholder="González Urrutia"
-                  disabled={reservationLoading}
-                />
-              </div>
+                <div style={styles.formField}>
+                  <label style={styles.formLabel}>Apellidos</label>
+                  <input
+                    type="text"
+                    value={reservationData.apellidos}
+                    onChange={(e) => setReservationData(prev => ({ ...prev, apellidos: e.target.value }))}
+                    style={styles.formInput}
+                    placeholder="González López"
+                    disabled={reservationLoading}
+                  />
+                </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Rut</label>
-                <input
-                  type="text"
-                  value={reservationData.rut}
-                  onChange={(e) => setReservationData(prev => ({ ...prev, rut: e.target.value }))}
-                  style={styles.formInput}
-                  placeholder="12.345.678-9"
-                  disabled={reservationLoading}
-                />
-              </div>
+                <div style={styles.formField}>
+                  <label style={styles.formLabel}>RUT *</label>
+                  <input
+                    type="text"
+                    value={reservationData.rut}
+                    onChange={(e) => setReservationData(prev => ({ ...prev, rut: e.target.value }))}
+                    style={styles.formInput}
+                    placeholder="12.345.678-9"
+                    disabled={reservationLoading}
+                  />
+                </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.formLabel}>Correo electrónico</label>
-                <input
-                  type="email"
-                  value={reservationData.email}
-                  onChange={(e) => setReservationData(prev => ({ ...prev, email: e.target.value }))}
-                  style={styles.formInput}
-                  placeholder="juanagonzalez@gmail.com"
-                  disabled={reservationLoading}
-                />
-              </div>
+                <div style={styles.formField}>
+                  <label style={styles.formLabel}>Email *</label>
+                  <input
+                    type="email"
+                    value={reservationData.email}
+                    onChange={(e) => setReservationData(prev => ({ ...prev, email: e.target.value }))}
+                    style={styles.formInput}
+                    placeholder="juan@email.com"
+                    disabled={reservationLoading}
+                  />
+                </div>
 
-              {/* Checkbox de términos y condiciones */}
-              <div style={styles.checkboxContainer}>
-                <label style={styles.checkboxLabel}>
+                {/* Terms Checkbox */}
+                <div style={styles.checkboxContainer}>
                   <input
                     type="checkbox"
+                    id="terms"
                     checked={acceptTerms}
                     onChange={(e) => setAcceptTerms(e.target.checked)}
                     style={styles.checkbox}
                     disabled={reservationLoading}
                   />
-                  <span style={styles.checkboxText}>
+                  <label htmlFor="terms" style={styles.checkboxLabel}>
                     Acepto los <a href="#" style={styles.link}>términos y condiciones</a>
-                  </span>
-                </label>
-              </div>
-
-              {/* Mensaje de advertencia */}
-              <div style={styles.warningContainer}>
-                <div style={styles.warningIcon}>⚠️</div>
-                <div style={styles.warningContent}>
-                  <strong style={styles.warningTitle}>¡Atención!</strong>
-                  <p style={styles.warningText}>
-                    Debes pagar el bono de tu consulta al llegar al centro médico.
-                  </p>
+                  </label>
                 </div>
-              </div>
 
-              {/* Botón de agendar */}
-              <button
-                onClick={handleReservationSubmit}
-                disabled={reservationLoading || !acceptTerms}
-                style={{
-                  ...styles.agendarButton,
-                  opacity: (!acceptTerms || reservationLoading) ? 0.5 : 1,
-                  cursor: (!acceptTerms || reservationLoading) ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {reservationLoading ? (
-                  <span style={styles.loadingButtonContent}>
-                    <span style={styles.buttonSpinner}></span>
-                    Procesando...
-                  </span>
-                ) : (
-                  'Agendar sobrecupo $2.990'
-                )}
-              </button>
+                {/* Warning Box */}
+                <div style={styles.warningBox}>
+                  <span style={styles.warningIcon}>⚠️</span>
+                  <div>
+                    <p style={styles.warningTitle}>¡Atención!</p>
+                    <p style={styles.warningText}>Debes pagar el bono al llegar.</p>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  onClick={handleReservationSubmit}
+                  disabled={reservationLoading || !acceptTerms}
+                  style={{
+                    ...styles.submitButton,
+                    ...((!acceptTerms || reservationLoading) ? styles.submitButtonDisabled : {})
+                  }}
+                >
+                  {reservationLoading ? (
+                    <span style={styles.loadingButtonContent}>
+                      <span style={styles.buttonSpinner}></span>
+                      Procesando...
+                    </span>
+                  ) : (
+                    'Agendar sobrecupo $2.990'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -652,9 +624,21 @@ const AgendarSobrecuposPage = () => {
           to { transform: rotate(360deg); }
         }
         
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+        @keyframes slideUp {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .modal-content {
+            animation: slideUp 0.3s ease-out;
+          }
         }
       `}</style>
     </div>
@@ -662,629 +646,707 @@ const AgendarSobrecuposPage = () => {
 };
 
 const styles = {
+  // Container
   pageContainer: {
     minHeight: '100vh',
     backgroundColor: '#f8fafc',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif'
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   },
 
-  // Header
+  // Header Styles
   header: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(20px)',
-    borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
     position: 'sticky',
     top: 0,
-    zIndex: 100,
+    zIndex: 50,
+    backgroundColor: 'white',
+    borderBottom: '1px solid #e5e7eb',
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
   headerContainer: {
     maxWidth: '1400px',
     margin: '0 auto',
-    padding: '0 2rem'
+    padding: '0 16px'
   },
   headerContent: {
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    height: '80px'
+    justifyContent: 'space-between',
+    height: '64px'
   },
   headerLeft: {
     display: 'flex',
     alignItems: 'center',
-    gap: '16px'
+    gap: '12px'
   },
-  logo: {
-    position: 'relative',
-    display: 'inline-block'
+  logoContainer: {
+    width: '40px',
+    height: '40px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
   },
-  logoText: {
-    fontSize: '2rem',
-    fontWeight: '800',
-    letterSpacing: '-1px',
-    display: 'inline-flex',
-    alignItems: 'baseline'
-  },
-  logoMain: {
-    background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text'
+  logoIcon: {
+    color: 'white',
+    fontSize: '20px',
+    fontWeight: 'bold'
   },
   headerTitle: {
-    fontSize: '24px',
-    fontWeight: '700',
-    color: '#1d1d1f',
-    margin: 0,
-    letterSpacing: '-0.5px'
+    fontSize: '18px',
+    fontWeight: 'bold',
+    color: '#111827',
+    margin: 0
   },
   headerSubtitle: {
-    fontSize: '14px',
-    color: '#424245',
-    margin: 0,
-    fontWeight: '400'
+    fontSize: '12px',
+    color: '#6b7280',
+    margin: 0
   },
   backButton: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '12px 20px',
-    color: '#424245',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    border: '1px solid rgba(0, 0, 0, 0.06)',
+    padding: '8px 16px',
+    fontSize: '14px',
+    color: '#4b5563',
+    background: 'transparent',
+    border: 'none',
     cursor: 'pointer',
-    borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: '500',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    backdropFilter: 'blur(20px)'
+    transition: 'color 0.2s'
   },
   backArrow: {
-    fontSize: '18px'
+    fontSize: '16px'
+  },
+  backText: {
+    display: 'none',
+    '@media (min-width: 640px)': {
+      display: 'inline'
+    }
   },
 
-  // Container
-  container: {
+  // Main Content
+  mainContent: {
     maxWidth: '1400px',
     margin: '0 auto',
-    padding: '3rem 2rem'
+    padding: '24px 16px'
   },
 
-  // Title section
+  // Title Section
   titleSection: {
     textAlign: 'center',
-    marginBottom: '3rem'
+    marginBottom: '32px'
   },
   mainTitle: {
-    fontSize: '3.5rem',
-    fontWeight: '800',
-    color: '#1d1d1f',
-    marginBottom: '1.5rem',
-    letterSpacing: '-2px',
-    lineHeight: '1.1'
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: '8px',
+    '@media (min-width: 768px)': {
+      fontSize: '36px'
+    }
   },
-  description: {
-    color: '#424245',
-    maxWidth: '700px',
+  subtitle: {
+    fontSize: '14px',
+    color: '#6b7280',
+    maxWidth: '600px',
     margin: '0 auto',
-    fontSize: '1.3rem',
-    lineHeight: '1.6',
-    fontWeight: '400'
+    '@media (min-width: 768px)': {
+      fontSize: '16px'
+    }
   },
 
   // Filters
   filtersContainer: {
-    background: 'rgba(255, 255, 255, 0.9)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '24px',
-    padding: '2rem',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
-    marginBottom: '3rem',
-    border: '1px solid rgba(255, 255, 255, 0.3)'
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    padding: '16px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    border: '1px solid #e5e7eb',
+    marginBottom: '24px',
+    '@media (min-width: 768px)': {
+      padding: '24px'
+    }
   },
-  filtersRow: {
+  filtersGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr auto',
-    gap: '2rem',
-    alignItems: 'end'
+    gridTemplateColumns: '1fr',
+    gap: '16px',
+    '@media (min-width: 768px)': {
+      gridTemplateColumns: '1fr 1fr auto',
+      alignItems: 'end'
+    }
   },
   filterGroup: {
     display: 'flex',
     flexDirection: 'column'
   },
-  label: {
-    display: 'block',
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#1d1d1f',
-    marginBottom: '12px',
-    letterSpacing: '-0.2px'
-  },
-  select: {
-    width: '100%',
-    padding: '16px 20px',
-    border: '1px solid rgba(0, 0, 0, 0.1)',
-    borderRadius: '16px',
-    fontSize: '16px',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    outline: 'none',
-    fontFamily: 'inherit',
-    appearance: 'none',
-    backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
-    backgroundPosition: 'right 12px center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: '16px'
-  },
-  clearButton: {
-    padding: '16px 24px',
-    border: '1px solid rgba(0, 0, 0, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    color: '#424245',
-    borderRadius: '16px',
-    cursor: 'pointer',
-    fontWeight: '600',
-    fontSize: '16px',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    height: 'fit-content',
-    whiteSpace: 'nowrap'
-  },
-  activeFilters: {
-    marginTop: '1.5rem',
-    paddingTop: '1.5rem',
-    borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    flexWrap: 'wrap'
-  },
-  activeFiltersLabel: {
-    fontSize: '14px',
-    color: '#6e6e73',
-    fontWeight: '500'
-  },
-  filterTag: {
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    color: '#007aff',
-    padding: '8px 16px',
-    borderRadius: '20px',
+  filterLabel: {
     fontSize: '14px',
     fontWeight: '500',
-    border: '1px solid rgba(0, 122, 255, 0.2)'
+    color: '#374151',
+    marginBottom: '8px'
+  },
+  filterSelect: {
+    width: '100%',
+    padding: '10px 12px',
+    border: '1px solid #d1d5db',
+    borderRadius: '12px',
+    fontSize: '14px',
+    backgroundColor: 'white',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+    appearance: 'none',
+    backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
+    backgroundPosition: 'right 8px center',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: '16px',
+    '@media (min-width: 768px)': {
+      fontSize: '16px',
+      padding: '12px 16px'
+    }
+  },
+  filterButtonContainer: {
+    display: 'flex',
+    alignItems: 'end'
+  },
+  clearButton: {
+    width: '100%',
+    padding: '10px 16px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#4b5563',
+    backgroundColor: '#f3f4f6',
+    border: 'none',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    '@media (min-width: 768px)': {
+      width: 'auto',
+      fontSize: '16px',
+      padding: '12px 20px'
+    }
   },
 
   // Message
   message: {
-    padding: '20px 24px',
-    borderRadius: '16px',
-    marginBottom: '2rem',
-    border: '2px solid',
+    padding: '16px',
+    borderRadius: '12px',
+    marginBottom: '24px',
+    fontSize: '14px',
     fontWeight: '500',
-    fontSize: '16px'
+    border: '1px solid',
+    '@media (min-width: 768px)': {
+      fontSize: '16px'
+    }
   },
 
   // Results
   resultsHeader: {
-    marginBottom: '2rem'
+    marginBottom: '16px'
   },
   resultsTitle: {
-    fontSize: '2rem',
-    fontWeight: '700',
-    color: '#1d1d1f',
-    margin: 0,
-    letterSpacing: '-0.5px'
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#111827',
+    '@media (min-width: 768px)': {
+      fontSize: '20px'
+    }
   },
-  resultsCount: {
-    fontSize: '1.2rem',
-    fontWeight: '400',
-    color: '#6e6e73',
-    marginLeft: '8px'
-  },
-  resultsContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2rem'
+  resultsGrid: {
+    display: 'grid',
+    gap: '16px',
+    '@media (min-width: 768px)': {
+      gap: '24px'
+    }
   },
 
   // Loading
   loadingContainer: {
-    textAlign: 'center',
-    padding: '4rem',
-    background: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: '24px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
-    backdropFilter: 'blur(20px)'
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '48px',
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
   spinner: {
     width: '48px',
     height: '48px',
-    border: '4px solid rgba(0, 122, 255, 0.1)',
-    borderTop: '4px solid #007aff',
+    border: '4px solid rgba(59, 130, 246, 0.1)',
+    borderTop: '4px solid #3b82f6',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
-    margin: '0 auto 1.5rem'
+    marginBottom: '16px'
   },
   loadingText: {
-    color: '#6e6e73',
-    fontSize: '18px',
-    fontWeight: '500'
+    color: '#6b7280',
+    fontSize: '16px'
   },
 
-  // Empty
+  // Empty State
   emptyContainer: {
     textAlign: 'center',
-    padding: '4rem',
-    background: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: '24px',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
-    backdropFilter: 'blur(20px)'
+    padding: '48px',
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
   emptyIcon: {
-    fontSize: '4rem',
-    marginBottom: '1.5rem'
+    fontSize: '48px',
+    marginBottom: '16px'
   },
   emptyTitle: {
-    fontSize: '1.5rem',
+    fontSize: '20px',
     fontWeight: '600',
-    color: '#1d1d1f',
-    marginBottom: '1rem'
+    color: '#111827',
+    marginBottom: '8px'
   },
-  emptyDescription: {
-    color: '#6e6e73',
-    fontSize: '16px',
-    marginBottom: '2rem',
-    lineHeight: '1.5'
+  emptyText: {
+    color: '#6b7280',
+    fontSize: '14px',
+    marginBottom: '24px'
   },
   primaryButton: {
-    padding: '16px 32px',
-    background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)',
+    padding: '12px 24px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
     color: 'white',
     border: 'none',
-    borderRadius: '16px',
-    fontSize: '16px',
-    fontWeight: '600',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: '500',
     cursor: 'pointer',
-    boxShadow: '0 4px 16px rgba(0, 122, 255, 0.3)',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+    transition: 'transform 0.2s, box-shadow 0.2s'
   },
 
-  // Cards
+  // Card Styles
   card: {
-    background: 'rgba(255, 255, 255, 0.9)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    borderRadius: '24px',
-    padding: '2rem',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    cursor: 'pointer'
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    border: '1px solid #e5e7eb',
+    overflow: 'hidden',
+    transition: 'box-shadow 0.2s'
   },
-  cardContent: {
+
+  // Mobile Card Layout
+  cardMobile: {
+    padding: '16px',
+    display: 'block',
+    '@media (min-width: 768px)': {
+      display: 'none'
+    }
+  },
+  doctorHeaderMobile: {
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    gap: '2rem'
+    gap: '12px',
+    marginBottom: '16px'
   },
-  cardLeft: {
-    flex: 1
-  },
-  cardRight: {
-    flexShrink: 0
-  },
-  doctorHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1.5rem',
-    marginBottom: '2rem'
-  },
-  avatar: {
-    width: '80px',
-    height: '80px',
-    background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)',
-    borderRadius: '20px',
+  avatarSmall: {
+    width: '48px',
+    height: '48px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+    borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     color: 'white',
-    fontWeight: '700',
-    fontSize: '24px',
-    boxShadow: '0 4px 16px rgba(0, 122, 255, 0.3)',
-    letterSpacing: '-0.5px'
+    fontWeight: 'bold',
+    fontSize: '14px',
+    flexShrink: 0
   },
-  doctorInfo: {
-    flex: 1
+  doctorInfoMobile: {
+    flex: 1,
+    minWidth: 0
   },
-  doctorName: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1d1d1f',
-    margin: 0,
-    marginBottom: '4px',
-    letterSpacing: '-0.5px',
-    lineHeight: '1.2'
-  },
-  specialty: {
-    fontSize: '20px',
+  doctorNameMobile: {
+    fontSize: '16px',
     fontWeight: '600',
-    color: '#007aff',
+    color: '#111827',
     margin: 0,
-    letterSpacing: '-0.2px'
+    marginBottom: '2px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
   },
-  detailsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-    gap: '1.5rem'
+  specialtyMobile: {
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#3b82f6',
+    margin: 0
   },
-  detailItem: {
+  detailsMobile: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    marginBottom: '16px'
+  },
+  detailRowMobile: {
     display: 'flex',
     alignItems: 'flex-start',
-    gap: '16px',
-    padding: '12px 0'
+    gap: '8px',
+    fontSize: '14px'
   },
-  detailIcon: {
-    fontSize: '20px',
+  detailIconMobile: {
+    color: '#9ca3af',
     flexShrink: 0,
     marginTop: '2px'
   },
-  detailContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px'
+  detailTextMobile: {
+    flex: 1
   },
-  detailLabel: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#6e6e73',
-    letterSpacing: '-0.1px'
+  clinicNameMobile: {
+    color: '#374151',
+    fontWeight: '500'
   },
-  detailValue: {
-    fontSize: '16px',
-    fontWeight: '500',
-    color: '#1d1d1f',
-    lineHeight: '1.4'
+  addressMobile: {
+    fontSize: '12px',
+    color: '#6b7280',
+    margin: 0
   },
-  reserveButton: {
-    padding: '20px 32px',
-    background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)',
+  dateTimeMobile: {
+    color: '#111827',
+    fontWeight: '500'
+  },
+  segurosMobile: {
+    color: '#374151'
+  },
+  reserveButtonMobile: {
+    width: '100%',
+    padding: '12px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
     color: 'white',
     border: 'none',
-    borderRadius: '20px',
-    fontSize: '18px',
-    fontWeight: '600',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: '500',
     cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    boxShadow: '0 4px 16px rgba(0, 122, 255, 0.3)',
-    minWidth: '180px',
-    letterSpacing: '-0.2px'
-  },
-  buttonText: {
-    display: 'block'
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+    transition: 'transform 0.2s'
   },
 
-  // Modal
+  // Desktop Card Layout
+  cardDesktop: {
+    padding: '24px',
+    display: 'none',
+    '@media (min-width: 768px)': {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: '24px'
+    }
+  },
+  cardLeft: {
+    flex: 1
+  },
+  doctorHeaderDesktop: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    marginBottom: '20px'
+  },
+  avatarLarge: {
+    width: '64px',
+    height: '64px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+    borderRadius: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: '20px'
+  },
+  doctorNameDesktop: {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#111827',
+    margin: 0,
+    marginBottom: '4px'
+  },
+  specialtyDesktop: {
+    fontSize: '16px',
+    fontWeight: '500',
+    color: '#3b82f6',
+    margin: 0
+  },
+  detailsGridDesktop: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '16px'
+  },
+  detailsColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px'
+  },
+  detailItemDesktop: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '12px'
+  },
+  detailIconDesktop: {
+    color: '#9ca3af',
+    fontSize: '18px',
+    marginTop: '2px'
+  },
+  detailLabelDesktop: {
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#111827',
+    margin: 0
+  },
+  detailValueDesktop: {
+    fontSize: '14px',
+    color: '#6b7280',
+    margin: 0
+  },
+  reserveButtonDesktop: {
+    padding: '16px 32px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+    color: 'white',
+    border: 'none',
+    borderRadius: '12px',
+    fontSize: '16px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+    transition: 'transform 0.2s',
+    whiteSpace: 'nowrap'
+  },
+
+  // Modal Styles
   modalOverlay: {
     position: 'fixed',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'center',
-    padding: '2rem',
     zIndex: 1000,
-    backdropFilter: 'blur(10px)'
+    padding: 0,
+    '@media (min-width: 768px)': {
+      alignItems: 'center',
+      padding: '16px'
+    }
   },
-  modal: {
-    background: 'rgba(255, 255, 255, 0.95)',
-    backdropFilter: 'blur(20px)',
-    borderRadius: '24px',
-    padding: '2rem',
-    maxWidth: '600px',
+  modalContent: {
+    backgroundColor: 'white',
     width: '100%',
     maxHeight: '90vh',
     overflowY: 'auto',
-    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-    border: '1px solid rgba(255, 255, 255, 0.3)'
+    borderTopLeftRadius: '24px',
+    borderTopRightRadius: '24px',
+    '@media (min-width: 768px)': {
+      maxWidth: '500px',
+      borderRadius: '16px'
+    }
   },
   modalHeader: {
+    position: 'sticky',
+    top: 0,
+    backgroundColor: 'white',
+    borderBottom: '1px solid #e5e7eb',
+    padding: '16px 16px',
     display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '2rem'
+    justifyContent: 'space-between',
+    zIndex: 10,
+    '@media (min-width: 768px)': {
+      padding: '20px 24px'
+    }
   },
   modalTitle: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1d1d1f',
+    fontSize: '20px',
+    fontWeight: 'bold',
+    color: '#111827',
     margin: 0,
-    letterSpacing: '-0.5px'
+    '@media (min-width: 768px)': {
+      fontSize: '24px'
+    }
   },
   closeButton: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '12px',
-    border: 'none',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    color: '#424245',
-    fontSize: '24px',
-    cursor: 'pointer',
+    width: '32px',
+    height: '32px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'all 0.2s ease'
+    fontSize: '24px',
+    color: '#6b7280',
+    backgroundColor: 'transparent',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    '@media (min-width: 768px)': {
+      width: '40px',
+      height: '40px'
+    }
   },
-  modalInfo: {
-    background: 'rgba(0, 122, 255, 0.05)',
-    border: '1px solid rgba(0, 122, 255, 0.1)',
-    padding: '2rem',
-    borderRadius: '20px',
-    marginBottom: '2rem'
+  modalBody: {
+    padding: '16px',
+    '@media (min-width: 768px)': {
+      padding: '24px'
+    }
   },
-  modalDoctorHeader: {
+  modalInfoBox: {
+    backgroundColor: '#eff6ff',
+    borderRadius: '12px',
+    padding: '16px',
+    marginBottom: '24px',
+    border: '1px solid #dbeafe'
+  },
+  modalDoctorInfo: {
     display: 'flex',
     alignItems: 'flex-start',
-    gap: '1.5rem'
+    gap: '12px'
   },
   modalAvatar: {
-    width: '60px',
-    height: '60px',
-    background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)',
-    borderRadius: '16px',
+    width: '48px',
+    height: '48px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+    borderRadius: '12px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     color: 'white',
-    fontWeight: '700',
-    fontSize: '20px',
+    fontWeight: 'bold',
     flexShrink: 0
   },
+  modalDoctorDetails: {
+    flex: 1,
+    minWidth: 0
+  },
   modalDoctorName: {
-    fontSize: '22px',
-    fontWeight: '700',
-    color: '#1d1d1f',
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#111827',
     margin: '0 0 4px 0'
   },
   modalSpecialty: {
-    color: '#007aff',
-    margin: '0 0 4px 0',
-    fontWeight: '600',
-    fontSize: '16px'
-  },
-  modalClinic: {
-    color: '#424245',
-    margin: '0 0 4px 0',
     fontSize: '14px',
-    fontWeight: '500'
+    color: '#3b82f6',
+    fontWeight: '500',
+    margin: '0 0 4px 0'
+  },
+  modalClinicInfo: {
+    fontSize: '14px',
+    color: '#374151',
+    margin: '0 0 4px 0'
   },
   modalDateTime: {
-    color: '#424245',
-    margin: '0 0 4px 0',
     fontSize: '14px',
-    fontWeight: '500'
+    color: '#374151',
+    margin: 0
   },
-  modalSeguro: {
-    color: '#424245',
-    margin: '0',
-    fontSize: '14px',
-    fontWeight: '500'
-  },
-  form: {
+
+  // Form Styles
+  formContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.5rem'
+    gap: '16px'
   },
-  formSectionTitle: {
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#1d1d1f',
-    margin: '0 0 8px 0',
-    letterSpacing: '-0.3px'
-  },
-  formSubtitle: {
-    fontSize: '14px',
-    color: '#6e6e73',
-    margin: '0 0 24px 0',
-    lineHeight: '1.4'
-  },
-  formGroup: {
+  formField: {
     display: 'flex',
     flexDirection: 'column'
   },
   formLabel: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#1d1d1f',
-    marginBottom: '8px',
-    letterSpacing: '-0.2px'
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: '6px'
   },
   formInput: {
     width: '100%',
-    padding: '16px 20px',
-    border: '1px solid rgba(0, 0, 0, 0.1)',
-    borderRadius: '16px',
-    fontSize: '16px',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    boxSizing: 'border-box',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+    padding: '10px 12px',
+    border: '1px solid #d1d5db',
+    borderRadius: '12px',
+    fontSize: '14px',
     outline: 'none',
-    fontFamily: 'inherit'
-  },
-  formRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '1.5rem'
+    transition: 'border-color 0.2s',
+    boxSizing: 'border-box',
+    '@media (min-width: 768px)': {
+      fontSize: '16px',
+      padding: '12px 16px'
+    }
   },
   checkboxContainer: {
-    marginTop: '8px'
-  },
-  checkboxLabel: {
     display: 'flex',
     alignItems: 'flex-start',
     gap: '12px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    lineHeight: '1.4'
+    marginTop: '8px'
   },
   checkbox: {
     width: '16px',
     height: '16px',
     marginTop: '2px',
     cursor: 'pointer',
-    accentColor: '#007aff'
+    accentColor: '#3b82f6'
   },
-  checkboxText: {
-    color: '#1d1d1f',
-    fontSize: '14px'
+  checkboxLabel: {
+    fontSize: '14px',
+    color: '#374151',
+    cursor: 'pointer'
   },
   link: {
-    color: '#007aff',
-    textDecoration: 'underline',
-    fontWeight: '500'
+    color: '#3b82f6',
+    textDecoration: 'underline'
   },
-  warningContainer: {
+  warningBox: {
     display: 'flex',
     gap: '12px',
-    padding: '16px',
-    backgroundColor: '#fff3cd',
-    border: '1px solid #ffeaa7',
+    padding: '12px',
+    backgroundColor: '#fef3c7',
+    border: '1px solid #fde68a',
     borderRadius: '12px',
     marginTop: '8px'
   },
   warningIcon: {
-    fontSize: '20px',
-    flexShrink: 0,
-    marginTop: '2px'
-  },
-  warningContent: {
-    flex: 1
+    fontSize: '18px',
+    flexShrink: 0
   },
   warningTitle: {
     fontSize: '14px',
-    fontWeight: '700',
-    color: '#856404',
-    margin: '0 0 4px 0'
+    fontWeight: '500',
+    color: '#92400e',
+    margin: '0 0 2px 0'
   },
   warningText: {
     fontSize: '13px',
-    color: '#856404',
-    margin: 0,
-    lineHeight: '1.4'
+    color: '#92400e',
+    margin: 0
   },
-  agendarButton: {
+  submitButton: {
     width: '100%',
-    padding: '16px 24px',
-    background: 'linear-gradient(135deg, #007aff 0%, #5856d6 100%)',
+    padding: '12px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
     color: 'white',
     border: 'none',
     borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: '600',
+    fontSize: '14px',
+    fontWeight: '500',
     cursor: 'pointer',
-    boxShadow: '0 4px 16px rgba(0, 122, 255, 0.3)',
-    transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-    marginTop: '12px'
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+    transition: 'all 0.2s',
+    marginTop: '12px',
+    '@media (min-width: 768px)': {
+      fontSize: '16px',
+      padding: '14px'
+    }
+  },
+  submitButtonDisabled: {
+    background: '#e5e7eb',
+    color: '#9ca3af',
+    cursor: 'not-allowed',
+    boxShadow: 'none'
   },
   loadingButtonContent: {
     display: 'flex',
