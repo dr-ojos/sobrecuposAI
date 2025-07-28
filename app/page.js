@@ -40,6 +40,11 @@ export default function Home() {
     router.push('/chat');
   };
 
+  // Nueva función para ir a ver sobrecupos
+  const goToSobrecupos = () => {
+    router.push('/agendar');
+  };
+
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 500);
     
@@ -164,25 +169,22 @@ export default function Home() {
             </div>
           )}
 
-          {/* 🆕 NUEVA SECCIÓN: BOTÓN PARA VER SOBRECUPOS */}
+          {/* 🆕 SECCIÓN ACTUALIZADA: BOTÓN PARA VER SOBRECUPOS - SIN TEXTO "también puedes" */}
           <div className={`additional-options ${isVisible ? 'visible' : ''}`}>
-            <div className="divider-text">
-              <span>o también puedes</span>
-            </div>
             <div className="agendar-button-container">
-              <Link 
-                href="/agendar"
+              <button 
+                onClick={goToSobrecupos}
                 className="agendar-button"
               >
                 <div className="button-content">
                   <span className="button-icon">📅</span>
                   <div className="button-text">
-                    <span className="button-title">Ver Todos los Sobrecupos</span>
+                    <span className="button-title">Ver Sobrecupos</span>
                     <span className="button-subtitle">Explora todas las citas disponibles</span>
                   </div>
                   <span className="button-arrow">→</span>
                 </div>
-              </Link>
+              </button>
             </div>
           </div>
         </div>
@@ -748,9 +750,9 @@ export default function Home() {
           }
         }
 
-        /* 🆕 NUEVA SECCIÓN: Botón para agendar sobrecupos */
+        /* 🆕 SECCIÓN ACTUALIZADA: Botón para ver sobrecupos - SIN texto "también puedes" */
         .additional-options {
-          margin-top: 4rem;
+          margin-top: 3rem;
           margin-bottom: 2rem;
           opacity: 0;
           transform: translateY(30px);
@@ -762,31 +764,14 @@ export default function Home() {
           transform: translateY(0);
         }
 
-        .divider-text {
-          text-align: center;
-          margin-bottom: 2rem;
-          position: relative;
-        }
-
-        .divider-text span {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
-          padding: 0.5rem 1.5rem;
-          border-radius: 50px;
-          font-size: 0.9rem;
-          color: #6b7280;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-
         .agendar-button-container {
           display: flex;
           justify-content: center;
         }
 
         .agendar-button {
-          display: block;
-          text-decoration: none;
+          display: flex;
+          align-items: center;
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
@@ -795,6 +780,7 @@ export default function Home() {
           padding: 1.5rem 2rem;
           max-width: 400px;
           width: 100%;
+          cursor: pointer;
           transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           box-shadow: 
             0 8px 32px rgba(0, 0, 0, 0.08),
@@ -1260,11 +1246,6 @@ export default function Home() {
           .button-subtitle {
             font-size: 0.8rem;
           }
-
-          .divider-text span {
-            font-size: 0.85rem;
-            padding: 0.4rem 1.2rem;
-          }
         }
 
         @media (max-width: 375px) {
@@ -1353,11 +1334,6 @@ export default function Home() {
 
           .button-subtitle {
             font-size: 0.75rem;
-          }
-
-          .divider-text span {
-            font-size: 0.8rem;
-            padding: 0.35rem 1rem;
           }
         }
 

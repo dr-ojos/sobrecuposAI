@@ -270,11 +270,14 @@ const AgendarSobrecuposPage = () => {
 
   return (
     <div style={styles.pageContainer}>
-      {/* Header Mobile First */}
+      {/* Header mejorado */}
       <header style={styles.header}>
         <div style={styles.headerContainer}>
           <div style={styles.headerContent}>
             <div style={styles.headerLeft}>
+              <button onClick={handleBackClick} style={styles.backButton}>
+                <span style={styles.backArrow}>←</span>
+              </button>
               <div style={styles.logoContainer}>
                 <div style={styles.logoIcon}>S</div>
               </div>
@@ -283,210 +286,197 @@ const AgendarSobrecuposPage = () => {
                 <p style={styles.headerSubtitle}>Agenda tu cita</p>
               </div>
             </div>
-            <button onClick={handleBackClick} style={styles.backButton}>
-              <span style={styles.backArrow}>←</span>
-              <span style={styles.backText}>Volver</span>
-            </button>
+            <div style={styles.headerStats}>
+              {!loading && (
+                <span style={styles.statsText}>
+                  {filteredSobrecupos.length} disponibles
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Layout mejorado para desktop */}
       <main style={styles.mainContent}>
-        {/* Title Section */}
-        <div style={styles.titleSection}>
-          <h2 style={styles.mainTitle}>Buscar Sobrecupo</h2>
-          <p style={styles.subtitle}>
-            Encuentra y reserva citas médicas disponibles
-          </p>
-        </div>
-
-        {/* Filters Mobile Optimized */}
-        <div style={styles.filtersContainer}>
-          <div style={styles.filtersGrid}>
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Especialidad</label>
-              <select
-                value={filters.especialidad}
-                onChange={(e) => setFilters(prev => ({ ...prev, especialidad: e.target.value }))}
-                style={styles.filterSelect}
-              >
-                <option value="">Todas</option>
-                {getUniqueEspecialidades().map(esp => (
-                  <option key={esp} value={esp}>{esp}</option>
-                ))}
-              </select>
+        <div style={styles.desktopLayout}>
+          {/* Sidebar con filtros y título - lado izquierdo */}
+          <aside style={styles.sidebar}>
+            <div style={styles.titleSection}>
+              <h2 style={styles.mainTitle}>Buscar Sobrecupo</h2>
+              <p style={styles.subtitle}>
+                Encuentra y reserva citas médicas disponibles
+              </p>
             </div>
 
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Médico</label>
-              <select
-                value={filters.medico}
-                onChange={(e) => setFilters(prev => ({ ...prev, medico: e.target.value }))}
-                style={styles.filterSelect}
-              >
-                <option value="">Todos</option>
-                {getUniqueMedicos().map(medico => (
-                  <option key={medico} value={medico}>{medico}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={styles.filterButtonContainer}>
-              <button onClick={clearFilters} style={styles.clearButton}>
-                Limpiar filtros
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Message */}
-        {message && (
-          <div style={{
-            ...styles.message,
-            backgroundColor: message.includes('confirmada') ? '#d1fae5' : '#fee2e2',
-            color: message.includes('confirmada') ? '#065f46' : '#991b1b',
-            borderColor: message.includes('confirmada') ? '#a7f3d0' : '#fecaca'
-          }}>
-            {message}
-          </div>
-        )}
-
-        {/* Results Count */}
-        <div style={styles.resultsHeader}>
-          <h3 style={styles.resultsTitle}>
-            {filteredSobrecupos.length} sobrecupos disponibles
-          </h3>
-        </div>
-
-        {/* Results Grid Mobile Optimized */}
-        {loading ? (
-          <div style={styles.loadingContainer}>
-            <div style={styles.spinner}></div>
-            <p style={styles.loadingText}>Cargando sobrecupos...</p>
-          </div>
-        ) : filteredSobrecupos.length === 0 ? (
-          <div style={styles.emptyContainer}>
-            <div style={styles.emptyIcon}>😔</div>
-            <h3 style={styles.emptyTitle}>No se encontraron sobrecupos</h3>
-            <p style={styles.emptyText}>Intenta ajustar los filtros</p>
-            {sobrecupos.length > 0 && (
-              <button onClick={clearFilters} style={styles.primaryButton}>
-                Ver todos los sobrecupos
-              </button>
-            )}
-          </div>
-        ) : (
-          <div style={styles.resultsGrid}>
-            {filteredSobrecupos.map((sobrecupo) => (
-              <div key={sobrecupo.id} style={styles.card}>
-                {/* Mobile Layout */}
-                <div style={styles.cardMobile}>
-                  {/* Doctor Header Mobile */}
-                  <div style={styles.doctorHeaderMobile}>
-                    <div style={styles.avatarSmall}>
-                      {sobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                    </div>
-                    <div style={styles.doctorInfoMobile}>
-                      <h3 style={styles.doctorNameMobile}>
-                        {sobrecupo.fields.Médico}
-                      </h3>
-                      <p style={styles.specialtyMobile}>
-                        {sobrecupo.fields.Especialidad}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Details Mobile */}
-                  <div style={styles.detailsMobile}>
-                    <div style={styles.detailRowMobile}>
-                      <span style={styles.detailIconMobile}>📍</span>
-                      <div style={styles.detailTextMobile}>
-                        <span style={styles.clinicNameMobile}>{sobrecupo.fields.Clínica}</span>
-                        <p style={styles.addressMobile}>{sobrecupo.fields.Dirección}</p>
-                      </div>
-                    </div>
-                    <div style={styles.detailRowMobile}>
-                      <span style={styles.detailIconMobile}>📅</span>
-                      <span style={styles.dateTimeMobile}>
-                        {formatDate(sobrecupo.fields.Fecha)} - {sobrecupo.fields.Hora}
-                      </span>
-                    </div>
-                    <div style={styles.detailRowMobile}>
-                      <span style={styles.detailIconMobile}>💳</span>
-                      <span style={styles.segurosMobile}>{getPrevisiones(sobrecupo)}</span>
-                    </div>
-                  </div>
-
-                  {/* Button Mobile */}
-                  <button
-                    onClick={() => handleReservarClick(sobrecupo)}
-                    style={styles.reserveButtonMobile}
+            {/* Filtros mejorados */}
+            <div style={styles.filtersCard}>
+              <h3 style={styles.filtersTitle}>Filtrar por</h3>
+              
+              <div style={styles.filtersContainer}>
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>Especialidad</label>
+                  <select
+                    value={filters.especialidad}
+                    onChange={(e) => setFilters(prev => ({ ...prev, especialidad: e.target.value }))}
+                    style={styles.filterSelect}
                   >
-                    Reservar Cita
-                  </button>
+                    <option value="">Todas</option>
+                    {getUniqueEspecialidades().map(esp => (
+                      <option key={esp} value={esp}>{esp}</option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Desktop Layout */}
-                <div style={styles.cardDesktop}>
-                  <div style={styles.cardLeft}>
-                    <div style={styles.doctorHeaderDesktop}>
-                      <div style={styles.avatarLarge}>
-                        {sobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                      </div>
-                      <div>
-                        <h3 style={styles.doctorNameDesktop}>
-                          {sobrecupo.fields.Médico}
-                        </h3>
-                        <p style={styles.specialtyDesktop}>
-                          {sobrecupo.fields.Especialidad}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div style={styles.detailsGridDesktop}>
-                      <div style={styles.detailsColumn}>
-                        <div style={styles.detailItemDesktop}>
-                          <span style={styles.detailIconDesktop}>🏥</span>
-                          <div>
-                            <p style={styles.detailLabelDesktop}>{sobrecupo.fields.Clínica}</p>
-                            <p style={styles.detailValueDesktop}>{sobrecupo.fields.Dirección}</p>
-                          </div>
-                        </div>
-                        <div style={styles.detailItemDesktop}>
-                          <span style={styles.detailIconDesktop}>📅</span>
-                          <span style={styles.detailValueDesktop}>
-                            {formatDate(sobrecupo.fields.Fecha)} - {sobrecupo.fields.Hora}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={styles.detailsColumn}>
-                        <div style={styles.detailItemDesktop}>
-                          <span style={styles.detailIconDesktop}>💳</span>
-                          <span style={styles.detailValueDesktop}>{getPrevisiones(sobrecupo)}</span>
-                        </div>
-                        <div style={styles.detailItemDesktop}>
-                          <span style={styles.detailIconDesktop}>👥</span>
-                          <span style={styles.detailValueDesktop}>Atiende {sobrecupo.fields.Atiende}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleReservarClick(sobrecupo)}
-                    style={styles.reserveButtonDesktop}
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>Médico</label>
+                  <select
+                    value={filters.medico}
+                    onChange={(e) => setFilters(prev => ({ ...prev, medico: e.target.value }))}
+                    style={styles.filterSelect}
                   >
-                    Reservar Cita
-                  </button>
+                    <option value="">Todos</option>
+                    {getUniqueMedicos().map(medico => (
+                      <option key={medico} value={medico}>{medico}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <button onClick={clearFilters} style={styles.clearButton}>
+                  Limpiar filtros
+                </button>
+              </div>
+            </div>
+
+            {/* Información adicional */}
+            <div style={styles.infoCard}>
+              <h4 style={styles.infoTitle}>¿Cómo funciona?</h4>
+              <div style={styles.infoSteps}>
+                <div style={styles.infoStep}>
+                  <span style={styles.stepNumber}>1</span>
+                  <p style={styles.stepText}>Elige tu sobrecupo</p>
+                </div>
+                <div style={styles.infoStep}>
+                  <span style={styles.stepNumber}>2</span>
+                  <p style={styles.stepText}>Completa tus datos</p>
+                </div>
+                <div style={styles.infoStep}>
+                  <span style={styles.stepNumber}>3</span>
+                  <p style={styles.stepText}>¡Confirma tu cita!</p>
                 </div>
               </div>
-            ))}
+            </div>
+          </aside>
+
+          {/* Contenido principal - lado derecho */}
+          <div style={styles.content}>
+            {/* Message */}
+            {message && (
+              <div style={{
+                ...styles.message,
+                backgroundColor: message.includes('confirmada') ? '#d1fae5' : '#fee2e2',
+                color: message.includes('confirmada') ? '#065f46' : '#991b1b',
+                borderColor: message.includes('confirmada') ? '#a7f3d0' : '#fecaca'
+              }}>
+                {message}
+              </div>
+            )}
+
+            {/* Results Header */}
+            <div style={styles.resultsHeader}>
+              <h3 style={styles.resultsTitle}>
+                {loading ? 'Cargando...' : `${filteredSobrecupos.length} sobrecupos disponibles`}
+              </h3>
+            </div>
+
+            {/* Results Grid optimizado para desktop */}
+            {loading ? (
+              <div style={styles.loadingContainer}>
+                <div style={styles.spinner}></div>
+                <p style={styles.loadingText}>Cargando sobrecupos...</p>
+              </div>
+            ) : filteredSobrecupos.length === 0 ? (
+              <div style={styles.emptyContainer}>
+                <div style={styles.emptyIcon}>😔</div>
+                <h3 style={styles.emptyTitle}>No se encontraron sobrecupos</h3>
+                <p style={styles.emptyText}>Intenta ajustar los filtros</p>
+                {sobrecupos.length > 0 && (
+                  <button onClick={clearFilters} style={styles.primaryButton}>
+                    Ver todos los sobrecupos
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div style={styles.resultsGrid}>
+                {filteredSobrecupos.map((sobrecupo) => (
+                  <div key={sobrecupo.id} style={styles.sobrecupoCard}>
+                    {/* Header del médico */}
+                    <div style={styles.cardHeader}>
+                      <div style={styles.doctorInfo}>
+                        <div style={styles.avatar}>
+                          {sobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                        </div>
+                        <div style={styles.doctorDetails}>
+                          <h3 style={styles.doctorName}>
+                            {sobrecupo.fields.Médico}
+                          </h3>
+                          <p style={styles.specialty}>
+                            {sobrecupo.fields.Especialidad}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={styles.dateTime}>
+                        <div style={styles.dateText}>
+                          {formatDate(sobrecupo.fields.Fecha)}
+                        </div>
+                        <div style={styles.timeText}>
+                          {sobrecupo.fields.Hora}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detalles de la clínica */}
+                    <div style={styles.cardBody}>
+                      <div style={styles.clinicInfo}>
+                        <div style={styles.detailRow}>
+                          <span style={styles.detailIcon}>🏥</span>
+                          <div style={styles.detailText}>
+                            <span style={styles.clinicName}>{sobrecupo.fields.Clínica}</span>
+                            <p style={styles.address}>{sobrecupo.fields.Dirección}</p>
+                          </div>
+                        </div>
+                        
+                        <div style={styles.additionalInfo}>
+                          <div style={styles.infoItem}>
+                            <span style={styles.infoIcon}>💳</span>
+                            <span style={styles.infoText}>{getPrevisiones(sobrecupo)}</span>
+                          </div>
+                          <div style={styles.infoItem}>
+                            <span style={styles.infoIcon}>👥</span>
+                            <span style={styles.infoText}>Atiende {sobrecupo.fields.Atiende || 'Consultar'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer con botón */}
+                    <div style={styles.cardFooter}>
+                      <button
+                        onClick={() => handleReservarClick(sobrecupo)}
+                        style={styles.reserveButton}
+                      >
+                        Reservar Cita
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
 
-      {/* Modal Mobile Optimized */}
+      {/* Modal (mantener igual) */}
       {showReservationModal && selectedSobrecupo && (
         <div style={styles.modalOverlay} onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -653,7 +643,7 @@ const styles = {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
   },
 
-  // Header Styles
+  // Header mejorado
   header: {
     position: 'sticky',
     top: 0,
@@ -663,9 +653,12 @@ const styles = {
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
   },
   headerContainer: {
-    maxWidth: '1400px',
+    maxWidth: '1600px',
     margin: '0 auto',
-    padding: '0 16px'
+    padding: '0 24px',
+    '@media (max-width: 768px)': {
+      padding: '0 16px'
+    }
   },
   headerContent: {
     display: 'flex',
@@ -677,6 +670,23 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '12px'
+  },
+  backButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px',
+    height: '40px',
+    backgroundColor: '#f3f4f6',
+    border: 'none',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    fontSize: '18px',
+    color: '#4b5563'
+  },
+  backArrow: {
+    fontSize: '18px'
   },
   logoContainer: {
     width: '40px',
@@ -704,79 +714,94 @@ const styles = {
     color: '#6b7280',
     margin: 0
   },
-  backButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px 16px',
-    fontSize: '14px',
-    color: '#4b5563',
-    background: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'color 0.2s'
-  },
-  backArrow: {
-    fontSize: '16px'
-  },
-  backText: {
+  headerStats: {
     display: 'none',
-    '@media (min-width: 640px)': {
-      display: 'inline'
+    '@media (min-width: 768px)': {
+      display: 'block'
+    }
+  },
+  statsText: {
+    fontSize: '14px',
+    color: '#6b7280',
+    backgroundColor: '#f3f4f6',
+    padding: '6px 12px',
+    borderRadius: '20px',
+    fontWeight: '500'
+  },
+
+  // Layout mejorado
+  mainContent: {
+    maxWidth: '1600px',
+    margin: '0 auto',
+    padding: '24px',
+    '@media (max-width: 768px)': {
+      padding: '16px'
+    }
+  },
+  desktopLayout: {
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gap: '24px',
+    '@media (min-width: 1024px)': {
+      gridTemplateColumns: '360px 1fr',
+      gap: '32px'
     }
   },
 
-  // Main Content
-  mainContent: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '24px 16px'
+  // Sidebar
+  sidebar: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24px',
+    '@media (min-width: 1024px)': {
+      position: 'sticky',
+      top: '88px',
+      height: 'fit-content'
+    }
   },
 
   // Title Section
   titleSection: {
     textAlign: 'center',
-    marginBottom: '32px'
+    '@media (min-width: 1024px)': {
+      textAlign: 'left'
+    }
   },
   mainTitle: {
     fontSize: '28px',
     fontWeight: 'bold',
     color: '#111827',
     marginBottom: '8px',
-    '@media (min-width: 768px)': {
-      fontSize: '36px'
+    '@media (min-width: 1024px)': {
+      fontSize: '32px'
     }
   },
   subtitle: {
-    fontSize: '14px',
+    fontSize: '16px',
     color: '#6b7280',
-    maxWidth: '600px',
-    margin: '0 auto',
-    '@media (min-width: 768px)': {
-      fontSize: '16px'
-    }
+    margin: 0,
+    lineHeight: 1.5
   },
 
-  // Filters
-  filtersContainer: {
+  // Filters Card
+  filtersCard: {
     backgroundColor: 'white',
     borderRadius: '16px',
-    padding: '16px',
+    padding: '24px',
     boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    border: '1px solid #e5e7eb',
-    marginBottom: '24px',
-    '@media (min-width: 768px)': {
-      padding: '24px'
-    }
+    border: '1px solid #e5e7eb'
   },
-  filtersGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr',
-    gap: '16px',
-    '@media (min-width: 768px)': {
-      gridTemplateColumns: '1fr 1fr auto',
-      alignItems: 'end'
-    }
+  filtersTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: '16px',
+    margin: 0
+  },
+  filtersContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px'
   },
   filterGroup: {
     display: 'flex',
@@ -790,56 +815,94 @@ const styles = {
   },
   filterSelect: {
     width: '100%',
-    padding: '10px 12px',
+    padding: '12px 16px',
     border: '1px solid #d1d5db',
     borderRadius: '12px',
-    fontSize: '14px',
+    fontSize: '16px',
     backgroundColor: 'white',
     outline: 'none',
     transition: 'border-color 0.2s',
     appearance: 'none',
     backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
-    backgroundPosition: 'right 8px center',
+    backgroundPosition: 'right 12px center',
     backgroundRepeat: 'no-repeat',
-    backgroundSize: '16px',
-    '@media (min-width: 768px)': {
-      fontSize: '16px',
-      padding: '12px 16px'
-    }
-  },
-  filterButtonContainer: {
-    display: 'flex',
-    alignItems: 'end'
+    backgroundSize: '16px'
   },
   clearButton: {
     width: '100%',
-    padding: '10px 16px',
+    padding: '12px 16px',
     fontSize: '14px',
     fontWeight: '500',
-    color: '#4b5563',
-    backgroundColor: '#f3f4f6',
-    border: 'none',
+    color: '#6b7280',
+    backgroundColor: '#f9fafb',
+    border: '1px solid #e5e7eb',
     borderRadius: '12px',
     cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    '@media (min-width: 768px)': {
-      width: 'auto',
-      fontSize: '16px',
-      padding: '12px 20px'
+    transition: 'all 0.2s'
+  },
+
+  // Info Card
+  infoCard: {
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    padding: '20px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    border: '1px solid #e5e7eb',
+    display: 'none',
+    '@media (min-width: 1024px)': {
+      display: 'block'
     }
+  },
+  infoTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: '16px',
+    margin: 0
+  },
+  infoSteps: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px'
+  },
+  infoStep: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
+  },
+  stepNumber: {
+    width: '24px',
+    height: '24px',
+    backgroundColor: '#3b82f6',
+    color: 'white',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    flexShrink: 0
+  },
+  stepText: {
+    fontSize: '14px',
+    color: '#374151',
+    margin: 0
+  },
+
+  // Content Area
+  content: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px'
   },
 
   // Message
   message: {
     padding: '16px',
     borderRadius: '12px',
-    marginBottom: '24px',
     fontSize: '14px',
     fontWeight: '500',
-    border: '1px solid',
-    '@media (min-width: 768px)': {
-      fontSize: '16px'
-    }
+    border: '1px solid'
   },
 
   // Results
@@ -847,17 +910,20 @@ const styles = {
     marginBottom: '16px'
   },
   resultsTitle: {
-    fontSize: '18px',
+    fontSize: '20px',
     fontWeight: '600',
     color: '#111827',
-    '@media (min-width: 768px)': {
-      fontSize: '20px'
-    }
+    margin: 0
   },
   resultsGrid: {
     display: 'grid',
     gap: '16px',
     '@media (min-width: 768px)': {
+      gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))',
+      gap: '20px'
+    },
+    '@media (min-width: 1200px)': {
+      gridTemplateColumns: 'repeat(auto-fill, minmax(480px, 1fr))',
       gap: '24px'
     }
   },
@@ -923,31 +989,35 @@ const styles = {
     transition: 'transform 0.2s, box-shadow 0.2s'
   },
 
-  // Card Styles
-  card: {
+  // Sobrecupo Card mejorada
+  sobrecupoCard: {
     backgroundColor: 'white',
     borderRadius: '16px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
     border: '1px solid #e5e7eb',
     overflow: 'hidden',
-    transition: 'box-shadow 0.2s'
-  },
-
-  // Mobile Card Layout
-  cardMobile: {
-    padding: '16px',
-    display: 'block',
-    '@media (min-width: 768px)': {
-      display: 'none'
+    transition: 'all 0.3s ease',
+    ':hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
     }
   },
-  doctorHeaderMobile: {
+
+  // Card Header
+  cardHeader: {
     display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px',
-    marginBottom: '16px'
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '20px 20px 16px 20px',
+    borderBottom: '1px solid #f3f4f6'
   },
-  avatarSmall: {
+  doctorInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flex: 1
+  },
+  avatar: {
     width: '48px',
     height: '48px',
     background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
@@ -957,170 +1027,123 @@ const styles = {
     justifyContent: 'center',
     color: 'white',
     fontWeight: 'bold',
-    fontSize: '14px',
+    fontSize: '16px',
     flexShrink: 0
   },
-  doctorInfoMobile: {
+  doctorDetails: {
     flex: 1,
     minWidth: 0
   },
-  doctorNameMobile: {
-    fontSize: '16px',
+  doctorName: {
+    fontSize: '18px',
     fontWeight: '600',
     color: '#111827',
     margin: 0,
-    marginBottom: '2px',
+    marginBottom: '4px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
   },
-  specialtyMobile: {
+  specialty: {
     fontSize: '14px',
     fontWeight: '500',
     color: '#3b82f6',
     margin: 0
   },
-  detailsMobile: {
+  dateTime: {
+    textAlign: 'right',
+    flexShrink: 0
+  },
+  dateText: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: '2px'
+  },
+  timeText: {
+    fontSize: '14px',
+    color: '#6b7280',
+    fontWeight: '500'
+  },
+
+  // Card Body
+  cardBody: {
+    padding: '16px 20px'
+  },
+  clinicInfo: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px',
-    marginBottom: '16px'
+    gap: '12px'
   },
-  detailRowMobile: {
+  detailRow: {
     display: 'flex',
     alignItems: 'flex-start',
-    gap: '8px',
-    fontSize: '14px'
+    gap: '10px'
   },
-  detailIconMobile: {
+  detailIcon: {
+    fontSize: '16px',
     color: '#9ca3af',
-    flexShrink: 0,
-    marginTop: '2px'
+    marginTop: '2px',
+    flexShrink: 0
   },
-  detailTextMobile: {
+  detailText: {
     flex: 1
   },
-  clinicNameMobile: {
+  clinicName: {
+    fontSize: '15px',
+    fontWeight: '500',
+    color: '#111827',
+    marginBottom: '2px'
+  },
+  address: {
+    fontSize: '13px',
+    color: '#6b7280',
+    margin: 0
+  },
+  additionalInfo: {
+    display: 'flex',
+    gap: '16px',
+    flexWrap: 'wrap',
+    '@media (max-width: 768px)': {
+      flexDirection: 'column',
+      gap: '8px'
+    }
+  },
+  infoItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px'
+  },
+  infoIcon: {
+    fontSize: '14px',
+    color: '#9ca3af'
+  },
+  infoText: {
+    fontSize: '13px',
     color: '#374151',
     fontWeight: '500'
   },
-  addressMobile: {
-    fontSize: '12px',
-    color: '#6b7280',
-    margin: 0
+
+  // Card Footer
+  cardFooter: {
+    padding: '16px 20px 20px 20px',
+    borderTop: '1px solid #f3f4f6'
   },
-  dateTimeMobile: {
-    color: '#111827',
-    fontWeight: '500'
-  },
-  segurosMobile: {
-    color: '#374151'
-  },
-  reserveButtonMobile: {
+  reserveButton: {
     width: '100%',
-    padding: '12px',
+    padding: '12px 16px',
     background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
     color: 'white',
     border: 'none',
     borderRadius: '12px',
     fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-    transition: 'transform 0.2s'
-  },
-
-  // Desktop Card Layout
-  cardDesktop: {
-    padding: '24px',
-    display: 'none',
-    '@media (min-width: 768px)': {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: '24px'
-    }
-  },
-  cardLeft: {
-    flex: 1
-  },
-  doctorHeaderDesktop: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    marginBottom: '20px'
-  },
-  avatarLarge: {
-    width: '64px',
-    height: '64px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-    borderRadius: '16px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: '20px'
-  },
-  doctorNameDesktop: {
-    fontSize: '20px',
     fontWeight: '600',
-    color: '#111827',
-    margin: 0,
-    marginBottom: '4px'
-  },
-  specialtyDesktop: {
-    fontSize: '16px',
-    fontWeight: '500',
-    color: '#3b82f6',
-    margin: 0
-  },
-  detailsGridDesktop: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px'
-  },
-  detailsColumn: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px'
-  },
-  detailItemDesktop: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px'
-  },
-  detailIconDesktop: {
-    color: '#9ca3af',
-    fontSize: '18px',
-    marginTop: '2px'
-  },
-  detailLabelDesktop: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#111827',
-    margin: 0
-  },
-  detailValueDesktop: {
-    fontSize: '14px',
-    color: '#6b7280',
-    margin: 0
-  },
-  reserveButtonDesktop: {
-    padding: '16px 32px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: '500',
     cursor: 'pointer',
     boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-    transition: 'transform 0.2s',
-    whiteSpace: 'nowrap'
+    transition: 'all 0.2s'
   },
 
-  // Modal Styles
+  // Modal Styles (mantener iguales)
   modalOverlay: {
     position: 'fixed',
     top: 0,
