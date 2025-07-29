@@ -306,7 +306,7 @@ function MedicoDashboard() {
       </header>
 
       <main className="main-content">
-        {/* Stats Section - estilo Apple minimalista */}
+        {/* Stats Section - estilo Apple minimalista - FUNCIONALIDAD ORIGINAL */}
         <section className="stats-section">
           <div className="stats-grid">
             <div className="stat-card">
@@ -383,10 +383,13 @@ function MedicoDashboard() {
           </div>
         </section>
 
-        {/* Actions Section - estilo Apple */}
+        {/* Actions Section - estilo Apple - FUNCIONALIDAD ORIGINAL */}
         <section className="actions-section">
           <div className="section-header">
-            <h2 className="section-title">Acciones Rápidas</h2>
+            <h2 className="section-title">
+              <span className="title-icon">⚡</span>
+              Acciones Rápidas
+            </h2>
           </div>
           <div className="actions-grid">
             <button onClick={() => router.push('/medico/perfil')} className="action-card">
@@ -436,10 +439,13 @@ function MedicoDashboard() {
           </div>
         </section>
 
-        {/* Timeline Section - estilo Apple */}
+        {/* Timeline Section - estilo Apple - FUNCIONALIDAD ORIGINAL COMPLETA */}
         <section className="timeline-section">
           <div className="section-header">
-            <h2 className="section-title">Próximos Sobrecupos</h2>
+            <h2 className="section-title">
+              <span className="title-icon">📅</span>
+              Próximos Sobrecupos
+            </h2>
             <button onClick={() => router.push('/medico/sobrecupos')} className="view-all-btn">
               Ver todos
             </button>
@@ -789,6 +795,14 @@ function MedicoDashboard() {
           color: #171717;
           margin: 0;
           letter-spacing: -1px;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .title-icon {
+          font-size: 1.5rem;
+          opacity: 0.6;
         }
 
         .view-all-btn {
