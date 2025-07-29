@@ -187,32 +187,6 @@ function MedicoDashboard() {
               <div className="pulse pulse-3"></div>
             </div>
             <div className="logo-main">
-              <div className="logo-svg-container">
-                <svg 
-                  className="sobrecupos-logo" 
-                  viewBox="0 0 1005 591" 
-                  width="180" 
-                  height="105"
-                >
-                  <path 
-                    d="M1363 3665 c-143 -39 -241 -131 -293 -272 -19 -53 -22 -77 -18 -156 3 -84 8 -103 40 -168 34 -67 64 -101 320 -357 l283 -282 398 398 c372 372 397 400 397 432 -1 57 -48 98 -98 85 -17 -4 -116 -95 -262 -240 -272 -271 -297 -288 -430 -289 -128 -1 -165 18 -307 157 -144 141 -173 188 -173 282 0 113 70 209 174 240 119 36 179 13 316 -121 l105 -103 -60 -61 -60 -60 -95 94 c-98 98 -132 117 -172 95 -34 -18 -47 -40 -48 -79 0 -30 12 -46 118 -151 92 -92 126 -120 157 -128 83 -22 97 -12 360 249 132 131 255 245 274 255 45 22 126 30 178 16 105 -28 183 -134 183 -245 -1 -110 -4 -114 -438 -548 l-397 -398 60 -60 60 -60 403 402 c374 374 406 408 440 477 36 73 37 78 37 186 0 108 -1 113 -38 187 -103 210 -346 293 -563 194 -42 -19 -87 -56 -164 -131 -58 -58 -110 -105 -115 -105 -5 0 -56 47 -114 104 -59 57 -124 113 -146 124 -102 51 -211 64 -312 37z"
-                    fill="#ff3b30"
-                    transform="translate(0,591) scale(0.1,-0.1)"
-                  />
-                  <g transform="translate(0,591) scale(0.1,-0.1)" fill="#1d1d1f">
-                    <path d="M3104 3217 c-68 -18 -108 -48 -128 -97 -21 -53 -20 -75 5 -126 25 -53 68 -75 197 -105 115 -27 142 -48 106 -83 -22 -23 -96 -21 -117 2 -10 10 -17 24 -17 30 0 8 -31 12 -101 12 l-101 0 7 -27 c29 -117 130 -171 303 -161 182 11 281 121 224 250 -24 56 -75 83 -204 109 -49 10 -96 23 -104 30 -20 16 -17 36 5 49 41 21 111 5 111 -25 0 -12 18 -15 96 -15 l97 0 -7 33 c-16 84 -92 128 -229 133 -54 2 -113 -2 -143 -9z"/>
-                    <path d="M3732 3216 c-97 -32 -175 -116 -188 -203 -16 -111 12 -218 73 -274 61 -58 109 -74 218 -74 84 0 107 4 141 22 53 28 99 74 127 127 32 59 32 203 0 262 -30 57 -79 103 -133 127 -57 26 -178 32 -238 13z m143 -142 c49 -19 68 -178 28 -232 -28 -38 -67 -50 -101 -31 -70 38 -84 186 -25 251 16 18 66 24 98 12z"/>
-                    <path d="M4190 3045 l0 -375 100 0 100 0 0 32 0 32 28 -26 c35 -35 72 -48 130 -48 137 1 233 121 232 289 -1 155 -79 260 -206 278 -50 7 -121 -16 -149 -47 -10 -11 -22 -20 -27 -20 -4 0 -8 39 -7 88 0 48 0 106 0 130 l-1 42 -100 0 -100 0 0 -375z m336 17 c30 -21 44 -59 44 -120 0 -57 -3 -67 -29 -93 -31 -31 -53 -35 -95 -19 -66 25 -77 155 -18 223 15 17 77 24 98 9z"/>
-                    <path d="M5142 3217 c-18 -5 -46 -25 -62 -44 -16 -18 -32 -33 -35 -33 -3 0 -5 16 -5 35 l0 35 -95 0 -95 0 0 -270 0 -270 100 0 100 0 0 129 c0 157 5 184 41 220 31 32 72 41 130 31 l39 -7 0 87 c0 71 -3 89 -16 94 -22 8 -63 6 -102 -7z"/>
-                    <path d="M5487 3220 c-83 -21 -153 -74 -189 -145 -27 -50 -36 -167 -18 -230 16 -58 70 -119 134 -153 46 -24 61 -27 156 -27 114 0 161 15 223 74 26 23 57 71 57 86 0 3 -45 5 -100 5 -55 0 -100 -4 -100 -8 0 -14 -48 -32 -85 -32 -41 0 -90 41 -99 83 l-6 27 201 0 202 0 -5 63 c-6 70 -40 147 -85 189 -62 59 -196 90 -286 68z m151 -155 c12 -14 22 -35 22 -46 0 -17 -8 -19 -95 -19 -80 0 -95 3 -95 16 0 75 116 109 168 49z"/>
-                    <path d="M6133 3220 c-86 -18 -160 -74 -198 -150 -27 -52 -31 -165 -10 -230 23 -71 84 -131 161 -160 49 -18 73 -21 140 -17 88 5 130 21 182 71 38 35 62 76 73 124 l7 32 -99 0 c-97 0 -99 0 -105 -25 -13 -51 -85 -72 -131 -40 -53 37 -55 183 -2 236 36 36 111 20 129 -27 9 -23 13 -24 105 -24 89 0 95 1 95 20 0 60 -86 157 -157 178 -56 17 -142 22 -190 12z"/>
-                    <path d="M6550 3022 c0 -211 11 -270 57 -314 37 -36 73 -48 139 -48 65 0 112 18 148 56 l26 29 0 -38 0 -37 100 0 100 0 0 270 0 270 -104 0 -105 0 -3 -176 c-3 -198 -6 -204 -79 -204 -63 0 -69 18 -69 212 l0 168 -105 0 -105 0 0 -188z"/>
-                    <path d="M7497 3215 c-22 -7 -50 -23 -63 -36 l-24 -22 0 26 0 27 -100 0 -100 0 0 -355 0 -355 100 0 100 0 1 93 c1 50 2 99 3 107 1 19 20 15 56 -12 40 -29 127 -36 185 -13 57 21 108 80 130 152 21 66 16 196 -9 256 -49 114 -170 172 -279 132z m75 -186 c28 -37 28 -141 1 -177 -38 -51 -120 -46 -148 9 -17 33 -20 106 -5 145 16 40 39 54 89 51 34 -1 48 -8 63 -28z"/>
-                    <path d="M8032 3216 c-97 -32 -175 -116 -188 -203 -33 -221 96 -364 314 -351 116 7 193 55 245 152 18 33 22 57 22 131 0 74 -4 98 -22 131 -30 57 -79 103 -133 127 -57 26 -178 32 -238 13z m143 -142 c49 -19 68 -178 28 -232 -28 -38 -67 -50 -101 -31 -70 38 -84 186 -25 251 16 18 66 24 98 12z"/>
-                    <path d="M8624 3217 c-68 -18 -108 -48 -128 -97 -21 -53 -20 -75 5 -126 25 -53 68 -75 197 -105 115 -27 142 -48 106 -83 -22 -23 -96 -21 -117 2 -10 10 -17 24 -17 30 0 8 -31 12 -101 12 l-101 0 7 -27 c29 -117 130 -171 303 -161 182 11 281 121 224 250 -24 56 -75 83 -204 109 -49 10 -96 23 -104 30 -20 16 -17 36 5 49 41 21 111 5 111 -25 0 -12 18 -15 96 -15 l97 0 -7 33 c-16 84 -92 128 -229 133 -54 2 -113 -2 -143 -9z"/>
-                  </g>
-                </svg>
-              </div>
               <div className="logo-text">
                 <span className="logo-sobrecupos">Sobrecupos</span>
                 <span className="logo-ai">AI</span>
@@ -246,7 +220,7 @@ function MedicoDashboard() {
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #ffffff 0%, #f8faff 50%, #ffffff 100%);
+            background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -283,20 +257,20 @@ function MedicoDashboard() {
           }
 
           .pulse-1 {
-            width: 220px;
-            height: 220px;
+            width: 120px;
+            height: 120px;
             animation-delay: 0s;
           }
 
           .pulse-2 {
-            width: 280px;
-            height: 280px;
+            width: 160px;
+            height: 160px;
             animation-delay: 0.7s;
           }
 
           .pulse-3 {
-            width: 340px;
-            height: 340px;
+            width: 200px;
+            height: 200px;
             animation-delay: 1.4s;
           }
 
@@ -320,19 +294,6 @@ function MedicoDashboard() {
             gap: 1.5rem;
           }
 
-          .logo-svg-container {
-            animation: float 3s ease-in-out infinite;
-          }
-
-          @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-12px); }
-          }
-
-          .sobrecupos-logo {
-            filter: drop-shadow(0 8px 16px rgba(255, 59, 48, 0.25));
-          }
-
           .logo-text {
             display: flex;
             align-items: baseline;
@@ -341,15 +302,15 @@ function MedicoDashboard() {
           }
 
           .logo-sobrecupos {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 800;
-            color: #1d1d1f;
+            color: #1a1a1a;
             letter-spacing: -1px;
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           }
 
           .logo-ai {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
             color: #007aff;
             background: linear-gradient(135deg, #007aff, #5856d6);
@@ -465,168 +426,114 @@ function MedicoDashboard() {
 
   return (
     <div className="dashboard-container">
-      <header className="header">
-        <div className="header-content">
-          <div className="doctor-profile">
-            <div className="doctor-avatar-container">
-              <div className="doctor-avatar">
-                {doctorData?.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
-              </div>
-              <div className="status-dot"></div>
-            </div>
-            <div className="doctor-info">
-              <h1 className="doctor-name">
-                Dr. {doctorData?.fields?.Name?.split(' ')[0] || session.user.name?.split(' ')[0] || 'Doctor'}
-              </h1>
-              <p className="doctor-specialty">
-                {doctorData?.fields?.Especialidad || 'Médico Especialista'}
-              </p>
-            </div>
-          </div>
-          <button onClick={handleLogout} className="logout-btn">
-            <span className="logout-text">Salir</span>
-          </button>
+      {/* Header Móvil - Diseño Actual */}
+      <div className="mobile-header">
+        <button onClick={() => router.back()} className="back-button">
+          ← Inicio
+        </button>
+        <div className="header-title">
+          <span>Dashboard Médico</span>
         </div>
-      </header>
+        <button onClick={handleLogout} className="logout-button">
+          Salir
+        </button>
+      </div>
 
-      <main className="main-content">
-        <section className="stats-section">
+      {/* Perfil Doctor */}
+      <div className="doctor-profile-section">
+        <div className="doctor-avatar">
+          {doctorData?.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+        </div>
+        <div className="doctor-info">
+          <h1 className="doctor-name">
+            Dr. {doctorData?.fields?.Name || session.user.name || 'Doctor'}
+          </h1>
+          <p className="doctor-specialty">
+            {doctorData?.fields?.Especialidad || 'Médico Especialista'}
+          </p>
+        </div>
+        <div className="status-indicator">
+          <div className="status-dot"></div>
+          <span className="status-text">Activo</span>
+        </div>
+      </div>
+
+      {/* Container Principal */}
+      <div className="content-container">
+        {/* Stats Cards */}
+        <div className="stats-section">
           <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-content">
-                <div className="stat-header">
-                  <div className="stat-icon-container">
-                    <div className="stat-icon-bg blue">
-                      <span className="stat-icon">📊</span>
-                    </div>
-                  </div>
-                  <div className="stat-number">{animatedStats.totalSobrecupos}</div>
-                </div>
+            <div className="stat-card primary">
+              <div className="stat-icon">📊</div>
+              <div className="stat-info">
+                <div className="stat-number">{animatedStats.totalSobrecupos}</div>
                 <div className="stat-label">Total Sobrecupos</div>
-                <div className="stat-sublabel">Este mes</div>
-                <div className="stat-progress">
-                  <div className="progress-bar">
-                    <div className="progress-fill blue-fill" style={{ width: '75%' }}></div>
-                  </div>
-                </div>
               </div>
             </div>
             
-            <div className="stat-card">
-              <div className="stat-content">
-                <div className="stat-header">
-                  <div className="stat-icon-container">
-                    <div className="stat-icon-bg green">
-                      <span className="stat-icon">✅</span>
-                    </div>
-                  </div>
-                  <div className="stat-number">{animatedStats.disponibles}</div>
-                </div>
+            <div className="stat-card success">
+              <div className="stat-icon">✅</div>
+              <div className="stat-info">
+                <div className="stat-number">{animatedStats.disponibles}</div>
                 <div className="stat-label">Disponibles</div>
-                <div className="stat-sublabel">Para reservar</div>
-                <div className="pulse-indicator green-pulse"></div>
               </div>
             </div>
             
-            <div className="stat-card">
-              <div className="stat-content">
-                <div className="stat-header">
-                  <div className="stat-icon-container">
-                    <div className="stat-icon-bg orange">
-                      <span className="stat-icon">🎯</span>
-                    </div>
-                  </div>
-                  <div className="stat-number">{animatedStats.reservados}</div>
-                </div>
+            <div className="stat-card warning">
+              <div className="stat-icon">🎯</div>
+              <div className="stat-info">
+                <div className="stat-number">{animatedStats.reservados}</div>
                 <div className="stat-label">Reservados</div>
-                <div className="stat-sublabel">Confirmados</div>
-                <div className="pulse-indicator orange-pulse"></div>
               </div>
             </div>
             
-            <div className="stat-card">
-              <div className="stat-content">
-                <div className="stat-header">
-                  <div className="stat-icon-container">
-                    <div className="stat-icon-bg purple">
-                      <span className="stat-icon">🏥</span>
-                    </div>
-                  </div>
-                  <div className="stat-number">{animatedStats.clinicas}</div>
-                </div>
+            <div className="stat-card info">
+              <div className="stat-icon">🏥</div>
+              <div className="stat-info">
+                <div className="stat-number">{animatedStats.clinicas}</div>
                 <div className="stat-label">Clínicas</div>
-                <div className="stat-sublabel">Ubicaciones</div>
-                <div className="clinic-dots">
-                  {[...Array(Math.min(animatedStats.clinicas, 4))].map((_, i) => (
-                    <div key={i} className="clinic-dot" style={{ animationDelay: `${i * 0.2}s` }}></div>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        <section className="actions-section">
-          <div className="section-header">
-            <h2 className="section-title">
-              <span className="title-icon">⚡</span>
-              Acciones Rápidas
-            </h2>
-          </div>
+        {/* Acciones Rápidas */}
+        <div className="actions-section">
+          <h2 className="section-title">⚡ Acciones Rápidas</h2>
           <div className="actions-grid">
-            <button onClick={() => router.push('/medico/perfil')} className="action-card">
+            <button onClick={() => router.push('/medico/sobrecupos')} className="action-card primary-action">
+              <div className="action-icon">✨</div>
               <div className="action-content">
-                <div className="action-icon-container">
-                  <div className="action-icon-bg">
-                    <span className="action-icon">👤</span>
-                  </div>
-                </div>
-                <div className="action-info">
-                  <div className="action-title">Mi Perfil</div>
-                  <div className="action-description">Configuración y datos personales</div>
-                </div>
-                <div className="action-arrow">→</div>
+                <div className="action-title">Crear Sobrecupos</div>
+                <div className="action-description">Agregar nuevos horarios</div>
               </div>
+              <div className="action-arrow">→</div>
             </button>
             
-            <button onClick={() => router.push('/medico/sobrecupos')} className="action-card primary">
+            <button onClick={() => router.push('/medico/perfil')} className="action-card">
+              <div className="action-icon">👤</div>
               <div className="action-content">
-                <div className="action-icon-container">
-                  <div className="action-icon-bg primary-icon-bg">
-                    <span className="action-icon primary-icon">✨</span>
-                  </div>
-                </div>
-                <div className="action-info">
-                  <div className="action-title primary-title">Crear Sobrecupos</div>
-                  <div className="action-description primary-description">Agregar nuevos horarios disponibles</div>
-                </div>
-                <div className="action-arrow primary-arrow">→</div>
+                <div className="action-title">Mi Perfil</div>
+                <div className="action-description">Configuración</div>
               </div>
+              <div className="action-arrow">→</div>
             </button>
             
             <button onClick={() => router.push('/medico/clinicas')} className="action-card">
+              <div className="action-icon">🏥</div>
               <div className="action-content">
-                <div className="action-icon-container">
-                  <div className="action-icon-bg">
-                    <span className="action-icon">🏥</span>
-                  </div>
-                </div>
-                <div className="action-info">
-                  <div className="action-title">Mis Clínicas</div>
-                  <div className="action-description">Gestionar ubicaciones y centros</div>
-                </div>
-                <div className="action-arrow">→</div>
+                <div className="action-title">Mis Clínicas</div>
+                <div className="action-description">Ubicaciones</div>
               </div>
+              <div className="action-arrow">→</div>
             </button>
           </div>
-        </section>
+        </div>
 
-        <section className="timeline-section">
+        {/* Timeline de Sobrecupos */}
+        <div className="timeline-section">
           <div className="section-header">
-            <h2 className="section-title">
-              <span className="title-icon">📅</span>
-              Próximos Sobrecupos
-            </h2>
+            <h2 className="section-title">📅 Próximos Sobrecupos</h2>
             <button onClick={() => router.push('/medico/sobrecupos')} className="view-all-btn">
               Ver todos
             </button>
@@ -634,22 +541,20 @@ function MedicoDashboard() {
           
           {sobrecupos.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon-container">
-                <div className="empty-icon">📋</div>
-              </div>
-              <h3 className="empty-title">Todo perfectamente organizado</h3>
-              <p className="empty-text">Cuando crees sobrecupos, aparecerán aquí con un diseño espectacular</p>
+              <div className="empty-icon">📋</div>
+              <h3 className="empty-title">Sin sobrecupos próximos</h3>
+              <p className="empty-text">Crea tu primer sobrecupo para comenzar</p>
               <button onClick={() => router.push('/medico/sobrecupos')} className="empty-action">
-                Crear mi primer sobrecupo
+                Crear Sobrecupo
               </button>
             </div>
           ) : (
             <div className="timeline-container">
               {sobrecupos.slice(0, 4).map((sobrecupo, index) => (
-                <div key={index} className="timeline-item" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div key={index} className="timeline-item">
                   <div className="timeline-card">
                     <div className="timeline-header">
-                      <div className="time-info">
+                      <div className="date-info">
                         <div className="date-block">
                           <span className="day">{new Date(sobrecupo.fields?.Fecha).getDate()}</span>
                           <span className="month">
@@ -661,22 +566,19 @@ function MedicoDashboard() {
                           <span className="relative-time">{getTimeFromNow(sobrecupo.fields?.Fecha, sobrecupo.fields?.Hora)}</span>
                         </div>
                       </div>
-                      <div className="status-container">
-                        <div className={`status-badge ${sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'available' : 'reserved'}`}>
-                          {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'Disponible' : 'Reservado'}
-                        </div>
+                      <div className={`status-badge ${sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'available' : 'reserved'}`}>
+                        {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'Disponible' : 'Reservado'}
                       </div>
                     </div>
                     <div className="timeline-body">
                       <div className="clinic-info">
                         <span className="location-icon">📍</span>
                         <span className="clinic-name">{sobrecupo.fields?.Clínica}</span>
-                        <div className="clinic-badge">Activa</div>
                       </div>
                       {sobrecupo.fields?.Nombre && (
                         <div className="patient-info">
                           <div className="patient-avatar">
-                            <span>{sobrecupo.fields.Nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+                            {sobrecupo.fields.Nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}
                           </div>
                           <div className="patient-details">
                             <span className="patient-name">{sobrecupo.fields.Nombre}</span>
@@ -690,465 +592,371 @@ function MedicoDashboard() {
               ))}
             </div>
           )}
-        </section>
-      </main>
+        </div>
+      </div>
 
       <style jsx>{`
         .dashboard-container {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f8faff 0%, #ffffff 50%, #f0f4ff 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-          color: #1d1d1f;
-          position: relative;
+          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          color: #1a1a1a;
+          padding-bottom: env(safe-area-inset-bottom);
         }
 
-        .header {
-          position: sticky;
-          top: 0;
-          z-index: 1000;
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          background: rgba(255, 255, 255, 0.95);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-          padding: 1rem;
-        }
-
-        .header-content {
+        /* Header Móvil - Diseño Actual */
+        .mobile-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          max-width: 1200px;
-          margin: 0 auto;
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          height: 56px;
+          box-sizing: border-box;
         }
 
-        .doctor-profile {
+        .back-button, .logout-button {
+          background: none;
+          border: none;
+          color: #007aff;
+          font-size: 15px;
+          font-weight: 600;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .back-button:hover, .logout-button:hover {
+          background: rgba(0, 122, 255, 0.1);
+        }
+
+        .header-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: #1a1a1a;
+        }
+
+        /* Perfil Doctor */
+        .doctor-profile-section {
           display: flex;
           align-items: center;
-          gap: 1rem;
-        }
-
-        .doctor-avatar-container {
-          position: relative;
+          gap: 16px;
+          padding: 20px 16px;
+          background: white;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
 
         .doctor-avatar {
-          width: 48px;
-          height: 48px;
+          width: 60px;
+          height: 60px;
           border-radius: 50%;
           background: linear-gradient(135deg, #007aff, #5856d6);
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 16px;
+          font-size: 20px;
           font-weight: 700;
           box-shadow: 0 4px 16px rgba(0, 122, 255, 0.25);
         }
 
-        .status-dot {
-          position: absolute;
-          bottom: 2px;
-          right: 2px;
-          width: 12px;
-          height: 12px;
-          background: #34c759;
-          border-radius: 50%;
-          border: 2px solid white;
+        .doctor-info {
+          flex: 1;
         }
 
         .doctor-name {
-          font-size: 1.2rem;
+          font-size: 18px;
           font-weight: 700;
-          margin: 0;
-          color: #1d1d1f;
-          letter-spacing: -0.3px;
+          margin: 0 0 4px 0;
+          color: #1a1a1a;
         }
 
         .doctor-specialty {
-          font-size: 0.9rem;
+          font-size: 14px;
           margin: 0;
           color: #6e6e73;
           font-weight: 500;
         }
 
-        .logout-btn {
-          background: rgba(0, 0, 0, 0.04);
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          border-radius: 12px;
-          cursor: pointer;
+        .status-indicator {
           display: flex;
           align-items: center;
-          justify-content: center;
-          transition: all 0.3s ease;
-          padding: 0.5rem 0.75rem;
+          gap: 6px;
         }
 
-        .logout-btn:hover {
-          background: rgba(0, 0, 0, 0.08);
-          transform: translateY(-1px);
+        .status-dot {
+          width: 8px;
+          height: 8px;
+          background: #34c759;
+          border-radius: 50%;
+          animation: pulse-dot 2s ease-in-out infinite;
         }
 
-        .logout-text {
-          color: #1d1d1f;
-          font-size: 0.85rem;
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        .status-text {
+          font-size: 12px;
+          color: #34c759;
           font-weight: 600;
-          letter-spacing: -0.2px;
         }
 
-        .main-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 2rem 1rem;
+        /* Container Principal */
+        .content-container {
+          padding: 16px;
+          max-width: 100vw;
+          box-sizing: border-box;
         }
 
+        /* Stats Cards */
         .stats-section {
-          margin-bottom: 3rem;
+          margin-bottom: 24px;
         }
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+
+        @media (min-width: 768px) {
+          .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
         }
 
         .stat-card {
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.08);
           border-radius: 16px;
-          padding: 1.5rem;
-          cursor: pointer;
-          transition: all 0.3s ease;
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
           box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
-          position: relative;
-          overflow: hidden;
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          transition: all 0.3s ease;
+          cursor: pointer;
         }
 
         .stat-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-          border-color: rgba(0, 122, 255, 0.2);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
         }
 
-        .stat-content {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
+        .stat-card.primary .stat-icon { background: #e3f2fd; }
+        .stat-card.success .stat-icon { background: #e8f5e8; }
+        .stat-card.warning .stat-icon { background: #fff3e0; }
+        .stat-card.info .stat-icon { background: #f3e5f5; }
 
-        .stat-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .stat-icon-container {
-          position: relative;
-        }
-
-        .stat-icon-bg {
-          width: 48px;
-          height: 48px;
+        .stat-icon {
+          width: 40px;
+          height: 40px;
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 20px;
+          font-size: 18px;
+          flex-shrink: 0;
         }
 
-        .stat-icon-bg.blue { background: #e3f2fd; }
-        .stat-icon-bg.green { background: #e8f5e8; }
-        .stat-icon-bg.orange { background: #fff3e0; }
-        .stat-icon-bg.purple { background: #f3e5f5; }
-
-        .stat-icon {
-          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        .stat-info {
+          flex: 1;
+          min-width: 0;
         }
 
         .stat-number {
-          font-size: 2rem;
+          font-size: 24px;
           font-weight: 800;
-          color: #1d1d1f;
-          letter-spacing: -1px;
+          color: #1a1a1a;
+          line-height: 1;
+          margin-bottom: 4px;
         }
 
         .stat-label {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #1d1d1f;
-          margin: 0;
-        }
-
-        .stat-sublabel {
-          font-size: 0.85rem;
+          font-size: 12px;
           color: #6e6e73;
+          font-weight: 600;
           margin: 0;
-          font-weight: 500;
         }
 
-        .stat-progress {
-          margin-top: 0.5rem;
+        /* Secciones */
+        .actions-section, .timeline-section {
+          margin-bottom: 32px;
         }
 
-        .progress-bar {
-          width: 100%;
-          height: 4px;
-          background: rgba(0, 0, 0, 0.06);
-          border-radius: 2px;
-          overflow: hidden;
-        }
-
-        .progress-fill {
-          height: 100%;
-          border-radius: 2px;
-          transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .blue-fill { background: linear-gradient(90deg, #007aff, #5856d6); }
-
-        .pulse-indicator {
-          position: absolute;
-          top: 1rem;
-          right: 1rem;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          animation: pulse-anim 2s ease-in-out infinite;
-        }
-
-        .green-pulse {
-          background: #34c759;
-          box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4);
-        }
-
-        .orange-pulse {
-          background: #ff9500;
-          box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.4);
-        }
-
-        @keyframes pulse-anim {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); }
-        }
-
-        .clinic-dots {
+        .section-title {
+          font-size: 18px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin: 0 0 16px 0;
           display: flex;
-          gap: 4px;
-          margin-top: 0.5rem;
-        }
-
-        .clinic-dot {
-          width: 6px;
-          height: 6px;
-          background: #af52de;
-          border-radius: 50%;
-          animation: clinic-dot-anim 1.5s ease-in-out infinite;
-        }
-
-        @keyframes clinic-dot-anim {
-          0%, 100% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        .actions-section {
-          margin-bottom: 3rem;
+          align-items: center;
+          gap: 8px;
         }
 
         .section-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 2rem;
-        }
-
-        .section-title {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1d1d1f;
-          margin: 0;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          letter-spacing: -0.5px;
-        }
-
-        .title-icon {
-          font-size: 1.2rem;
+          margin-bottom: 16px;
         }
 
         .view-all-btn {
           background: none;
           border: none;
           color: #007aff;
-          font-size: 0.85rem;
+          font-size: 14px;
           font-weight: 600;
           cursor: pointer;
-          padding: 0.5rem;
+          padding: 8px;
           border-radius: 8px;
           transition: all 0.2s ease;
         }
 
         .view-all-btn:hover {
           background: rgba(0, 122, 255, 0.08);
-          transform: scale(1.02);
         }
 
+        /* Acciones Rápidas */
         .actions-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        @media (min-width: 768px) {
+          .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+          }
         }
 
         .action-card {
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(0, 0, 0, 0.06);
           border-radius: 16px;
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
           cursor: pointer;
-          overflow: hidden;
           transition: all 0.3s ease;
+          text-align: left;
           box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
         }
 
         .action-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
           border-color: rgba(0, 122, 255, 0.2);
         }
 
-        .action-card.primary {
+        .action-card.primary-action {
           background: linear-gradient(135deg, #34c759, #30d158);
+          color: white;
           border-color: rgba(52, 199, 89, 0.3);
           box-shadow: 0 4px 24px rgba(52, 199, 89, 0.2);
         }
 
-        .action-card.primary:hover {
+        .action-card.primary-action:hover {
           background: linear-gradient(135deg, #28a745, #34c759);
           box-shadow: 0 8px 32px rgba(52, 199, 89, 0.3);
         }
 
-        .action-content {
-          padding: 1.25rem;
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          text-align: left;
-        }
-
-        .action-icon-container {
-          position: relative;
-        }
-
-        .action-icon-bg {
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
+        .action-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
           background: rgba(0, 0, 0, 0.05);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 20px;
+          font-size: 16px;
+          flex-shrink: 0;
         }
 
-        .primary-icon-bg {
-          background: rgba(255, 255, 255, 0.2) !important;
+        .action-card.primary-action .action-icon {
+          background: rgba(255, 255, 255, 0.2);
         }
 
-        .action-icon {
-          color: #1d1d1f;
-        }
-
-        .primary-icon {
-          color: white !important;
-        }
-
-        .action-info {
+        .action-content {
           flex: 1;
           min-width: 0;
         }
 
         .action-title {
-          font-size: 1rem;
+          font-size: 14px;
           font-weight: 700;
-          margin-bottom: 0.25rem;
-          color: #1d1d1f;
-          letter-spacing: -0.2px;
+          margin: 0 0 2px 0;
+          color: #1a1a1a;
         }
 
-        .primary-title {
-          color: white !important;
+        .action-card.primary-action .action-title {
+          color: white;
         }
 
         .action-description {
-          font-size: 0.8rem;
+          font-size: 12px;
           color: #6e6e73;
+          margin: 0;
           font-weight: 500;
-          line-height: 1.3;
         }
 
-        .primary-description {
-          color: rgba(255, 255, 255, 0.9) !important;
+        .action-card.primary-action .action-description {
+          color: rgba(255, 255, 255, 0.9);
         }
 
         .action-arrow {
-          font-size: 1.2rem;
+          font-size: 16px;
           color: #8e8e93;
           transition: all 0.3s ease;
         }
 
         .action-card:hover .action-arrow {
-          color: #1d1d1f;
+          color: #1a1a1a;
           transform: translateX(4px);
         }
 
-        .primary-arrow {
-          color: white !important;
+        .action-card.primary-action .action-arrow {
+          color: white;
         }
 
-        .action-card.primary:hover .primary-arrow {
-          color: white !important;
-        }
-
-        .timeline-section {
-          margin-bottom: 3rem;
-        }
-
+        /* Empty State */
         .empty-state {
           text-align: center;
-          padding: 3rem 1.5rem;
+          padding: 32px 16px;
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          border-radius: 20px;
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 16px;
           box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
         }
 
-        .empty-icon-container {
-          margin-bottom: 2rem;
-        }
-
         .empty-icon {
-          font-size: 4rem;
+          font-size: 48px;
           opacity: 0.6;
-          animation: empty-float 3s ease-in-out infinite;
-        }
-
-        @keyframes empty-float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+          margin-bottom: 16px;
         }
 
         .empty-title {
-          font-size: 1.5rem;
+          font-size: 18px;
           font-weight: 700;
-          margin: 0 0 1rem;
-          color: #1d1d1f;
-          letter-spacing: -0.5px;
+          margin: 0 0 8px;
+          color: #1a1a1a;
         }
 
         .empty-text {
           color: #6e6e73;
-          margin: 0 0 2rem;
-          font-size: 1rem;
+          margin: 0 0 20px;
+          font-size: 14px;
           font-weight: 500;
-          line-height: 1.5;
         }
 
         .empty-action {
@@ -1156,8 +964,8 @@ function MedicoDashboard() {
           color: white;
           border: none;
           border-radius: 12px;
-          padding: 0.75rem 1.5rem;
-          font-size: 0.9rem;
+          padding: 12px 24px;
+          font-size: 14px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.3s ease;
@@ -1169,22 +977,28 @@ function MedicoDashboard() {
           box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
         }
 
+        /* Timeline */
         .timeline-container {
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 12px;
         }
 
         .timeline-item {
-          animation: timeline-enter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+          animation: fadeInUp 0.6s ease-out forwards;
           opacity: 0;
-          transform: translateX(-30px);
+          transform: translateY(20px);
         }
 
-        @keyframes timeline-enter {
+        .timeline-item:nth-child(1) { animation-delay: 0.1s; }
+        .timeline-item:nth-child(2) { animation-delay: 0.2s; }
+        .timeline-item:nth-child(3) { animation-delay: 0.3s; }
+        .timeline-item:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
           to {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateY(0);
           }
         }
 
@@ -1192,7 +1006,7 @@ function MedicoDashboard() {
           background: white;
           border: 1px solid rgba(0, 0, 0, 0.06);
           border-radius: 14px;
-          padding: 1rem;
+          padding: 16px;
           transition: all 0.3s ease;
           cursor: pointer;
           box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
@@ -1208,14 +1022,14 @@ function MedicoDashboard() {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          margin-bottom: 0.75rem;
-          gap: 0.75rem;
+          margin-bottom: 12px;
+          gap: 12px;
         }
 
-        .time-info {
+        .date-info {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 12px;
           flex: 1;
           min-width: 0;
         }
@@ -1226,22 +1040,22 @@ function MedicoDashboard() {
           align-items: center;
           background: linear-gradient(135deg, #007aff, #5856d6);
           border-radius: 10px;
-          padding: 0.5rem;
-          min-width: 42px;
+          padding: 8px;
+          min-width: 40px;
           flex-shrink: 0;
           color: white;
         }
 
         .day {
-          font-size: 1.1rem;
+          font-size: 16px;
           font-weight: 800;
           line-height: 1;
         }
 
         .month {
-          font-size: 0.6rem;
+          font-size: 10px;
           font-weight: 700;
-          margin-top: 0.15rem;
+          margin-top: 2px;
           opacity: 0.9;
         }
 
@@ -1252,29 +1066,26 @@ function MedicoDashboard() {
         }
 
         .time {
-          font-size: 1rem;
+          font-size: 16px;
           font-weight: 700;
-          color: #1d1d1f;
+          color: #1a1a1a;
           line-height: 1.2;
         }
 
         .relative-time {
-          font-size: 0.75rem;
+          font-size: 12px;
           color: #6e6e73;
           font-weight: 500;
-          margin-top: 0.15rem;
-        }
-
-        .status-container {
-          flex-shrink: 0;
+          margin-top: 2px;
         }
 
         .status-badge {
-          padding: 0.3rem 0.65rem;
+          padding: 6px 12px;
           border-radius: 16px;
-          font-size: 0.7rem;
+          font-size: 11px;
           font-weight: 700;
           white-space: nowrap;
+          flex-shrink: 0;
         }
 
         .status-badge.available {
@@ -1292,43 +1103,33 @@ function MedicoDashboard() {
         .timeline-body {
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
+          gap: 12px;
         }
 
         .clinic-info {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 8px;
         }
 
         .location-icon {
-          font-size: 0.85rem;
+          font-size: 14px;
           opacity: 0.7;
         }
 
         .clinic-name {
-          font-size: 0.85rem;
-          color: #1d1d1f;
+          font-size: 14px;
+          color: #1a1a1a;
           flex: 1;
           min-width: 0;
           font-weight: 500;
         }
 
-        .clinic-badge {
-          background: #e8f8ec;
-          color: #1d7040;
-          padding: 0.2rem 0.5rem;
-          border-radius: 8px;
-          font-size: 0.65rem;
-          font-weight: 700;
-          border: 1px solid rgba(52, 199, 89, 0.3);
-        }
-
         .patient-info {
           display: flex;
           align-items: center;
-          gap: 0.6rem;
-          padding: 0.6rem;
+          gap: 12px;
+          padding: 12px;
           background: rgba(0, 0, 0, 0.02);
           border-radius: 10px;
           border: 1px solid rgba(0, 0, 0, 0.04);
@@ -1351,14 +1152,14 @@ function MedicoDashboard() {
         .patient-details {
           display: flex;
           align-items: center;
-          gap: 0.6rem;
+          gap: 12px;
           flex: 1;
           min-width: 0;
         }
 
         .patient-name {
-          font-size: 0.8rem;
-          color: #1d1d1f;
+          font-size: 14px;
+          color: #1a1a1a;
           flex: 1;
           min-width: 0;
           font-weight: 500;
@@ -1367,96 +1168,86 @@ function MedicoDashboard() {
         .confirmed-badge {
           background: #e8f8ec;
           color: #1d7040;
-          padding: 0.25rem 0.45rem;
+          padding: 4px 8px;
           border-radius: 8px;
-          font-size: 0.65rem;
+          font-size: 10px;
           font-weight: 700;
           border: 1px solid rgba(52, 199, 89, 0.3);
           flex-shrink: 0;
         }
 
-        @media (max-width: 768px) {
-          .main-content {
-            padding: 1rem 0.75rem;
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+          .content-container {
+            padding: 12px;
           }
 
           .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
+            gap: 8px;
           }
 
           .stat-card {
-            padding: 1rem;
+            padding: 12px;
           }
 
           .stat-number {
-            font-size: 1.6rem;
+            font-size: 20px;
           }
 
-          .actions-grid {
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-          }
-
-          .action-content {
-            padding: 0.875rem;
+          .stat-label {
+            font-size: 11px;
           }
 
           .section-title {
-            font-size: 1.2rem;
+            font-size: 16px;
           }
 
           .timeline-card {
-            padding: 0.875rem;
+            padding: 12px;
           }
 
           .timeline-header {
-            margin-bottom: 0.625rem;
-            gap: 0.625rem;
+            margin-bottom: 10px;
+            gap: 10px;
           }
 
           .date-block {
-            min-width: 38px;
-            padding: 0.4rem;
+            min-width: 36px;
+            padding: 6px;
           }
 
           .day {
-            font-size: 1rem;
+            font-size: 14px;
           }
 
           .month {
-            font-size: 0.55rem;
+            font-size: 9px;
           }
 
           .time {
-            font-size: 0.9rem;
+            font-size: 14px;
           }
 
           .relative-time {
-            font-size: 0.7rem;
+            font-size: 11px;
           }
 
           .status-badge {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.65rem;
+            padding: 4px 8px;
+            font-size: 10px;
           }
 
           .timeline-body {
-            gap: 0.625rem;
+            gap: 10px;
           }
 
           .clinic-name {
-            font-size: 0.8rem;
-          }
-
-          .clinic-badge {
-            padding: 0.15rem 0.4rem;
-            font-size: 0.6rem;
+            font-size: 13px;
           }
 
           .patient-info {
-            padding: 0.5rem;
-            gap: 0.5rem;
+            padding: 10px;
+            gap: 10px;
           }
 
           .patient-avatar {
@@ -1466,138 +1257,44 @@ function MedicoDashboard() {
           }
 
           .patient-name {
-            font-size: 0.75rem;
+            font-size: 13px;
           }
 
           .confirmed-badge {
-            padding: 0.2rem 0.35rem;
-            font-size: 0.6rem;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .main-content {
-            padding: 0.875rem 0.625rem;
+            padding: 3px 6px;
+            font-size: 9px;
           }
 
-          .stats-grid {
-            gap: 0.625rem;
+          .action-card {
+            padding: 12px;
           }
 
-          .stat-card {
-            padding: 0.875rem;
-          }
-
-          .stat-number {
-            font-size: 1.4rem;
-          }
-
-          .timeline-card {
-            padding: 0.75rem;
-          }
-
-          .timeline-header {
-            margin-bottom: 0.5rem;
-            gap: 0.5rem;
-          }
-
-          .date-block {
-            min-width: 34px;
-            padding: 0.35rem;
-          }
-
-          .day {
-            font-size: 0.9rem;
-          }
-
-          .month {
-            font-size: 0.5rem;
-          }
-
-          .time {
-            font-size: 0.85rem;
-          }
-
-          .relative-time {
-            font-size: 0.65rem;
-          }
-
-          .status-badge {
-            padding: 0.2rem 0.4rem;
-            font-size: 0.6rem;
-          }
-
-          .timeline-body {
-            gap: 0.5rem;
-          }
-
-          .clinic-info {
-            gap: 0.4rem;
-          }
-
-          .clinic-name {
-            font-size: 0.75rem;
-          }
-
-          .clinic-badge {
-            padding: 0.125rem 0.35rem;
-            font-size: 0.55rem;
-          }
-
-          .patient-info {
-            padding: 0.4rem;
-            gap: 0.4rem;
-          }
-
-          .patient-avatar {
-            width: 22px;
-            height: 22px;
-            font-size: 8px;
-          }
-
-          .patient-name {
-            font-size: 0.7rem;
-          }
-
-          .confirmed-badge {
-            padding: 0.15rem 0.3rem;
-            font-size: 0.55rem;
-          }
-
-          .action-content {
-            padding: 0.75rem;
-          }
-
-          .action-icon-bg {
-            width: 36px;
-            height: 36px;
+          .action-icon {
+            width: 32px;
+            height: 32px;
           }
 
           .action-title {
-            font-size: 0.9rem;
+            font-size: 13px;
           }
 
           .action-description {
-            font-size: 0.75rem;
+            font-size: 11px;
           }
         }
 
-        .logout-btn:focus,
+        /* Accesibilidad y Estados de Foco */
+        .back-button:focus,
+        .logout-button:focus,
         .view-all-btn:focus,
         .action-card:focus,
-        .empty-action:focus {
+        .empty-action:focus,
+        .timeline-card:focus {
           outline: 2px solid #007aff;
           outline-offset: 2px;
         }
 
-        * {
-          transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                      opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                      background 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                      border 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                      box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
+        /* Modo de Alto Contraste */
         @media (prefers-contrast: high) {
           .dashboard-container {
             background: #ffffff;
@@ -1605,19 +1302,21 @@ function MedicoDashboard() {
 
           .stat-card,
           .action-card,
-          .timeline-card {
+          .timeline-card,
+          .empty-state {
             border-color: #000000;
             background: #ffffff;
           }
 
-          .doctor-name,
+          .section-title,
           .stat-number,
           .action-title,
-          .section-title {
+          .doctor-name {
             color: #000000;
           }
         }
 
+        /* Reducir Movimiento */
         @media (prefers-reduced-motion: reduce) {
           *,
           *::before,
