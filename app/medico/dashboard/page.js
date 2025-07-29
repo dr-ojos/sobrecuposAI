@@ -175,22 +175,15 @@ function MedicoDashboard() {
     return `${Math.ceil(diffDays / 7)} semanas`;
   };
 
-  // Premium Loading Screen
+  // Premium Loading Screen estilo Apple
   if (status === 'loading' || loading) {
     return (
       <div className="loading-screen">
         <div className="loading-content">
           <div className="logo-container">
-            <div className="logo-pulses">
-              <div className="pulse pulse-1"></div>
-              <div className="pulse pulse-2"></div>
-              <div className="pulse pulse-3"></div>
-            </div>
-            <div className="logo-main">
-              <div className="logo-text">
-                <span className="logo-sobrecupos">Sobrecupos</span>
-                <span className="logo-ai">AI</span>
-              </div>
+            <div className="logo-text">
+              <span className="logo-sobrecupos">Sobrecupos</span>
+              <span className="logo-ai">AI</span>
             </div>
           </div>
 
@@ -199,17 +192,9 @@ function MedicoDashboard() {
               <div 
                 className="progress-fill" 
                 style={{ width: `${loadingProgress}%` }}
-              >
-                <div className="progress-glow"></div>
-              </div>
+              />
             </div>
             <p className="loading-text">Cargando tu dashboard médico...</p>
-          </div>
-
-          <div className="particles">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className={`particle particle-${i + 1}`}></div>
-            ))}
           </div>
         </div>
 
@@ -220,12 +205,12 @@ function MedicoDashboard() {
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+            background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
           }
 
           .loading-content {
@@ -234,90 +219,27 @@ function MedicoDashboard() {
           }
 
           .logo-container {
-            position: relative;
             margin-bottom: 3rem;
           }
 
-          .logo-pulses {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-          }
-
-          .pulse {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 2px solid #ff3b30;
-            border-radius: 50%;
-            opacity: 0;
-            animation: pulse 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
-          }
-
-          .pulse-1 {
-            width: 120px;
-            height: 120px;
-            animation-delay: 0s;
-          }
-
-          .pulse-2 {
-            width: 160px;
-            height: 160px;
-            animation-delay: 0.7s;
-          }
-
-          .pulse-3 {
-            width: 200px;
-            height: 200px;
-            animation-delay: 1.4s;
-          }
-
-          @keyframes pulse {
-            0% {
-              transform: translate(-50%, -50%) scale(0.5);
-              opacity: 1;
-            }
-            100% {
-              transform: translate(-50%, -50%) scale(1);
-              opacity: 0;
-            }
-          }
-
-          .logo-main {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1.5rem;
-          }
-
           .logo-text {
-            display: flex;
+            font-size: 3rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            display: inline-flex;
             align-items: baseline;
             gap: 0.5rem;
-            margin-top: 0.5rem;
           }
 
           .logo-sobrecupos {
-            font-size: 2.5rem;
+            color: #171717;
             font-weight: 800;
-            color: #1a1a1a;
-            letter-spacing: -1px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           }
 
           .logo-ai {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #007aff;
-            background: linear-gradient(135deg, #007aff, #5856d6);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 2px 4px rgba(0, 122, 255, 0.2);
+            color: #666;
+            font-size: 0.7em;
+            font-weight: 300;
           }
 
           .progress-container {
@@ -327,93 +249,25 @@ function MedicoDashboard() {
 
           .progress-track {
             width: 100%;
-            height: 6px;
-            background: rgba(0, 0, 0, 0.08);
-            border-radius: 3px;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 1px;
             overflow: hidden;
-            position: relative;
-            backdrop-filter: blur(10px);
           }
 
           .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #ff3b30, #007aff, #ff3b30);
-            background-size: 200% 100%;
-            border-radius: 3px;
-            position: relative;
+            background: #171717;
+            border-radius: 1px;
             transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            animation: shimmer 1.5s ease-in-out infinite;
-          }
-
-          @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-          }
-
-          .progress-glow {
-            position: absolute;
-            top: -2px;
-            right: -3px;
-            width: 12px;
-            height: 10px;
-            background: #ff3b30;
-            border-radius: 50%;
-            box-shadow: 0 0 16px #ff3b30, 0 0 32px rgba(255, 59, 48, 0.4);
-            animation: glow 1s ease-in-out infinite alternate;
-          }
-
-          @keyframes glow {
-            from { box-shadow: 0 0 16px #ff3b30, 0 0 32px rgba(255, 59, 48, 0.4); }
-            to { box-shadow: 0 0 24px #ff3b30, 0 0 48px rgba(255, 59, 48, 0.6); }
           }
 
           .loading-text {
-            color: #6e6e73;
-            font-size: 1rem;
+            color: #666;
+            font-size: 0.875rem;
             margin-top: 2rem;
-            font-weight: 500;
+            font-weight: 400;
             letter-spacing: 0.5px;
-          }
-
-          .particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-          }
-
-          .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #ff3b30;
-            border-radius: 50%;
-            opacity: 0;
-            animation: particle-float 4s ease-in-out infinite;
-          }
-
-          .particle-1 { left: 15%; animation-delay: 0s; }
-          .particle-2 { left: 85%; animation-delay: 1s; }
-          .particle-3 { left: 65%; animation-delay: 2s; }
-          .particle-4 { left: 35%; animation-delay: 0.5s; }
-          .particle-5 { left: 75%; animation-delay: 1.5s; }
-          .particle-6 { left: 25%; animation-delay: 2.5s; }
-
-          @keyframes particle-float {
-            0%, 100% {
-              transform: translateY(100vh) scale(0);
-              opacity: 0;
-            }
-            10% {
-              opacity: 0.8;
-              transform: translateY(90vh) scale(1);
-            }
-            90% {
-              opacity: 0.8;
-              transform: translateY(-10vh) scale(1);
-            }
           }
         `}</style>
       </div>
@@ -426,114 +280,166 @@ function MedicoDashboard() {
 
   return (
     <div className="dashboard-container">
-      {/* Header Móvil - Diseño Actual */}
-      <div className="mobile-header">
-        <button onClick={() => router.back()} className="back-button">
-          ← Inicio
-        </button>
-        <div className="header-title">
-          <span>Dashboard Médico</span>
+      {/* Header minimalista estilo Apple */}
+      <header className="header">
+        <div className="header-content">
+          <div className="doctor-profile">
+            <div className="doctor-avatar-container">
+              <div className="doctor-avatar">
+                {doctorData?.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+              </div>
+              <div className="status-dot"></div>
+            </div>
+            <div className="doctor-info">
+              <h1 className="doctor-name">
+                Dr. {doctorData?.fields?.Name?.split(' ')[0] || session.user.name?.split(' ')[0] || 'Doctor'}
+              </h1>
+              <p className="doctor-specialty">
+                {doctorData?.fields?.Especialidad || 'Médico Especialista'}
+              </p>
+            </div>
+          </div>
+          <button onClick={handleLogout} className="logout-btn">
+            <span className="logout-text">Salir</span>
+          </button>
         </div>
-        <button onClick={handleLogout} className="logout-button">
-          Salir
-        </button>
-      </div>
+      </header>
 
-      {/* Perfil Doctor */}
-      <div className="doctor-profile-section">
-        <div className="doctor-avatar">
-          {doctorData?.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
-        </div>
-        <div className="doctor-info">
-          <h1 className="doctor-name">
-            Dr. {doctorData?.fields?.Name || session.user.name || 'Doctor'}
-          </h1>
-          <p className="doctor-specialty">
-            {doctorData?.fields?.Especialidad || 'Médico Especialista'}
-          </p>
-        </div>
-        <div className="status-indicator">
-          <div className="status-dot"></div>
-          <span className="status-text">Activo</span>
-        </div>
-      </div>
-
-      {/* Container Principal */}
-      <div className="content-container">
-        {/* Stats Cards */}
-        <div className="stats-section">
+      <main className="main-content">
+        {/* Stats Section - estilo Apple minimalista */}
+        <section className="stats-section">
           <div className="stats-grid">
-            <div className="stat-card primary">
-              <div className="stat-icon">📊</div>
-              <div className="stat-info">
-                <div className="stat-number">{animatedStats.totalSobrecupos}</div>
+            <div className="stat-card">
+              <div className="stat-content">
+                <div className="stat-header">
+                  <div className="stat-icon-container">
+                    <div className="stat-icon-bg blue">
+                      <span className="stat-icon">📊</span>
+                    </div>
+                  </div>
+                  <div className="stat-number">{animatedStats.totalSobrecupos}</div>
+                </div>
                 <div className="stat-label">Total Sobrecupos</div>
+                <div className="stat-sublabel">Este mes</div>
+                <div className="stat-progress">
+                  <div className="progress-bar">
+                    <div className="progress-fill blue-fill" style={{ width: '75%' }}></div>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div className="stat-card success">
-              <div className="stat-icon">✅</div>
-              <div className="stat-info">
-                <div className="stat-number">{animatedStats.disponibles}</div>
+            <div className="stat-card">
+              <div className="stat-content">
+                <div className="stat-header">
+                  <div className="stat-icon-container">
+                    <div className="stat-icon-bg green">
+                      <span className="stat-icon">✅</span>
+                    </div>
+                  </div>
+                  <div className="stat-number">{animatedStats.disponibles}</div>
+                </div>
                 <div className="stat-label">Disponibles</div>
+                <div className="stat-sublabel">Para reservar</div>
+                <div className="pulse-indicator green-pulse"></div>
               </div>
             </div>
             
-            <div className="stat-card warning">
-              <div className="stat-icon">🎯</div>
-              <div className="stat-info">
-                <div className="stat-number">{animatedStats.reservados}</div>
+            <div className="stat-card">
+              <div className="stat-content">
+                <div className="stat-header">
+                  <div className="stat-icon-container">
+                    <div className="stat-icon-bg orange">
+                      <span className="stat-icon">🎯</span>
+                    </div>
+                  </div>
+                  <div className="stat-number">{animatedStats.reservados}</div>
+                </div>
                 <div className="stat-label">Reservados</div>
+                <div className="stat-sublabel">Confirmados</div>
+                <div className="pulse-indicator orange-pulse"></div>
               </div>
             </div>
             
-            <div className="stat-card info">
-              <div className="stat-icon">🏥</div>
-              <div className="stat-info">
-                <div className="stat-number">{animatedStats.clinicas}</div>
+            <div className="stat-card">
+              <div className="stat-content">
+                <div className="stat-header">
+                  <div className="stat-icon-container">
+                    <div className="stat-icon-bg purple">
+                      <span className="stat-icon">🏥</span>
+                    </div>
+                  </div>
+                  <div className="stat-number">{animatedStats.clinicas}</div>
+                </div>
                 <div className="stat-label">Clínicas</div>
+                <div className="stat-sublabel">Ubicaciones</div>
+                <div className="clinic-dots">
+                  {[...Array(Math.min(animatedStats.clinicas, 4))].map((_, i) => (
+                    <div key={i} className="clinic-dot" style={{ animationDelay: `${i * 0.2}s` }}></div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Acciones Rápidas */}
-        <div className="actions-section">
-          <h2 className="section-title">⚡ Acciones Rápidas</h2>
+        {/* Actions Section - estilo Apple */}
+        <section className="actions-section">
+          <div className="section-header">
+            <h2 className="section-title">Acciones Rápidas</h2>
+          </div>
           <div className="actions-grid">
-            <button onClick={() => router.push('/medico/sobrecupos')} className="action-card primary-action">
-              <div className="action-icon">✨</div>
+            <button onClick={() => router.push('/medico/perfil')} className="action-card">
               <div className="action-content">
-                <div className="action-title">Crear Sobrecupos</div>
-                <div className="action-description">Agregar nuevos horarios</div>
+                <div className="action-icon-container">
+                  <div className="action-icon-bg">
+                    <span className="action-icon">👤</span>
+                  </div>
+                </div>
+                <div className="action-info">
+                  <div className="action-title">Mi Perfil</div>
+                  <div className="action-description">Configuración y datos personales</div>
+                </div>
+                <div className="action-arrow">→</div>
               </div>
-              <div className="action-arrow">→</div>
             </button>
             
-            <button onClick={() => router.push('/medico/perfil')} className="action-card">
-              <div className="action-icon">👤</div>
+            <button onClick={() => router.push('/medico/sobrecupos')} className="action-card primary">
               <div className="action-content">
-                <div className="action-title">Mi Perfil</div>
-                <div className="action-description">Configuración</div>
+                <div className="action-icon-container">
+                  <div className="action-icon-bg primary-icon-bg">
+                    <span className="action-icon primary-icon">✨</span>
+                  </div>
+                </div>
+                <div className="action-info">
+                  <div className="action-title primary-title">Crear Sobrecupos</div>
+                  <div className="action-description primary-description">Agregar nuevos horarios disponibles</div>
+                </div>
+                <div className="action-arrow primary-arrow">→</div>
               </div>
-              <div className="action-arrow">→</div>
             </button>
             
             <button onClick={() => router.push('/medico/clinicas')} className="action-card">
-              <div className="action-icon">🏥</div>
               <div className="action-content">
-                <div className="action-title">Mis Clínicas</div>
-                <div className="action-description">Ubicaciones</div>
+                <div className="action-icon-container">
+                  <div className="action-icon-bg">
+                    <span className="action-icon">🏥</span>
+                  </div>
+                </div>
+                <div className="action-info">
+                  <div className="action-title">Mis Clínicas</div>
+                  <div className="action-description">Gestionar ubicaciones y centros</div>
+                </div>
+                <div className="action-arrow">→</div>
               </div>
-              <div className="action-arrow">→</div>
             </button>
           </div>
-        </div>
+        </section>
 
-        {/* Timeline de Sobrecupos */}
-        <div className="timeline-section">
+        {/* Timeline Section - estilo Apple */}
+        <section className="timeline-section">
           <div className="section-header">
-            <h2 className="section-title">📅 Próximos Sobrecupos</h2>
+            <h2 className="section-title">Próximos Sobrecupos</h2>
             <button onClick={() => router.push('/medico/sobrecupos')} className="view-all-btn">
               Ver todos
             </button>
@@ -541,20 +447,22 @@ function MedicoDashboard() {
           
           {sobrecupos.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">📋</div>
-              <h3 className="empty-title">Sin sobrecupos próximos</h3>
-              <p className="empty-text">Crea tu primer sobrecupo para comenzar</p>
+              <div className="empty-icon-container">
+                <div className="empty-icon">📋</div>
+              </div>
+              <h3 className="empty-title">Todo perfectamente organizado</h3>
+              <p className="empty-text">Cuando crees sobrecupos, aparecerán aquí con un diseño espectacular</p>
               <button onClick={() => router.push('/medico/sobrecupos')} className="empty-action">
-                Crear Sobrecupo
+                Crear mi primer sobrecupo
               </button>
             </div>
           ) : (
             <div className="timeline-container">
               {sobrecupos.slice(0, 4).map((sobrecupo, index) => (
-                <div key={index} className="timeline-item">
+                <div key={index} className="timeline-item" style={{ animationDelay: `${index * 0.1}s` }}>
                   <div className="timeline-card">
                     <div className="timeline-header">
-                      <div className="date-info">
+                      <div className="time-info">
                         <div className="date-block">
                           <span className="day">{new Date(sobrecupo.fields?.Fecha).getDate()}</span>
                           <span className="month">
@@ -566,19 +474,22 @@ function MedicoDashboard() {
                           <span className="relative-time">{getTimeFromNow(sobrecupo.fields?.Fecha, sobrecupo.fields?.Hora)}</span>
                         </div>
                       </div>
-                      <div className={`status-badge ${sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'available' : 'reserved'}`}>
-                        {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'Disponible' : 'Reservado'}
+                      <div className="status-container">
+                        <div className={`status-badge ${sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'available' : 'reserved'}`}>
+                          {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true ? 'Disponible' : 'Reservado'}
+                        </div>
                       </div>
                     </div>
                     <div className="timeline-body">
                       <div className="clinic-info">
                         <span className="location-icon">📍</span>
                         <span className="clinic-name">{sobrecupo.fields?.Clínica}</span>
+                        <div className="clinic-badge">Activa</div>
                       </div>
                       {sobrecupo.fields?.Nombre && (
                         <div className="patient-info">
                           <div className="patient-avatar">
-                            {sobrecupo.fields.Nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                            <span>{sobrecupo.fields.Nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
                           </div>
                           <div className="patient-details">
                             <span className="patient-name">{sobrecupo.fields.Nombre}</span>
@@ -592,410 +503,495 @@ function MedicoDashboard() {
               ))}
             </div>
           )}
-        </div>
-      </div>
+        </section>
+      </main>
 
       <style jsx>{`
         .dashboard-container {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #1a1a1a;
-          padding-bottom: env(safe-area-inset-bottom);
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+          color: #171717;
+          position: relative;
+          overflow-x: hidden;
         }
 
-        /* Header Móvil - Diseño Actual */
-        .mobile-header {
+        /* Header minimalista */
+        .header {
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          background: rgba(250, 250, 250, 0.95);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          padding: 1rem 2rem;
+        }
+
+        .header-content {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          height: 56px;
-          box-sizing: border-box;
+          max-width: 1200px;
+          margin: 0 auto;
         }
 
-        .back-button, .logout-button {
-          background: none;
-          border: none;
-          color: #007aff;
-          font-size: 15px;
-          font-weight: 600;
-          padding: 8px 12px;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-
-        .back-button:hover, .logout-button:hover {
-          background: rgba(0, 122, 255, 0.1);
-        }
-
-        .header-title {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1a1a1a;
-        }
-
-        /* Perfil Doctor */
-        .doctor-profile-section {
+        .doctor-profile {
           display: flex;
           align-items: center;
-          gap: 16px;
-          padding: 20px 16px;
-          background: white;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          gap: 1rem;
+        }
+
+        .doctor-avatar-container {
+          position: relative;
         }
 
         .doctor-avatar {
-          width: 60px;
-          height: 60px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          background: linear-gradient(135deg, #171717, #333);
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 20px;
-          font-weight: 700;
-          box-shadow: 0 4px 16px rgba(0, 122, 255, 0.25);
-        }
-
-        .doctor-info {
-          flex: 1;
-        }
-
-        .doctor-name {
-          font-size: 18px;
-          font-weight: 700;
-          margin: 0 0 4px 0;
-          color: #1a1a1a;
-        }
-
-        .doctor-specialty {
-          font-size: 14px;
-          margin: 0;
-          color: #6e6e73;
-          font-weight: 500;
-        }
-
-        .status-indicator {
-          display: flex;
-          align-items: center;
-          gap: 6px;
+          font-size: 16px;
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .status-dot {
-          width: 8px;
-          height: 8px;
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          width: 12px;
+          height: 12px;
           background: #34c759;
           border-radius: 50%;
-          animation: pulse-dot 2s ease-in-out infinite;
+          border: 2px solid white;
         }
 
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+        .doctor-name {
+          font-size: 1.25rem;
+          font-weight: 300;
+          margin: 0;
+          color: #171717;
+          letter-spacing: -0.5px;
         }
 
-        .status-text {
-          font-size: 12px;
-          color: #34c759;
-          font-weight: 600;
+        .doctor-specialty {
+          font-size: 0.875rem;
+          margin: 0;
+          color: #666;
+          font-weight: 400;
         }
 
-        /* Container Principal */
-        .content-container {
-          padding: 16px;
-          max-width: 100vw;
-          box-sizing: border-box;
+        .logout-btn {
+          background: none;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          padding: 0.5rem 1rem;
         }
 
-        /* Stats Cards */
+        .logout-btn:hover {
+          border-color: #171717;
+          background: #171717;
+        }
+
+        .logout-btn:hover .logout-text {
+          color: white;
+        }
+
+        .logout-text {
+          color: #666;
+          font-size: 0.875rem;
+          font-weight: 400;
+          transition: color 0.2s ease;
+        }
+
+        .main-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 4rem 2rem;
+        }
+
+        /* Stats Section - estilo Apple minimalista */
         .stats-section {
-          margin-bottom: 24px;
+          margin-bottom: 6rem;
         }
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
-        }
-
-        @media (min-width: 768px) {
-          .stats-grid {
-            grid-template-columns: repeat(4, 1fr);
-          }
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 2rem;
         }
 
         .stat-card {
           background: white;
+          border: 1px solid rgba(0, 0, 0, 0.05);
           border-radius: 16px;
-          padding: 16px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          transition: all 0.3s ease;
+          padding: 2rem;
           cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          position: relative;
+          overflow: hidden;
         }
 
         .stat-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          border-color: rgba(0, 0, 0, 0.1);
         }
 
-        .stat-card.primary .stat-icon { background: #e3f2fd; }
-        .stat-card.success .stat-icon { background: #e8f5e8; }
-        .stat-card.warning .stat-icon { background: #fff3e0; }
-        .stat-card.info .stat-icon { background: #f3e5f5; }
+        .stat-content {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
 
-        .stat-icon {
-          width: 40px;
-          height: 40px;
+        .stat-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .stat-icon-container {
+          position: relative;
+        }
+
+        .stat-icon-bg {
+          width: 44px;
+          height: 44px;
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 18px;
-          flex-shrink: 0;
+          background: #f5f5f5;
         }
 
-        .stat-info {
-          flex: 1;
-          min-width: 0;
+        .stat-icon-bg.blue { background: #f0f4ff; }
+        .stat-icon-bg.green { background: #f0fff4; }
+        .stat-icon-bg.orange { background: #fff8f0; }
+        .stat-icon-bg.purple { background: #faf0ff; }
+
+        .stat-icon {
+          opacity: 0.8;
         }
 
         .stat-number {
-          font-size: 24px;
-          font-weight: 800;
-          color: #1a1a1a;
-          line-height: 1;
-          margin-bottom: 4px;
+          font-size: 2.5rem;
+          font-weight: 200;
+          color: #171717;
+          letter-spacing: -2px;
         }
 
         .stat-label {
-          font-size: 12px;
-          color: #6e6e73;
-          font-weight: 600;
+          font-size: 1rem;
+          font-weight: 400;
+          color: #171717;
           margin: 0;
         }
 
-        /* Secciones */
-        .actions-section, .timeline-section {
-          margin-bottom: 32px;
+        .stat-sublabel {
+          font-size: 0.875rem;
+          color: #666;
+          margin: 0;
+          font-weight: 400;
         }
 
-        .section-title {
-          font-size: 18px;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin: 0 0 16px 0;
+        .stat-progress {
+          margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+          width: 100%;
+          height: 2px;
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 1px;
+          overflow: hidden;
+        }
+
+        .progress-fill {
+          height: 100%;
+          border-radius: 1px;
+          transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .blue-fill { background: #171717; }
+
+        .pulse-indicator {
+          position: absolute;
+          top: 1.5rem;
+          right: 1.5rem;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          animation: pulse-anim 2s ease-in-out infinite;
+        }
+
+        .green-pulse {
+          background: #34c759;
+          box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.3);
+        }
+
+        .orange-pulse {
+          background: #ff9500;
+          box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.3);
+        }
+
+        @keyframes pulse-anim {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.3); }
+          50% { box-shadow: 0 0 0 6px rgba(52, 199, 89, 0); }
+        }
+
+        .clinic-dots {
           display: flex;
-          align-items: center;
-          gap: 8px;
+          gap: 3px;
+          margin-top: 0.5rem;
+        }
+
+        .clinic-dot {
+          width: 4px;
+          height: 4px;
+          background: #666;
+          border-radius: 50%;
+          animation: clinic-dot-anim 1.5s ease-in-out infinite;
+        }
+
+        @keyframes clinic-dot-anim {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Sections - estilo Apple */
+        .actions-section,
+        .timeline-section {
+          margin-bottom: 6rem;
         }
 
         .section-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 16px;
+          margin-bottom: 3rem;
+        }
+
+        .section-title {
+          font-size: 2rem;
+          font-weight: 200;
+          color: #171717;
+          margin: 0;
+          letter-spacing: -1px;
         }
 
         .view-all-btn {
           background: none;
-          border: none;
-          color: #007aff;
-          font-size: 14px;
-          font-weight: 600;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          color: #666;
+          font-size: 0.875rem;
+          font-weight: 400;
           cursor: pointer;
-          padding: 8px;
-          border-radius: 8px;
+          padding: 0.5rem 1rem;
           transition: all 0.2s ease;
         }
 
         .view-all-btn:hover {
-          background: rgba(0, 122, 255, 0.08);
+          border-color: #171717;
+          color: #171717;
         }
 
-        /* Acciones Rápidas */
+        /* Actions Grid - estilo Apple */
         .actions-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        @media (min-width: 768px) {
-          .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-          }
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 2rem;
         }
 
         .action-card {
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.06);
+          border: 1px solid rgba(0, 0, 0, 0.05);
           border-radius: 16px;
-          padding: 16px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
           cursor: pointer;
-          transition: all 0.3s ease;
-          text-align: left;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+          overflow: hidden;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .action-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-          border-color: rgba(0, 122, 255, 0.2);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          border-color: rgba(0, 0, 0, 0.1);
         }
 
-        .action-card.primary-action {
-          background: linear-gradient(135deg, #34c759, #30d158);
-          color: white;
-          border-color: rgba(52, 199, 89, 0.3);
-          box-shadow: 0 4px 24px rgba(52, 199, 89, 0.2);
+        .action-card.primary {
+          background: #171717;
+          border-color: #171717;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .action-card.primary-action:hover {
-          background: linear-gradient(135deg, #28a745, #34c759);
-          box-shadow: 0 8px 32px rgba(52, 199, 89, 0.3);
-        }
-
-        .action-icon {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          background: rgba(0, 0, 0, 0.05);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 16px;
-          flex-shrink: 0;
-        }
-
-        .action-card.primary-action .action-icon {
-          background: rgba(255, 255, 255, 0.2);
+        .action-card.primary:hover {
+          background: #000;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .action-content {
+          padding: 2rem;
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          text-align: left;
+        }
+
+        .action-icon-container {
+          position: relative;
+        }
+
+        .action-icon-bg {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: #f5f5f5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+        }
+
+        .primary-icon-bg {
+          background: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .action-icon {
+          color: #666;
+          opacity: 0.8;
+        }
+
+        .primary-icon {
+          color: white !important;
+          opacity: 1;
+        }
+
+        .action-info {
           flex: 1;
           min-width: 0;
         }
 
         .action-title {
-          font-size: 14px;
-          font-weight: 700;
-          margin: 0 0 2px 0;
-          color: #1a1a1a;
+          font-size: 1.125rem;
+          font-weight: 400;
+          margin-bottom: 0.25rem;
+          color: #171717;
+          letter-spacing: -0.25px;
         }
 
-        .action-card.primary-action .action-title {
-          color: white;
+        .primary-title {
+          color: white !important;
         }
 
         .action-description {
-          font-size: 12px;
-          color: #6e6e73;
-          margin: 0;
-          font-weight: 500;
+          font-size: 0.875rem;
+          color: #666;
+          font-weight: 400;
+          line-height: 1.4;
         }
 
-        .action-card.primary-action .action-description {
-          color: rgba(255, 255, 255, 0.9);
+        .primary-description {
+          color: rgba(255, 255, 255, 0.8) !important;
         }
 
         .action-arrow {
-          font-size: 16px;
-          color: #8e8e93;
-          transition: all 0.3s ease;
+          font-size: 1.25rem;
+          color: #999;
+          transition: all 0.2s ease;
         }
 
         .action-card:hover .action-arrow {
-          color: #1a1a1a;
+          color: #171717;
           transform: translateX(4px);
         }
 
-        .action-card.primary-action .action-arrow {
-          color: white;
+        .primary-arrow {
+          color: rgba(255, 255, 255, 0.8) !important;
         }
 
-        /* Empty State */
+        .action-card.primary:hover .primary-arrow {
+          color: white !important;
+        }
+
+        /* Timeline Section - estilo Apple */
         .empty-state {
           text-align: center;
-          padding: 32px 16px;
+          padding: 4rem 2rem;
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.06);
+          border: 1px solid rgba(0, 0, 0, 0.05);
           border-radius: 16px;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-icon-container {
+          margin-bottom: 2rem;
         }
 
         .empty-icon {
-          font-size: 48px;
-          opacity: 0.6;
-          margin-bottom: 16px;
+          font-size: 4rem;
+          opacity: 0.4;
         }
 
         .empty-title {
-          font-size: 18px;
-          font-weight: 700;
-          margin: 0 0 8px;
-          color: #1a1a1a;
+          font-size: 1.5rem;
+          font-weight: 300;
+          margin: 0 0 1rem;
+          color: #171717;
+          letter-spacing: -0.5px;
         }
 
         .empty-text {
-          color: #6e6e73;
-          margin: 0 0 20px;
-          font-size: 14px;
-          font-weight: 500;
+          color: #666;
+          margin: 0 0 2rem;
+          font-size: 1rem;
+          font-weight: 400;
+          line-height: 1.5;
         }
 
         .empty-action {
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          background: #171717;
           color: white;
           border: none;
-          border-radius: 12px;
-          padding: 12px 24px;
-          font-size: 14px;
-          font-weight: 600;
+          border-radius: 6px;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.875rem;
+          font-weight: 400;
           cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+          transition: all 0.2s ease;
+          font-family: inherit;
         }
 
         .empty-action:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(0, 122, 255, 0.4);
+          background: #000;
+          transform: translateY(-1px);
         }
 
-        /* Timeline */
         .timeline-container {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 1.5rem;
         }
 
         .timeline-item {
-          animation: fadeInUp 0.6s ease-out forwards;
+          animation: timeline-enter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
           opacity: 0;
           transform: translateY(20px);
         }
 
-        .timeline-item:nth-child(1) { animation-delay: 0.1s; }
-        .timeline-item:nth-child(2) { animation-delay: 0.2s; }
-        .timeline-item:nth-child(3) { animation-delay: 0.3s; }
-        .timeline-item:nth-child(4) { animation-delay: 0.4s; }
-
-        @keyframes fadeInUp {
+        @keyframes timeline-enter {
           to {
             opacity: 1;
             transform: translateY(0);
@@ -1004,32 +1000,32 @@ function MedicoDashboard() {
 
         .timeline-card {
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          border-radius: 14px;
-          padding: 16px;
-          transition: all 0.3s ease;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          border-radius: 16px;
+          padding: 1.5rem;
+          transition: all 0.2s ease;
           cursor: pointer;
-          box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .timeline-card:hover {
           transform: translateY(-1px);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-          border-color: rgba(0, 122, 255, 0.15);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          border-color: rgba(0, 0, 0, 0.1);
         }
 
         .timeline-header {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          margin-bottom: 12px;
-          gap: 12px;
+          margin-bottom: 1rem;
+          gap: 1rem;
         }
 
-        .date-info {
+        .time-info {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 1rem;
           flex: 1;
           min-width: 0;
         }
@@ -1038,25 +1034,27 @@ function MedicoDashboard() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          border-radius: 10px;
-          padding: 8px;
-          min-width: 40px;
+          background: #171717;
+          border-radius: 8px;
+          padding: 0.75rem;
+          min-width: 48px;
           flex-shrink: 0;
           color: white;
         }
 
         .day {
-          font-size: 16px;
-          font-weight: 800;
+          font-size: 1.25rem;
+          font-weight: 200;
           line-height: 1;
+          letter-spacing: -0.5px;
         }
 
         .month {
-          font-size: 10px;
-          font-weight: 700;
-          margin-top: 2px;
-          opacity: 0.9;
+          font-size: 0.625rem;
+          font-weight: 400;
+          margin-top: 0.25rem;
+          opacity: 0.8;
+          letter-spacing: 1px;
         }
 
         .time-details {
@@ -1066,85 +1064,100 @@ function MedicoDashboard() {
         }
 
         .time {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1a1a1a;
+          font-size: 1.125rem;
+          font-weight: 300;
+          color: #171717;
           line-height: 1.2;
+          letter-spacing: -0.25px;
         }
 
         .relative-time {
-          font-size: 12px;
-          color: #6e6e73;
-          font-weight: 500;
-          margin-top: 2px;
+          font-size: 0.75rem;
+          color: #666;
+          font-weight: 400;
+          margin-top: 0.25rem;
         }
 
-        .status-badge {
-          padding: 6px 12px;
-          border-radius: 16px;
-          font-size: 11px;
-          font-weight: 700;
-          white-space: nowrap;
+        .status-container {
           flex-shrink: 0;
         }
 
+        .status-badge {
+          padding: 0.375rem 0.75rem;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          font-weight: 400;
+          white-space: nowrap;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
         .status-badge.available {
-          background: #e8f8ec;
-          color: #1d7040;
-          border: 1px solid rgba(52, 199, 89, 0.3);
+          background: #f0fff4;
+          color: #166534;
+          border-color: rgba(52, 199, 89, 0.1);
         }
 
         .status-badge.reserved {
-          background: #fff3e8;
-          color: #cc6d00;
-          border: 1px solid rgba(255, 149, 0, 0.3);
+          background: #fff8f0;
+          color: #ea580c;
+          border-color: rgba(255, 149, 0, 0.1);
         }
 
         .timeline-body {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 1rem;
         }
 
         .clinic-info {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 0.75rem;
         }
 
         .location-icon {
-          font-size: 14px;
-          opacity: 0.7;
+          font-size: 0.875rem;
+          opacity: 0.6;
         }
 
         .clinic-name {
-          font-size: 14px;
-          color: #1a1a1a;
+          font-size: 0.875rem;
+          color: #171717;
           flex: 1;
           min-width: 0;
-          font-weight: 500;
+          font-weight: 400;
+        }
+
+        .clinic-badge {
+          background: #f0fff4;
+          color: #166534;
+          padding: 0.25rem 0.5rem;
+          border-radius: 6px;
+          font-size: 0.625rem;
+          font-weight: 400;
+          border: 1px solid rgba(52, 199, 89, 0.1);
         }
 
         .patient-info {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 12px;
-          background: rgba(0, 0, 0, 0.02);
-          border-radius: 10px;
-          border: 1px solid rgba(0, 0, 0, 0.04);
+          gap: 0.75rem;
+          padding: 1rem;
+          background: #fafafa;
+          border-radius: 12px;
+          border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .patient-avatar {
-          width: 28px;
-          height: 28px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #af52de, #bf5af2);
+          background: #171717;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 10px;
-          font-weight: 700;
+          font-size: 11px;
+          font-weight: 400;
           color: white;
           flex-shrink: 0;
         }
@@ -1152,102 +1165,208 @@ function MedicoDashboard() {
         .patient-details {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 0.75rem;
           flex: 1;
           min-width: 0;
         }
 
         .patient-name {
-          font-size: 14px;
-          color: #1a1a1a;
+          font-size: 0.875rem;
+          color: #171717;
           flex: 1;
           min-width: 0;
-          font-weight: 500;
+          font-weight: 400;
         }
 
         .confirmed-badge {
-          background: #e8f8ec;
-          color: #1d7040;
-          padding: 4px 8px;
-          border-radius: 8px;
-          font-size: 10px;
-          font-weight: 700;
-          border: 1px solid rgba(52, 199, 89, 0.3);
+          background: #f0fff4;
+          color: #166534;
+          padding: 0.25rem 0.5rem;
+          border-radius: 6px;
+          font-size: 0.625rem;
+          font-weight: 400;
+          border: 1px solid rgba(52, 199, 89, 0.1);
           flex-shrink: 0;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 480px) {
-          .content-container {
-            padding: 12px;
+        /* Responsive - estilo Apple */
+        @media (max-width: 768px) {
+          .header {
+            padding: 1rem;
+          }
+
+          .main-content {
+            padding: 2rem 1rem;
           }
 
           .stats-grid {
-            gap: 8px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
           }
 
           .stat-card {
-            padding: 12px;
+            padding: 1.5rem;
           }
 
           .stat-number {
-            font-size: 20px;
+            font-size: 2rem;
           }
 
-          .stat-label {
-            font-size: 11px;
+          .actions-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+
+          .action-content {
+            padding: 1.5rem;
           }
 
           .section-title {
-            font-size: 16px;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
           }
 
           .timeline-card {
-            padding: 12px;
+            padding: 1.25rem;
           }
 
           .timeline-header {
-            margin-bottom: 10px;
-            gap: 10px;
+            margin-bottom: 0.75rem;
+            gap: 0.75rem;
           }
 
           .date-block {
-            min-width: 36px;
-            padding: 6px;
+            min-width: 42px;
+            padding: 0.5rem;
           }
 
           .day {
-            font-size: 14px;
+            font-size: 1.125rem;
           }
 
           .month {
-            font-size: 9px;
+            font-size: 0.5rem;
           }
 
           .time {
-            font-size: 14px;
+            font-size: 1rem;
           }
 
           .relative-time {
-            font-size: 11px;
+            font-size: 0.6875rem;
           }
 
           .status-badge {
-            padding: 4px 8px;
-            font-size: 10px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.6875rem;
           }
 
           .timeline-body {
-            gap: 10px;
+            gap: 0.75rem;
           }
 
           .clinic-name {
-            font-size: 13px;
+            font-size: 0.8125rem;
+          }
+
+          .clinic-badge {
+            padding: 0.1875rem 0.375rem;
+            font-size: 0.5625rem;
           }
 
           .patient-info {
-            padding: 10px;
-            gap: 10px;
+            padding: 0.75rem;
+            gap: 0.5rem;
+          }
+
+          .patient-avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 10px;
+          }
+
+          .patient-name {
+            font-size: 0.8125rem;
+          }
+
+          .confirmed-badge {
+            padding: 0.1875rem 0.375rem;
+            font-size: 0.5625rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .main-content {
+            padding: 1.5rem 0.75rem;
+          }
+
+          .stats-grid {
+            gap: 0.75rem;
+          }
+
+          .stat-card {
+            padding: 1.25rem;
+          }
+
+          .stat-number {
+            font-size: 1.75rem;
+          }
+
+          .timeline-card {
+            padding: 1rem;
+          }
+
+          .timeline-header {
+            margin-bottom: 0.5rem;
+            gap: 0.5rem;
+          }
+
+          .date-block {
+            min-width: 38px;
+            padding: 0.375rem;
+          }
+
+          .day {
+            font-size: 1rem;
+          }
+
+          .month {
+            font-size: 0.5rem;
+          }
+
+          .time {
+            font-size: 0.875rem;
+          }
+
+          .relative-time {
+            font-size: 0.625rem;
+          }
+
+          .status-badge {
+            padding: 0.1875rem 0.375rem;
+            font-size: 0.625rem;
+          }
+
+          .timeline-body {
+            gap: 0.5rem;
+          }
+
+          .clinic-info {
+            gap: 0.5rem;
+          }
+
+          .clinic-name {
+            font-size: 0.75rem;
+          }
+
+          .clinic-badge {
+            padding: 0.125rem 0.25rem;
+            font-size: 0.5rem;
+          }
+
+          .patient-info {
+            padding: 0.5rem;
+            gap: 0.375rem;
           }
 
           .patient-avatar {
@@ -1257,40 +1376,39 @@ function MedicoDashboard() {
           }
 
           .patient-name {
-            font-size: 13px;
+            font-size: 0.75rem;
           }
 
           .confirmed-badge {
-            padding: 3px 6px;
-            font-size: 9px;
+            padding: 0.125rem 0.25rem;
+            font-size: 0.5rem;
           }
 
-          .action-card {
-            padding: 12px;
+          .action-content {
+            padding: 1.25rem;
           }
 
-          .action-icon {
-            width: 32px;
-            height: 32px;
+          .action-icon-bg {
+            width: 36px;
+            height: 36px;
           }
 
           .action-title {
-            font-size: 13px;
+            font-size: 1rem;
           }
 
           .action-description {
-            font-size: 11px;
+            font-size: 0.8125rem;
           }
         }
 
-        /* Accesibilidad y Estados de Foco */
-        .back-button:focus,
-        .logout-button:focus,
+        /* Estados de foco - estilo Apple */
+        .logout-btn:focus,
         .view-all-btn:focus,
         .action-card:focus,
         .empty-action:focus,
         .timeline-card:focus {
-          outline: 2px solid #007aff;
+          outline: 2px solid #171717;
           outline-offset: 2px;
         }
 
