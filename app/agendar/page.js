@@ -207,7 +207,6 @@ const AgendarSobrecuposPage = () => {
     setAcceptTerms(false);
   };
 
-  // Función para obtener seguros/previsiones con formato mejorado
   const getPrevisiones = (sobrecupo) => {
     let seguros = sobrecupo.fields.Seguro || 
                   sobrecupo.fields.Seguros || 
@@ -235,60 +234,26 @@ const AgendarSobrecuposPage = () => {
     return seguros;
   };
 
-  // Función para obtener tipo de pacientes con formato mejorado
-  const getTipoPacientes = (sobrecupo) => {
-    let atiende = sobrecupo.fields.Atiende || 
-                  sobrecupo.fields.Edades || 
-                  sobrecupo.fields.Pacientes || 
-                  sobrecupo.fields['Tipo Pacientes'] ||
-                  '';
-    
-    if (!atiende || atiende === 'Consultar edades') return '👥 Consultar edades';
-    
-    if (Array.isArray(atiende)) {
-      atiende = atiende.length > 0 ? atiende[0] : 'Consultar edades';
-    }
-    
-    atiende = String(atiende);
-    
-    if (atiende.length > 10 && !atiende.includes(' ')) {
-      atiende = atiende.replace(/([A-Z])/g, ' $1').trim();
-    }
-    
-    const atiendeStr = atiende.toLowerCase();
-    
-    if (atiendeStr.includes('ambos') || (atiendeStr.includes('adulto') && atiendeStr.includes('niño'))) {
-      return '👨‍👩‍👧‍👦 Adultos y Niños';
-    } else if (atiendeStr.includes('adulto')) {
-      return '👨‍👩‍👧‍👦 Solo Adultos';
-    } else if (atiendeStr.includes('niño') || atiendeStr.includes('pediatr')) {
-      return '👶 Solo Niños';
-    }
-    
-    return `👥 ${atiende}`;
-  };
-
   return (
-    <div style={styles.pageContainer}>
-      {/* Header mejorado */}
-      <header style={styles.header}>
-        <div style={styles.headerContainer}>
-          <div style={styles.headerContent}>
-            <div style={styles.headerLeft}>
-              <button onClick={handleBackClick} style={styles.backButton}>
-                <span style={styles.backArrow}>←</span>
+    <main className="page-container">
+      {/* Header Minimalista */}
+      <header className="header">
+        <div className="header-container">
+          <div className="header-content">
+            <div className="header-left">
+              <button onClick={handleBackClick} className="back-button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </button>
-              <div style={styles.logoContainer}>
-                <div style={styles.logoIcon}>S</div>
-              </div>
-              <div>
-                <h1 style={styles.headerTitle}>Sobrecupos</h1>
-                <p style={styles.headerSubtitle}>Agenda tu cita</p>
+              <div className="header-text">
+                <h1 className="header-title">Sobrecupos</h1>
+                <span className="header-subtitle">AI</span>
               </div>
             </div>
-            <div style={styles.headerStats}>
+            <div className="header-stats">
               {!loading && (
-                <span style={styles.statsText}>
+                <span className="stats-badge">
                   {filteredSobrecupos.length} disponibles
                 </span>
               )}
@@ -297,310 +262,275 @@ const AgendarSobrecuposPage = () => {
         </div>
       </header>
 
-      {/* Layout mejorado para desktop */}
-      <main style={styles.mainContent}>
-        <div style={styles.desktopLayout}>
-          {/* Sidebar con filtros y título - lado izquierdo */}
-          <aside style={styles.sidebar}>
-            <div style={styles.titleSection}>
-              <h2 style={styles.mainTitle}>Buscar Sobrecupo</h2>
-              <p style={styles.subtitle}>
-                Encuentra y reserva citas médicas disponibles
-              </p>
+      {/* Layout Principal */}
+      <div className="main-layout">
+        <div className="content-container">
+          
+          {/* Hero Section */}
+          <section className="hero-section">
+            <div className="hero-content">
+              <h2 className="main-title">Encuentra tu cita médica</h2>
+              <p className="main-subtitle">Sobrecupos disponibles para reservar ahora</p>
             </div>
+          </section>
 
-            {/* Filtros mejorados */}
-            <div style={styles.filtersCard}>
-              <h3 style={styles.filtersTitle}>Filtrar por</h3>
-              
-              <div style={styles.filtersContainer}>
-                <div style={styles.filterGroup}>
-                  <label style={styles.filterLabel}>Especialidad</label>
-                  <select
-                    value={filters.especialidad}
-                    onChange={(e) => setFilters(prev => ({ ...prev, especialidad: e.target.value }))}
-                    style={styles.filterSelect}
-                  >
-                    <option value="">Todas</option>
-                    {getUniqueEspecialidades().map(esp => (
-                      <option key={esp} value={esp}>{esp}</option>
-                    ))}
-                  </select>
-                </div>
+          {/* Filtros Minimalistas */}
+          <section className="filters-section">
+            <div className="filters-container">
+              <div className="filter-group">
+                <select
+                  value={filters.especialidad}
+                  onChange={(e) => setFilters(prev => ({ ...prev, especialidad: e.target.value }))}
+                  className="filter-select"
+                >
+                  <option value="">Todas las especialidades</option>
+                  {getUniqueEspecialidades().map(esp => (
+                    <option key={esp} value={esp}>{esp}</option>
+                  ))}
+                </select>
+              </div>
 
-                <div style={styles.filterGroup}>
-                  <label style={styles.filterLabel}>Médico</label>
-                  <select
-                    value={filters.medico}
-                    onChange={(e) => setFilters(prev => ({ ...prev, medico: e.target.value }))}
-                    style={styles.filterSelect}
-                  >
-                    <option value="">Todos</option>
-                    {getUniqueMedicos().map(medico => (
-                      <option key={medico} value={medico}>{medico}</option>
-                    ))}
-                  </select>
-                </div>
+              <div className="filter-group">
+                <select
+                  value={filters.medico}
+                  onChange={(e) => setFilters(prev => ({ ...prev, medico: e.target.value }))}
+                  className="filter-select"
+                >
+                  <option value="">Todos los médicos</option>
+                  {getUniqueMedicos().map(medico => (
+                    <option key={medico} value={medico}>{medico}</option>
+                  ))}
+                </select>
+              </div>
 
-                <button onClick={clearFilters} style={styles.clearButton}>
-                  Limpiar filtros
+              {(filters.especialidad || filters.medico) && (
+                <button onClick={clearFilters} className="clear-filters">
+                  Limpiar
                 </button>
-              </div>
+              )}
             </div>
+          </section>
 
-            {/* Información adicional */}
-            <div style={styles.infoCard}>
-              <h4 style={styles.infoTitle}>¿Cómo funciona?</h4>
-              <div style={styles.infoSteps}>
-                <div style={styles.infoStep}>
-                  <span style={styles.stepNumber}>1</span>
-                  <p style={styles.stepText}>Elige tu sobrecupo</p>
-                </div>
-                <div style={styles.infoStep}>
-                  <span style={styles.stepNumber}>2</span>
-                  <p style={styles.stepText}>Completa tus datos</p>
-                </div>
-                <div style={styles.infoStep}>
-                  <span style={styles.stepNumber}>3</span>
-                  <p style={styles.stepText}>¡Confirma tu cita!</p>
-                </div>
-              </div>
+          {/* Mensaje */}
+          {message && (
+            <div className={`message ${message.includes('confirmada') ? 'success' : 'error'}`}>
+              {message}
             </div>
-          </aside>
+          )}
 
-          {/* Contenido principal - lado derecho */}
-          <div style={styles.content}>
-            {/* Message */}
-            {message && (
-              <div style={{
-                ...styles.message,
-                backgroundColor: message.includes('confirmada') ? '#d1fae5' : '#fee2e2',
-                color: message.includes('confirmada') ? '#065f46' : '#991b1b',
-                borderColor: message.includes('confirmada') ? '#a7f3d0' : '#fecaca'
-              }}>
-                {message}
-              </div>
-            )}
-
-            {/* Results Header */}
-            <div style={styles.resultsHeader}>
-              <h3 style={styles.resultsTitle}>
-                {loading ? 'Cargando...' : `${filteredSobrecupos.length} sobrecupos disponibles`}
-              </h3>
-            </div>
-
-            {/* Results Grid optimizado para desktop */}
+          {/* Contenido Principal */}
+          <section className="results-section">
             {loading ? (
-              <div style={styles.loadingContainer}>
-                <div style={styles.spinner}></div>
-                <p style={styles.loadingText}>Cargando sobrecupos...</p>
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p className="loading-text">Cargando sobrecupos...</p>
               </div>
             ) : filteredSobrecupos.length === 0 ? (
-              <div style={styles.emptyContainer}>
-                <div style={styles.emptyIcon}>😔</div>
-                <h3 style={styles.emptyTitle}>No se encontraron sobrecupos</h3>
-                <p style={styles.emptyText}>Intenta ajustar los filtros</p>
+              <div className="empty-container">
+                <div className="empty-icon">🔍</div>
+                <h3 className="empty-title">No se encontraron sobrecupos</h3>
+                <p className="empty-text">Intenta ajustar los filtros o revisa más tarde</p>
                 {sobrecupos.length > 0 && (
-                  <button onClick={clearFilters} style={styles.primaryButton}>
+                  <button onClick={clearFilters} className="empty-button">
                     Ver todos los sobrecupos
                   </button>
                 )}
               </div>
             ) : (
-              <div style={styles.resultsGrid}>
+              <div className="results-grid">
                 {filteredSobrecupos.map((sobrecupo) => (
-                  <div key={sobrecupo.id} style={styles.sobrecupoCard}>
-                    {/* Header del médico */}
-                    <div style={styles.cardHeader}>
-                      <div style={styles.doctorInfo}>
-                        <div style={styles.avatar}>
+                  <article key={sobrecupo.id} className="sobrecupo-card">
+                    
+                    {/* Card Header */}
+                    <div className="card-header">
+                      <div className="doctor-info">
+                        <div className="doctor-avatar">
                           {sobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
                         </div>
-                        <div style={styles.doctorDetails}>
-                          <h3 style={styles.doctorName}>
+                        <div className="doctor-details">
+                          <h3 className="doctor-name">
                             {sobrecupo.fields.Médico}
                           </h3>
-                          <p style={styles.specialty}>
+                          <p className="doctor-specialty">
                             {sobrecupo.fields.Especialidad}
                           </p>
                         </div>
                       </div>
-                      <div style={styles.dateTime}>
-                        <div style={styles.dateText}>
+                      <div className="appointment-time">
+                        <div className="date-text">
                           {formatDate(sobrecupo.fields.Fecha)}
                         </div>
-                        <div style={styles.timeText}>
+                        <div className="time-text">
                           {sobrecupo.fields.Hora}
                         </div>
                       </div>
                     </div>
 
-                    {/* Detalles de la clínica */}
-                    <div style={styles.cardBody}>
-                      <div style={styles.clinicInfo}>
-                        <div style={styles.detailRow}>
-                          <span style={styles.detailIcon}>🏥</span>
-                          <div style={styles.detailText}>
-                            <span style={styles.clinicName}>{sobrecupo.fields.Clínica}</span>
-                            <p style={styles.address}>{sobrecupo.fields.Dirección}</p>
-                          </div>
+                    {/* Card Body */}
+                    <div className="card-body">
+                      <div className="location-info">
+                        <div className="clinic-name">{sobrecupo.fields.Clínica}</div>
+                        <div className="clinic-address">{sobrecupo.fields.Dirección}</div>
+                      </div>
+                      
+                      <div className="additional-info">
+                        <div className="info-item">
+                          <span className="info-label">Previsión</span>
+                          <span className="info-value">{getPrevisiones(sobrecupo)}</span>
                         </div>
-                        
-                        <div style={styles.additionalInfo}>
-                          <div style={styles.infoItem}>
-                            <span style={styles.infoIcon}>💳</span>
-                            <span style={styles.infoText}>{getPrevisiones(sobrecupo)}</span>
-                          </div>
-                          <div style={styles.infoItem}>
-                            <span style={styles.infoIcon}>👥</span>
-                            <span style={styles.infoText}>Atiende {sobrecupo.fields.Atiende || 'Consultar'}</span>
-                          </div>
+                        <div className="info-item">
+                          <span className="info-label">Atiende</span>
+                          <span className="info-value">{sobrecupo.fields.Atiende || 'Consultar'}</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Footer con botón */}
-                    <div style={styles.cardFooter}>
+                    {/* Card Footer */}
+                    <div className="card-footer">
                       <button
                         onClick={() => handleReservarClick(sobrecupo)}
-                        style={styles.reserveButton}
+                        className="reserve-button"
                       >
-                        Reservar Cita
+                        Reservar cita
                       </button>
                     </div>
-                  </div>
+                  </article>
                 ))}
               </div>
             )}
-          </div>
+          </section>
         </div>
-      </main>
+      </div>
 
-      {/* Modal (mantener igual) */}
+      {/* Modal de Reserva */}
       {showReservationModal && selectedSobrecupo && (
-        <div style={styles.modalOverlay} onClick={(e) => {
+        <div className="modal-overlay" onClick={(e) => {
           if (e.target === e.currentTarget) {
             handleCloseModal();
           }
         }}>
-          <div style={styles.modalContent}>
+          <div className="modal-content">
+            
             {/* Modal Header */}
-            <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>Agendar sobrecupo</h3>
-              <button onClick={handleCloseModal} style={styles.closeButton}>
-                ×
+            <div className="modal-header">
+              <h3 className="modal-title">Reservar sobrecupo</h3>
+              <button onClick={handleCloseModal} className="modal-close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="#666" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </button>
             </div>
 
             {/* Modal Body */}
-            <div style={styles.modalBody}>
-              {/* Doctor Info Summary */}
-              <div style={styles.modalInfoBox}>
-                <div style={styles.modalDoctorInfo}>
-                  <div style={styles.modalAvatar}>
-                    {selectedSobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                  </div>
-                  <div style={styles.modalDoctorDetails}>
-                    <p style={styles.modalDoctorName}>{selectedSobrecupo.fields.Médico}</p>
-                    <p style={styles.modalSpecialty}>{selectedSobrecupo.fields.Especialidad}</p>
-                    <p style={styles.modalClinicInfo}>{selectedSobrecupo.fields.Clínica}</p>
-                    <p style={styles.modalDateTime}>
-                      {formatDate(selectedSobrecupo.fields.Fecha)} - {selectedSobrecupo.fields.Hora}
-                    </p>
+            <div className="modal-body">
+              
+              {/* Resumen de la cita */}
+              <div className="appointment-summary">
+                <div className="summary-avatar">
+                  {selectedSobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                </div>
+                <div className="summary-details">
+                  <div className="summary-doctor">{selectedSobrecupo.fields.Médico}</div>
+                  <div className="summary-specialty">{selectedSobrecupo.fields.Especialidad}</div>
+                  <div className="summary-clinic">{selectedSobrecupo.fields.Clínica}</div>
+                  <div className="summary-datetime">
+                    {formatDate(selectedSobrecupo.fields.Fecha)} - {selectedSobrecupo.fields.Hora}
                   </div>
                 </div>
               </div>
 
-              {/* Form Fields */}
-              <div style={styles.formContainer}>
-                <div style={styles.formField}>
-                  <label style={styles.formLabel}>Nombres *</label>
-                  <input
-                    type="text"
-                    value={reservationData.nombre}
-                    onChange={(e) => setReservationData(prev => ({ ...prev, nombre: e.target.value }))}
-                    style={styles.formInput}
-                    placeholder="Juan Carlos"
-                    disabled={reservationLoading}
-                  />
-                </div>
+              {/* Formulario */}
+              <div className="form-container">
+                <div className="form-row">
+                  <div className="form-field">
+                    <label className="field-label">Nombres *</label>
+                    <input
+                      type="text"
+                      value={reservationData.nombre}
+                      onChange={(e) => setReservationData(prev => ({ ...prev, nombre: e.target.value }))}
+                      className="field-input"
+                      placeholder="Juan Carlos"
+                      disabled={reservationLoading}
+                    />
+                  </div>
 
-                <div style={styles.formField}>
-                  <label style={styles.formLabel}>Apellidos</label>
-                  <input
-                    type="text"
-                    value={reservationData.apellidos}
-                    onChange={(e) => setReservationData(prev => ({ ...prev, apellidos: e.target.value }))}
-                    style={styles.formInput}
-                    placeholder="González López"
-                    disabled={reservationLoading}
-                  />
-                </div>
-
-                <div style={styles.formField}>
-                  <label style={styles.formLabel}>RUT *</label>
-                  <input
-                    type="text"
-                    value={reservationData.rut}
-                    onChange={(e) => setReservationData(prev => ({ ...prev, rut: e.target.value }))}
-                    style={styles.formInput}
-                    placeholder="12.345.678-9"
-                    disabled={reservationLoading}
-                  />
-                </div>
-
-                <div style={styles.formField}>
-                  <label style={styles.formLabel}>Email *</label>
-                  <input
-                    type="email"
-                    value={reservationData.email}
-                    onChange={(e) => setReservationData(prev => ({ ...prev, email: e.target.value }))}
-                    style={styles.formInput}
-                    placeholder="juan@email.com"
-                    disabled={reservationLoading}
-                  />
-                </div>
-
-                {/* Terms Checkbox */}
-                <div style={styles.checkboxContainer}>
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={acceptTerms}
-                    onChange={(e) => setAcceptTerms(e.target.checked)}
-                    style={styles.checkbox}
-                    disabled={reservationLoading}
-                  />
-                  <label htmlFor="terms" style={styles.checkboxLabel}>
-                    Acepto los <a href="#" style={styles.link}>términos y condiciones</a>
-                  </label>
-                </div>
-
-                {/* Warning Box */}
-                <div style={styles.warningBox}>
-                  <span style={styles.warningIcon}>⚠️</span>
-                  <div>
-                    <p style={styles.warningTitle}>¡Atención!</p>
-                    <p style={styles.warningText}>Debes pagar el bono al llegar.</p>
+                  <div className="form-field">
+                    <label className="field-label">Apellidos</label>
+                    <input
+                      type="text"
+                      value={reservationData.apellidos}
+                      onChange={(e) => setReservationData(prev => ({ ...prev, apellidos: e.target.value }))}
+                      className="field-input"
+                      placeholder="González López"
+                      disabled={reservationLoading}
+                    />
                   </div>
                 </div>
 
-                {/* Submit Button */}
+                <div className="form-row">
+                  <div className="form-field">
+                    <label className="field-label">RUT *</label>
+                    <input
+                      type="text"
+                      value={reservationData.rut}
+                      onChange={(e) => setReservationData(prev => ({ ...prev, rut: e.target.value }))}
+                      className="field-input"
+                      placeholder="12.345.678-9"
+                      disabled={reservationLoading}
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">Email *</label>
+                    <input
+                      type="email"
+                      value={reservationData.email}
+                      onChange={(e) => setReservationData(prev => ({ ...prev, email: e.target.value }))}
+                      className="field-input"
+                      placeholder="juan@email.com"
+                      disabled={reservationLoading}
+                    />
+                  </div>
+                </div>
+
+                {/* Términos */}
+                <div className="terms-container">
+                  <label className="terms-label">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="terms-checkbox"
+                      disabled={reservationLoading}
+                    />
+                    <span className="terms-text">
+                      Acepto los términos y condiciones
+                    </span>
+                  </label>
+                </div>
+
+                {/* Aviso */}
+                <div className="warning-notice">
+                  <span className="warning-icon">!</span>
+                  <div>
+                    <div className="warning-title">Importante</div>
+                    <div className="warning-text">Debes pagar el valor de la consulta al llegar a la clínica</div>
+                  </div>
+                </div>
+
+                {/* Botón de envío */}
                 <button
                   onClick={handleReservationSubmit}
                   disabled={reservationLoading || !acceptTerms}
-                  style={{
-                    ...styles.submitButton,
-                    ...((!acceptTerms || reservationLoading) ? styles.submitButtonDisabled : {})
-                  }}
+                  className={`submit-button ${(!acceptTerms || reservationLoading) ? 'disabled' : ''}`}
                 >
                   {reservationLoading ? (
-                    <span style={styles.loadingButtonContent}>
-                      <span style={styles.buttonSpinner}></span>
+                    <span className="loading-content">
+                      <span className="button-spinner"></span>
                       Procesando...
                     </span>
                   ) : (
-                    'Agendar sobrecupo $2.990'
+                    'Confirmar reserva'
                   )}
                 </button>
               </div>
@@ -610,10 +540,712 @@ const AgendarSobrecuposPage = () => {
       )}
 
       <style jsx>{`
+        .page-container {
+          min-height: 100vh;
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+
+        /* Header */
+        .header {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid #e5e5e5;
+        }
+
+        .header-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 1rem;
+        }
+
+        .header-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 60px;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .back-button {
+          width: 36px;
+          height: 36px;
+          background: none;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+          border-color: #171717;
+          background: #f9fafb;
+        }
+
+        .header-text {
+          display: flex;
+          align-items: baseline;
+          gap: 0.5rem;
+        }
+
+        .header-title {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #171717;
+          margin: 0;
+        }
+
+        .header-subtitle {
+          font-size: 1rem;
+          font-weight: 300;
+          color: #666;
+        }
+
+        .header-stats {
+          display: none;
+        }
+
+        .stats-badge {
+          font-size: 0.875rem;
+          color: #666;
+          background: #f5f5f5;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          border: 1px solid #e5e5e5;
+        }
+
+        /* Layout Principal */
+        .main-layout {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem 1rem;
+        }
+
+        .content-container {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+        }
+
+        /* Hero Section */
+        .hero-section {
+          text-align: center;
+          margin-bottom: 1rem;
+        }
+
+        .hero-content {
+          max-width: 600px;
+          margin: 0 auto;
+        }
+
+        .main-title {
+          font-size: 2rem;
+          font-weight: 300;
+          color: #171717;
+          margin: 0 0 0.5rem 0;
+          letter-spacing: -0.5px;
+        }
+
+        .main-subtitle {
+          font-size: 1rem;
+          color: #666;
+          margin: 0;
+          font-weight: 400;
+        }
+
+        /* Filtros */
+        .filters-section {
+          display: flex;
+          justify-content: center;
+        }
+
+        .filters-container {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+          align-items: center;
+          max-width: 100%;
+        }
+
+        .filter-group {
+          flex: 1;
+          min-width: 200px;
+        }
+
+        .filter-select {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          background: white;
+          font-size: 0.875rem;
+          color: #171717;
+          outline: none;
+          transition: border-color 0.2s ease;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+          background-position: right 0.75rem center;
+          background-repeat: no-repeat;
+          background-size: 1rem;
+          padding-right: 2.5rem;
+        }
+
+        .filter-select:focus {
+          border-color: #171717;
+        }
+
+        .clear-filters {
+          padding: 0.75rem 1rem;
+          background: none;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          color: #666;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .clear-filters:hover {
+          border-color: #171717;
+          color: #171717;
+        }
+
+        /* Mensaje */
+        .message {
+          padding: 1rem;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          text-align: center;
+          margin-bottom: 1rem;
+        }
+
+        .message.success {
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
+        }
+
+        .message.error {
+          background: #fef2f2;
+          color: #991b1b;
+          border: 1px solid #fecaca;
+        }
+
+        /* Loading */
+        .loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem 2rem;
+          text-align: center;
+        }
+
+        .loading-spinner {
+          width: 32px;
+          height: 32px;
+          border: 2px solid #f3f4f6;
+          border-top: 2px solid #171717;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 1rem;
+        }
+
+        .loading-text {
+          color: #666;
+          font-size: 0.875rem;
+          margin: 0;
+        }
+
+        /* Empty State */
+        .empty-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem 2rem;
+          text-align: center;
+        }
+
+        .empty-icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+          opacity: 0.3;
+        }
+
+        .empty-title {
+          font-size: 1.5rem;
+          font-weight: 300;
+          color: #171717;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .empty-text {
+          color: #666;
+          font-size: 0.875rem;
+          margin: 0 0 2rem 0;
+        }
+
+        .empty-button {
+          padding: 0.75rem 1.5rem;
+          background: #171717;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .empty-button:hover {
+          background: #000;
+        }
+
+        /* Results Grid */
+        .results-grid {
+          display: grid;
+          gap: 1.5rem;
+          grid-template-columns: 1fr;
+        }
+
+        /* Sobrecupo Card */
+        .sobrecupo-card {
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 12px;
+          overflow: hidden;
+          transition: all 0.3s ease;
+        }
+
+        .sobrecupo-card:hover {
+          border-color: #d4d4d4;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Card Header */
+        .card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1.5rem;
+          border-bottom: 1px solid #f5f5f5;
+        }
+
+        .doctor-info {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .doctor-avatar {
+          width: 40px;
+          height: 40px;
+          background: #171717;
+          color: white;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.875rem;
+          font-weight: 600;
+          flex-shrink: 0;
+        }
+
+        .doctor-details {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .doctor-name {
+          font-size: 1.1rem;
+          font-weight: 500;
+          color: #171717;
+          margin: 0 0 0.25rem 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .doctor-specialty {
+          font-size: 0.875rem;
+          color: #666;
+          margin: 0;
+        }
+
+        .appointment-time {
+          text-align: right;
+          flex-shrink: 0;
+        }
+
+        .date-text {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #171717;
+          margin-bottom: 2px;
+        }
+
+        .time-text {
+          font-size: 0.75rem;
+          color: #666;
+        }
+
+        /* Card Body */
+        .card-body {
+          padding: 1rem 1.5rem;
+        }
+
+        .location-info {
+          margin-bottom: 1rem;
+        }
+
+        .clinic-name {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #171717;
+          margin-bottom: 0.25rem;
+        }
+
+        .clinic-address {
+          font-size: 0.8rem;
+          color: #666;
+        }
+
+        .additional-info {
+          display: flex;
+          gap: 1.5rem;
+        }
+
+        .info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .info-label {
+          font-size: 0.75rem;
+          color: #999;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .info-value {
+          font-size: 0.8rem;
+          color: #666;
+          font-weight: 400;
+        }
+
+        /* Card Footer */
+        .card-footer {
+          padding: 1rem 1.5rem;
+          border-top: 1px solid #f5f5f5;
+        }
+
+        .reserve-button {
+          width: 100%;
+          padding: 0.75rem;
+          background: #171717;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .reserve-button:hover {
+          background: #000;
+        }
+
+        /* Modal */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          z-index: 1000;
+          padding: 0;
+        }
+
+        .modal-content {
+          background: white;
+          width: 100%;
+          max-height: 90vh;
+          overflow-y: auto;
+          border-top-left-radius: 16px;
+          border-top-right-radius: 16px;
+          animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-header {
+          position: sticky;
+          top: 0;
+          background: white;
+          border-bottom: 1px solid #e5e5e5;
+          padding: 1rem 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          z-index: 10;
+        }
+
+        .modal-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #171717;
+          margin: 0;
+        }
+
+        .modal-close {
+          width: 32px;
+          height: 32px;
+          background: none;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.2s ease;
+        }
+
+        .modal-close:hover {
+          background: #f5f5f5;
+        }
+
+        .modal-body {
+          padding: 1.5rem;
+        }
+
+        /* Appointment Summary */
+        .appointment-summary {
+          display: flex;
+          gap: 1rem;
+          padding: 1rem;
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          margin-bottom: 2rem;
+        }
+
+        .summary-avatar {
+          width: 48px;
+          height: 48px;
+          background: #171717;
+          color: white;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1rem;
+          font-weight: 600;
+          flex-shrink: 0;
+        }
+
+        .summary-details {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .summary-doctor {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #171717;
+          margin-bottom: 0.25rem;
+        }
+
+        .summary-specialty {
+          font-size: 0.875rem;
+          color: #666;
+          margin-bottom: 0.25rem;
+        }
+
+        .summary-clinic {
+          font-size: 0.875rem;
+          color: #666;
+          margin-bottom: 0.25rem;
+        }
+
+        .summary-datetime {
+          font-size: 0.875rem;
+          color: #171717;
+          font-weight: 500;
+        }
+
+        /* Form */
+        .form-container {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .form-row {
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: 1fr;
+        }
+
+        .form-field {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .field-label {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+          margin-bottom: 0.5rem;
+        }
+
+        .field-input {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          font-size: 16px;
+          outline: none;
+          transition: border-color 0.2s ease;
+          box-sizing: border-box;
+        }
+
+        .field-input:focus {
+          border-color: #171717;
+        }
+
+        .field-input:disabled {
+          opacity: 0.6;
+          background: #f9fafb;
+        }
+
+        /* Terms */
+        .terms-container {
+          margin: 0.5rem 0;
+        }
+
+        .terms-label {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.75rem;
+          cursor: pointer;
+        }
+
+        .terms-checkbox {
+          width: 16px;
+          height: 16px;
+          margin-top: 2px;
+          cursor: pointer;
+          accent-color: #171717;
+        }
+
+        .terms-text {
+          font-size: 0.875rem;
+          color: #374151;
+          line-height: 1.4;
+        }
+
+        /* Warning Notice */
+        .warning-notice {
+          display: flex;
+          gap: 0.75rem;
+          padding: 1rem;
+          background: #fef3c7;
+          border: 1px solid #fde68a;
+          border-radius: 8px;
+        }
+
+        .warning-icon {
+          width: 20px;
+          height: 20px;
+          background: #f59e0b;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.75rem;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+
+        .warning-title {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #92400e;
+          margin-bottom: 0.25rem;
+        }
+
+        .warning-text {
+          font-size: 0.8rem;
+          color: #92400e;
+        }
+
+        /* Submit Button */
+        .submit-button {
+          width: 100%;
+          padding: 1rem;
+          background: #171717;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.2s ease;
+          margin-top: 0.5rem;
+        }
+
+        .submit-button:hover:not(.disabled) {
+          background: #000;
+        }
+
+        .submit-button.disabled {
+          background: #e5e7eb;
+          color: #9ca3af;
+          cursor: not-allowed;
+        }
+
+        .loading-content {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .button-spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        /* Animations */
         @keyframes spin {
           to { transform: rotate(360deg); }
         }
-        
+
         @keyframes slideUp {
           from {
             transform: translateY(100%);
@@ -624,767 +1256,188 @@ const AgendarSobrecuposPage = () => {
             opacity: 1;
           }
         }
-        
-        @media (max-width: 768px) {
+
+        /* Responsive - Tablet */
+        @media (min-width: 768px) {
+          .header-stats {
+            display: block;
+          }
+
+          .main-layout {
+            padding: 3rem 2rem;
+          }
+
+          .main-title {
+            font-size: 2.5rem;
+          }
+
+          .main-subtitle {
+            font-size: 1.1rem;
+          }
+
+          .filter-group {
+            max-width: 250px;
+          }
+
+          .results-grid {
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+          }
+
+          .modal-overlay {
+            align-items: center;
+            padding: 1rem;
+          }
+
           .modal-content {
-            animation: slideUp 0.3s ease-out;
+            max-width: 500px;
+            border-radius: 12px;
+            animation: none;
+          }
+
+          .form-row {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        /* Responsive - Desktop */
+        @media (min-width: 1024px) {
+          .content-container {
+            gap: 3rem;
+          }
+
+          .hero-section {
+            margin-bottom: 2rem;
+          }
+
+          .results-grid {
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2.5rem;
+          }
+
+          .card-header {
+            padding: 2rem;
+          }
+
+          .card-body {
+            padding: 1.5rem 2rem;
+          }
+
+          .card-footer {
+            padding: 1.5rem 2rem;
+          }
+
+          .additional-info {
+            gap: 2rem;
+          }
+        }
+
+        /* iPhone Specific Optimizations */
+        @media (max-width: 480px) {
+          .main-layout {
+            padding: 1rem 0.75rem;
+          }
+
+          .main-title {
+            font-size: 1.75rem;
+          }
+
+          .main-subtitle {
+            font-size: 0.9rem;
+          }
+
+          .filters-container {
+            flex-direction: column;
+            width: 100%;
+          }
+
+          .filter-group {
+            min-width: auto;
+          }
+
+          .clear-filters {
+            width: 100%;
+            justify-self: stretch;
+          }
+
+          .card-header {
+            padding: 1rem;
+          }
+
+          .card-body {
+            padding: 0.75rem 1rem;
+          }
+
+          .card-footer {
+            padding: 1rem;
+          }
+
+          .additional-info {
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+
+          .modal-header {
+            padding: 1rem;
+          }
+
+          .modal-body {
+            padding: 1rem;
+          }
+
+          .appointment-summary {
+            padding: 0.75rem;
+            margin-bottom: 1.5rem;
+          }
+
+          .summary-avatar {
+            width: 40px;
+            height: 40px;
+          }
+        }
+
+        /* iPhone SE and very small devices */
+        @media (max-width: 375px) {
+          .main-title {
+            font-size: 1.5rem;
+          }
+
+          .header-content {
+            height: 56px;
+          }
+
+          .back-button {
+            width: 32px;
+            height: 32px;
+          }
+
+          .header-title {
+            font-size: 1.25rem;
+          }
+
+          .doctor-name {
+            font-size: 1rem;
+          }
+
+          .doctor-specialty {
+            font-size: 0.8rem;
+          }
+        }
+
+        /* Safe area for iPhones with notch */
+        @supports (padding: max(0px)) {
+          .page-container {
+            padding-top: max(0px, env(safe-area-inset-top));
+            padding-bottom: max(0px, env(safe-area-inset-bottom));
+          }
+
+          .modal-content {
+            margin-bottom: max(0px, env(safe-area-inset-bottom));
           }
         }
       `}</style>
-    </div>
+    </main>
   );
-};
-
-const styles = {
-  // Container
-  pageContainer: {
-    minHeight: '100vh',
-    backgroundColor: '#f8fafc',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-  },
-
-  // Header mejorado
-  header: {
-    position: 'sticky',
-    top: 0,
-    zIndex: 50,
-    backgroundColor: 'white',
-    borderBottom: '1px solid #e5e7eb',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-  },
-  headerContainer: {
-    maxWidth: '1600px',
-    margin: '0 auto',
-    padding: '0 24px',
-    '@media (max-width: 768px)': {
-      padding: '0 16px'
-    }
-  },
-  headerContent: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: '64px'
-  },
-  headerLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px'
-  },
-  backButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '40px',
-    height: '40px',
-    backgroundColor: '#f3f4f6',
-    border: 'none',
-    borderRadius: '10px',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    fontSize: '18px',
-    color: '#4b5563'
-  },
-  backArrow: {
-    fontSize: '18px'
-  },
-  logoContainer: {
-    width: '40px',
-    height: '40px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-  },
-  logoIcon: {
-    color: 'white',
-    fontSize: '20px',
-    fontWeight: 'bold'
-  },
-  headerTitle: {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    color: '#111827',
-    margin: 0
-  },
-  headerSubtitle: {
-    fontSize: '12px',
-    color: '#6b7280',
-    margin: 0
-  },
-  headerStats: {
-    display: 'none',
-    '@media (min-width: 768px)': {
-      display: 'block'
-    }
-  },
-  statsText: {
-    fontSize: '14px',
-    color: '#6b7280',
-    backgroundColor: '#f3f4f6',
-    padding: '6px 12px',
-    borderRadius: '20px',
-    fontWeight: '500'
-  },
-
-  // Layout mejorado
-  mainContent: {
-    maxWidth: '1600px',
-    margin: '0 auto',
-    padding: '24px',
-    '@media (max-width: 768px)': {
-      padding: '16px'
-    }
-  },
-  desktopLayout: {
-    display: 'grid',
-    gridTemplateColumns: '1fr',
-    gap: '24px',
-    '@media (min-width: 1024px)': {
-      gridTemplateColumns: '360px 1fr',
-      gap: '32px'
-    }
-  },
-
-  // Sidebar
-  sidebar: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-    '@media (min-width: 1024px)': {
-      position: 'sticky',
-      top: '88px',
-      height: 'fit-content'
-    }
-  },
-
-  // Title Section
-  titleSection: {
-    textAlign: 'center',
-    '@media (min-width: 1024px)': {
-      textAlign: 'left'
-    }
-  },
-  mainTitle: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: '8px',
-    '@media (min-width: 1024px)': {
-      fontSize: '32px'
-    }
-  },
-  subtitle: {
-    fontSize: '16px',
-    color: '#6b7280',
-    margin: 0,
-    lineHeight: 1.5
-  },
-
-  // Filters Card
-  filtersCard: {
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    padding: '24px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    border: '1px solid #e5e7eb'
-  },
-  filtersTitle: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: '16px',
-    margin: 0
-  },
-  filtersContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px'
-  },
-  filterGroup: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  filterLabel: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: '8px'
-  },
-  filterSelect: {
-    width: '100%',
-    padding: '12px 16px',
-    border: '1px solid #d1d5db',
-    borderRadius: '12px',
-    fontSize: '16px',
-    backgroundColor: 'white',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    appearance: 'none',
-    backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
-    backgroundPosition: 'right 12px center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: '16px'
-  },
-  clearButton: {
-    width: '100%',
-    padding: '12px 16px',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#6b7280',
-    backgroundColor: '#f9fafb',
-    border: '1px solid #e5e7eb',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
-
-  // Info Card
-  infoCard: {
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    padding: '20px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-    border: '1px solid #e5e7eb',
-    display: 'none',
-    '@media (min-width: 1024px)': {
-      display: 'block'
-    }
-  },
-  infoTitle: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: '16px',
-    margin: 0
-  },
-  infoSteps: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px'
-  },
-  infoStep: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px'
-  },
-  stepNumber: {
-    width: '24px',
-    height: '24px',
-    backgroundColor: '#3b82f6',
-    color: 'white',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    flexShrink: 0
-  },
-  stepText: {
-    fontSize: '14px',
-    color: '#374151',
-    margin: 0
-  },
-
-  // Content Area
-  content: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px'
-  },
-
-  // Message
-  message: {
-    padding: '16px',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: '500',
-    border: '1px solid'
-  },
-
-  // Results
-  resultsHeader: {
-    marginBottom: '16px'
-  },
-  resultsTitle: {
-    fontSize: '20px',
-    fontWeight: '600',
-    color: '#111827',
-    margin: 0
-  },
-  resultsGrid: {
-    display: 'grid',
-    gap: '16px',
-    '@media (min-width: 768px)': {
-      gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))',
-      gap: '20px'
-    },
-    '@media (min-width: 1200px)': {
-      gridTemplateColumns: 'repeat(auto-fill, minmax(480px, 1fr))',
-      gap: '24px'
-    }
-  },
-
-  // Loading
-  loadingContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '48px',
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-  },
-  spinner: {
-    width: '48px',
-    height: '48px',
-    border: '4px solid rgba(59, 130, 246, 0.1)',
-    borderTop: '4px solid #3b82f6',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    marginBottom: '16px'
-  },
-  loadingText: {
-    color: '#6b7280',
-    fontSize: '16px'
-  },
-
-  // Empty State
-  emptyContainer: {
-    textAlign: 'center',
-    padding: '48px',
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-  },
-  emptyIcon: {
-    fontSize: '48px',
-    marginBottom: '16px'
-  },
-  emptyTitle: {
-    fontSize: '20px',
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: '8px'
-  },
-  emptyText: {
-    color: '#6b7280',
-    fontSize: '14px',
-    marginBottom: '24px'
-  },
-  primaryButton: {
-    padding: '12px 24px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-    transition: 'transform 0.2s, box-shadow 0.2s'
-  },
-
-  // Sobrecupo Card mejorada
-  sobrecupoCard: {
-    backgroundColor: 'white',
-    borderRadius: '16px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    border: '1px solid #e5e7eb',
-    overflow: 'hidden',
-    transition: 'all 0.3s ease',
-    ':hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
-    }
-  },
-
-  // Card Header
-  cardHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '20px 20px 16px 20px',
-    borderBottom: '1px solid #f3f4f6'
-  },
-  doctorInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    flex: 1
-  },
-  avatar: {
-    width: '48px',
-    height: '48px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: '16px',
-    flexShrink: 0
-  },
-  doctorDetails: {
-    flex: 1,
-    minWidth: 0
-  },
-  doctorName: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#111827',
-    margin: 0,
-    marginBottom: '4px',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap'
-  },
-  specialty: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#3b82f6',
-    margin: 0
-  },
-  dateTime: {
-    textAlign: 'right',
-    flexShrink: 0
-  },
-  dateText: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: '2px'
-  },
-  timeText: {
-    fontSize: '14px',
-    color: '#6b7280',
-    fontWeight: '500'
-  },
-
-  // Card Body
-  cardBody: {
-    padding: '16px 20px'
-  },
-  clinicInfo: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px'
-  },
-  detailRow: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '10px'
-  },
-  detailIcon: {
-    fontSize: '16px',
-    color: '#9ca3af',
-    marginTop: '2px',
-    flexShrink: 0
-  },
-  detailText: {
-    flex: 1
-  },
-  clinicName: {
-    fontSize: '15px',
-    fontWeight: '500',
-    color: '#111827',
-    marginBottom: '2px'
-  },
-  address: {
-    fontSize: '13px',
-    color: '#6b7280',
-    margin: 0
-  },
-  additionalInfo: {
-    display: 'flex',
-    gap: '16px',
-    flexWrap: 'wrap',
-    '@media (max-width: 768px)': {
-      flexDirection: 'column',
-      gap: '8px'
-    }
-  },
-  infoItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px'
-  },
-  infoIcon: {
-    fontSize: '14px',
-    color: '#9ca3af'
-  },
-  infoText: {
-    fontSize: '13px',
-    color: '#374151',
-    fontWeight: '500'
-  },
-
-  // Card Footer
-  cardFooter: {
-    padding: '16px 20px 20px 20px',
-    borderTop: '1px solid #f3f4f6'
-  },
-  reserveButton: {
-    width: '100%',
-    padding: '12px 16px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-    transition: 'all 0.2s'
-  },
-
-  // Modal Styles (mantener iguales)
-  modalOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    zIndex: 1000,
-    padding: 0,
-    '@media (min-width: 768px)': {
-      alignItems: 'center',
-      padding: '16px'
-    }
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    width: '100%',
-    maxHeight: '90vh',
-    overflowY: 'auto',
-    borderTopLeftRadius: '24px',
-    borderTopRightRadius: '24px',
-    '@media (min-width: 768px)': {
-      maxWidth: '500px',
-      borderRadius: '16px'
-    }
-  },
-  modalHeader: {
-    position: 'sticky',
-    top: 0,
-    backgroundColor: 'white',
-    borderBottom: '1px solid #e5e7eb',
-    padding: '16px 16px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    zIndex: 10,
-    '@media (min-width: 768px)': {
-      padding: '20px 24px'
-    }
-  },
-  modalTitle: {
-    fontSize: '20px',
-    fontWeight: 'bold',
-    color: '#111827',
-    margin: 0,
-    '@media (min-width: 768px)': {
-      fontSize: '24px'
-    }
-  },
-  closeButton: {
-    width: '32px',
-    height: '32px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '24px',
-    color: '#6b7280',
-    backgroundColor: 'transparent',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-    '@media (min-width: 768px)': {
-      width: '40px',
-      height: '40px'
-    }
-  },
-  modalBody: {
-    padding: '16px',
-    '@media (min-width: 768px)': {
-      padding: '24px'
-    }
-  },
-  modalInfoBox: {
-    backgroundColor: '#eff6ff',
-    borderRadius: '12px',
-    padding: '16px',
-    marginBottom: '24px',
-    border: '1px solid #dbeafe'
-  },
-  modalDoctorInfo: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px'
-  },
-  modalAvatar: {
-    width: '48px',
-    height: '48px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: 'white',
-    fontWeight: 'bold',
-    flexShrink: 0
-  },
-  modalDoctorDetails: {
-    flex: 1,
-    minWidth: 0
-  },
-  modalDoctorName: {
-    fontSize: '16px',
-    fontWeight: '600',
-    color: '#111827',
-    margin: '0 0 4px 0'
-  },
-  modalSpecialty: {
-    fontSize: '14px',
-    color: '#3b82f6',
-    fontWeight: '500',
-    margin: '0 0 4px 0'
-  },
-  modalClinicInfo: {
-    fontSize: '14px',
-    color: '#374151',
-    margin: '0 0 4px 0'
-  },
-  modalDateTime: {
-    fontSize: '14px',
-    color: '#374151',
-    margin: 0
-  },
-
-  // Form Styles
-  formContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px'
-  },
-  formField: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  formLabel: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#374151',
-    marginBottom: '6px'
-  },
-  formInput: {
-    width: '100%',
-    padding: '10px 12px',
-    border: '1px solid #d1d5db',
-    borderRadius: '12px',
-    fontSize: '14px',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    boxSizing: 'border-box',
-    '@media (min-width: 768px)': {
-      fontSize: '16px',
-      padding: '12px 16px'
-    }
-  },
-  checkboxContainer: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '12px',
-    marginTop: '8px'
-  },
-  checkbox: {
-    width: '16px',
-    height: '16px',
-    marginTop: '2px',
-    cursor: 'pointer',
-    accentColor: '#3b82f6'
-  },
-  checkboxLabel: {
-    fontSize: '14px',
-    color: '#374151',
-    cursor: 'pointer'
-  },
-  link: {
-    color: '#3b82f6',
-    textDecoration: 'underline'
-  },
-  warningBox: {
-    display: 'flex',
-    gap: '12px',
-    padding: '12px',
-    backgroundColor: '#fef3c7',
-    border: '1px solid #fde68a',
-    borderRadius: '12px',
-    marginTop: '8px'
-  },
-  warningIcon: {
-    fontSize: '18px',
-    flexShrink: 0
-  },
-  warningTitle: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#92400e',
-    margin: '0 0 2px 0'
-  },
-  warningText: {
-    fontSize: '13px',
-    color: '#92400e',
-    margin: 0
-  },
-  submitButton: {
-    width: '100%',
-    padding: '12px',
-    background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-    color: 'white',
-    border: 'none',
-    borderRadius: '12px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-    transition: 'all 0.2s',
-    marginTop: '12px',
-    '@media (min-width: 768px)': {
-      fontSize: '16px',
-      padding: '14px'
-    }
-  },
-  submitButtonDisabled: {
-    background: '#e5e7eb',
-    color: '#9ca3af',
-    cursor: 'not-allowed',
-    boxShadow: 'none'
-  },
-  loadingButtonContent: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px'
-  },
-  buttonSpinner: {
-    width: '16px',
-    height: '16px',
-    border: '2px solid rgba(255, 255, 255, 0.3)',
-    borderTop: '2px solid white',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite'
-  }
 };
 
 export default AgendarSobrecuposPage;
