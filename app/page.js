@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link'; // 🆕 NUEVA IMPORTACIÓN
+import Link from 'next/link';
 import { useRef, useEffect, useState } from 'react';
 
 export default function Home() {
@@ -16,10 +16,7 @@ export default function Home() {
   const handleChatSubmit = (e) => {
     if (e) e.preventDefault();
     if (chatInput.trim() && !chatExpanding) {
-      // 1. Trigger expansion animation
       setChatExpanding(true);
-      
-      // 2. Faster navigation - reduced from 800ms to 400ms
       setTimeout(() => {
         router.push(`/chat?initial=${encodeURIComponent(chatInput.trim())}`);
       }, 400);
@@ -40,18 +37,17 @@ export default function Home() {
     router.push('/chat');
   };
 
-  // Nueva función para ir a ver sobrecupos
   const goToSobrecupos = () => {
     router.push('/agendar');
   };
 
   useEffect(() => {
-    setTimeout(() => setIsVisible(true), 500);
+    setTimeout(() => setIsVisible(true), 300);
     
     const handleMouseMove = (e) => {
       setMousePos({
-        x: (e.clientX / window.innerWidth - 0.5) * 10,
-        y: (e.clientY / window.innerHeight - 0.5) * 10
+        x: (e.clientX / window.innerWidth - 0.5) * 5,
+        y: (e.clientY / window.innerHeight - 0.5) * 5
       });
     };
     
@@ -63,10 +59,17 @@ export default function Home() {
     <main className="homepage">
       <div className="bg-gradient" />
       
+      {/* Elementos geométricos minimalistas */}
       <div className="floating-elements">
-        <div className="element element-1" style={{transform: `translate(${mousePos.x * 0.3}px, ${mousePos.y * 0.3}px)`}}>💊</div>
-        <div className="element element-2" style={{transform: `translate(${mousePos.x * -0.2}px, ${mousePos.y * 0.2}px)`}}>🩺</div>
-        <div className="element element-3" style={{transform: `translate(${mousePos.x * 0.4}px, ${mousePos.y * -0.3}px)`}}>⚡</div>
+        <div className="element element-1" style={{transform: `translate(${mousePos.x * 0.2}px, ${mousePos.y * 0.2}px)`}}>
+          <div className="geometric-circle"></div>
+        </div>
+        <div className="element element-2" style={{transform: `translate(${mousePos.x * -0.15}px, ${mousePos.y * 0.15}px)`}}>
+          <div className="geometric-square"></div>
+        </div>
+        <div className="element element-3" style={{transform: `translate(${mousePos.x * 0.25}px, ${mousePos.y * -0.2}px)`}}>
+          <div className="geometric-triangle"></div>
+        </div>
       </div>
 
       <section className="hero-section">
@@ -75,11 +78,9 @@ export default function Home() {
             ref={logoRef}
             className={`logo-container ${isVisible ? 'visible' : ''}`}
           >
-            <div className="logo-glow">
-              <div className="logo-text">
-                <span className="logo-main">Sobrecupos</span>
-                <span className="logo-ai">AI</span>
-              </div>
+            <div className="logo-text">
+              <span className="logo-main">Sobrecupos</span>
+              <span className="logo-ai">AI</span>
             </div>
           </div>
 
@@ -90,26 +91,23 @@ export default function Home() {
             </p>
           </div>
 
-          {/* NUEVA SECCIÓN DE CHAT - ESTILO LOVABLE */}
+          {/* Chat section - Minimalista */}
           <div className={`chat-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
             <div className="chat-wrapper">
               <div className="chat-section">
-                {/* Título fuera del input */}
-                <h2 className="chat-title">¡Hola! 👋 Soy Sobrecupos IA. Te ayudo a encontrar y reservar sobrecupos médicos. Dime tus síntomas, el médico o la especialidad que necesitas.</h2>
+                <h2 className="chat-title">Cuéntanos cómo te sientes o qué especialista necesitas</h2>
 
-                {/* INPUT HERO - Solo el área gris */}
                 <div className={`input-hero ${chatExpanding ? 'expanding' : ''}`}>
                   <div className="input-wrapper">
                     <textarea 
                       className="chat-input" 
-                      placeholder="Ejemplo: Tengo los ojos rojos y me pican mucho..."
+                      placeholder="Ej: Tengo los ojos rojos y me pican..."
                       value={chatInput}
                       onChange={(e) => {
                         setChatInput(e.target.value);
                         setIsTyping(e.target.value.length > 0);
-                        // Auto-resize
                         e.target.style.height = 'auto';
-                        e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
                       }}
                       onKeyPress={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey && chatInput.trim()) {
@@ -128,33 +126,32 @@ export default function Home() {
                       {chatExpanding ? (
                         <div className="spinner"></div>
                       ) : (
-                        <div className="arrow-up"></div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <path d="M7 11L12 6L17 11M12 18V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       )}
                     </button>
                   </div>
                 </div>
 
-                {/* Tarjetas de sugerencias en carrusel */}
+                {/* Sugerencias minimalistas */}
                 <div className="suggestions-container">
                   <div className="suggestions-label">Prueba preguntando:</div>
                   <div className="suggestions-scroll">
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Tengo visión borrosa hace 3 días')}>
-                      <div className="card-text">Visión borrosa hace 3 días</div>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Visión borrosa')}>
+                      Visión borrosa
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Me pican mucho los ojos')}>
-                      <div className="card-text">Revisar graduación de lentes</div>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Graduación de lentes')}>
+                      Graduación de lentes
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Me duelen los ojos con la luz')}>
-                      <div className="card-text">Dolor de ojos con luz</div>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Dolor con luz')}>
+                      Dolor con luz
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Veo manchas flotantes en el ojo')}>
-                      <div className="card-text">Manchas flotantes</div>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Manchas flotantes')}>
+                      Manchas flotantes
                     </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Ojo rojo e irritado desde ayer')}>
-                      <div className="card-text">Ojo rojo e irritado</div>
-                    </div>
-                    <div className="suggestion-card" onClick={() => selectSuggestion('Tengo los ojos rojos')}>
-                      <div className="card-text">Pérdida de visión</div>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Ojo irritado')}>
+                      Ojo irritado
                     </div>
                   </div>
                 </div>
@@ -165,25 +162,27 @@ export default function Home() {
           {/* Overlay de expansión */}
           {chatExpanding && (
             <div className="expansion-overlay">
-              <div className="expanding-message">Abriendo chat...</div>
+              <div className="expanding-message">
+                <div className="loading-dots">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* 🆕 SECCIÓN ACTUALIZADA: BOTÓN PARA VER SOBRECUPOS - SIN TEXTO "también puedes" */}
+          {/* Botón ver sobrecupos - Centrado */}
           <div className={`additional-options ${isVisible ? 'visible' : ''}`}>
-            <div className="agendar-button-container">
+            <div className="explore-button-container">
               <button 
                 onClick={goToSobrecupos}
-                className="agendar-button"
+                className="explore-button"
               >
-                <div className="button-content">
-                  <span className="button-icon">📅</span>
-                  <div className="button-text">
-                    <span className="button-title">Ver Sobrecupos</span>
-                    <span className="button-subtitle">Explora todas las citas disponibles</span>
-                  </div>
-                  <span className="button-arrow">→</span>
-                </div>
+                <span>Ver todos los sobrecupos disponibles</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </button>
             </div>
           </div>
@@ -192,22 +191,22 @@ export default function Home() {
 
       <section className="how-it-works">
         <div className="section-container">
-          <h2 className="section-title">¿Cómo funciona?</h2>
+          <h2 className="section-title">Cómo funciona</h2>
           <div className="steps-grid">
             <div className="step-card">
-              <div className="step-number">1</div>
-              <h3>Cuéntanos tus síntomas</h3>
-              <p>Describe lo que sientes o qué especialista necesitas</p>
+              <div className="step-number">01</div>
+              <h3>Describe</h3>
+              <p>Cuéntanos tus síntomas o especialidad</p>
             </div>
             <div className="step-card">
-              <div className="step-number">2</div>
-              <h3>Encuentra sobrecupos</h3>
-              <p>Te mostramos las horas disponibles</p>
+              <div className="step-number">02</div>
+              <h3>Encuentra</h3>
+              <p>Mostramos citas disponibles</p>
             </div>
             <div className="step-card">
-              <div className="step-number">3</div>
-              <h3>Reserva tu Sobrecupos</h3>
-              <p>Confirma tu cita médica en segundos</p>
+              <div className="step-number">03</div>
+              <h3>Reserva</h3>
+              <p>Confirma en segundos</p>
             </div>
           </div>
         </div>
@@ -215,25 +214,25 @@ export default function Home() {
 
       <section className="benefits">
         <div className="section-container">
-          <h2 className="section-title">Beneficios para ti</h2>
+          <h2 className="section-title">Por qué elegir Sobrecupos AI</h2>
           <div className="benefits-grid">
             <div className="benefit-card">
-              <div className="benefit-icon">⚡</div>
+              <div className="benefit-number">01</div>
               <h3>Atención rápida</h3>
               <p>Accede a citas médicas cuando más lo necesitas</p>
             </div>
             <div className="benefit-card">
-              <div className="benefit-icon">🎯</div>
+              <div className="benefit-number">02</div>
               <h3>Búsqueda inteligente</h3>
               <p>Nuestra IA encuentra el especialista perfecto según tus síntomas</p>
             </div>
             <div className="benefit-card">
-              <div className="benefit-icon">💰</div>
+              <div className="benefit-number">03</div>
               <h3>Ahorra tiempo</h3>
               <p>No más llamadas ni esperas, todo en segundos desde tu celular</p>
             </div>
             <div className="benefit-card">
-              <div className="benefit-icon">✅</div>
+              <div className="benefit-number">04</div>
               <h3>100% confiable</h3>
               <p>Médicos verificados y sobrecupos reales confirmados al instante</p>
             </div>
@@ -241,55 +240,21 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="cta-section">
-        <div className="section-container">
-          <div className="cta-content">
-            <h2 className="cta-title">¿Listo para sentirte mejor?</h2>
-            <p className="cta-subtitle">Encuentra tu sobrecupo médico ahora</p>
-            <AnimatedButton onClick={goToChat} primary>
-              Comenzar chat
-            </AnimatedButton>
-          </div>
-        </div>
-      </section>
-
       <footer className="footer">
         <div className="footer-container">
           <div className="footer-content">
-            <div className="footer-column">
-              <div className="footer-logo">
-                <span className="logo-main">Sobrecupos</span>
-                <span className="logo-ai">AI</span>
-              </div>
-              <p>Conectando pacientes con médicos</p>
+            <div className="footer-logo">
+              <span className="logo-main">Sobrecupos</span>
+              <span className="logo-ai">AI</span>
             </div>
-            <div className="footer-column">
-              <h4>Pacientes</h4>
-              <ul>
-                <li><a href="/chat">Buscar sobrecupos</a></li>
-                <li><a href="/registro">Registrarse para WhatsApp</a></li>
-                <li><a href="#como-funciona">Cómo funciona</a></li>
-              </ul>
-            </div>
-            <div className="footer-column">
-              <h4>Médicos</h4>
-              <ul>
-                <li><a href="/auth/signin">Iniciar sesión</a></li>
-              </ul>
-            </div>
-            <div className="footer-column">
-              <h4>Contacto</h4>
-              <ul>
-                <li><a href="mailto:contacto@sobrecupos.com">contacto@sobrecupos.com</a></li>
-              </ul>
+            <div className="footer-links">
+              <a href="/chat">Buscar</a>
+              <a href="/auth/signin">Médicos</a>
+              <a href="mailto:contacto@sobrecupos.com">Contacto</a>
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2025 Sobrecupos AI. Todos los derechos reservados.</p>
-            <div className="footer-social">
-              <a href="mailto:contacto@sobrecupos.com" className="social-link">📧</a>
-              <a href="#" className="social-link">📱</a>
-            </div>
+            <p>© 2025 Sobrecupos AI</p>
           </div>
         </div>
       </footer>  
@@ -298,7 +263,7 @@ export default function Home() {
         .homepage {
           min-height: 100vh;
           position: relative;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
           overflow-x: hidden;
         }
 
@@ -308,10 +273,10 @@ export default function Home() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(135deg, 
-            #d1e7dd 0%, 
-            #cce7ff 50%, 
-            #b6d7ff 100%);
+          background: linear-gradient(180deg, 
+            #fafafa 0%, 
+            #f5f5f5 50%, 
+            #e5e5e5 100%);
           z-index: -2;
         }
 
@@ -327,19 +292,34 @@ export default function Home() {
 
         .element {
           position: absolute;
-          font-size: 2rem;
-          opacity: 0.04;
-          animation: gentleFloat 12s ease-in-out infinite;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+          opacity: 0.03;
+          transition: transform 0.1s ease-out;
         }
 
-        .element-1 { top: 15%; right: 20%; animation-delay: 0s; }
-        .element-2 { bottom: 20%; left: 15%; animation-delay: 4s; }
-        .element-3 { top: 45%; left: 25%; animation-delay: 8s; }
+        .element-1 { top: 20%; right: 15%; }
+        .element-2 { bottom: 25%; left: 10%; }
+        .element-3 { top: 60%; right: 25%; }
 
-        @keyframes gentleFloat {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.04; }
-          50% { transform: translateY(-20px) rotate(3deg); opacity: 0.08; }
+        .geometric-circle {
+          width: 120px;
+          height: 120px;
+          border: 1px solid #999;
+          border-radius: 50%;
+        }
+
+        .geometric-square {
+          width: 80px;
+          height: 80px;
+          border: 1px solid #999;
+          transform: rotate(45deg);
+        }
+
+        .geometric-triangle {
+          width: 0;
+          height: 0;
+          border-left: 40px solid transparent;
+          border-right: 40px solid transparent;
+          border-bottom: 70px solid #999;
         }
 
         .hero-section {
@@ -349,68 +329,52 @@ export default function Home() {
           justify-content: center;
           position: relative;
           z-index: 1;
+          padding: 2rem 1rem;
         }
 
         .content-wrapper {
           text-align: center;
-          max-width: 900px;
-          padding: 2rem;
-          position: relative;
+          max-width: 640px;
+          width: 100%;
         }
 
         .logo-container {
           margin-bottom: 3rem;
           opacity: 0;
-          transform: translateY(40px) scale(0.95);
-          transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateY(20px);
+          transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .logo-container.visible {
           opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-
-        .logo-glow {
-          position: relative;
-          display: inline-block;
+          transform: translateY(0);
         }
 
         .logo-text {
-          font-size: 3.5rem;
-          font-weight: 800;
-          letter-spacing: -1px;
+          font-size: 4rem;
+          font-weight: 200;
+          letter-spacing: -2px;
           display: inline-flex;
           align-items: baseline;
-          gap: 0.3rem;
+          gap: 0.5rem;
         }
 
         .logo-main {
-          background: linear-gradient(135deg, #1d1d1f 0%, #424245 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #171717;
+          font-weight: 800;
         }
 
         .logo-ai {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          font-size: 0.85em;
-          font-weight: 900;
-          animation: aiPulse 3s ease-in-out infinite;
-        }
-
-        @keyframes aiPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
+          color: #666;
+          font-size: 0.7em;
+          font-weight: 300;
         }
 
         .tagline {
           opacity: 0;
-          transform: translateY(30px);
-          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
-          margin-bottom: 3rem;
+          transform: translateY(20px);
+          transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s;
+          margin-bottom: 4rem;
         }
 
         .tagline.visible {
@@ -419,34 +383,26 @@ export default function Home() {
         }
 
         .tagline h1 {
-          font-size: 2.5rem;
-          font-weight: 700;
-          color: #1d1d1f;
-          margin-bottom: 1.5rem;
-          line-height: 1.2;
+          font-size: 1rem;
+          font-weight: 400;
+          color: #666;
+          margin-bottom: 1rem;
+          letter-spacing: 0.5px;
         }
 
         .subtitle {
-          font-size: 1.4rem;
-          color: #424245;
-          margin-bottom: 1rem;
-          font-weight: 400;
+          font-size: 2rem;
+          color: #171717;
+          font-weight: 300;
+          line-height: 1.2;
+          letter-spacing: -0.5px;
         }
 
-        .cta-text {
-          font-size: 1.1rem;
-          color: #6e6e73;
-          font-weight: 400;
-        }
-
-        /* NUEVA SECCIÓN DE CHAT - ESTILO LOVABLE */
         .chat-container {
           opacity: 0;
-          transform: translateY(40px);
-          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
-          max-width: 100%;
-          margin: 0 auto;
-          padding: 0 1rem;
+          transform: translateY(20px);
+          transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s;
+          margin-bottom: 3rem;
         }
 
         .chat-container.visible {
@@ -457,34 +413,29 @@ export default function Home() {
         .chat-wrapper {
           max-width: 100%;
           margin: 0 auto;
-          display: flex;
-          justify-content: center;
         }
 
         .chat-section {
           display: flex;
           flex-direction: column;
           align-items: center;
-          max-width: 600px;
           width: 100%;
         }
 
-        /* Títulos fuera del input */
         .chat-title {
-          font-size: 1.1rem;
-          font-weight: 500;
-          color: #4a5568;
+          font-size: 1rem;
+          font-weight: 400;
+          color: #666;
           text-align: center;
           margin-bottom: 2rem;
-          line-height: 1.5;
-          max-width: 500px;
+          line-height: 1.4;
+          letter-spacing: 0.2px;
         }
 
-        /* INPUT HERO - Solo el área gris con glassmorphism */
         .input-hero {
           width: 100%;
-          margin-bottom: 1.5rem;
-          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          margin-bottom: 2rem;
+          transition: all 0.3s ease;
         }
 
         .input-hero.expanding {
@@ -494,29 +445,19 @@ export default function Home() {
         .input-wrapper {
           display: flex;
           align-items: flex-start;
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          border-radius: 20px;
+          background: #fff;
+          border: 1px solid #e5e5e5;
+          border-radius: 16px;
           padding: 1rem;
-          min-height: 120px;
-          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          box-shadow: 
-            0 6px 24px rgba(0, 0, 0, 0.06),
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+          min-height: 80px;
+          transition: all 0.2s ease;
           position: relative;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         .input-wrapper:focus-within {
-          border-color: rgba(0, 122, 255, 0.3);
-          background: rgba(255, 255, 255, 0.95);
-          box-shadow: 
-            0 8px 32px rgba(0, 122, 255, 0.12),
-            0 2px 8px rgba(0, 122, 255, 0.06),
-            0 0 0 4px rgba(0, 122, 255, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+          border-color: #171717;
+          box-shadow: 0 0 0 1px #171717;
         }
 
         .chat-input {
@@ -524,84 +465,63 @@ export default function Home() {
           border: none;
           background: none;
           outline: none;
-          font-size: 1.1rem;
-          color: #1d1d1f;
+          font-size: 1rem;
+          color: #171717;
           font-family: inherit;
           resize: none;
-          min-height: 80px;
+          min-height: 48px;
           line-height: 1.5;
           padding: 0;
           padding-right: 3rem;
-          vertical-align: top;
+          font-weight: 400;
         }
 
         .chat-input::placeholder {
-          color: #a0aec0;
-          font-size: 1rem;
+          color: #999;
+          font-weight: 400;
         }
 
         .chat-input:disabled {
           opacity: 0.6;
         }
 
-        /* Botón redondo con flecha - ABAJO A LA DERECHA con glassmorphism */
         .send-button {
           width: 36px;
           height: 36px;
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+          background: #171717;
           border: none;
-          border-radius: 50%;
+          border-radius: 18px;
           color: white;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          transition: all 0.2s ease;
           flex-shrink: 0;
           position: absolute;
           bottom: 1rem;
           right: 1rem;
-          opacity: 0.6;
+          opacity: 0.3;
           transform: scale(0.9);
-          box-shadow: 
-            0 4px 16px rgba(0, 122, 255, 0.3),
-            0 1px 4px rgba(0, 122, 255, 0.2);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
         }
 
         .send-button.active {
-          background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-          color: white;
           opacity: 1;
           transform: scale(1);
-          box-shadow: 
-            0 6px 24px rgba(0, 122, 255, 0.4),
-            0 2px 8px rgba(0, 122, 255, 0.3);
         }
 
         .send-button:hover.active {
+          background: #000;
           transform: scale(1.05);
-          box-shadow: 
-            0 8px 32px rgba(0, 122, 255, 0.5),
-            0 4px 12px rgba(0, 122, 255, 0.4);
         }
 
         .send-button:disabled {
-          opacity: 0.3;
+          opacity: 0.2;
           cursor: not-allowed;
         }
 
         .send-button.expanding .spinner {
           animation: spin 0.8s linear infinite;
-        }
-
-        .arrow-up {
-          width: 0;
-          height: 0;
-          border-left: 5px solid transparent;
-          border-right: 5px solid transparent;
-          border-bottom: 8px solid currentColor;
         }
 
         .spinner {
@@ -616,16 +536,15 @@ export default function Home() {
           to { transform: rotate(360deg); }
         }
 
-        /* Sugerencias en carrusel */
         .suggestions-container {
           width: 100%;
         }
 
         .suggestions-label {
-          font-size: 0.85rem;
-          color: #6b7280;
-          font-weight: 500;
-          margin-bottom: 0.75rem;
+          font-size: 0.875rem;
+          color: #999;
+          font-weight: 400;
+          margin-bottom: 1rem;
           text-align: left;
         }
 
@@ -643,50 +562,30 @@ export default function Home() {
           display: none;
         }
 
-        .suggestion-card {
-          background: rgba(255, 255, 255, 0.8);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          border-radius: 16px;
-          padding: 0.75rem;
+        .suggestion-pill {
+          background: #f5f5f5;
+          border: 1px solid #e5e5e5;
+          border-radius: 20px;
+          padding: 0.5rem 1rem;
           cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          transition: all 0.2s ease;
           flex-shrink: 0;
-          min-width: 120px;
-          max-width: 130px;
-          min-height: 80px;
-          text-align: center;
-          box-shadow: 
-            0 4px 16px rgba(0, 0, 0, 0.06),
-            0 1px 4px rgba(0, 0, 0, 0.04);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          font-size: 0.875rem;
+          color: #666;
+          font-weight: 400;
+          white-space: nowrap;
         }
 
-        .suggestion-card:hover {
-          background: rgba(255, 255, 255, 0.95);
-          border-color: rgba(0, 122, 255, 0.25);
-          transform: translateY(-2px);
-          box-shadow: 
-            0 8px 24px rgba(0, 122, 255, 0.1),
-            0 2px 8px rgba(0, 122, 255, 0.06),
-            0 1px 0 rgba(255, 255, 255, 0.5) inset;
+        .suggestion-pill:hover {
+          background: #e5e5e5;
+          border-color: #d4d4d4;
+          color: #171717;
         }
 
-        .suggestion-card:active {
+        .suggestion-pill:active {
           transform: scale(0.98);
         }
 
-        .card-text {
-          font-size: 0.85rem;
-          color: #6b7280;
-          line-height: 1.4;
-          font-weight: 500;
-        }
-
-        /* Animación de expansión mantenida */
         .chat-container.expanding {
           animation: expandChat 0.4s cubic-bezier(0.32, 0, 0.67, 0) forwards;
         }
@@ -696,12 +595,8 @@ export default function Home() {
             transform: scale(1) translateY(0);
             opacity: 1;
           }
-          50% {
-            transform: scale(1.1) translateY(-10px);
-            opacity: 0.8;
-          }
           100% {
-            transform: scale(1.5) translateY(-20vh);
+            transform: scale(1.1) translateY(-20vh);
             opacity: 0;
           }
         }
@@ -712,7 +607,7 @@ export default function Home() {
           left: 0;
           right: 0;
           bottom: 0;
-          background: #ffffff;
+          background: #fafafa;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -721,42 +616,46 @@ export default function Home() {
         }
 
         @keyframes overlayFadeIn {
-          from { 
-            opacity: 0;
-            background: rgba(255,255,255,0);
-          }
-          to { 
-            opacity: 1;
-            background: #ffffff;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
         .expanding-message {
-          font-size: 1.1rem;
-          color: #007aff;
-          font-weight: 600;
           opacity: 0;
           animation: messageAppear 0.3s ease-out 0.1s forwards;
         }
 
         @keyframes messageAppear {
-          from { 
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          to { 
-            opacity: 1;
-            transform: scale(1);
-          }
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
         }
 
-        /* 🆕 SECCIÓN ACTUALIZADA: Botón para ver sobrecupos - SIN texto "también puedes" */
+        .loading-dots {
+          display: flex;
+          gap: 4px;
+        }
+
+        .loading-dots div {
+          width: 8px;
+          height: 8px;
+          background: #666;
+          border-radius: 50%;
+          animation: loadingDot 1.4s ease-in-out infinite both;
+        }
+
+        .loading-dots div:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots div:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dots div:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes loadingDot {
+          0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+          40% { transform: scale(1); opacity: 1; }
+        }
+
         .additional-options {
-          margin-top: 3rem;
-          margin-bottom: 2rem;
           opacity: 0;
-          transform: translateY(30px);
-          transition: all 1s cubic-bezier(0.4, 0, 0.2, 1) 0.9s;
+          transform: translateY(20px);
+          transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s;
         }
 
         .additional-options.visible {
@@ -764,584 +663,265 @@ export default function Home() {
           transform: translateY(0);
         }
 
-        .agendar-button-container {
+        .explore-button-container {
           display: flex;
           justify-content: center;
         }
 
-        .agendar-button {
+        .explore-button {
           display: flex;
           align-items: center;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          border-radius: 20px;
-          padding: 1.5rem 2rem;
-          max-width: 400px;
-          width: 100%;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          box-shadow: 
-            0 8px 32px rgba(0, 0, 0, 0.08),
-            0 2px 8px rgba(0, 0, 0, 0.04),
-            inset 0 1px 0 rgba(255, 255, 255, 0.4);
-        }
-
-        .agendar-button:hover {
-          transform: translateY(-3px);
-          border-color: rgba(0, 122, 255, 0.3);
-          background: rgba(255, 255, 255, 0.98);
-          box-shadow: 
-            0 12px 40px rgba(0, 122, 255, 0.15),
-            0 4px 16px rgba(0, 122, 255, 0.08),
-            0 0 0 1px rgba(0, 122, 255, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        }
-
-        .agendar-button:active {
-          transform: translateY(-1px);
-        }
-
-        .button-content {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .button-icon {
-          font-size: 2rem;
-          flex-shrink: 0;
-        }
-
-        .button-text {
-          flex: 1;
-          text-align: left;
-        }
-
-        .button-title {
-          display: block;
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: #1d1d1f;
-          margin-bottom: 0.25rem;
-        }
-
-        .button-subtitle {
-          display: block;
-          font-size: 0.9rem;
-          color: #6b7280;
+          gap: 0.5rem;
+          background: none;
+          border: 1px solid #999;
+          border-radius: 6px;
+          padding: 0.75rem 1.5rem;
+          color: #333;
+          font-size: 0.875rem;
           font-weight: 400;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-family: inherit;
         }
 
-        .button-arrow {
-          font-size: 1.2rem;
-          color: #007aff;
-          flex-shrink: 0;
-          transition: transform 0.3s ease;
+        .explore-button:hover {
+          border-color: #171717;
+          color: #171717;
         }
 
-        .agendar-button:hover .button-arrow {
-          transform: translateX(4px);
-        }
-
-        /* Secciones adicionales */
-        .how-it-works,
-        .benefits,
-        .cta-section {
-          padding: 5rem 2rem;
-          position: relative;
-          z-index: 1;
-        }
-
-        .how-it-works {
-          background: rgba(255,255,255,0.8);
-          backdrop-filter: blur(20px);
+        .explore-button:active {
+          transform: scale(0.98);
         }
 
         .benefits {
-          background: transparent;
+          padding: 6rem 2rem;
+          background: #f9f9f9;
+          border-top: 1px solid #f0f0f0;
         }
 
-        .cta-section {
-          background: rgba(255,255,255,0.9);
-          backdrop-filter: blur(20px);
+        .benefits-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 3rem;
+        }
+
+        .benefit-card {
+          text-align: center;
+        }
+
+        .benefit-number {
+          font-size: 0.875rem;
+          color: #999;
+          margin-bottom: 1rem;
+          font-weight: 400;
+          letter-spacing: 2px;
+        }
+
+        .benefit-card h3 {
+          font-size: 1.25rem;
+          margin-bottom: 0.5rem;
+          color: #171717;
+          font-weight: 400;
+          letter-spacing: -0.25px;
+        }
+
+        .benefit-card p {
+          color: #666;
+          line-height: 1.5;
+          font-weight: 400;
+          font-size: 0.9rem;
+        }
+
+        .how-it-works {
+          padding: 6rem 2rem;
+          background: #fff;
+          border-top: 1px solid #f0f0f0;
+        }
+          padding: 6rem 2rem;
+          background: #fff;
+          border-top: 1px solid #f0f0f0;
         }
 
         .section-container {
-          max-width: 1200px;
+          max-width: 800px;
           margin: 0 auto;
         }
 
         .section-title {
           font-size: 2.5rem;
-          font-weight: 700;
+          font-weight: 200;
           text-align: center;
-          margin-bottom: 3rem;
-          color: #1d1d1f;
+          margin-bottom: 4rem;
+          color: #171717;
+          letter-spacing: -1px;
         }
 
         .steps-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 2rem;
-          margin-top: 3rem;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 3rem;
         }
 
         .step-card {
-          background: white;
-          padding: 2rem;
-          border-radius: 16px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
           text-align: center;
-          transition: transform 0.3s ease;
-        }
-
-        .step-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
         .step-number {
-          width: 60px;
-          height: 60px;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.5rem;
-          font-weight: 700;
-          margin: 0 auto 1.5rem;
+          font-size: 0.875rem;
+          color: #999;
+          margin-bottom: 1rem;
+          font-weight: 400;
+          letter-spacing: 2px;
         }
 
         .step-card h3 {
-          font-size: 1.3rem;
-          margin-bottom: 1rem;
-          color: #1d1d1f;
+          font-size: 1.5rem;
+          margin-bottom: 0.5rem;
+          color: #171717;
+          font-weight: 300;
+          letter-spacing: -0.5px;
         }
 
         .step-card p {
-          color: #6e6e73;
-          line-height: 1.6;
+          color: #666;
+          line-height: 1.5;
+          font-weight: 400;
         }
 
-        .benefits-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 2rem;
-        }
-
-        .benefit-card {
-          background: rgba(255,255,255,0.9);
-          backdrop-filter: blur(20px);
-          padding: 2rem;
-          border-radius: 16px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-          transition: all 0.3s ease;
-        }
-
-        .benefit-card:hover {
-          transform: translateY(-5px);
-          background: rgba(255,255,255,0.95);
-          box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-        }
-
-        .benefit-icon {
-          font-size: 3rem;
-          margin-bottom: 1rem;
-          display: block;
-        }
-
-        .benefit-card h3 {
-          font-size: 1.3rem;
-          margin-bottom: 1rem;
-          color: #1d1d1f;
-        }
-
-        .benefit-card p {
-          color: #6e6e73;
-          line-height: 1.6;
-        }
-
-        .cta-content {
-          text-align: center;
-          max-width: 600px;
-          margin: 0 auto;
-        }
-
-        .cta-title {
-          font-size: 2.5rem;
-          font-weight: 700;
-          margin-bottom: 1rem;
-          color: #1d1d1f;
-        }
-
-        .cta-subtitle {
-          font-size: 1.2rem;
-          color: #6e6e73;
-          margin-bottom: 2rem;
-        }
-
-        /* Footer */
         .footer {
-          background: #1d1d1f;
-          color: white;
-          padding: 3rem 0 2rem;
-          position: relative;
-          z-index: 1;
+          background: #171717;
+          color: #999;
+          padding: 3rem 2rem 2rem;
         }
 
         .footer-container {
-          max-width: 1200px;
+          max-width: 800px;
           margin: 0 auto;
-          padding: 0 2rem;
         }
 
         .footer-content {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 3rem;
-          margin-bottom: 3rem;
-        }
-
-        .footer-logo {
-          font-size: 1.5rem;
-          font-weight: 800;
-          margin-bottom: 1rem;
-          display: flex;
-          align-items: baseline;
-          gap: 0.2rem;
-        }
-
-        .footer-logo .logo-main {
-          color: white;
-        }
-
-        .footer-logo .logo-ai {
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-
-        .footer-column h4 {
-          margin-bottom: 1rem;
-          font-size: 1.1rem;
-          font-weight: 600;
-        }
-
-        .footer-column ul {
-          list-style: none;
-          padding: 0;
-        }
-
-        .footer-column li {
-          margin-bottom: 0.5rem;
-        }
-
-        .footer-column a {
-          color: rgba(255,255,255,0.8);
-          text-decoration: none;
-          transition: color 0.3s ease;
-        }
-
-        .footer-column a:hover {
-          color: #007aff;
-        }
-
-        .footer-bottom {
-          border-top: 1px solid rgba(255,255,255,0.1);
-          padding-top: 2rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          margin-bottom: 2rem;
         }
 
-        .footer-social {
+        .footer-logo {
+          font-size: 1.25rem;
+          font-weight: 200;
           display: flex;
-          gap: 1rem;
+          align-items: baseline;
+          gap: 0.3rem;
         }
 
-        .social-link {
-          font-size: 1.5rem;
-          transition: transform 0.3s ease;
+        .footer-logo .logo-main {
+          color: #fff;
         }
 
-        .social-link:hover {
-          transform: scale(1.2);
+        .footer-logo .logo-ai {
+          color: #666;
+          font-size: 0.8em;
+        }
+
+        .footer-links {
+          display: flex;
+          gap: 2rem;
+        }
+
+        .footer-links a {
+          color: #999;
+          text-decoration: none;
+          font-size: 0.875rem;
+          font-weight: 400;
+          transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+          color: #fff;
+        }
+
+        .footer-bottom {
+          border-top: 1px solid #333;
+          padding-top: 2rem;
+          text-align: center;
+          font-size: 0.875rem;
+          color: #666;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-          .hero-section { 
-            padding: 1rem; 
-            min-height: auto;
-            padding-top: 2rem;
-            padding-bottom: 2rem;
+          .hero-section {
+            padding: 1rem;
           }
-          .content-wrapper { 
-            padding: 1rem; 
-            max-width: 100%;
-          }
-          .logo-text { font-size: 2.5rem; }
-          .tagline h1 { font-size: 1.8rem; }
-          .subtitle { font-size: 1.1rem; }
-          .section-title { font-size: 2rem; margin-bottom: 2rem; }
-          .step-card, .benefit-card { padding: 1.5rem; }
-          .steps-grid, .benefits-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-          .how-it-works, .benefits, .cta-section { padding: 3rem 1rem; }
-          .footer-content { grid-template-columns: repeat(2, 1fr); gap: 2rem; }
-          .footer-bottom { flex-direction: column; text-align: center; gap: 1.5rem; }
           
-          /* Chat responsive */
-          .chat-title {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
+          .logo-text {
+            font-size: 3rem;
           }
-
-          .input-wrapper {
-            min-height: 100px;
-            padding: 0.8rem;
-            align-items: flex-start;
-            position: relative;
-            border-radius: 18px;
+          
+          .subtitle {
+            font-size: 1.5rem;
           }
-
-          .chat-input {
-            padding-right: 2.5rem;
+          
+          .section-title {
+            font-size: 2rem;
+            margin-bottom: 3rem;
           }
-
-          .send-button {
-            bottom: 0.8rem;
-            right: 0.8rem;
-            width: 32px;
-            height: 32px;
+          
+          .steps-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
           }
-
-          .suggestion-card {
-            min-width: 110px;
-            max-width: 120px;
-            min-height: 70px;
-            padding: 0.6rem;
-            border-radius: 14px;
+          
+          .benefits {
+            padding: 4rem 1rem;
           }
-
-          .card-text {
-            font-size: 0.8rem;
+          
+          .benefits-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
           }
-
-          /* Responsive para el botón de agendar */
-          .additional-options {
-            margin-top: 3rem;
-            padding: 0 1rem;
+          
+          .how-it-works {
+            padding: 4rem 1rem;
           }
-
-          .agendar-button {
-            padding: 1.25rem 1.5rem;
-            border-radius: 18px;
-          }
-
-          .button-content {
-            gap: 0.75rem;
-          }
-
-          .button-icon {
-            font-size: 1.75rem;
-          }
-
-          .button-title {
-            font-size: 1rem;
-          }
-
-          .button-subtitle {
-            font-size: 0.85rem;
+          
+          .footer-content {
+            flex-direction: column;
+            gap: 2rem;
+            text-align: center;
           }
         }
 
         @media (max-width: 480px) {
-          .logo-text { font-size: 2.2rem; }
-          .tagline { margin-bottom: 2rem; }
-          .tagline h1 { 
-            font-size: 1.6rem; 
-            line-height: 1.2; 
-            margin-bottom: 1rem;
+          .logo-text {
+            font-size: 2.5rem;
           }
-          .subtitle { font-size: 1rem; }
-          .section-title { font-size: 1.8rem; margin-bottom: 2rem; }
-          .step-card, .benefit-card { padding: 1.25rem; }
-          .content-wrapper { padding: 0.75rem; }
-          .section-container { padding: 0 1rem; }
-          .footer-content { grid-template-columns: 1fr; gap: 2rem; }
-          .cta-title { font-size: 1.8rem; }
-          .cta-subtitle { font-size: 1rem; }
           
-          /* Chat mobile */
-          .chat-container {
-            padding: 0 0.5rem;
+          .subtitle {
+            font-size: 1.25rem;
           }
-
+          
           .chat-title {
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
           }
-
+          
           .input-wrapper {
-            min-height: 100px;
-            padding: 0.8rem;
-            align-items: flex-start;
-            position: relative;
-            border-radius: 16px;
+            min-height: 70px;
           }
-
+          
           .chat-input {
-            font-size: 1rem;
-            min-height: 60px;
-            padding-right: 2.5rem;
+            font-size: 0.875rem;
+            min-height: 40px;
           }
-
+          
           .send-button {
-            bottom: 0.8rem;
-            right: 0.8rem;
             width: 32px;
             height: 32px;
           }
-
-          .suggestion-card {
-            min-width: 100px;
-            max-width: 110px;
-            min-height: 65px;
-            padding: 0.5rem;
-            border-radius: 12px;
-          }
-
-          .card-text {
-            font-size: 0.75rem;
-          }
-
-          /* Botón agendar mobile */
-          .additional-options {
-            margin-top: 2.5rem;
-            padding: 0 0.5rem;
-          }
-
-          .agendar-button {
-            padding: 1rem 1.25rem;
-            border-radius: 16px;
-          }
-
-          .button-content {
-            gap: 0.6rem;
-          }
-
-          .button-icon {
-            font-size: 1.5rem;
-          }
-
-          .button-title {
-            font-size: 0.95rem;
-          }
-
-          .button-subtitle {
+          
+          .suggestion-pill {
             font-size: 0.8rem;
-          }
-        }
-
-        @media (max-width: 375px) {
-          .logo-text { font-size: 2rem; }
-          .tagline h1 { font-size: 1.4rem; }
-          .hero-section {
-            padding: 0;
-            padding-top: 0.5rem;
-          }
-          .content-wrapper {
-            padding: 0;
-          }
-          
-          .tagline {
-            padding: 0 0.5rem;
-          }
-          
-          .logo-container {
-            padding: 0 0.5rem;
-          }
-          
-          .chat-container {
-            padding: 0 0.25rem;
-          }
-          
-          .chat-title {
-            font-size: 0.9rem;
-            margin-bottom: 1.2rem;
-          }
-          
-          .input-wrapper {
-            min-height: 90px;
-            padding: 0.7rem;
-            align-items: flex-start;
-            position: relative;
-            border-radius: 14px;
-          }
-
-          .chat-input {
-            font-size: 0.95rem;
-            min-height: 50px;
-            padding-right: 2.2rem;
-          }
-
-          .send-button {
-            bottom: 0.7rem;
-            right: 0.7rem;
-            width: 28px;
-            height: 28px;
-          }
-          
-          .suggestion-card {
-            min-width: 90px;
-            max-width: 100px;
-            min-height: 60px;
-            padding: 0.4rem;
-            border-radius: 10px;
-          }
-          
-          .card-text {
-            font-size: 0.7rem;
-          }
-
-          /* Botón agendar muy pequeño */
-          .additional-options {
-            margin-top: 2rem;
-            padding: 0 0.25rem;
-          }
-
-          .agendar-button {
-            padding: 0.9rem 1rem;
-            border-radius: 14px;
-          }
-
-          .button-content {
-            gap: 0.5rem;
-          }
-
-          .button-icon {
-            font-size: 1.3rem;
-          }
-
-          .button-title {
-            font-size: 0.9rem;
-          }
-
-          .button-subtitle {
-            font-size: 0.75rem;
-          }
-        }
-
-        /* Safe area para iPhone con notch */
-        @supports (padding: max(0px)) {
-          .hero-section {
-            padding-top: max(1rem, env(safe-area-inset-top));
-            padding-bottom: max(2rem, env(safe-area-inset-bottom));
+            padding: 0.4rem 0.8rem;
           }
         }
       `}</style>
@@ -1353,36 +933,34 @@ function AnimatedButton({ children, onClick, primary = false }) {
   return (
     <button
       onClick={onClick}
-      className={`animated-btn ${primary ? 'primary' : 'secondary'}`}
+      className="animated-btn"
       style={{
         padding: '1rem 2rem',
-        fontSize: '1.1rem',
-        fontWeight: '600',
-        border: 'none',
-        borderRadius: '12px',
+        fontSize: '1rem',
+        fontWeight: '400',
+        border: primary ? 'none' : '1px solid #e5e5e5',
+        borderRadius: '6px',
         cursor: 'pointer',
-        transition: 'all 0.3s ease',
+        transition: 'all 0.2s ease',
         fontFamily: 'inherit',
-        background: primary 
-          ? 'linear-gradient(135deg, #007aff, #5856d6)' 
-          : 'rgba(255,255,255,0.9)',
-        color: primary ? 'white' : '#007aff',
-        backdropFilter: 'blur(20px)',
-        boxShadow: primary
-          ? '0 4px 20px rgba(0,122,255,0.3)'
-          : '0 4px 20px rgba(0,0,0,0.08)',
+        background: primary ? '#171717' : '#fff',
+        color: primary ? 'white' : '#666',
       }}
       onMouseOver={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = primary
-          ? '0 8px 30px rgba(0,122,255,0.4)'
-          : '0 8px 30px rgba(0,0,0,0.12)';
+        if (primary) {
+          e.currentTarget.style.background = '#000';
+        } else {
+          e.currentTarget.style.borderColor = '#171717';
+          e.currentTarget.style.color = '#171717';
+        }
       }}
       onMouseOut={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = primary
-          ? '0 4px 20px rgba(0,122,255,0.3)'
-          : '0 4px 20px rgba(0,0,0,0.08)';
+        if (primary) {
+          e.currentTarget.style.background = '#171717';
+        } else {
+          e.currentTarget.style.borderColor = '#e5e5e5';
+          e.currentTarget.style.color = '#666';
+        }
       }}
     >
       {children}
