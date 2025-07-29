@@ -391,7 +391,7 @@ const AgendarSobrecuposPage = () => {
                         onClick={() => handleReservarClick(sobrecupo)}
                         className="reserve-button"
                       >
-                        Reservar cita
+                        Reservar Sobrecupo
                       </button>
                     </div>
                   </article>
@@ -959,10 +959,10 @@ const AgendarSobrecuposPage = () => {
         .reserve-button {
           width: 100%;
           padding: 0.75rem;
-          background: #171717;
+          background: #6b7280;
           color: white;
           border: none;
-          border-radius: 8px;
+          border-radius: 16px;
           font-size: 0.875rem;
           font-weight: 500;
           cursor: pointer;
@@ -970,7 +970,7 @@ const AgendarSobrecuposPage = () => {
         }
 
         .reserve-button:hover {
-          background: #000;
+          background: #4b5563;
         }
 
         /* Modal */
