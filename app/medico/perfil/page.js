@@ -432,9 +432,6 @@ export default function PerfilMedico() {
                     placeholder="123456"
                     maxLength="8"
                   />
-                  <p className="field-help">
-                    Número de registro profesional otorgado por la Superintendencia de Salud
-                  </p>
                 </div>
                 
                 <div className="form-field">
@@ -464,6 +461,12 @@ export default function PerfilMedico() {
                       <option key={opcion} value={opcion}>{opcion}</option>
                     ))}
                   </select>
+                </div>
+
+                <div className="form-field full-width">
+                  <p className="field-help rss-help">
+                    Número de registro profesional otorgado por la Superintendencia de Salud
+                  </p>
                 </div>
 
                 <div className="form-field full-width">
@@ -771,6 +774,11 @@ export default function PerfilMedico() {
           color: #666;
           margin: 0;
           font-style: italic;
+        }
+
+        .rss-help {
+          margin-top: -1rem;
+          margin-bottom: 0.5rem;
         }
 
         /* Photo Upload */
