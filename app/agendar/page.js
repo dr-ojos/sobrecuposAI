@@ -830,6 +830,7 @@ const AgendarSobrecuposPage = () => {
           display: grid;
           gap: 1.5rem;
           grid-template-columns: 1fr;
+          justify-items: center;
         }
 
         /* Sobrecupo Card */
@@ -839,6 +840,8 @@ const AgendarSobrecuposPage = () => {
           border-radius: 12px;
           overflow: hidden;
           transition: all 0.3s ease;
+          width: 100%;
+          max-width: 600px;
         }
 
         .sobrecupo-card:hover {
@@ -1293,6 +1296,7 @@ const AgendarSobrecuposPage = () => {
           .results-grid {
             grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
             gap: 2rem;
+            justify-items: stretch;
           }
 
           .modal-overlay {
@@ -1324,6 +1328,13 @@ const AgendarSobrecuposPage = () => {
           .results-grid {
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
             gap: 2.5rem;
+            justify-items: stretch;
+            max-width: 1200px;
+            margin: 0 auto;
+          }
+
+          .sobrecupo-card {
+            max-width: none;
           }
 
           .card-header {
