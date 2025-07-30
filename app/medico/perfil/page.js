@@ -724,6 +724,7 @@ export default function PerfilMedico() {
           gap: 1.5rem;
           grid-template-columns: 1fr;
           align-items: start;
+          grid-auto-rows: min-content;
         }
 
         .form-field {
@@ -731,6 +732,7 @@ export default function PerfilMedico() {
           flex-direction: column;
           gap: 0.5rem;
           align-self: start;
+          min-height: 80px;
         }
 
         .form-field.full-width {
@@ -774,6 +776,7 @@ export default function PerfilMedico() {
           color: #666;
           margin: 0;
           font-style: italic;
+          margin-top: auto;
         }
 
         .rss-help {
@@ -989,6 +992,11 @@ export default function PerfilMedico() {
             grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
             align-items: start;
+            grid-auto-rows: min-content;
+          }
+
+          .form-field {
+            min-height: 85px;
           }
 
           .photo-preview {
@@ -1013,10 +1021,16 @@ export default function PerfilMedico() {
             grid-template-columns: repeat(3, 1fr);
             gap: 2rem;
             align-items: start;
+            grid-auto-rows: min-content;
+          }
+
+          .form-field {
+            min-height: 90px;
           }
 
           .form-field.full-width {
             grid-column: 1 / -1;
+            min-height: auto;
           }
 
           .card-header {
