@@ -43,8 +43,19 @@ const AgendarSobrecuposPage = () => {
         if (data.success) {
           const records = data.records || [];
           console.log(`✅ Cargados ${records.length} sobrecupos`);
-          setSobrecupos(records);
-          setFilteredSobrecupos(records);
+          
+          // Filtrar solo sobrecupos desde la fecha actual hacia adelante
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          
+          const futureSobrecupos = records.filter(sobrecupo => {
+            const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
+            return sobrecupoDate >= today;
+          });
+          
+          console.log(`📅 Sobrecupos futuros: ${futureSobrecupos.length}`);
+          setSobrecupos(futureSobrecupos);
+          setFilteredSobrecupos(futureSobrecupos);
         } else {
           throw new Error(data.error || 'Error obteniendo datos');
         }
@@ -283,7 +294,7 @@ const AgendarSobrecuposPage = () => {
                   onChange={(e) => setFilters(prev => ({ ...prev, especialidad: e.target.value }))}
                   className="filter-select"
                 >
-                  <option value="">Todas las especialidades</option>
+                  <option value="">Especialidades</option>
                   {getUniqueEspecialidades().map(esp => (
                     <option key={esp} value={esp}>{esp}</option>
                   ))}
