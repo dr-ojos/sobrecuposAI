@@ -846,14 +846,14 @@ function MedicoDashboard() {
         }
 
         .action-card.primary {
-          background: #171717;
-          border-color: #171717;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          background: linear-gradient(135deg, #ff9500, #ff8800);
+          border-color: #ff9500;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
         }
 
         .action-card.primary:hover {
-          background: #000;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+          background: linear-gradient(135deg, #ff8800, #ff7700);
+          box-shadow: 0 4px 16px rgba(255, 149, 0, 0.4);
         }
 
         .action-content {
@@ -880,7 +880,7 @@ function MedicoDashboard() {
         }
 
         .primary-icon-bg {
-          background: rgba(255, 255, 255, 0.1) !important;
+          background: rgba(255, 255, 255, 0.2) !important;
         }
 
         .action-icon {
@@ -918,7 +918,7 @@ function MedicoDashboard() {
         }
 
         .primary-description {
-          color: rgba(255, 255, 255, 0.8) !important;
+          color: rgba(255, 255, 255, 0.9) !important;
         }
 
         .action-arrow {
@@ -976,7 +976,7 @@ function MedicoDashboard() {
         }
 
         .empty-action {
-          background: #171717;
+          background: linear-gradient(135deg, #ff9500, #ff8800);
           color: white;
           border: none;
           border-radius: 6px;
@@ -986,11 +986,13 @@ function MedicoDashboard() {
           cursor: pointer;
           transition: all 0.2s ease;
           font-family: inherit;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
         }
 
         .empty-action:hover {
-          background: #000;
+          background: linear-gradient(135deg, #ff8800, #ff7700);
           transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
         }
 
         .timeline-container {
@@ -1422,7 +1424,7 @@ function MedicoDashboard() {
         .action-card:focus,
         .empty-action:focus,
         .timeline-card:focus {
-          outline: 2px solid #171717;
+          outline: 2px solid #ff9500;
           outline-offset: 2px;
         }
 
