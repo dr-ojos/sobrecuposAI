@@ -19,10 +19,9 @@ export default function PerfilMedico() {
     Atiende: '',
     Seguros: [],
     Password: '',
-    // Nuevos campos simplificados
     PhotoURL: '',
-    RSS: '', // Registro Superintendencia de Salud
-    Experiencia: '', // Experiencia profesional
+    RSS: '',
+    Experiencia: '',
   });
 
   const especialidades = [
@@ -59,7 +58,6 @@ export default function PerfilMedico() {
           Atiende: data.fields?.Atiende || '',
           Seguros: data.fields?.Seguros || [],
           Password: '',
-          // Nuevos campos con valores por defecto
           PhotoURL: data.fields?.PhotoURL || '',
           RSS: data.fields?.RSS || '',
           Experiencia: data.fields?.Experiencia || '',
@@ -67,7 +65,7 @@ export default function PerfilMedico() {
       }
     } catch (error) {
       console.error('Error cargando datos:', error);
-      setMessage('❌ Error cargando datos del perfil');
+      setMessage('Error cargando datos del perfil');
     } finally {
       setLoading(false);
     }
@@ -77,14 +75,13 @@ export default function PerfilMedico() {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validaciones
     if (!file.type.startsWith('image/')) {
-      setMessage('❌ Por favor selecciona una imagen válida');
+      setMessage('Por favor selecciona una imagen válida');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB
-      setMessage('❌ La imagen no debe superar los 5MB');
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('La imagen no debe superar los 5MB');
       return;
     }
 
@@ -92,24 +89,19 @@ export default function PerfilMedico() {
     setMessage('');
 
     try {
-      // Preview inmediato
       const reader = new FileReader();
       reader.onload = (e) => {
         setDoctorData(prev => ({ ...prev, PhotoURL: e.target.result }));
       };
       reader.readAsDataURL(file);
 
-      // Upload real a AWS S3
       const formData = new FormData();
       formData.append('photo', file);
       formData.append('doctorId', session.user.doctorId);
       
-      // Enviar URL anterior para eliminar
       if (doctorData.PhotoURL && doctorData.PhotoURL.includes('s3.') && doctorData.PhotoURL.includes('amazonaws.com')) {
         formData.append('oldImageUrl', doctorData.PhotoURL);
       }
-
-      console.log(`📤 Subiendo imagen: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
 
       const uploadRes = await fetch('/api/upload', {
         method: 'POST',
@@ -119,15 +111,8 @@ export default function PerfilMedico() {
       const uploadData = await uploadRes.json();
 
       if (uploadData.success) {
-        // Actualizar con URL real de AWS S3
         setDoctorData(prev => ({ ...prev, PhotoURL: uploadData.url }));
-        setMessage('✅ Foto subida correctamente a AWS S3');
-        
-        console.log('📊 Upload exitoso:', {
-          url: uploadData.url,
-          bucket: uploadData.metadata?.bucket,
-          size: uploadData.metadata?.size
-        });
+        setMessage('Foto subida correctamente');
       } else {
         throw new Error(uploadData.error || 'Error desconocido');
       }
@@ -135,8 +120,7 @@ export default function PerfilMedico() {
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('Error subiendo imagen:', error);
-      setMessage(`❌ Error subiendo la imagen: ${error.message}`);
-      // Revertir preview en caso de error - restaurar imagen original
+      setMessage(`Error subiendo la imagen: ${error.message}`);
       fetchDoctorData();
     } finally {
       setUploadingImage(false);
@@ -148,9 +132,8 @@ export default function PerfilMedico() {
     setSaving(true);
     setMessage('');
 
-    // Validación del RSS (formato chileno)
     if (doctorData.RSS && !/^\d{6,8}$/.test(doctorData.RSS.replace(/\D/g, ''))) {
-      setMessage('❌ Formato de RSS inválido. Debe contener 6-8 dígitos');
+      setMessage('Formato de RSS inválido. Debe contener 6-8 dígitos');
       setSaving(false);
       return;
     }
@@ -171,15 +154,15 @@ export default function PerfilMedico() {
       });
 
       if (res.ok) {
-        setMessage('✅ Perfil actualizado correctamente');
+        setMessage('Perfil actualizado correctamente');
         setDoctorData(prev => ({ ...prev, Password: '' }));
         setTimeout(() => setMessage(''), 3000);
       } else {
         const errorData = await res.json();
-        setMessage(`❌ ${errorData.message || 'Error actualizando perfil'}`);
+        setMessage(`${errorData.message || 'Error actualizando perfil'}`);
       }
     } catch (error) {
-      setMessage('❌ Error de conexión');
+      setMessage('Error de conexión');
     } finally {
       setSaving(false);
     }
@@ -197,432 +180,603 @@ export default function PerfilMedico() {
   if (status === 'loading' || loading) {
     return (
       <div className="loading-screen">
-        <div className="loading-spinner">⏳</div>
-        <p>Cargando perfil...</p>
+        <div className="loading-content">
+          <div className="logo-container">
+            <div className="logo-text">
+              <span className="logo-sobrecupos">Sobrecupos</span>
+              <span className="logo-ai">AI</span>
+            </div>
+          </div>
+          <div className="progress-container">
+            <div className="progress-track">
+              <div className="progress-fill"></div>
+            </div>
+            <p className="loading-text">Cargando tu perfil...</p>
+          </div>
+        </div>
+
+        <style jsx>{`
+          .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+          }
+
+          .loading-content {
+            text-align: center;
+            position: relative;
+          }
+
+          .logo-container {
+            margin-bottom: 3rem;
+          }
+
+          .logo-text {
+            font-size: 3rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.5rem;
+          }
+
+          .logo-sobrecupos {
+            color: #171717;
+            font-weight: 800;
+          }
+
+          .logo-ai {
+            color: #666;
+            font-size: 0.7em;
+            font-weight: 300;
+          }
+
+          .progress-container {
+            width: 320px;
+            margin: 0 auto;
+          }
+
+          .progress-track {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 1px;
+            overflow: hidden;
+          }
+
+          .progress-fill {
+            height: 100%;
+            background: #171717;
+            border-radius: 1px;
+            width: 100%;
+            animation: progressAnimation 2s ease-in-out infinite;
+          }
+
+          .loading-text {
+            color: #666;
+            font-size: 0.875rem;
+            margin-top: 2rem;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+          }
+
+          @keyframes progressAnimation {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+          }
+        `}</style>
       </div>
     );
   }
 
   return (
-    <div className="perfil-container">
-      <div className="perfil-header">
-        <button onClick={() => router.back()} className="back-btn">← Volver</button>
-        <h1>Mi Perfil</h1>
-        <div className="header-spacer"></div>
-      </div>
-
-      {message && (
-        <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
-          {message}
+    <div className="page-container">
+      {/* Header minimalista estilo Apple */}
+      <header className="header">
+        <div className="header-content">
+          <div className="header-left">
+            <button onClick={() => router.back()} className="back-button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <div className="header-text">
+              <h1 className="header-title">Mi Perfil</h1>
+              <span className="header-subtitle">Configuración</span>
+            </div>
+          </div>
         </div>
-      )}
+      </header>
 
-      <div className="form-container">
-        <form onSubmit={handleSave} className="perfil-form">
-          
-          {/* Sección de Foto de Perfil */}
-          <div className="form-section photo-section">
-            <h3 className="section-title">📸 Foto de Perfil</h3>
-            <div className="photo-upload-container">
-              <div className="photo-preview">
-                {doctorData.PhotoURL ? (
-                  <img 
-                    src={doctorData.PhotoURL} 
-                    alt="Foto de perfil" 
-                    className="profile-image"
-                  />
-                ) : (
-                  <div className="placeholder-image">
-                    <span className="placeholder-icon">👨‍⚕️</span>
-                    <span className="placeholder-text">Sin foto</span>
-                  </div>
-                )}
-                {uploadingImage && (
-                  <div className="upload-overlay">
-                    <div className="upload-spinner">⏳</div>
-                  </div>
-                )}
-              </div>
-              <button 
-                type="button" 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingImage}
-                className="upload-btn"
-              >
-                {uploadingImage ? '⏳ Subiendo...' : '📷 Cambiar Foto'}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-              />
-              <div className="upload-help">
-                Tamaño máximo: 5MB. Formatos: JPG, PNG, WebP
-              </div>
-            </div>
+      <main className="main-content">
+        {/* Mensaje de estado */}
+        {message && (
+          <div className={`message ${message.includes('correctamente') ? 'success' : 'error'}`}>
+            {message}
           </div>
+        )}
 
-          {/* Información Personal */}
-          <div className="form-section">
-            <h3 className="section-title">👤 Información Personal</h3>
-            
-            <div className="input-group">
-              <label className="input-label">Nombre Completo</label>
-              <input
-                type="text"
-                value={doctorData.Name}
-                onChange={(e) => setDoctorData({...doctorData, Name: e.target.value})}
-                required
-                className="form-input"
-                placeholder="Dr. Juan Pérez Silva"
-              />
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">Email</label>
-              <input
-                type="email"
-                value={doctorData.Email}
-                onChange={(e) => setDoctorData({...doctorData, Email: e.target.value})}
-                required
-                className="form-input"
-                placeholder="doctor@ejemplo.com"
-              />
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">WhatsApp</label>
-              <input
-                type="tel"
-                value={doctorData.WhatsApp}
-                onChange={(e) => setDoctorData({...doctorData, WhatsApp: e.target.value})}
-                className="form-input"
-                placeholder="+56912345678"
-              />
-            </div>
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="hero-content">
+            <h2 className="main-title">Configuración del perfil</h2>
+            <p className="main-subtitle">Mantén actualizada tu información profesional</p>
           </div>
+        </section>
 
-          {/* Información Profesional */}
-          <div className="form-section">
-            <h3 className="section-title">🩺 Información Profesional</h3>
+        {/* Formulario */}
+        <section className="form-section">
+          <form onSubmit={handleSave} className="profile-form">
             
-            <div className="input-group">
-              <label className="input-label">Registro Superintendencia de Salud (RSS)</label>
-              <input
-                type="text"
-                value={doctorData.RSS}
-                onChange={(e) => setDoctorData({...doctorData, RSS: e.target.value})}
-                className="form-input"
-                placeholder="123456"
-                maxLength="8"
-              />
-              <div className="input-help">
-                Número de registro profesional otorgado por la Superintendencia de Salud
+            {/* Foto de perfil */}
+            <div className="form-card">
+              <div className="card-header">
+                <h3 className="card-title">Foto de Perfil</h3>
+                <p className="card-subtitle">Esta imagen será visible para los pacientes</p>
               </div>
-            </div>
-            
-            <div className="input-group">
-              <label className="input-label">Especialidad</label>
-              <select
-                value={doctorData.Especialidad}
-                onChange={(e) => setDoctorData({...doctorData, Especialidad: e.target.value})}
-                required
-                className="form-select"
-              >
-                <option value="">Seleccionar especialidad...</option>
-                {especialidades.map(esp => (
-                  <option key={esp} value={esp}>{esp}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">Atiendo a</label>
-              <select
-                value={doctorData.Atiende}
-                onChange={(e) => setDoctorData({...doctorData, Atiende: e.target.value})}
-                className="form-select"
-              >
-                <option value="">Seleccionar...</option>
-                {opcionesAtiende.map(opcion => (
-                  <option key={opcion} value={opcion}>{opcion}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">Seguros que acepto</label>
-              <div className="checkbox-group">
-                {opcionesSeguros.map(seguro => (
-                  <label key={seguro} className="checkbox-item">
-                    <input
-                      type="checkbox"
-                      checked={doctorData.Seguros.includes(seguro)}
-                      onChange={() => handleSeguroChange(seguro)}
-                      className="checkbox-input"
+              
+              <div className="photo-container">
+                <div className="photo-preview">
+                  {doctorData.PhotoURL ? (
+                    <img 
+                      src={doctorData.PhotoURL} 
+                      alt="Foto de perfil" 
+                      className="profile-image"
                     />
-                    <span className="checkbox-custom"></span>
-                    <span className="checkbox-label">{seguro}</span>
-                  </label>
-                ))}
-              </div>
-              {doctorData.Seguros.length > 0 && (
-                <div className="selected-count">
-                  ✓ {doctorData.Seguros.length} seleccionado{doctorData.Seguros.length !== 1 ? 's' : ''}
+                  ) : (
+                    <div className="placeholder-image">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  )}
+                  {uploadingImage && (
+                    <div className="upload-overlay">
+                      <div className="upload-spinner"></div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Experiencia Profesional */}
-          <div className="form-section">
-            <h3 className="section-title">📝 Experiencia Profesional</h3>
-            
-            <div className="input-group">
-              <label className="input-label">Experiencia Profesional</label>
-              <textarea
-                value={doctorData.Experiencia}
-                onChange={(e) => setDoctorData({...doctorData, Experiencia: e.target.value})}
-                className="form-textarea"
-                placeholder="Describe tu experiencia profesional, logros destacados, áreas de especialización, procedimientos que realizas, etc."
-                rows="4"
-              />
-              <div className="input-help">
-                Esta información será visible para los pacientes en tu perfil público
+                
+                <div className="photo-actions">
+                  <button 
+                    type="button" 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    className="upload-button"
+                  >
+                    {uploadingImage ? 'Subiendo...' : 'Cambiar Foto'}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    style={{ display: 'none' }}
+                  />
+                  <p className="upload-help">
+                    Tamaño máximo: 5MB. Formatos: JPG, PNG, WebP
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Seguridad */}
-          <div className="form-section">
-            <h3 className="section-title">🔐 Seguridad</h3>
-            
-            <div className="input-group">
-              <label className="input-label">Nueva Contraseña</label>
-              <input
-                type="password"
-                value={doctorData.Password}
-                onChange={(e) => setDoctorData({...doctorData, Password: e.target.value})}
-                className="form-input"
-                placeholder="Dejar vacío para mantener actual"
-              />
-              <div className="input-help">
-                Solo completa si quieres cambiar tu contraseña actual
+            {/* Información Personal */}
+            <div className="form-card">
+              <div className="card-header">
+                <h3 className="card-title">Información Personal</h3>
+                <p className="card-subtitle">Datos de contacto y personales</p>
+              </div>
+              
+              <div className="form-grid">
+                <div className="form-field">
+                  <label className="field-label">Nombre Completo *</label>
+                  <input
+                    type="text"
+                    value={doctorData.Name}
+                    onChange={(e) => setDoctorData({...doctorData, Name: e.target.value})}
+                    required
+                    className="field-input"
+                    placeholder="Dr. Juan Pérez Silva"
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Email *</label>
+                  <input
+                    type="email"
+                    value={doctorData.Email}
+                    onChange={(e) => setDoctorData({...doctorData, Email: e.target.value})}
+                    required
+                    className="field-input"
+                    placeholder="doctor@ejemplo.com"
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">WhatsApp</label>
+                  <input
+                    type="tel"
+                    value={doctorData.WhatsApp}
+                    onChange={(e) => setDoctorData({...doctorData, WhatsApp: e.target.value})}
+                    className="field-input"
+                    placeholder="+56912345678"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <button 
-            type="submit" 
-            disabled={saving || uploadingImage}
-            className="save-btn"
-          >
-            {saving ? '⏳ Guardando...' : '💾 Guardar Cambios'}
-          </button>
-        </form>
-      </div>
+            {/* Información Profesional */}
+            <div className="form-card">
+              <div className="card-header">
+                <h3 className="card-title">Información Profesional</h3>
+                <p className="card-subtitle">Detalles de tu práctica médica</p>
+              </div>
+              
+              <div className="form-grid">
+                <div className="form-field">
+                  <label className="field-label">Registro Superintendencia de Salud (RSS)</label>
+                  <input
+                    type="text"
+                    value={doctorData.RSS}
+                    onChange={(e) => setDoctorData({...doctorData, RSS: e.target.value})}
+                    className="field-input"
+                    placeholder="123456"
+                    maxLength="8"
+                  />
+                  <p className="field-help">
+                    Número de registro profesional otorgado por la Superintendencia de Salud
+                  </p>
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Especialidad *</label>
+                  <select
+                    value={doctorData.Especialidad}
+                    onChange={(e) => setDoctorData({...doctorData, Especialidad: e.target.value})}
+                    required
+                    className="field-input"
+                  >
+                    <option value="">Seleccionar especialidad...</option>
+                    {especialidades.map(esp => (
+                      <option key={esp} value={esp}>{esp}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Atiendo a</label>
+                  <select
+                    value={doctorData.Atiende}
+                    onChange={(e) => setDoctorData({...doctorData, Atiende: e.target.value})}
+                    className="field-input"
+                  >
+                    <option value="">Seleccionar...</option>
+                    {opcionesAtiende.map(opcion => (
+                      <option key={opcion} value={opcion}>{opcion}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-field full-width">
+                  <label className="field-label">Seguros que acepto</label>
+                  <div className="checkbox-group">
+                    {opcionesSeguros.map(seguro => (
+                      <label key={seguro} className="checkbox-item">
+                        <input
+                          type="checkbox"
+                          checked={doctorData.Seguros.includes(seguro)}
+                          onChange={() => handleSeguroChange(seguro)}
+                          className="checkbox-input"
+                        />
+                        <div className="checkbox-custom">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                        <span className="checkbox-label">{seguro}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {doctorData.Seguros.length > 0 && (
+                    <p className="selected-count">
+                      {doctorData.Seguros.length} seleccionado{doctorData.Seguros.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Experiencia Profesional */}
+            <div className="form-card">
+              <div className="card-header">
+                <h3 className="card-title">Experiencia Profesional</h3>
+                <p className="card-subtitle">Información visible para los pacientes</p>
+              </div>
+              
+              <div className="form-field">
+                <label className="field-label">Experiencia Profesional</label>
+                <textarea
+                  value={doctorData.Experiencia}
+                  onChange={(e) => setDoctorData({...doctorData, Experiencia: e.target.value})}
+                  className="field-textarea"
+                  placeholder="Describe tu experiencia profesional, logros destacados, áreas de especialización, procedimientos que realizas, etc."
+                  rows="4"
+                />
+                <p className="field-help">
+                  Esta información será visible para los pacientes en tu perfil público
+                </p>
+              </div>
+            </div>
+
+            {/* Seguridad */}
+            <div className="form-card">
+              <div className="card-header">
+                <h3 className="card-title">Seguridad</h3>
+                <p className="card-subtitle">Cambiar contraseña de acceso</p>
+              </div>
+              
+              <div className="form-field">
+                <label className="field-label">Nueva Contraseña</label>
+                <input
+                  type="password"
+                  value={doctorData.Password}
+                  onChange={(e) => setDoctorData({...doctorData, Password: e.target.value})}
+                  className="field-input"
+                  placeholder="Dejar vacío para mantener actual"
+                />
+                <p className="field-help">
+                  Solo completa si quieres cambiar tu contraseña actual
+                </p>
+              </div>
+            </div>
+
+            {/* Botón de guardar */}
+            <div className="form-actions">
+              <button 
+                type="submit" 
+                disabled={saving || uploadingImage}
+                className="save-button"
+              >
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </div>
+          </form>
+        </section>
+      </main>
 
       <style jsx>{`
-        .perfil-container {
+        .page-container {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #1a1a1a;
-          padding-bottom: env(safe-area-inset-bottom);
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+          color: #171717;
         }
 
-        @media (min-width: 768px) {
-          .perfil-container {
-            background: linear-gradient(135deg, #f0f4ff 0%, #e0ebff 100%);
-            padding: 0;
-          }
-        }
-
-        .loading-screen {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-        }
-
-        .loading-spinner {
-          font-size: 2rem;
-          margin-bottom: 1rem;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-
-        .perfil-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        /* Header */
+        .header {
           position: sticky;
           top: 0;
           z-index: 100;
-          height: 56px;
-          box-sizing: border-box;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          background: rgba(250, 250, 250, 0.95);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          padding: 1rem 2rem;
         }
 
-        .back-btn {
+        .header-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .back-button {
+          width: 36px;
+          height: 36px;
           background: none;
-          border: none;
-          color: #007aff;
-          font-size: 15px;
-          font-weight: 600;
-          padding: 8px 12px;
+          border: 1px solid #e5e5e5;
           border-radius: 8px;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           transition: all 0.2s ease;
         }
 
-        .back-btn:hover {
-          background: rgba(0, 122, 255, 0.1);
+        .back-button:hover {
+          border-color: #171717;
+          background: #f9fafb;
         }
 
-        .perfil-header h1 {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1a1a1a;
+        .header-text {
+          display: flex;
+          align-items: baseline;
+          gap: 0.5rem;
+        }
+
+        .header-title {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #171717;
           margin: 0;
         }
 
-        .header-spacer {
-          width: 64px;
+        .header-subtitle {
+          font-size: 1rem;
+          font-weight: 300;
+          color: #666;
         }
 
+        .main-content {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+        }
+
+        /* Mensaje */
         .message {
-          margin: 16px;
-          padding: 12px 16px;
-          border-radius: 12px;
-          font-size: 13px;
+          padding: 1rem;
+          border-radius: 8px;
+          font-size: 0.875rem;
           font-weight: 500;
           text-align: center;
         }
 
         .message.success {
-          background: #e6ffed;
-          color: #006400;
-          border: 1px solid #c3e6cb;
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
         }
 
         .message.error {
-          background: #fee;
-          color: #b00020;
-          border: 1px solid #f5c6cb;
+          background: #fef2f2;
+          color: #991b1b;
+          border: 1px solid #fecaca;
         }
 
-        .form-container {
-          padding: 16px;
-          max-width: 100vw;
-          box-sizing: border-box;
-        }
-
-        @media (min-width: 768px) {
-          .form-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 32px 24px;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .form-container {
-            max-width: 900px;
-            padding: 40px 32px;
-          }
-        }
-
-        .perfil-form {
-          background: white;
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-        }
-
-        @media (min-width: 768px) {
-          .perfil-form {
-            border-radius: 20px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-          }
-        }
-
-        .form-section {
-          padding: 20px 16px;
-          border-bottom: 1px solid #f0f0f0;
-        }
-
-        .form-section:last-of-type {
-          border-bottom: none;
-        }
-
-        @media (min-width: 768px) {
-          .form-section {
-            padding: 32px 24px;
-          }
-          
-          .form-section:not(.photo-section) {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            align-items: start;
-          }
-
-          .form-section .section-title {
-            grid-column: 1 / -1;
-            margin-bottom: 24px;
-          }
-
-          .form-section .input-group:last-child {
-            grid-column: 1 / -1;
-          }
-
-          .form-section .checkbox-group {
-            grid-column: 1 / -1;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .form-section {
-            padding: 40px 32px;
-          }
-        }
-
-        .photo-section {
+        /* Hero Section */
+        .hero-section {
           text-align: center;
         }
 
-        .section-title {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin: 0 0 16px;
+        .hero-content {
+          max-width: 600px;
+          margin: 0 auto;
+        }
+
+        .main-title {
+          font-size: 2.5rem;
+          font-weight: 300;
+          color: #171717;
+          margin: 0 0 1rem 0;
+          letter-spacing: -1px;
+        }
+
+        .main-subtitle {
+          font-size: 1.1rem;
+          color: #666;
+          margin: 0;
+          font-weight: 400;
+        }
+
+        /* Form */
+        .form-section {
+          width: 100%;
+        }
+
+        .profile-form {
           display: flex;
-          align-items: center;
-          gap: 8px;
+          flex-direction: column;
+          gap: 2rem;
         }
 
-        .photo-section .section-title {
-          justify-content: center;
+        .form-card {
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          border-radius: 16px;
+          padding: 2rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
-        .photo-upload-container {
+        .card-header {
+          margin-bottom: 2rem;
+        }
+
+        .card-title {
+          font-size: 1.25rem;
+          font-weight: 300;
+          color: #171717;
+          margin: 0 0 0.5rem 0;
+          letter-spacing: -0.5px;
+        }
+
+        .card-subtitle {
+          color: #666;
+          font-size: 0.875rem;
+          margin: 0;
+        }
+
+        .form-grid {
+          display: grid;
+          gap: 1.5rem;
+          grid-template-columns: 1fr;
+        }
+
+        .form-field {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .form-field.full-width {
+          grid-column: 1 / -1;
+        }
+
+        .field-label {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+        }
+
+        .field-input,
+        .field-textarea {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          font-size: 16px;
+          outline: none;
+          transition: border-color 0.2s ease;
+          box-sizing: border-box;
+          background: white;
+          font-family: inherit;
+        }
+
+        .field-input:focus,
+        .field-textarea:focus {
+          border-color: #ff9500;
+          box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
+        }
+
+        .field-textarea {
+          resize: vertical;
+          min-height: 100px;
+          line-height: 1.5;
+        }
+
+        .field-help {
+          font-size: 0.75rem;
+          color: #666;
+          margin: 0;
+          font-style: italic;
+        }
+
+        /* Photo Upload */
+        .photo-container {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 12px;
+          gap: 1.5rem;
         }
 
         .photo-preview {
@@ -631,17 +785,8 @@ export default function PerfilMedico() {
           height: 120px;
           border-radius: 60px;
           overflow: hidden;
-          border: 4px solid #f0f0f0;
-          background: #f8f8f8;
-        }
-
-        @media (min-width: 768px) {
-          .photo-preview {
-            width: 140px;
-            height: 140px;
-            border-radius: 70px;
-            border-width: 5px;
-          }
+          border: 4px solid #f5f5f5;
+          background: #f9fafb;
         }
 
         .profile-image {
@@ -654,21 +799,10 @@ export default function PerfilMedico() {
           width: 100%;
           height: 100%;
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
-          background: #f8f8f8;
-          color: #8e8e93;
-        }
-
-        .placeholder-icon {
-          font-size: 32px;
-          margin-bottom: 4px;
-        }
-
-        .placeholder-text {
-          font-size: 12px;
-          font-weight: 500;
+          color: #999;
+          background: #f9fafb;
         }
 
         .upload-overlay {
@@ -681,108 +815,66 @@ export default function PerfilMedico() {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
-          font-size: 24px;
         }
 
         .upload-spinner {
+          width: 24px;
+          height: 24px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top: 2px solid white;
+          border-radius: 50%;
           animation: spin 1s linear infinite;
         }
 
-        .upload-btn {
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
-          border: none;
-          border-radius: 20px;
-          padding: 10px 20px;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
 
-        .upload-btn:disabled {
+        .photo-actions {
+          text-align: center;
+        }
+
+        .upload-button {
+          background: #f5f5f5;
+          color: #171717;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          margin-bottom: 0.5rem;
+        }
+
+        .upload-button:hover:not(:disabled) {
+          background: #e5e5e5;
+          border-color: #171717;
+        }
+
+        .upload-button:disabled {
           opacity: 0.6;
           cursor: not-allowed;
         }
 
         .upload-help {
-          font-size: 11px;
-          color: #8e8e93;
-          text-align: center;
-          max-width: 200px;
+          font-size: 0.75rem;
+          color: #666;
+          margin: 0;
         }
 
-        .input-group {
-          margin-bottom: 16px;
-        }
-
-        .input-group:last-child {
-          margin-bottom: 0;
-        }
-
-        .input-label {
-          display: block;
-          font-size: 13px;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 6px;
-        }
-
-        .form-input, .form-select, .form-textarea {
-          width: 100%;
-          padding: 12px 14px;
-          border: 1.5px solid #e5e5e7;
-          border-radius: 10px;
-          font-size: 15px;
-          background: white;
-          transition: all 0.2s ease;
-          -webkit-appearance: none;
-          appearance: none;
-          box-sizing: border-box;
-          font-family: inherit;
-        }
-
-        .form-textarea {
-          resize: vertical;
-          min-height: 80px;
-          line-height: 1.4;
-        }
-
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-          outline: none;
-          border-color: #007aff;
-          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
-        }
-
-        .form-select {
-          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-          background-position: right 12px center;
-          background-repeat: no-repeat;
-          background-size: 16px;
-          padding-right: 40px;
-        }
-
-        .input-help {
-          font-size: 11px;
-          color: #8e8e93;
-          margin-top: 4px;
-          font-style: italic;
-        }
-
+        /* Checkbox */
         .checkbox-group {
           display: flex;
           flex-direction: column;
-          gap: 10px;
-          margin-top: 6px;
+          gap: 0.75rem;
         }
 
         .checkbox-item {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 0.75rem;
           cursor: pointer;
-          padding: 8px 0;
         }
 
         .checkbox-input {
@@ -792,185 +884,272 @@ export default function PerfilMedico() {
         .checkbox-custom {
           width: 20px;
           height: 20px;
-          border: 2px solid #e5e5e7;
-          border-radius: 6px;
+          border: 2px solid #e5e5e5;
+          border-radius: 4px;
           background: white;
           position: relative;
           transition: all 0.2s ease;
           flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .checkbox-custom svg {
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          color: white;
         }
 
         .checkbox-input:checked + .checkbox-custom {
-          background: #007aff;
-          border-color: #007aff;
+          background: #ff9500;
+          border-color: #ff9500;
         }
 
-        .checkbox-input:checked + .checkbox-custom::after {
-          content: '✓';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          color: white;
-          font-size: 12px;
-          font-weight: 700;
+        .checkbox-input:checked + .checkbox-custom svg {
+          opacity: 1;
         }
 
         .checkbox-label {
-          font-size: 14px;
-          font-weight: 500;
-          color: #1a1a1a;
+          font-size: 0.875rem;
+          color: #171717;
           user-select: none;
         }
 
         .selected-count {
-          font-size: 12px;
-          color: #34c759;
-          font-weight: 600;
-          margin-top: 6px;
+          font-size: 0.75rem;
+          color: #ff9500;
+          font-weight: 500;
+          margin: 0;
         }
 
-        .save-btn {
-          width: 100%;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+        /* Form Actions */
+        .form-actions {
+          display: flex;
+          justify-content: center;
+          padding-top: 1rem;
+        }
+
+        .save-button {
+          background: linear-gradient(135deg, #ff9500, #ff8800);
           color: white;
           border: none;
-          border-radius: 12px;
-          padding: 16px;
-          font-size: 15px;
-          font-weight: 700;
+          border-radius: 8px;
+          padding: 1rem 3rem;
+          font-size: 0.875rem;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
-          margin: 20px 16px 16px;
-          box-sizing: border-box;
-          width: calc(100% - 32px);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
+          min-width: 200px;
         }
 
-        @media (min-width: 768px) {
-          .save-btn {
-            margin: 32px 24px 24px;
-            width: calc(100% - 48px);
-            padding: 18px;
-            font-size: 16px;
-            border-radius: 14px;
-          }
+        .save-button:hover:not(:disabled) {
+          background: linear-gradient(135deg, #ff8800, #ff7700);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
         }
 
-        @media (min-width: 1024px) {
-          .save-btn {
-            margin: 40px 32px 32px;
-            width: calc(100% - 64px);
-            padding: 20px;
-          }
-        }
-
-        .save-btn:disabled {
-          opacity: 0.5;
+        .save-button:disabled {
+          opacity: 0.6;
           cursor: not-allowed;
+          transform: none;
         }
 
-        .save-btn:not(:disabled):active {
-          transform: scale(0.98);
+        /* Responsive - Tablet */
+        @media (min-width: 768px) {
+          .header {
+            padding: 1rem 2rem;
+          }
+
+          .main-content {
+            padding: 3rem 2rem;
+            gap: 3rem;
+          }
+
+          .main-title {
+            font-size: 3rem;
+          }
+
+          .main-subtitle {
+            font-size: 1.2rem;
+          }
+
+          .form-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+          }
+
+          .photo-preview {
+            width: 140px;
+            height: 140px;
+            border-radius: 70px;
+          }
+
+          .form-card {
+            padding: 2.5rem;
+          }
         }
 
-        @media (max-width: 430px) {
-          .form-container {
-            padding: 12px;
+        /* Responsive - Desktop */
+        @media (min-width: 1024px) {
+          .main-content {
+            max-width: 900px;
+            gap: 4rem;
           }
-          
-          .form-section {
-            padding: 16px 12px;
+
+          .form-grid {
+            grid-template-columns: repeat(3, 1fr);
           }
-          
-          .form-input, .form-select, .form-textarea {
-            font-size: 16px;
+
+          .form-field.full-width {
+            grid-column: 1 / -1;
           }
-          
+
+          .card-header {
+            margin-bottom: 2.5rem;
+          }
+
+          .form-card {
+            padding: 3rem;
+          }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+          .header {
+            padding: 1rem;
+          }
+
+          .main-content {
+            padding: 1.5rem 1rem;
+            gap: 1.5rem;
+          }
+
+          .main-title {
+            font-size: 2rem;
+          }
+
+          .main-subtitle {
+            font-size: 1rem;
+          }
+
+          .form-card {
+            padding: 1.5rem;
+          }
+
+          .card-header {
+            margin-bottom: 1.5rem;
+          }
+
           .photo-preview {
             width: 100px;
             height: 100px;
+            border-radius: 50px;
+          }
+
+          .save-button {
+            width: 100%;
+            min-width: auto;
           }
         }
 
+        /* iPhone SE and very small devices */
         @media (max-width: 375px) {
-          .perfil-header {
-            padding: 10px 12px;
+          .main-title {
+            font-size: 1.75rem;
           }
-          
-          .perfil-header h1 {
-            font-size: 15px;
+
+          .header-content {
+            gap: 0.5rem;
           }
-          
+
+          .header-title {
+            font-size: 1.25rem;
+          }
+
+          .form-card {
+            padding: 1rem;
+          }
+
           .photo-preview {
-            width: 90px;
-            height: 90px;
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
           }
         }
 
-        /* Mejoras para iPhone específico */
-        @media (max-width: 414px) and (-webkit-min-device-pixel-ratio: 2) {
-          .form-input, .form-select, .form-textarea {
-            font-size: 16px;
-            padding: 14px 16px;
+        /* Estados de foco */
+        .back-button:focus,
+        .upload-button:focus,
+        .save-button:focus,
+        .field-input:focus,
+        .field-textarea:focus,
+        .checkbox-item:focus-within {
+          outline: 2px solid #ff9500;
+          outline-offset: 2px;
+        }
+
+        /* Modo de Alto Contraste */
+        @media (prefers-contrast: high) {
+          .page-container {
+            background: #ffffff;
           }
-          
-          .save-btn {
-            padding: 18px;
-            font-size: 16px;
+
+          .form-card {
+            border-color: #000000;
+            background: #ffffff;
           }
-          
-          .upload-btn {
-            padding: 12px 24px;
-            font-size: 14px;
+
+          .main-title,
+          .card-title {
+            color: #000000;
           }
         }
 
-        /* Desktop específico */
-        @media (min-width: 1200px) {
-          .form-container {
-            max-width: 1000px;
-            padding: 48px 40px;
-          }
-          
-          .form-section {
-            padding: 48px 40px;
-          }
-          
-          .form-section:not(.photo-section) {
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 24px;
-          }
-          
-          .section-title {
-            font-size: 18px;
-          }
-          
-          .form-input, .form-select, .form-textarea {
-            padding: 14px 16px;
-            font-size: 16px;
+        /* Reducir Movimiento */
+        @media (prefers-reduced-motion: reduce) {
+          *,
+          *::before,
+          *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
           }
         }
 
+        /* Safe area for iPhones with notch */
+        @supports (padding: max(0px)) {
+          .page-container {
+            padding-bottom: max(0px, env(safe-area-inset-bottom));
+          }
+        }
+
+        /* Select styling */
+        select.field-input {
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+          background-position: right 0.75rem center;
+          background-repeat: no-repeat;
+          background-size: 1rem;
+          padding-right: 2.5rem;
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+        }
+
+        /* iOS specific fixes */
         @supports (-webkit-touch-callout: none) {
-          .form-input, .form-select, .form-textarea {
+          .field-input,
+          .field-textarea {
             -webkit-appearance: none;
-            -webkit-border-radius: 10px;
+            -webkit-border-radius: 8px;
           }
           
-          .save-btn, .upload-btn {
+          .save-button,
+          .upload-button {
             -webkit-appearance: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
-          }
-        }
-
-        @supports (padding: max(0px)) {
-          .perfil-header {
-            padding-top: max(12px, env(safe-area-inset-top));
-          }
-          
-          .perfil-container {
-            padding-bottom: max(16px, env(safe-area-inset-bottom));
           }
         }
       `}</style>
