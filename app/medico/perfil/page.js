@@ -423,18 +423,6 @@ export default function PerfilMedico() {
               
               <div className="form-grid">
                 <div className="form-field">
-                  <label className="field-label">Registro Superintendencia de Salud (RSS)</label>
-                  <input
-                    type="text"
-                    value={doctorData.RSS}
-                    onChange={(e) => setDoctorData({...doctorData, RSS: e.target.value})}
-                    className="field-input"
-                    placeholder="123456"
-                    maxLength="8"
-                  />
-                </div>
-                
-                <div className="form-field">
                   <label className="field-label">Especialidad *</label>
                   <select
                     value={doctorData.Especialidad}
@@ -463,13 +451,7 @@ export default function PerfilMedico() {
                   </select>
                 </div>
 
-                <div className="form-field full-width">
-                  <p className="field-help rss-help">
-                    Número de registro profesional otorgado por la Superintendencia de Salud
-                  </p>
-                </div>
-
-                <div className="form-field full-width">
+                <div className="form-field">
                   <label className="field-label">Seguros que acepto</label>
                   <div className="checkbox-group">
                     {opcionesSeguros.map(seguro => (
@@ -494,6 +476,21 @@ export default function PerfilMedico() {
                       {doctorData.Seguros.length} seleccionado{doctorData.Seguros.length !== 1 ? 's' : ''}
                     </p>
                   )}
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Registro Superintendencia de Salud (RSS)</label>
+                  <input
+                    type="text"
+                    value={doctorData.RSS}
+                    onChange={(e) => setDoctorData({...doctorData, RSS: e.target.value})}
+                    className="field-input"
+                    placeholder="123456"
+                    maxLength="8"
+                  />
+                  <p className="field-help">
+                    Número de registro profesional otorgado por la Superintendencia de Salud
+                  </p>
                 </div>
               </div>
             </div>
@@ -1018,7 +1015,7 @@ export default function PerfilMedico() {
           }
 
           .form-grid {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
             align-items: start;
             grid-auto-rows: min-content;
