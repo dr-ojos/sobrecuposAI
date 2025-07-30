@@ -13,7 +13,7 @@ export default function SobrecuposMedico() {
   const [clinicas, setClinicas] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [message, setMessage] = useState('');
-  const [activeFilter, setActiveFilter] = useState('proximos'); // 'proximos', 'reservados', 'antiguos'
+  const [activeFilter, setActiveFilter] = useState('proximos');
   const [newSobrecupo, setNewSobrecupo] = useState({
     clinica: '',
     direccion: '',
@@ -40,7 +40,6 @@ export default function SobrecuposMedico() {
     }
   }, [session, status, router]);
 
-  // Aplicar filtros cuando cambian los datos o el filtro activo
   useEffect(() => {
     filterSobrecupos();
   }, [sobrecupos, activeFilter]);
@@ -71,7 +70,6 @@ export default function SobrecuposMedico() {
     }
   };
 
-  // Función para filtrar sobrecupos
   const filterSobrecupos = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -80,7 +78,6 @@ export default function SobrecuposMedico() {
 
     switch (activeFilter) {
       case 'proximos':
-        // Sobrecupos futuros (desde hoy)
         filtered = sobrecupos.filter(sobrecupo => {
           const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
           return sobrecupoDate >= today;
@@ -92,7 +89,6 @@ export default function SobrecuposMedico() {
         break;
 
       case 'reservados':
-        // Sobrecupos reservados desde hoy en adelante
         filtered = sobrecupos.filter(sobrecupo => {
           const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
           const isReserved = sobrecupo.fields?.Disponible !== 'Si' && sobrecupo.fields?.Disponible !== true;
@@ -105,14 +101,13 @@ export default function SobrecuposMedico() {
         break;
 
       case 'antiguos':
-        // Sobrecupos pasados
         filtered = sobrecupos.filter(sobrecupo => {
           const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
           return sobrecupoDate < today;
         }).sort((a, b) => {
           const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
           const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
-          return dateB - dateA; // Más recientes primero para antiguos
+          return dateB - dateA;
         });
         break;
 
@@ -230,7 +225,6 @@ export default function SobrecuposMedico() {
     }
   };
 
-  // Contar sobrecupos por categoría
   const getFilterCounts = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -260,32 +254,97 @@ export default function SobrecuposMedico() {
     return (
       <div className="loading-screen">
         <div className="loading-content">
-          <div className="loading-spinner"></div>
-          <p>Cargando sobrecupos...</p>
+          <div className="logo-container">
+            <div className="logo-text">
+              <span className="logo-sobrecupos">Sobrecupos</span>
+              <span className="logo-ai">AI</span>
+            </div>
+          </div>
+          <div className="progress-container">
+            <div className="progress-track">
+              <div className="progress-fill"></div>
+            </div>
+            <p className="loading-text">Cargando tus sobrecupos...</p>
+          </div>
         </div>
+
         <style jsx>{`
           .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #f8faff 0%, #ffffff 50%, #f0f4ff 100%);
+            z-index: 9999;
+            font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
           }
+
           .loading-content {
             text-align: center;
+            position: relative;
           }
-          .loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(0, 122, 255, 0.1);
-            border-left: 4px solid #007aff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
+
+          .logo-container {
+            margin-bottom: 3rem;
           }
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+          .logo-text {
+            font-size: 3rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.5rem;
+          }
+
+          .logo-sobrecupos {
+            color: #171717;
+            font-weight: 800;
+          }
+
+          .logo-ai {
+            color: #666;
+            font-size: 0.7em;
+            font-weight: 300;
+          }
+
+          .progress-container {
+            width: 320px;
+            margin: 0 auto;
+          }
+
+          .progress-track {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 1px;
+            overflow: hidden;
+          }
+
+          .progress-fill {
+            height: 100%;
+            background: #171717;
+            border-radius: 1px;
+            width: 100%;
+            animation: progressAnimation 2s ease-in-out infinite;
+          }
+
+          .loading-text {
+            color: #666;
+            font-size: 0.875rem;
+            margin-top: 2rem;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+          }
+
+          @keyframes progressAnimation {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
           }
         `}</style>
       </div>
@@ -293,910 +352,931 @@ export default function SobrecuposMedico() {
   }
 
   return (
-    <div className="sobrecupos-container">
-      {/* Header */}
-      <div className="sobrecupos-header">
-        <button onClick={() => router.back()} className="back-btn">
-          <span className="back-icon">←</span>
-          Volver
-        </button>
-        <h1 className="page-title">Mis Sobrecupos</h1>
-        <button 
-          onClick={() => setShowCreateForm(!showCreateForm)} 
-          className="create-btn"
-        >
-          {showCreateForm ? (
-            <>
-              <span className="btn-icon">✕</span>
-              Cancelar
-            </>
-          ) : (
-            <>
-              <span className="btn-icon">+</span>
-              Crear
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Mensaje de estado */}
-      {message && (
-        <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
-          {message}
-        </div>
-      )}
-
-      {/* Formulario de creación */}
-      {showCreateForm && (
-        <div className="create-form-container">
-          <div className="form-card">
-            <div className="form-header">
-              <h3 className="form-title">
-                <span className="form-icon">✨</span>
-                Crear Nuevo Sobrecupo
-              </h3>
+    <div className="page-container">
+      {/* Header minimalista estilo Apple */}
+      <header className="header">
+        <div className="header-content">
+          <div className="header-left">
+            <button onClick={() => router.back()} className="back-button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <div className="header-text">
+              <h1 className="header-title">Mis Sobrecupos</h1>
+              <span className="header-subtitle">Gestión</span>
             </div>
-            
-            <form onSubmit={handleCreateSobrecupo} className="sobrecupo-form">
-              <div className="form-row">
-                <div className="input-group">
-                  <label className="input-label">📍 Clínica</label>
-                  <select
-                    value={newSobrecupo.clinicaId}
-                    onChange={handleClinicaSelect}
-                    className="form-select"
-                  >
-                    <option value="">Seleccionar clínica</option>
-                    {clinicas.map(clinica => (
-                      <option key={clinica.id} value={clinica.id}>
-                        {clinica.fields?.Nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+          </div>
+          <button 
+            onClick={() => setShowCreateForm(!showCreateForm)} 
+            className="create-button"
+          >
+            {showCreateForm ? 'Cancelar' : 'Crear Sobrecupo'}
+          </button>
+        </div>
+      </header>
 
-              <div className="form-row">
-                <div className="input-group">
-                  <label className="input-label">📅 Fecha</label>
-                  <input
-                    type="date"
-                    value={newSobrecupo.fecha}
-                    onChange={(e) => setNewSobrecupo({...newSobrecupo, fecha: e.target.value})}
-                    required
-                    className="form-input"
-                    min={new Date().toISOString().split('T')[0]}
-                  />
+      <main className="main-content">
+        {/* Mensaje de estado */}
+        {message && (
+          <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
+            {message}
+          </div>
+        )}
+
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="hero-content">
+            <h2 className="main-title">Gestiona tus sobrecupos</h2>
+            <p className="main-subtitle">Crea, organiza y administra tus horarios disponibles</p>
+          </div>
+        </section>
+
+        {/* Formulario de creación */}
+        {showCreateForm && (
+          <section className="create-section">
+            <div className="create-container">
+              <div className="create-card">
+                <div className="card-header">
+                  <h3 className="card-title">Nuevo Sobrecupo</h3>
+                  <p className="card-subtitle">Completa la información para crear un nuevo horario disponible</p>
                 </div>
                 
-                <div className="input-group">
-                  <label className="input-label">🕐 Hora</label>
-                  <select
-                    value={newSobrecupo.hora}
-                    onChange={(e) => setNewSobrecupo({...newSobrecupo, hora: e.target.value})}
-                    required
-                    className="form-select"
-                  >
-                    <option value="">Seleccionar hora</option>
-                    {horarios.map(hora => (
-                      <option key={hora} value={hora}>{hora}</option>
-                    ))}
-                  </select>
+                <form onSubmit={handleCreateSobrecupo} className="create-form">
+                  <div className="form-grid">
+                    <div className="form-field">
+                      <label className="field-label">Clínica</label>
+                      <select
+                        value={newSobrecupo.clinicaId}
+                        onChange={handleClinicaSelect}
+                        className="field-input"
+                      >
+                        <option value="">Seleccionar clínica</option>
+                        {clinicas.map(clinica => (
+                          <option key={clinica.id} value={clinica.id}>
+                            {clinica.fields?.Nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="form-field">
+                      <label className="field-label">Fecha *</label>
+                      <input
+                        type="date"
+                        value={newSobrecupo.fecha}
+                        onChange={(e) => setNewSobrecupo({...newSobrecupo, fecha: e.target.value})}
+                        required
+                        className="field-input"
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                    </div>
+
+                    <div className="form-field">
+                      <label className="field-label">Hora *</label>
+                      <select
+                        value={newSobrecupo.hora}
+                        onChange={(e) => setNewSobrecupo({...newSobrecupo, hora: e.target.value})}
+                        required
+                        className="field-input"
+                      >
+                        <option value="">Seleccionar hora</option>
+                        {horarios.map(hora => (
+                          <option key={hora} value={hora}>{hora}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button type="submit" className="submit-button">
+                    Crear Sobrecupo
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Filtros */}
+        <section className="filters-section">
+          <div className="filters-container">
+            {['proximos', 'reservados', 'antiguos'].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`filter-button ${activeFilter === filter ? 'active' : ''}`}
+              >
+                <div className="filter-content">
+                  <span className="filter-label">
+                    {filter === 'proximos' ? 'Próximos' : 
+                     filter === 'reservados' ? 'Reservados' : 'Antiguos'}
+                  </span>
+                  <span className="filter-count">{counts[filter]}</span>
                 </div>
-              </div>
-
-              <div className="form-actions">
-                <button type="submit" className="submit-btn">
-                  <span className="btn-icon">✓</span>
-                  Crear Sobrecupo
-                </button>
-              </div>
-            </form>
+              </button>
+            ))}
           </div>
-        </div>
-      )}
+        </section>
 
-      {/* Filtros */}
-      <div className="filters-container">
-        <div className="filters-header">
-          <h2 className="filters-title">
-            <span className="title-icon">🔍</span>
-            Filtrar Sobrecupos
-          </h2>
-        </div>
-        
-        <div className="filter-buttons">
-          <button
-            onClick={() => setActiveFilter('proximos')}
-            className={`filter-btn ${activeFilter === 'proximos' ? 'active' : ''}`}
-          >
-            <span className="filter-icon">📅</span>
-            <div className="filter-content">
-              <span className="filter-label">Próximos</span>
-              <span className="filter-count">{counts.proximos}</span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => setActiveFilter('reservados')}
-            className={`filter-btn ${activeFilter === 'reservados' ? 'active' : ''}`}
-          >
-            <span className="filter-icon">🎯</span>
-            <div className="filter-content">
-              <span className="filter-label">Reservados</span>
-              <span className="filter-count">{counts.reservados}</span>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => setActiveFilter('antiguos')}
-            className={`filter-btn ${activeFilter === 'antiguos' ? 'active' : ''}`}
-          >
-            <span className="filter-icon">📋</span>
-            <div className="filter-content">
-              <span className="filter-label">Antiguos</span>
-              <span className="filter-count">{counts.antiguos}</span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* Lista de sobrecupos */}
-      <div className="sobrecupos-content">
-        {filteredSobrecupos.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon-container">
-              <span className="empty-icon">
+        {/* Lista de sobrecupos */}
+        <section className="results-section">
+          {filteredSobrecupos.length === 0 ? (
+            <div className="empty-container">
+              <div className="empty-icon">
                 {activeFilter === 'proximos' && '📅'}
                 {activeFilter === 'reservados' && '🎯'}
                 {activeFilter === 'antiguos' && '📋'}
-              </span>
+              </div>
+              <h3 className="empty-title">
+                No tienes {activeFilter === 'proximos' ? 'sobrecupos próximos' : 
+                          activeFilter === 'reservados' ? 'sobrecupos reservados' : 
+                          'sobrecupos antiguos'}
+              </h3>
+              <p className="empty-text">
+                {activeFilter === 'proximos' && 'Crea nuevos sobrecupos para que aparezcan aquí'}
+                {activeFilter === 'reservados' && 'Los sobrecupos reservados aparecerán en esta sección'}
+                {activeFilter === 'antiguos' && 'Los sobrecupos pasados se mostrarán aquí'}
+              </p>
+              {activeFilter === 'proximos' && (
+                <button 
+                  onClick={() => setShowCreateForm(true)}
+                  className="empty-button"
+                >
+                  Crear mi primer sobrecupo
+                </button>
+              )}
             </div>
-            <h3 className="empty-title">
-              No tienes {activeFilter === 'proximos' ? 'sobrecupos próximos' : 
-                        activeFilter === 'reservados' ? 'sobrecupos reservados' : 
-                        'sobrecupos antiguos'}
-            </h3>
-            <p className="empty-text">
-              {activeFilter === 'proximos' && 'Crea nuevos sobrecupos para que aparezcan aquí'}
-              {activeFilter === 'reservados' && 'Los sobrecupos reservados aparecerán en esta sección'}
-              {activeFilter === 'antiguos' && 'Los sobrecupos pasados se mostrarán aquí'}
-            </p>
-            {activeFilter === 'proximos' && (
-              <button 
-                onClick={() => setShowCreateForm(true)}
-                className="empty-action"
-              >
-                <span className="btn-icon">+</span>
-                Crear mi primer sobrecupo
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="sobrecupos-grid">
-            {filteredSobrecupos.map((sobrecupo, index) => (
-              <div key={sobrecupo.id || index} className="sobrecupo-card">
-                <div className="card-header">
-                  <div className="card-status">
-                    <div className={`status-badge ${
-                      sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true 
-                        ? 'available' : 'reserved'
-                    }`}>
-                      {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true 
-                        ? '✅ Disponible' : '🗓️ Reservado'}
-                    </div>
-                  </div>
+          ) : (
+            <div className="results-grid">
+              {filteredSobrecupos.map((sobrecupo, index) => (
+                <article key={sobrecupo.id || index} className="sobrecupo-card">
                   
-                  <button 
-                    onClick={() => deleteSobrecupo(sobrecupo.id)}
-                    className="delete-btn"
-                    title="Eliminar sobrecupo"
-                  >
-                    <span className="delete-icon">🗑️</span>
-                  </button>
-                </div>
-                
-                <div className="card-content">
-                  <div className="datetime-container">
-                    <div className="date-block">
-                      <span className="day">{new Date(sobrecupo.fields?.Fecha).getDate()}</span>
-                      <span className="month">
-                        {new Date(sobrecupo.fields?.Fecha).toLocaleDateString('es-CL', { month: 'short' }).toUpperCase()}
-                      </span>
+                  {/* Card Header */}
+                  <div className="card-header">
+                    <div className="status-info">
+                      <div className={`status-badge ${
+                        sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true 
+                          ? 'available' : 'reserved'
+                      }`}>
+                        {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true 
+                          ? 'Disponible' : 'Reservado'}
+                      </div>
                     </div>
                     
-                    <div className="time-info">
-                      <div className="time">{sobrecupo.fields?.Hora}</div>
-                      <div className="relative-time">
-                        {getTimeFromNow(sobrecupo.fields?.Fecha, sobrecupo.fields?.Hora)}
-                      </div>
-                    </div>
+                    <button 
+                      onClick={() => deleteSobrecupo(sobrecupo.id)}
+                      className="delete-button"
+                      title="Eliminar sobrecupo"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
                   </div>
                   
-                  <div className="location-info">
-                    <div className="clinic-info">
-                      <span className="location-icon">📍</span>
-                      <span className="clinic-name">{sobrecupo.fields?.Clínica}</span>
+                  {/* Card Body */}
+                  <div className="card-body">
+                    <div className="datetime-info">
+                      <div className="date-block">
+                        <span className="day">{new Date(sobrecupo.fields?.Fecha).getDate()}</span>
+                        <span className="month">
+                          {new Date(sobrecupo.fields?.Fecha).toLocaleDateString('es-CL', { month: 'short' }).toUpperCase()}
+                        </span>
+                      </div>
+                      
+                      <div className="time-details">
+                        <div className="time">{sobrecupo.fields?.Hora}</div>
+                        <div className="relative-time">
+                          {getTimeFromNow(sobrecupo.fields?.Fecha, sobrecupo.fields?.Hora)}
+                        </div>
+                      </div>
                     </div>
-                    <div className="address-info">
-                      {sobrecupo.fields?.Dirección}
+                    
+                    <div className="location-info">
+                      <div className="clinic-name">{sobrecupo.fields?.Clínica}</div>
+                      <div className="clinic-address">{sobrecupo.fields?.Dirección}</div>
                     </div>
+                    
+                    {sobrecupo.fields?.Nombre && (
+                      <div className="patient-info">
+                        <div className="patient-avatar">
+                          <span>{sobrecupo.fields.Nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+                        </div>
+                        <div className="patient-details">
+                          <div className="patient-name">{sobrecupo.fields.Nombre}</div>
+                          {sobrecupo.fields?.Email && (
+                            <div className="patient-contact">{sobrecupo.fields.Email}</div>
+                          )}
+                          <div className="confirmed-badge">Confirmado</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  
-                  {sobrecupo.fields?.Nombre && (
-                    <div className="patient-info">
-                      <div className="patient-avatar">
-                        <span>{sobrecupo.fields.Nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
-                      </div>
-                      <div className="patient-details">
-                        <div className="patient-name">👤 {sobrecupo.fields.Nombre}</div>
-                        {sobrecupo.fields?.Email && (
-                          <div className="patient-contact">📧 {sobrecupo.fields.Email}</div>
-                        )}
-                        <div className="confirmed-badge">✓ Confirmado</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
 
       <style jsx>{`
-        .sobrecupos-container {
+        .page-container {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f8faff 0%, #ffffff 50%, #f0f4ff 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-          color: #1d1d1f;
-          padding-bottom: env(safe-area-inset-bottom);
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+          color: #171717;
         }
 
         /* Header */
-        .sobrecupos-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1rem;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        .header {
           position: sticky;
           top: 0;
           z-index: 100;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          background: rgba(250, 250, 250, 0.95);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          padding: 1rem 2rem;
         }
 
-        .back-btn {
+        .header-content {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          justify-content: space-between;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .back-button {
+          width: 36px;
+          height: 36px;
           background: none;
-          border: none;
-          color: #007aff;
-          font-size: 0.9rem;
-          font-weight: 600;
-          cursor: pointer;
-          padding: 0.5rem;
+          border: 1px solid #e5e5e5;
           border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           transition: all 0.2s ease;
         }
 
-        .back-btn:hover {
-          background: rgba(0, 122, 255, 0.08);
+        .back-button:hover {
+          border-color: #171717;
+          background: #f9fafb;
         }
 
-        .back-icon {
-          font-size: 1.1rem;
+        .header-text {
+          display: flex;
+          align-items: baseline;
+          gap: 0.5rem;
         }
 
-        .page-title {
-          font-size: 1.2rem;
-          font-weight: 700;
-          color: #1d1d1f;
+        .header-title {
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #171717;
           margin: 0;
         }
 
-        .create-btn {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: linear-gradient(135deg, #34c759, #30d158);
+        .header-subtitle {
+          font-size: 1rem;
+          font-weight: 300;
+          color: #666;
+        }
+
+        .create-button {
+          background: linear-gradient(135deg, #ff9500, #ff8800);
           color: white;
           border: none;
-          border-radius: 12px;
-          padding: 0.5rem 0.75rem;
-          font-size: 0.85rem;
-          font-weight: 600;
+          border-radius: 8px;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.875rem;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
         }
 
-        .create-btn:hover {
+        .create-button:hover {
+          background: linear-gradient(135deg, #ff8800, #ff7700);
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(52, 199, 89, 0.4);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
         }
 
-        .btn-icon {
-          font-size: 0.9rem;
+        .main-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 3rem;
         }
 
         /* Mensaje */
         .message {
-          margin: 1rem;
-          padding: 0.75rem 1rem;
-          border-radius: 12px;
-          font-size: 0.85rem;
-          font-weight: 600;
+          padding: 1rem;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
           text-align: center;
         }
 
         .message.success {
-          background: #e8f8ec;
-          color: #1d7040;
-          border: 1px solid rgba(52, 199, 89, 0.3);
+          background: #f0fdf4;
+          color: #166534;
+          border: 1px solid #bbf7d0;
         }
 
         .message.error {
-          background: #ffe8e8;
-          color: #d70015;
-          border: 1px solid rgba(255, 59, 48, 0.3);
+          background: #fef2f2;
+          color: #991b1b;
+          border: 1px solid #fecaca;
         }
 
-        /* Formulario de creación */
-        .create-form-container {
-          padding: 0 1rem 1rem;
+        /* Hero Section */
+        .hero-section {
+          text-align: center;
         }
 
-        .form-card {
-          background: white;
-          border-radius: 16px;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-          overflow: hidden;
+        .hero-content {
+          max-width: 600px;
+          margin: 0 auto;
         }
 
-        .form-header {
-          padding: 1rem;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
+        .main-title {
+          font-size: 2.5rem;
+          font-weight: 300;
+          color: #171717;
+          margin: 0 0 1rem 0;
+          letter-spacing: -1px;
         }
 
-        .form-title {
+        .main-subtitle {
+          font-size: 1.1rem;
+          color: #666;
+          margin: 0;
+          font-weight: 400;
+        }
+
+        /* Create Section */
+        .create-section {
           display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 1rem;
-          font-weight: 700;
+          justify-content: center;
+        }
+
+        .create-container {
+          width: 100%;
+          max-width: 600px;
+        }
+
+        .create-card {
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          border-radius: 16px;
+          padding: 2rem;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+          margin-bottom: 2rem;
+          text-align: center;
+        }
+
+        .card-title {
+          font-size: 1.5rem;
+          font-weight: 300;
+          color: #171717;
+          margin: 0 0 0.5rem 0;
+          letter-spacing: -0.5px;
+        }
+
+        .card-subtitle {
+          color: #666;
+          font-size: 0.875rem;
           margin: 0;
         }
 
-        .form-icon {
-          font-size: 1.1rem;
+        .create-form {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
         }
 
-        .sobrecupo-form {
-          padding: 1rem;
-        }
-
-        .form-row {
+        .form-grid {
           display: grid;
+          gap: 1.5rem;
           grid-template-columns: 1fr;
-          gap: 1rem;
-          margin-bottom: 1rem;
         }
 
-        @media (min-width: 640px) {
-          .form-row {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-
-        .input-group {
+        .form-field {
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
         }
 
-        .input-label {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #6e6e73;
+        .field-label {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
         }
 
-        .form-input,
-        .form-select {
+        .field-input {
+          width: 100%;
           padding: 0.75rem;
-          border: 1px solid rgba(0, 0, 0, 0.12);
+          border: 1px solid #e5e5e5;
           border-radius: 8px;
-          font-size: 0.9rem;
-          transition: all 0.2s ease;
+          font-size: 16px;
+          outline: none;
+          transition: border-color 0.2s ease;
+          box-sizing: border-box;
           background: white;
         }
 
-        .form-input:focus,
-        .form-select:focus {
-          outline: none;
-          border-color: #007aff;
-          box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        .field-input:focus {
+          border-color: #ff9500;
+          box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
         }
 
-        .form-actions {
-          margin-top: 1.5rem;
-        }
-
-        .submit-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
+        .submit-button {
           width: 100%;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+          padding: 1rem;
+          background: linear-gradient(135deg, #ff9500, #ff8800);
           color: white;
           border: none;
-          border-radius: 12px;
-          padding: 0.875rem;
-          font-size: 0.9rem;
-          font-weight: 600;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
         }
 
-        .submit-btn:hover {
+        .submit-button:hover {
+          background: linear-gradient(135deg, #ff8800, #ff7700);
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
         }
 
-        /* Filtros */
+        /* Filters */
+        .filters-section {
+          display: flex;
+          justify-content: center;
+        }
+
         .filters-container {
-          padding: 1rem;
-        }
-
-        .filters-header {
-          margin-bottom: 1rem;
-        }
-
-        .filters-title {
           display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: #1d1d1f;
-          margin: 0;
-        }
-
-        .title-icon {
-          font-size: 1rem;
-        }
-
-        .filter-buttons {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0.75rem;
-        }
-
-        .filter-btn {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.5rem;
+          gap: 1rem;
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          padding: 0.5rem;
           border-radius: 12px;
-          padding: 0.875rem 0.5rem;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-button {
+          background: none;
+          border: none;
+          border-radius: 8px;
+          padding: 0.75rem 1.5rem;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #666;
         }
 
-        .filter-btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        .filter-button:hover {
+          background: #f5f5f5;
+          color: #171717;
         }
 
-        .filter-btn.active {
-          background: linear-gradient(135deg, #007aff, #5856d6);
+        .filter-button.active {
+          background: #171717;
           color: white;
-          border-color: rgba(0, 122, 255, 0.3);
-          box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
-        }
-
-        .filter-icon {
-          font-size: 1.2rem;
         }
 
         .filter-content {
           display: flex;
-          flex-direction: column;
           align-items: center;
-          gap: 0.25rem;
+          gap: 0.5rem;
         }
 
         .filter-label {
-          font-size: 0.8rem;
-          font-weight: 600;
+          font-size: 0.875rem;
         }
 
         .filter-count {
-          font-size: 0.7rem;
-          padding: 0.2rem 0.5rem;
-          background: rgba(0, 0, 0, 0.08);
-          border-radius: 12px;
-          font-weight: 700;
-        }
-
-        .filter-btn.active .filter-count {
           background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Contenido principal */
-        .sobrecupos-content {
-          padding: 0 1rem 2rem;
-        }
-
-        /* Estado vacío */
-        .empty-state {
+          color: white;
+          padding: 0.25rem 0.5rem;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          min-width: 20px;
           text-align: center;
-          padding: 3rem 1.5rem;
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          border-radius: 16px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
-        .empty-icon-container {
-          margin-bottom: 1.5rem;
+        .filter-button:not(.active) .filter-count {
+          background: #f5f5f5;
+          color: #666;
+        }
+
+        /* Results Section */
+        .results-section {
+          min-height: 400px;
+        }
+
+        /* Empty State */
+        .empty-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 4rem 2rem;
+          text-align: center;
+          background: white;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          border-radius: 16px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .empty-icon {
-          font-size: 3rem;
-          opacity: 0.6;
-          animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+          font-size: 4rem;
+          margin-bottom: 2rem;
+          opacity: 0.4;
         }
 
         .empty-title {
-          font-size: 1.2rem;
-          font-weight: 700;
-          margin: 0 0 0.75rem;
-          color: #1d1d1f;
+          font-size: 1.5rem;
+          font-weight: 300;
+          margin: 0 0 1rem;
+          color: #171717;
+          letter-spacing: -0.5px;
         }
 
         .empty-text {
-          color: #6e6e73;
-          margin: 0 0 1.5rem;
-          font-size: 0.9rem;
+          color: #666;
+          margin: 0 0 2rem;
+          font-size: 1rem;
+          font-weight: 400;
           line-height: 1.5;
         }
 
-        .empty-action {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: linear-gradient(135deg, #007aff, #5856d6);
+        .empty-button {
+          background: linear-gradient(135deg, #ff9500, #ff8800);
           color: white;
           border: none;
-          border-radius: 12px;
-          padding: 0.75rem 1.25rem;
-          font-size: 0.85rem;
-          font-weight: 600;
+          border-radius: 8px;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.875rem;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
         }
 
-        .empty-action:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+        .empty-button:hover {
+          background: linear-gradient(135deg, #ff8800, #ff7700);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
         }
 
-        /* Grid de sobrecupos */
-        .sobrecupos-grid {
+        /* Results Grid */
+        .results-grid {
           display: grid;
+          gap: 1.5rem;
           grid-template-columns: 1fr;
-          gap: 1rem;
+          place-items: center;
         }
 
-        @media (min-width: 768px) {
-          .sobrecupos-grid {
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-          }
+        .results-grid > * {
+          width: 100%;
+          max-width: 600px;
         }
 
-        /* Cards de sobrecupos */
+        /* Sobrecupo Card */
         .sobrecupo-card {
           background: white;
-          border: 1px solid rgba(0, 0, 0, 0.06);
+          border: 1px solid rgba(0, 0, 0, 0.05);
           border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
           transition: all 0.3s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .sobrecupo-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-          border-color: rgba(0, 122, 255, 0.15);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          border-color: rgba(0, 0, 0, 0.1);
         }
 
         .card-header {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 1rem 1rem 0.5rem;
+          justify-content: space-between;
+          padding: 1.5rem;
+          border-bottom: 1px solid #f5f5f5;
         }
 
-        .card-status {
+        .status-info {
           flex: 1;
         }
 
         .status-badge {
-          display: inline-flex;
-          align-items: center;
-          padding: 0.3rem 0.6rem;
-          border-radius: 16px;
-          font-size: 0.7rem;
-          font-weight: 700;
+          padding: 0.375rem 0.75rem;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          font-weight: 500;
           white-space: nowrap;
+          border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .status-badge.available {
-          background: #e8f8ec;
-          color: #1d7040;
-          border: 1px solid rgba(52, 199, 89, 0.3);
+          background: #f0fff4;
+          color: #166534;
+          border-color: rgba(52, 199, 89, 0.1);
         }
 
         .status-badge.reserved {
-          background: #fff3e8;
-          color: #cc6d00;
-          border: 1px solid rgba(255, 149, 0, 0.3);
+          background: #fff8f0;
+          color: #ea580c;
+          border-color: rgba(255, 149, 0, 0.1);
         }
 
-        .delete-btn {
+        .delete-button {
+          width: 36px;
+          height: 36px;
+          background: none;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 32px;
-          height: 32px;
-          background: #f5f5f7;
-          color: #8e8e93;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          border-radius: 8px;
-          cursor: pointer;
           transition: all 0.2s ease;
-          font-size: 0.8rem;
+          color: #666;
         }
 
-        .delete-btn:hover {
-          background: #e8e8ed;
-          color: #6e6e73;
-          transform: scale(1.05);
+        .delete-button:hover {
+          border-color: #dc2626;
+          background: #fef2f2;
+          color: #dc2626;
         }
 
-        .delete-icon {
-          font-size: 0.9rem;
-        }
-
-        .card-content {
-          padding: 0.5rem 1rem 1rem;
+        .card-body {
+          padding: 1.5rem;
           display: flex;
           flex-direction: column;
-          gap: 0.875rem;
+          gap: 1.5rem;
         }
 
-        .datetime-container {
+        .datetime-info {
           display: flex;
           align-items: center;
-          gap: 0.875rem;
+          gap: 1rem;
         }
 
         .date-block {
           display: flex;
           flex-direction: column;
           align-items: center;
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          border-radius: 12px;
-          padding: 0.5rem;
+          background: #171717;
+          border-radius: 8px;
+          padding: 0.75rem;
           min-width: 48px;
-          color: white;
           flex-shrink: 0;
+          color: white;
         }
 
         .day {
-          font-size: 1.1rem;
-          font-weight: 800;
+          font-size: 1.25rem;
+          font-weight: 200;
           line-height: 1;
+          letter-spacing: -0.5px;
         }
 
         .month {
-          font-size: 0.6rem;
-          font-weight: 700;
-          margin-top: 0.15rem;
-          opacity: 0.9;
+          font-size: 0.625rem;
+          font-weight: 400;
+          margin-top: 0.25rem;
+          opacity: 0.8;
+          letter-spacing: 1px;
         }
 
-        .time-info {
-          flex: 1;
+        .time-details {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
         }
 
         .time {
-          font-size: 1.1rem;
-          font-weight: 700;
-          color: #1d1d1f;
+          font-size: 1.125rem;
+          font-weight: 300;
+          color: #171717;
           line-height: 1.2;
+          letter-spacing: -0.25px;
         }
 
         .relative-time {
           font-size: 0.75rem;
-          color: #6e6e73;
-          font-weight: 500;
+          color: #666;
+          font-weight: 400;
           margin-top: 0.25rem;
         }
 
         .location-info {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .clinic-info {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .location-icon {
-          font-size: 0.85rem;
-          opacity: 0.7;
+          gap: 0.25rem;
         }
 
         .clinic-name {
-          font-size: 0.9rem;
-          color: #1d1d1f;
-          font-weight: 600;
-          flex: 1;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #171717;
         }
 
-        .address-info {
+        .clinic-address {
           font-size: 0.8rem;
-          color: #6e6e73;
-          margin-left: 1.35rem;
-          line-height: 1.3;
+          color: #666;
         }
 
         .patient-info {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding: 0.75rem;
-          background: rgba(0, 0, 0, 0.02);
+          gap: 1rem;
+          padding: 1rem;
+          background: #fafafa;
           border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .patient-avatar {
-          width: 32px;
-          height: 32px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #af52de, #bf5af2);
+          background: #171717;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 0.7rem;
-          font-weight: 700;
+          font-size: 0.875rem;
+          font-weight: 600;
           color: white;
           flex-shrink: 0;
         }
 
         .patient-details {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
           flex: 1;
           min-width: 0;
         }
 
         .patient-name {
-          font-size: 0.85rem;
-          color: #1d1d1f;
-          font-weight: 600;
-          margin-bottom: 0.25rem;
+          font-size: 0.875rem;
+          color: #171717;
+          font-weight: 500;
         }
 
         .patient-contact {
           font-size: 0.75rem;
-          color: #6e6e73;
-          margin-bottom: 0.5rem;
+          color: #666;
         }
 
         .confirmed-badge {
-          display: inline-flex;
-          align-items: center;
-          background: #e8f8ec;
-          color: #1d7040;
-          padding: 0.2rem 0.5rem;
-          border-radius: 8px;
-          font-size: 0.65rem;
-          font-weight: 700;
-          border: 1px solid rgba(52, 199, 89, 0.3);
+          background: #f0fff4;
+          color: #166534;
+          padding: 0.25rem 0.5rem;
+          border-radius: 6px;
+          font-size: 0.625rem;
+          font-weight: 500;
+          border: 1px solid rgba(52, 199, 89, 0.1);
+          width: fit-content;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-          .sobrecupos-header {
-            padding: 0.75rem;
+        /* Responsive - Tablet */
+        @media (min-width: 768px) {
+          .header {
+            padding: 1rem 2rem;
           }
 
-          .page-title {
-            font-size: 1.1rem;
+          .main-content {
+            padding: 3rem 2rem;
           }
 
-          .create-btn {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.8rem;
+          .main-title {
+            font-size: 3rem;
           }
 
-          .filters-container {
-            padding: 0.75rem;
+          .main-subtitle {
+            font-size: 1.2rem;
           }
 
-          .filter-buttons {
-            gap: 0.5rem;
+          .form-grid {
+            grid-template-columns: repeat(3, 1fr);
           }
 
-          .filter-btn {
-            padding: 0.75rem 0.4rem;
+          .results-grid {
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
           }
 
-          .filter-icon {
-            font-size: 1.1rem;
+          .results-grid > * {
+            max-width: 500px;
+          }
+        }
+
+        /* Responsive - Desktop */
+        @media (min-width: 1024px) {
+          .main-content {
+            gap: 4rem;
           }
 
-          .filter-label {
-            font-size: 0.75rem;
+          .results-grid {
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2.5rem;
+            max-width: 1200px;
           }
 
-          .filter-count {
-            font-size: 0.65rem;
-            padding: 0.15rem 0.4rem;
-          }
-
-          .sobrecupos-content {
-            padding: 0 0.75rem 1.5rem;
-          }
-
-          .sobrecupos-grid {
-            gap: 0.75rem;
+          .results-grid > * {
+            max-width: 600px;
           }
 
           .card-header {
-            padding: 0.875rem 0.875rem 0.5rem;
+            padding: 2rem;
           }
 
-          .card-content {
-            padding: 0.5rem 0.875rem 0.875rem;
-            gap: 0.75rem;
+          .card-body {
+            padding: 1.5rem 2rem 2rem;
+            gap: 2rem;
+          }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+          .header {
+            padding: 1rem;
           }
 
-          .datetime-container {
+          .main-content {
+            padding: 1.5rem 1rem;
+            gap: 2rem;
+          }
+
+          .main-title {
+            font-size: 2rem;
+          }
+
+          .main-subtitle {
+            font-size: 1rem;
+          }
+
+          .create-card {
+            padding: 1.5rem;
+          }
+
+          .filters-container {
+            flex-direction: column;
+            width: 100%;
+          }
+
+          .filter-button {
+            justify-content: center;
+          }
+
+          .card-header {
+            padding: 1rem;
+          }
+
+          .card-body {
+            padding: 1rem;
+            gap: 1rem;
+          }
+
+          .datetime-info {
             gap: 0.75rem;
           }
 
           .date-block {
-            min-width: 44px;
-            padding: 0.4rem;
+            min-width: 42px;
+            padding: 0.5rem;
           }
 
           .day {
-            font-size: 1rem;
+            font-size: 1.125rem;
           }
 
           .month {
-            font-size: 0.55rem;
+            font-size: 0.5rem;
           }
 
           .time {
@@ -1204,109 +1284,74 @@ export default function SobrecuposMedico() {
           }
 
           .relative-time {
-            font-size: 0.7rem;
-          }
-
-          .clinic-name {
-            font-size: 0.85rem;
-          }
-
-          .address-info {
-            font-size: 0.75rem;
+            font-size: 0.6875rem;
           }
 
           .patient-info {
-            padding: 0.625rem;
-            gap: 0.625rem;
-          }
-
-          .patient-avatar {
-            width: 28px;
-            height: 28px;
-            font-size: 0.65rem;
-          }
-
-          .patient-name {
-            font-size: 0.8rem;
-          }
-
-          .patient-contact {
-            font-size: 0.7rem;
-          }
-
-          .confirmed-badge {
-            padding: 0.15rem 0.4rem;
-            font-size: 0.6rem;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .filter-buttons {
-            grid-template-columns: 1fr;
-            gap: 0.5rem;
-          }
-
-          .filter-btn {
-            flex-direction: row;
-            justify-content: flex-start;
             padding: 0.75rem;
             gap: 0.75rem;
           }
 
-          .filter-content {
-            flex-direction: row;
-            align-items: center;
-            gap: 0.5rem;
+          .patient-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 0.75rem;
           }
         }
 
-        /* Accesibilidad */
-        .back-btn:focus,
-        .create-btn:focus,
-        .filter-btn:focus,
-        .delete-btn:focus,
-        .submit-btn:focus,
-        .empty-action:focus {
-          outline: 2px solid #007aff;
+        /* iPhone SE and very small devices */
+        @media (max-width: 375px) {
+          .main-title {
+            font-size: 1.75rem;
+          }
+
+          .header-content {
+            gap: 0.5rem;
+          }
+
+          .header-title {
+            font-size: 1.25rem;
+          }
+
+          .create-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+          }
+        }
+
+        /* Estados de foco */
+        .back-button:focus,
+        .create-button:focus,
+        .filter-button:focus,
+        .delete-button:focus,
+        .submit-button:focus,
+        .empty-button:focus,
+        .field-input:focus {
+          outline: 2px solid #ff9500;
           outline-offset: 2px;
         }
 
-        /* Animaciones */
-        .sobrecupo-card {
-          animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        /* Modo contraste alto */
+        /* Modo de Alto Contraste */
         @media (prefers-contrast: high) {
-          .sobrecupos-container {
+          .page-container {
             background: #ffffff;
           }
 
           .sobrecupo-card,
-          .form-card,
-          .empty-state {
+          .create-card,
+          .empty-container {
             border-color: #000000;
+            background: #ffffff;
           }
 
-          .page-title,
-          .filters-title,
+          .main-title,
+          .card-title,
           .empty-title {
             color: #000000;
           }
         }
 
-        /* Reducir movimiento */
+        /* Reducir Movimiento */
         @media (prefers-reduced-motion: reduce) {
           *,
           *::before,
@@ -1314,6 +1359,13 @@ export default function SobrecuposMedico() {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
+          }
+        }
+
+        /* Safe area for iPhones with notch */
+        @supports (padding: max(0px)) {
+          .page-container {
+            padding-bottom: max(0px, env(safe-area-inset-bottom));
           }
         }
       `}</style>
