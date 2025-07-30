@@ -720,12 +720,14 @@ export default function PerfilMedico() {
           display: grid;
           gap: 1.5rem;
           grid-template-columns: 1fr;
+          align-items: start;
         }
 
         .form-field {
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
+          align-self: start;
         }
 
         .form-field.full-width {
@@ -978,6 +980,7 @@ export default function PerfilMedico() {
           .form-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
+            align-items: start;
           }
 
           .photo-preview {
@@ -1000,6 +1003,8 @@ export default function PerfilMedico() {
 
           .form-grid {
             grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            align-items: start;
           }
 
           .form-field.full-width {
