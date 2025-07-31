@@ -87,7 +87,7 @@ export default function Home() {
           <div className={`tagline ${isVisible ? 'visible' : ''}`}>
             <h1>Encuentra tu Sobrecupo médico</h1>
             <p className="subtitle">
-              <strong>Más tiempo</strong> sano, <strong>menos tiempo</strong> enfermo.
+              <strong>Más tiempo sano, </strong>  menos tiempo enfermo.
             </p>
           </div>
 
@@ -138,19 +138,19 @@ export default function Home() {
                 <div className="suggestions-container">
                   <div className="suggestions-label">Prueba preguntando:</div>
                   <div className="suggestions-scroll">
-                    <div className="suggestion-pill" onClick={() => selectSuggestion('Visión borrosa')}>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Veo borroso')}>
                       Visión borrosa
                     </div>
-                    <div className="suggestion-pill" onClick={() => selectSuggestion('Graduación de lentes')}>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Necesito control de lentes')}>
                       Graduación de lentes
                     </div>
-                    <div className="suggestion-pill" onClick={() => selectSuggestion('Dolor con luz')}>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Me pican los ojos')}>
                       Dolor con luz
                     </div>
-                    <div className="suggestion-pill" onClick={() => selectSuggestion('Manchas flotantes')}>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Veo manchas flotantes')}>
                       Manchas flotantes
                     </div>
-                    <div className="suggestion-pill" onClick={() => selectSuggestion('Ojo irritado')}>
+                    <div className="suggestion-pill" onClick={() => selectSuggestion('Tengo el ojo irritado')}>
                       Ojo irritado
                     </div>
                   </div>
