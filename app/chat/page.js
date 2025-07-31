@@ -213,11 +213,11 @@ function ChatComponent() {
   };
 
   const quickSuggestions = [
-    "Oftalmólogo",
-    "Cardiólogo", 
-    "Dolor de cabeza",
-    "Chequeo médico",
-    "Dermatólogo"
+    "Veo borroso",
+    "Necesito control de lentes", 
+    "Me pican los ojos",
+    "Veo manchas flotantes",
+    "Tengo el ojo irritado"
   ];
 
   const handleSuggestionClick = (suggestion) => {
@@ -290,7 +290,7 @@ function ChatComponent() {
         </div>
       </section>
 
-      {/* Input Area */}
+      {/* Input Area - NUEVO ESTILO COMO HOMEPAGE */}
       <footer className="chat-input-area">
         {messages.length <= 2 && !hasProcessedInitial && (
           <div className="suggestions-section">
@@ -310,7 +310,7 @@ function ChatComponent() {
         )}
 
         <div className="input-container">
-          <div className="input-wrapper">
+          <div className="input-wrapper-hero">
             <textarea
               ref={inputRef}
               rows={1}
@@ -318,7 +318,7 @@ function ChatComponent() {
               onChange={(e) => {
                 setInput(e.target.value);
                 e.target.style.height = 'auto';
-                e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -326,15 +326,15 @@ function ChatComponent() {
                   sendMessage(e);
                 }
               }}
-              placeholder="Describe tus síntomas..."
-              className="chat-input"
+              placeholder="Ej: Tengo los ojos rojos y me pican..."
+              className="chat-input-hero"
               disabled={loading}
               autoFocus
             />
             <button
               type="button"
               onClick={sendMessage}
-              className={`send-button ${input.trim() ? 'active' : ''}`}
+              className={`send-button-hero ${input.trim() ? 'active' : ''}`}
               disabled={loading || !input.trim()}
             >
               {loading ? (
@@ -562,32 +562,33 @@ function ChatComponent() {
           }
         }
 
-        /* Input Area */
+        /* Input Area - NUEVO ESTILO HERO */
         .chat-input-area {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
           border-top: 1px solid #e5e5e5;
-          padding: 1rem;
-          padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+          padding: 1.5rem;
+          padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
         }
 
         .suggestions-section {
-          max-width: 800px;
-          margin: 0 auto 1rem auto;
+          max-width: 640px;
+          margin: 0 auto 1.5rem auto;
         }
 
         .suggestions-label {
-          font-size: 0.8rem;
-          color: #666;
-          margin-bottom: 0.5rem;
+          font-size: 0.875rem;
+          color: #999;
+          margin-bottom: 1rem;
           font-weight: 400;
+          text-align: left;
         }
 
         .suggestions-list {
           display: flex;
-          gap: 0.5rem;
+          gap: 0.75rem;
           overflow-x: auto;
-          padding: 0.25rem 0;
+          padding: 0.5rem 0;
           scrollbar-width: none;
           -ms-overflow-style: none;
         }
@@ -599,14 +600,15 @@ function ChatComponent() {
         .suggestion-pill {
           background: #f5f5f5;
           border: 1px solid #e5e5e5;
-          border-radius: 16px;
-          padding: 0.4rem 0.8rem;
-          font-size: 0.8rem;
-          color: #666;
+          border-radius: 20px;
+          padding: 0.5rem 1rem;
           cursor: pointer;
           transition: all 0.2s ease;
-          white-space: nowrap;
           flex-shrink: 0;
+          font-size: 0.875rem;
+          color: #666;
+          font-weight: 400;
+          white-space: nowrap;
           font-family: inherit;
         }
 
@@ -621,50 +623,65 @@ function ChatComponent() {
         }
 
         .input-container {
-          max-width: 800px;
+          max-width: 640px;
           margin: 0 auto;
         }
 
-        .input-wrapper {
+        /* NUEVO INPUT HERO STYLE - Igual que homepage */
+        .input-wrapper-hero {
           display: flex;
-          align-items: flex-end;
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 12px;
-          padding: 0.75rem;
-          transition: all 0.2s ease;
+          align-items: flex-start;
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 20px;
+          padding: 1rem;
+          min-height: 80px;
+          transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          box-shadow: 
+            0 6px 24px rgba(0, 0, 0, 0.06),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 0 rgba(255, 255, 255, 0.4);
           position: relative;
         }
 
-        .input-wrapper:focus-within {
-          border-color: #171717;
-          box-shadow: 0 0 0 1px #171717;
+        .input-wrapper-hero:focus-within {
+          border-color: rgba(0, 122, 255, 0.3);
+          background: rgba(255, 255, 255, 0.95);
+          box-shadow: 
+            0 8px 32px rgba(0, 122, 255, 0.12),
+            0 2px 8px rgba(0, 122, 255, 0.06),
+            0 0 0 4px rgba(0, 122, 255, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
         }
 
-        .chat-input {
+        .chat-input-hero {
           flex: 1;
           border: none;
           background: none;
           outline: none;
-          font-size: 0.9rem;
-          color: #171717;
+          font-size: 1rem;
+          color: #1d1d1f;
           font-family: inherit;
           resize: none;
-          min-height: 20px;
-          max-height: 100px;
-          line-height: 1.4;
-          padding-right: 2.5rem;
+          min-height: 48px;
+          line-height: 1.5;
+          padding: 0;
+          padding-right: 3rem;
+          font-weight: 400;
         }
 
-        .chat-input::placeholder {
+        .chat-input-hero::placeholder {
           color: #999;
+          font-weight: 400;
         }
 
-        .chat-input:disabled {
+        .chat-input-hero:disabled {
           opacity: 0.6;
         }
 
-        .send-button {
+        .send-button-hero {
           width: 36px;
           height: 36px;
           background: #171717;
@@ -676,33 +693,34 @@ function ChatComponent() {
           align-items: center;
           justify-content: center;
           transition: all 0.2s ease;
+          flex-shrink: 0;
           position: absolute;
-          bottom: 0.75rem;
-          right: 0.75rem;
+          bottom: 1rem;
+          right: 1rem;
           opacity: 0.3;
           transform: scale(0.9);
         }
 
-        .send-button.active {
+        .send-button-hero.active {
           opacity: 1;
           transform: scale(1);
         }
 
-        .send-button:hover.active {
+        .send-button-hero:hover.active {
           background: #000;
           transform: scale(1.05);
         }
 
-        .send-button:disabled {
+        .send-button-hero:disabled {
           opacity: 0.2;
           cursor: not-allowed;
         }
 
         .loading-spinner {
-          width: 12px;
-          height: 12px;
+          width: 14px;
+          height: 14px;
           border: 2px solid rgba(255,255,255,0.3);
-          border-top: 2px solid white;
+          border-top: 2px solid currentColor;
           border-radius: 50%;
           animation: spin 0.8s linear infinite;
         }
@@ -735,25 +753,27 @@ function ChatComponent() {
           }
 
           .chat-input-area {
-            padding: 0.75rem;
-            padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+            padding: 1rem;
+            padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
           }
 
-          .input-wrapper {
-            padding: 0.6rem;
+          .input-wrapper-hero {
+            min-height: 70px;
+            padding: 0.8rem;
           }
 
-          .chat-input {
+          .chat-input-hero {
             font-size: 16px;
-            padding-right: 2.2rem;
+            min-height: 40px;
+            padding-right: 2.5rem;
           }
 
-          .send-button {
+          .send-button-hero {
             width: 32px;
             height: 32px;
             border-radius: 16px;
-            bottom: 0.6rem;
-            right: 0.6rem;
+            bottom: 0.8rem;
+            right: 0.8rem;
           }
         }
 
@@ -770,26 +790,34 @@ function ChatComponent() {
             font-size: 0.85rem;
           }
 
-          .input-wrapper {
-            padding: 0.5rem;
+          .chat-input-area {
+            padding: 0.75rem;
+            padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
           }
 
-          .chat-input {
+          .input-wrapper-hero {
+            min-height: 65px;
+            padding: 0.7rem;
+            border-radius: 16px;
+          }
+
+          .chat-input-hero {
             font-size: 16px;
-            padding-right: 2rem;
+            min-height: 35px;
+            padding-right: 2.2rem;
           }
 
-          .send-button {
+          .send-button-hero {
             width: 28px;
             height: 28px;
             border-radius: 14px;
-            bottom: 0.5rem;
-            right: 0.5rem;
+            bottom: 0.7rem;
+            right: 0.7rem;
           }
 
           .suggestion-pill {
-            font-size: 0.75rem;
-            padding: 0.35rem 0.7rem;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
           }
         }
 
@@ -798,14 +826,18 @@ function ChatComponent() {
             font-size: 1.1rem;
           }
 
-          .input-wrapper {
-            border-radius: 10px;
+          .input-wrapper-hero {
+            border-radius: 14px;
+            min-height: 60px;
+            padding: 0.6rem;
           }
 
-          .send-button {
+          .send-button-hero {
             width: 26px;
             height: 26px;
             border-radius: 13px;
+            bottom: 0.6rem;
+            right: 0.6rem;
           }
         }
 
@@ -816,7 +848,7 @@ function ChatComponent() {
           }
           
           .chat-input-area {
-            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
           }
         }
       `}</style>
