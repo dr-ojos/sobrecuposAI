@@ -564,9 +564,7 @@ function ChatComponent() {
 
         /* Input Area - NUEVO ESTILO HERO */
         .chat-input-area {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-top: 1px solid #e5e5e5;
+          background: transparent;
           padding: 1.5rem;
           padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
         }
