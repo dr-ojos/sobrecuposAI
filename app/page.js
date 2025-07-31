@@ -139,19 +139,19 @@ export default function Home() {
                   <div className="suggestions-label">Prueba preguntando:</div>
                   <div className="suggestions-scroll">
                     <div className="suggestion-pill" onClick={() => selectSuggestion('Veo borroso')}>
-                      Visión borrosa
+                      Veo borroso
                     </div>
                     <div className="suggestion-pill" onClick={() => selectSuggestion('Necesito control de lentes')}>
-                      Graduación de lentes
+                      Necesito control de lentes
                     </div>
                     <div className="suggestion-pill" onClick={() => selectSuggestion('Me pican los ojos')}>
-                      Dolor con luz
+                      Me pican los ojos
                     </div>
                     <div className="suggestion-pill" onClick={() => selectSuggestion('Veo manchas flotantes')}>
-                      Manchas flotantes
+                      Veo manchas flotantes
                     </div>
                     <div className="suggestion-pill" onClick={() => selectSuggestion('Tengo el ojo irritado')}>
-                      Ojo irritado
+                      Tengo el ojo irritado
                     </div>
                   </div>
                 </div>
