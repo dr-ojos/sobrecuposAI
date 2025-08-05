@@ -74,14 +74,23 @@ export default async function handler(req, res) {
 
   // === DETECCIÓN DE CONSULTAS NO MÉDICAS ===
   if (esConsultaNoMedica(text)) {
-    const respuestasAmables = [
+    // 🍕 Respuestas específicas y divertidas según el tipo de consulta
+    const respuestasEspecificas = getRespuestaEspecificaNoMedica(text);
+    
+    if (respuestasEspecificas.length > 0) {
+      const respuestaAleatoria = respuestasEspecificas[Math.floor(Math.random() * respuestasEspecificas.length)];
+      return res.json({ text: respuestaAleatoria });
+    }
+    
+    // Respuestas generales como fallback
+    const respuestasGenerales = [
       "Soy tu asistente médico especializado 👩‍⚕️\n\n¿Cómo te sientes hoy? Cuéntame si tienes algún síntoma o necesitas algún especialista.",
       "Mi especialidad es cuidar tu salud 🩺\n\n¿Hay algo médico en lo que pueda ayudarte? Por ejemplo síntomas, chequeos o especialistas que necesites.",
       "Estoy aquí para temas de salud 😊\n\n¿Cómo puedo ayudarte médicamente hoy? Cuéntame tus síntomas o qué especialista buscas."
     ];
     
     return res.json({ 
-      text: respuestasAmables[Math.floor(Math.random() * respuestasAmables.length)] 
+      text: respuestasGenerales[Math.floor(Math.random() * respuestasGenerales.length)] 
     });
   }
 
@@ -89,6 +98,71 @@ export default async function handler(req, res) {
   if (currentSession.stage) {
     const result = await manejarSesionActiva(currentSession, text, from, res);
     if (result) return result;
+  }
+
+  // ===============================
+  // 🍕 FUNCIÓN PARA RESPUESTAS ESPECÍFICAS NO MÉDICAS
+  // ===============================
+
+  function getRespuestaEspecificaNoMedica(text) {
+    const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    
+    // 🍕 Comida y restaurantes
+    if (textoLimpio.includes('pizza') || textoLimpio.includes('hamburguesa') || 
+        textoLimpio.includes('comida') || textoLimpio.includes('restaurant') ||
+        textoLimpio.includes('comer') || textoLimpio.includes('hambre')) {
+      return [
+        "¡Me da hambre solo de escucharte! 🍕 Pero soy tu asistente médico, no delivery 😄\n\n¿Cómo está tu salud? ¿Tienes algún síntoma o necesitas ver algún especialista?",
+        "¡Qué rico! 🍽️ Pero yo me especializo en otro tipo de 'alimentación': ¡cuidar tu salud!\n\n¿Hay algo médico en lo que pueda ayudarte?",
+        "Para eso mejor usa una app de delivery 📱🍕 Yo soy experto en encontrar médicos, no pizza!\n\n¿Cómo te sientes hoy? ¿Necesitas alguna consulta médica?"
+      ];
+    }
+    
+    // 🕐 Hora y tiempo
+    if (textoLimpio.includes('hora') || textoLimpio.includes('dia')) {
+      return [
+        "No soy un reloj, ¡pero sí soy tu asistente médico! ⏰👩‍⚕️\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte?",
+        "Para eso mejor mira tu celular 📱 Yo me especializo en horarios médicos.\n\n¿Necesitas algún especialista o tienes síntomas?"
+      ];
+    }
+    
+    // 🎵 Entretenimiento
+    if (textoLimpio.includes('musica') || textoLimpio.includes('cancion') || 
+        textoLimpio.includes('pelicula') || textoLimpio.includes('serie')) {
+      return [
+        "¡Me gusta el entretenimiento! 🎵 Pero mi show favorito es ayudarte con tu salud 🩺\n\n¿Cómo te sientes hoy?",
+        "Para eso mejor usa Spotify o Netflix 📺 Yo soy tu asistente médico personal.\n\n¿Hay algún tema de salud en el que pueda ayudarte?"
+      ];
+    }
+    
+    // ⚽ Deportes
+    if (textoLimpio.includes('futbol') || textoLimpio.includes('deporte') || 
+        textoLimpio.includes('partido')) {
+      return [
+        "¡Los deportes son geniales para la salud! ⚽💪 Hablando de salud...\n\n¿Cómo te sientes? ¿Necesitas algún chequeo médico?",
+        "Mi deporte favorito es mantener a las personas sanas 🏃‍♀️🩺\n\n¿Hay algo médico en lo que pueda ayudarte?"
+      ];
+    }
+    
+    // 🌤️ Clima
+    if (textoLimpio.includes('clima') || textoLimpio.includes('tiempo') || 
+        textoLimpio.includes('lluvia')) {
+      return [
+        "Para el clima mejor checa una app meteorológica ☀️🌧️ Yo me enfoco en el clima de tu salud.\n\n¿Cómo te sientes hoy?",
+        "¡Espero que sea un buen día para cuidar tu salud! 🌟🩺\n\n¿Hay algún síntoma que te preocupe?"
+      ];
+    }
+    
+    // 🛍️ Compras y precios
+    if (textoLimpio.includes('precio') || textoLimpio.includes('costo') || 
+        textoLimpio.includes('comprar') || textoLimpio.includes('tienda')) {
+      return [
+        "No manejo precios de productos, ¡pero sí el valor de tu salud! 💰🩺\n\n¿En qué puedo ayudarte médicamente?",
+        "Para compras mejor usa otra app 🛒 Yo te ayudo a 'comprar' tiempo con un médico rápido.\n\n¿Qué especialista necesitas?"
+      ];
+    }
+    
+    return [];
   }
 
   // === DETECCIÓN INTELIGENTE DE ESPECIALIDADES ===
