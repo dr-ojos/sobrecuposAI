@@ -1,321 +1,68 @@
-// app/api/bot/route.js
-// 🤖 BOT PARA CHAT WEB - App Router
-
+// app/api/bot/route.js - MIGRACIÓN COMPLETA DE FUNCIONALIDAD DEL BOT
 import { NextResponse } from 'next/server';
 
-// Variables de entorno
-const {
-  AIRTABLE_API_KEY,
-  AIRTABLE_BASE_ID,
-  AIRTABLE_TABLE_ID,
-  AIRTABLE_DOCTORS_TABLE,
-  AIRTABLE_PATIENTS_TABLE
-} = process.env;
-
-// Sistema de sesiones en memoria
+// Estado de sesiones en memoria
 const sessions = {};
 
-export async function POST(req) {
-  try {
-    const { message, session: prevSession, from = "webuser" } = await req.json();
-    const text = (message || "").trim();
+// Saludos simples para detección
+const saludosSimples = [
+  "hola","buenas","buenos dias","buenos días","buenas tardes","buenas noches",
+  "hey","ey","qué tal","que tal","holi","holis","hello","saludos"
+];
 
-    // Validación básica
-    if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
-      console.error("❌ Variables de entorno faltantes");
-      return NextResponse.json({ 
-        text: "❌ Servicio temporalmente no disponible. Contacta soporte." 
-      });
-    }
-
-    if (!text) {
-      return NextResponse.json({ 
-        text: "¡Hola! 👋 Soy Sobrecupos IA.\n\n¿En qué puedo ayudarte? Cuéntame tus síntomas o qué especialista necesitas." 
-      });
-    }
-
-    console.log(`📨 Mensaje recibido: "${text}"`);
-
-    // Obtener sesión actual
-    let currentSession = sessions[from] || prevSession || {};
-
-    // Sistema anti-timeout
-    const currentTime = Date.now();
-    const sessionTimeout = 10 * 60 * 1000; // 10 minutos
-    
-    if (currentSession.lastActivity && (currentTime - currentSession.lastActivity) > sessionTimeout) {
-      console.log(`🕐 Sesión expirada para ${from}, reseteando...`);
-      currentSession = {};
-      sessions[from] = {};
-    }
-
-    currentSession.lastActivity = currentTime;
-
-    // Expresiones regulares
-    const saludoSimpleRe = /^(hola|buenas|buenos?\s*(dias?|tardes?|noches?)|hey|ey|qué tal|que tal|cómo estás|como estas)$/i;
-    const afirmativoRe = /^(si|sí|s|ok|vale|perfecto|listo|confirmo|confirmar|dale|claro|quiero|acepto|me sirve)$/i;
-    const negativoRe = /^(no|otra|busca más|busca mas|no me sirve|no quiero|siguiente|otro|otra opción|otra opcion)$/i;
-
-    // === MANEJO DE SALUDOS SIMPLES ===
-    if (saludoSimpleRe.test(text)) {
-      sessions[from] = { lastActivity: currentTime };
-      return NextResponse.json({
-        text: "¡Hola! 👋 Soy Sobrecupos IA, tu asistente médico.\n\n¿En qué puedo ayudarte hoy? Puedes contarme:\n• Síntomas que tienes\n• Especialista que necesitas\n• Urgencias médicas"
-      });
-    }
-
-    // === MANEJO DE SESIONES ACTIVAS ===
-    if (currentSession.stage) {
-      const result = await manejarSesionActiva(currentSession, text, from);
-      if (result) return result;
-    }
-
-    // === DETECCIÓN DE ESPECIALIDADES ===
-    const especialidadDirecta = detectarEspecialidadDirecta(text);
-    if (especialidadDirecta) {
-      return await buscarYResponderSobrecupos(especialidadDirecta, text, from, false);
-    }
-
-    const especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
-    if (especialidadPorSintomas) {
-      console.log(`🎯 Síntoma detectado: "${text}" → ${especialidadPorSintomas}`);
-      return await buscarYResponderSobrecupos(especialidadPorSintomas, text, from, true);
-    }
-
-    // === RESPUESTA POR DEFECTO ===
-    const especialidadesDisponibles = await getEspecialidadesDisponibles();
-    const especialidadesTexto = especialidadesDisponibles.slice(0, 6).join(', ');
-    
-    return NextResponse.json({
-      text: `Te puedo ayudar a encontrar sobrecupos médicos 🩺\n\nCuéntame:\n• ¿Qué síntomas tienes?\n• ¿Qué especialista necesitas?\n\nEspecialidades disponibles: ${especialidadesTexto}\n\nEjemplo: "Me pican los ojos" o "Necesito dermatólogo"`
-    });
-
-  } catch (error) {
-    console.error('❌ Error en bot:', error);
-    return NextResponse.json({
-      text: "Disculpa, hubo un error técnico. Por favor intenta nuevamente."
-    });
-  }
+// Función para detectar saludo simple
+function esSaludoSimple(text) {
+  if (!text) return false;
+  const limpio = text.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  
+  // Si contiene síntomas o palabras médicas, NO es saludo simple
+  const palabrasMedicas = [
+    "dolor", "duele", "molestia", "sintoma", "síntoma", "vision", "visión", 
+    "ojo", "ojos", "cabeza", "pecho", "estomago", "estómago", "fiebre", 
+    "mareo", "nausea", "náusea", "cansancio", "fatiga", "tos", "gripe",
+    "resfriado", "alergia", "picazon", "picazón", "roncha", "sarpullido",
+    "medico", "médico", "doctor", "especialista", "consulta", "cita", "hora",
+    "urgente", "emergencia", "necesito", "busco", "quiero", "tengo", "siento",
+    "me duele", "me pica", "veo", "no veo", "borrosa", "borroso", "manchas",
+    "flotantes", "rojo", "irritado", "lagrimeo", "ardor", "quemazón"
+  ];
+  
+  const contieneTerminoMedico = palabrasMedicas.some(palabra => 
+    limpio.includes(palabra.toLowerCase())
+  );
+  
+  if (contieneTerminoMedico) return false;
+  
+  return saludosSimples.includes(limpio);
 }
 
-// ===============================
-// 🛠️ FUNCIONES AUXILIARES
-// ===============================
-
-async function manejarSesionActiva(session, message, userId) {
-  const afirmativoRe = /^(si|sí|s|ok|vale|perfecto|listo|confirmo|confirmar|dale|claro|quiero|acepto|me sirve)$/i;
-  const negativoRe = /^(no|otra|busca más|busca mas|no me sirve|no quiero|siguiente|otro|otra opción|otra opcion)$/i;
-
-  switch (session.stage) {
-    case 'awaiting-confirmation':
-      return await manejarConfirmacion(session, message, userId);
-    case 'getting-name':
-      return await manejarNombre(session, message, userId);
-    case 'getting-phone':
-      return await manejarTelefono(session, message, userId);
-    case 'getting-rut':
-      return await manejarRUT(session, message, userId);
-    case 'getting-email':
-      return await manejarEmail(session, message, userId);
+// Función para validar RUT chileno
+function validarRUT(rut) {
+  rut = rut.replace(/[.\-]/g, '').toUpperCase();
+  if (!/^[0-9]+[0-9K]$/.test(rut)) return false;
+  const cuerpo = rut.slice(0, -1);
+  const dv = rut.slice(-1);
+  let suma = 0;
+  let multiplicador = 2;
+  for (let i = cuerpo.length - 1; i >= 0; i--) {
+    suma += parseInt(cuerpo[i]) * multiplicador;
+    multiplicador = multiplicador < 7 ? multiplicador + 1 : 2;
   }
-  return null;
+  const dvCalculado = 11 - (suma % 11);
+  let dvEsperado;
+  if (dvCalculado === 11) dvEsperado = '0';
+  else if (dvCalculado === 10) dvEsperado = 'K';
+  else dvEsperado = dvCalculado.toString();
+  return dv === dvEsperado;
 }
 
-async function manejarConfirmacion(session, message, userId) {
-  const afirmativoRe = /^(si|sí|s|ok|vale|perfecto|listo|confirmo|confirmar|dale|claro|quiero|acepto|me sirve)$/i;
-  const negativoRe = /^(no|otra|busca más|busca mas|no me sirve|no quiero|siguiente|otro|otra opción|otra opcion)$/i;
-
-  if (afirmativoRe.test(message)) {
-    sessions[userId] = { 
-      ...session, 
-      stage: 'getting-name',
-      lastActivity: Date.now()
-    };
-    return NextResponse.json({
-      text: "¡Perfecto! 🎉 Para confirmar tu cita necesito algunos datos.\n\n¿Cuál es tu nombre completo?",
-      session: sessions[userId]
-    });
-  }
-  
-  if (negativoRe.test(message)) {
-    const { records = [], specialty } = session;
-    const nextAttempt = (session.attempts || 0) + 1;
-    
-    if (nextAttempt < records.length && nextAttempt < 3) {
-      const nextRecord = records[nextAttempt].fields;
-      const medicoNombre = await getDoctorName(nextRecord["Médico"]);
-      
-      sessions[userId] = { 
-        ...session, 
-        attempts: nextAttempt,
-        lastActivity: Date.now()
-      };
-      
-      return NextResponse.json({
-        text: `Te muestro otra opción de ${specialty}:\n\n🏥 ${nextRecord["Clínica"]}\n📍 ${nextRecord["Dirección"]}\n👨‍⚕️ Dr. ${medicoNombre}\n📅 ${nextRecord.Fecha} a las ${nextRecord.Hora}\n\n¿Te sirve esta? Responde *sí* o *no*`,
-        session: sessions[userId]
-      });
-    } else {
-      sessions[userId] = { lastActivity: Date.now() };
-      return NextResponse.json({
-        text: `Entiendo. Por ahora no tengo más sobrecupos de ${specialty} disponibles.\n\n¿Te gustaría que te contacte cuando tengamos nuevas opciones disponibles?`
-      });
-    }
-  }
-  
-  return NextResponse.json({
-    text: "No entendí tu respuesta. Por favor responde *sí* si te sirve el sobrecupo o *no* para ver otra opción."
-  });
-}
-
-async function manejarNombre(session, message, userId) {
-  const nombre = message.trim();
-  
-  if (nombre.length < 2) {
-    return NextResponse.json({
-      text: "Por favor ingresa tu nombre completo (mínimo 2 caracteres)."
-    });
-  }
-  
-  sessions[userId] = { 
-    ...session, 
-    stage: 'getting-phone',
-    patientName: nombre,
-    lastActivity: Date.now()
-  };
-  
-  return NextResponse.json({
-    text: `Perfecto, ${nombre}. 👍\n\nAhora necesito tu número de WhatsApp (incluye +56).\n\nEjemplo: +56912345678`,
-    session: sessions[userId]
-  });
-}
-
-async function manejarTelefono(session, message, userId) {
-  const telefono = message.trim();
-  
-  if (!validarTelefono(telefono)) {
-    return NextResponse.json({
-      text: "Formato de teléfono incorrecto. Debe incluir +56 y tener 9 dígitos después.\n\nEjemplo: +56912345678"
-    });
-  }
-  
-  sessions[userId] = { 
-    ...session, 
-    stage: 'getting-rut',
-    patientPhone: telefono,
-    lastActivity: Date.now()
-  };
-  
-  return NextResponse.json({
-    text: "📱 Teléfono registrado.\n\nAhora tu RUT (sin puntos, con guión).\n\nEjemplo: 12345678-9",
-    session: sessions[userId]
-  });
-}
-
-async function manejarRUT(session, message, userId) {
-  const rut = message.trim();
-  
-  if (!validarRUT(rut)) {
-    return NextResponse.json({
-      text: "RUT inválido. Por favor ingresa tu RUT sin puntos y con guión.\n\nEjemplo: 12345678-9"
-    });
-  }
-  
-  sessions[userId] = { 
-    ...session, 
-    stage: 'getting-email',
-    patientRUT: rut,
-    lastActivity: Date.now()
-  };
-  
-  return NextResponse.json({
-    text: "✅ RUT registrado.\n\nFinalmente, tu email para confirmaciones:\n\nEjemplo: juan@email.com",
-    session: sessions[userId]
-  });
-}
-
-async function manejarEmail(session, message, userId) {
-  const email = message.trim().toLowerCase();
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
-  if (!emailPattern.test(email)) {
-    return NextResponse.json({
-      text: "Email inválido. Por favor ingresa un email válido:\n\nEjemplo: juan@email.com"
-    });
-  }
-  
-  // ✅ PROCESAR RESERVA FINAL
-  return await procesarReservaFinal(session, email, userId);
-}
-
-async function procesarReservaFinal(session, email, userId) {
-  const { records, specialty, attempts, patientName, patientPhone, patientRUT } = session;
-  
-  const selectedRecord = records[attempts || 0];
-  
-  if (!selectedRecord) {
-    console.error("❌ No hay sobrecupo seleccionado");
-    sessions[userId] = { lastActivity: Date.now() };
-    return NextResponse.json({
-      text: "❌ Error: No se encontró el sobrecupo seleccionado. Por favor intenta nuevamente."
-    });
-  }
-  
-  try {
-    console.log("🏥 Iniciando proceso de reserva final...");
-    
-    const pacienteId = await crearPaciente({
-      name: patientName,
-      phone: patientPhone,
-      rut: patientRUT,
-      email: email
-    });
-    
-    if (!pacienteId) {
-      sessions[userId] = { lastActivity: Date.now() };
-      return NextResponse.json({
-        text: "❌ Hubo un problema creando tu registro de paciente. Por favor intenta nuevamente."
-      });
-    }
-    
-    console.log("✅ Paciente creado con ID:", pacienteId);
-    
-    const sobrecupoActualizado = await actualizarSobrecupo(selectedRecord.id, pacienteId, patientName);
-    
-    const medicoIds = selectedRecord.fields["Médico"];
-    const medicoId = Array.isArray(medicoIds) ? medicoIds[0] : medicoIds;
-    const medicoInfo = await getDoctorInfo(medicoId);
-    
-    sessions[userId] = { lastActivity: Date.now() };
-    
-    if (sobrecupoActualizado && pacienteId) {
-      return NextResponse.json({
-        text: `✅ ¡Cita confirmada exitosamente!\n\n📋 Detalles de tu cita:\n👤 Paciente: ${patientName}\n🩺 Especialidad: ${specialty}\n👨‍⚕️ Médico: Dr. ${medicoInfo.name}\n📅 Fecha: ${selectedRecord.fields.Fecha}\n🕐 Hora: ${selectedRecord.fields.Hora}\n🏥 Clínica: ${selectedRecord.fields["Clínica"]}\n📧 Email: ${email}\n\n💡 Llega 15 minutos antes. ¡Nos vemos pronto!`
-      });
-    } else {
-      return NextResponse.json({
-        text: `❌ Hubo un problema técnico confirmando tu cita.\n\nTu información está guardada:\n• ${patientName}\n• ${specialty} - ${selectedRecord.fields.Fecha}\n\nTe contactaremos pronto para confirmar.`
-      });
-    }
-    
-  } catch (error) {
-    console.error("❌ Error en reserva final:", error);
-    sessions[userId] = { lastActivity: Date.now() };
-    
-    return NextResponse.json({
-      text: "❌ Error procesando tu reserva. Por favor intenta nuevamente o contacta soporte."
-    });
-  }
-}
-
-// ===============================
-// 🔍 FUNCIONES DE DETECCIÓN
-// ===============================
-
+// Función para detectar especialidad directa
 function detectarEspecialidadDirecta(text) {
   const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   
   const especialidadesDirectas = {
+    'reumatologo': 'Reumatología', 'reumatologia': 'Reumatología',
+    'traumatologo': 'Traumatología', 'traumatologia': 'Traumatología',
     'oftalmologo': 'Oftalmología', 'oftalmologia': 'Oftalmología',
     'dermatologo': 'Dermatología', 'dermatologia': 'Dermatología',
     'pediatra': 'Pediatría', 'pediatria': 'Pediatría',
@@ -323,7 +70,11 @@ function detectarEspecialidadDirecta(text) {
     'neurologo': 'Neurología', 'neurologia': 'Neurología',
     'otorrino': 'Otorrinolaringología', 'otorrinolaringologia': 'Otorrinolaringología',
     'medicina familiar': 'Medicina Familiar', 'medico general': 'Medicina Familiar',
-    'general': 'Medicina Familiar', 'familiar': 'Medicina Familiar'
+    'general': 'Medicina Familiar', 'familiar': 'Medicina Familiar',
+    'urologo': 'Urología', 'urologia': 'Urología',
+    'ginecologo': 'Ginecología', 'ginecologia': 'Ginecología',
+    'psiquiatra': 'Psiquiatría', 'psiquiatria': 'Psiquiatría',
+    'endocrinologo': 'Endocrinología', 'endocrinologia': 'Endocrinología'
   };
   
   for (const [key, value] of Object.entries(especialidadesDirectas)) {
@@ -332,292 +83,866 @@ function detectarEspecialidadDirecta(text) {
   return null;
 }
 
+// Función para detectar consultas no médicas
+function esConsultaNoMedica(text) {
+  const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  
+  // Consultas de información general que NO son médicas
+  const consultasGenerales = [
+    'que hora es', 'qué hora es', 'hora es', 'que dia es', 'qué día es',
+    'como estas', 'cómo estás', 'como te llamas', 'cómo te llamas',
+    'quien eres', 'quién eres', 'que eres', 'qué eres',
+    'donde estas', 'dónde estás', 'de donde eres', 'de dónde eres'
+  ];
+  
+  // Si es una consulta general específica, es no médica
+  for (const consulta of consultasGenerales) {
+    if (textoLimpio.includes(consulta)) return true;
+  }
+  
+  const temasCotidianos = [
+    'pizza', 'comida', 'restaurant', 'comer', 'almuerzo', 'cena', 'desayuno',
+    'clima', 'tiempo', 'lluvia', 'sol', 'temperatura',
+    'futbol', 'deporte', 'partido', 'equipo',
+    'musica', 'cancion', 'cantante', 'banda',
+    'pelicula', 'serie', 'netflix', 'television',
+    'trabajo', 'jefe', 'oficina', 'reunion',
+    'universidad', 'colegio', 'estudiar', 'examen',
+    'viaje', 'vacaciones', 'hotel', 'avion',
+    'dinero', 'plata', 'banco', 'credito',
+    'amor', 'pareja', 'novia', 'novio', 'esposa', 'esposo',
+    'auto', 'carro', 'vehiculo', 'manejar',
+    'casa', 'departamento', 'arriendo', 'mudanza',
+    'computador', 'celular', 'telefono', 'internet',
+    'ropa', 'zapatos', 'comprar', 'tienda'
+  ];
+  
+  // Si contiene algún tema cotidiano y NO contiene términos médicos específicos
+  const contieneTemasCotidianos = temasCotidianos.some(tema => textoLimpio.includes(tema));
+  
+  // Términos médicos específicos (removiendo "hora" para evitar conflictos)
+  const terminosMedicos = [
+    'dolor', 'duele', 'molestia', 'sintoma', 'síntoma', 'vision', 'visión', 
+    'ojo', 'ojos', 'cabeza', 'pecho', 'estomago', 'estómago', 'fiebre', 
+    'mareo', 'nausea', 'náusea', 'cansancio', 'fatiga', 'tos', 'gripe',
+    'resfriado', 'alergia', 'picazon', 'picazón', 'roncha', 'sarpullido',
+    'medico', 'médico', 'doctor', 'especialista', 'consulta', 'cita',
+    'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'malestar',
+    'sobrecupo', 'atencion medica', 'atención médica'
+  ];
+  
+  const contieneTerminosMedicos = terminosMedicos.some(termino => 
+    textoLimpio.includes(termino.toLowerCase())
+  );
+  
+  return contieneTemasCotidianos && !contieneTerminosMedicos;
+}
+
+// Función para detectar especialidad por síntomas
 function detectarEspecialidadPorSintomas(text) {
   const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   
-  // 👁️ SÍNTOMAS OFTALMOLÓGICOS
+  // Síntomas oftalmológicos
   const sintomasOftalmologia = [
-    'vision borrosa', 'visión borrosa', 'veo borroso', 'veo mal', 'no veo bien',
-    'ojo rojo', 'ojos rojos', 'irritado', 'irritados', 'irritacion',
-    'picazon ojos', 'picazón ojos', 'me pican los ojos', 'pican ojos',
-    'dolor de ojos', 'duelen los ojos', 'ojo duele', 'dolor ocular',
-    'lagrimeo', 'lagrimas', 'ardor en los ojos', 'quemazón ojos'
+    'vision borrosa', 'visión borrosa', 'borrosa', 'borroso',
+    'no veo bien', 'veo mal', 'veo borroso', 'veo doble',
+    'manchas flotantes', 'moscas volantes', 'puntos negros',
+    'ojo rojo', 'ojos rojos', 'irritado', 'irritados',
+    'ardor en los ojos', 'quemazón ojos', 'lagrimeo',
+    'dolor de ojos', 'duelen los ojos', 'ojo duele',
+    'sensible a la luz', 'fotofobia', 'molesta la luz',
+    'graduacion', 'graduación', 'lentes', 'anteojos',
+    'revision ojos', 'revisión ojos', 'examen vista'
   ];
   
-  // 🏥 SÍNTOMAS DERMATOLÓGICOS
+  // Síntomas dermatológicos
   const sintomasDermatologia = [
-    'picazon piel', 'picazón piel', 'me pica la piel', 'comezón piel',
-    'sarpullido', 'roncha', 'ronchas', 'erupcion', 'erupción',
-    'alergia piel', 'dermatitis', 'eczema', 'urticaria'
+    'picazon', 'picazón', 'me pica', 'comezón',
+    'sarpullido', 'roncha', 'ronchas', 'eruption',
+    'alergia piel', 'dermatitis', 'eczema',
+    'lunar', 'lunares', 'mancha piel', 'piel',
+    'acne', 'acné', 'espinillas', 'granos'
   ];
   
-  // Verificar síntomas
-  for (const sintoma of sintomasOftalmologia) {
-    if (textoLimpio.includes(sintoma)) return 'Oftalmología';
-  }
+  // Síntomas cardiológicos
+  const sintomasCardiologia = [
+    'dolor pecho', 'duele pecho', 'opresion pecho',
+    'palpitaciones', 'taquicardia', 'corazon late rapido',
+    'falta aire', 'sin aire', 'agitacion', 'cansancio extremo'
+  ];
   
-  for (const sintoma of sintomasDermatologia) {
-    if (textoLimpio.includes(sintoma)) return 'Dermatología';
-  }
+  // Síntomas neurológicos
+  const sintomasNeurologia = [
+    'dolor cabeza', 'dolor de cabeza', 'cefalea', 'migrana',
+    'mareo', 'vertigo', 'vértigo', 'desmayo',
+    'hormigueo', 'entumecimiento', 'adormecimiento',
+    'perdida memoria', 'olvidos', 'confusion'
+  ];
+  
+  // Síntomas pediátricos
+  const sintomasPediatria = [
+    'niño', 'niña', 'bebe', 'bebé', 'hijo', 'hija',
+    'mi hijo', 'mi hija', 'mi bebe', 'mi bebé',
+    'menor', 'pequeño', 'pequeña', 'infante'
+  ];
+  
+  // Evaluar síntomas
+  if (sintomasOftalmologia.some(s => textoLimpio.includes(s))) return 'Oftalmología';
+  if (sintomasDermatologia.some(s => textoLimpio.includes(s))) return 'Dermatología';
+  if (sintomasCardiologia.some(s => textoLimpio.includes(s))) return 'Cardiología';
+  if (sintomasNeurologia.some(s => textoLimpio.includes(s))) return 'Neurología';
+  if (sintomasPediatria.some(s => textoLimpio.includes(s))) return 'Pediatría';
   
   return null;
 }
 
-// ===============================
-// 🔧 FUNCIONES DE VALIDACIÓN
-// ===============================
-
-function validarTelefono(telefono) {
-  const pattern = /^\+56[0-9]{9}$/;
-  return pattern.test(telefono);
-}
-
-function validarRUT(rut) {
-  try {
-    rut = rut.replace(/[.\-]/g, '').toUpperCase();
-    if (!/^[0-9]+[0-9K]$/.test(rut)) return false;
-    
-    const cuerpo = rut.slice(0, -1);
-    const dv = rut.slice(-1);
-    let suma = 0;
-    let multiplicador = 2;
-    
-    for (let i = cuerpo.length - 1; i >= 0; i--) {
-      suma += parseInt(cuerpo[i]) * multiplicador;
-      multiplicador = multiplicador < 7 ? multiplicador + 1 : 2;
-    }
-    
-    const dvCalculado = 11 - (suma % 11);
-    let dvEsperado;
-    if (dvCalculado === 11) dvEsperado = '0';
-    else if (dvCalculado === 10) dvEsperado = 'K';
-    else dvEsperado = dvCalculado.toString();
-    
-    return dv === dvEsperado;
-  } catch {
-    return false;
-  }
-}
-
-// ===============================
-// 🗄️ FUNCIONES DE AIRTABLE
-// ===============================
-
-async function buscarYResponderSobrecupos(specialty, originalText, userId, esSintoma = false) {
-  try {
-    const records = await buscarSobrecupos(specialty);
-    
-    if (records.length === 0) {
-      const mensaje = esSintoma 
-        ? `Por tus síntomas, recomiendo consultar con ${specialty}.\n\nActualmente no tengo sobrecupos disponibles. ¿Te gustaría que te contacte cuando haya disponibilidad?`
-        : `No tengo sobrecupos de ${specialty} disponibles ahora.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`;
-      
-      return NextResponse.json({ text: mensaje });
-    }
-
-    const first = records[0].fields;
-    const medicoNombre = await getDoctorName(first["Médico"]);
-    
-    sessions[userId] = {
-      stage: 'awaiting-confirmation',
-      specialty,
-      records,
-      attempts: 0,
-      lastActivity: Date.now()
-    };
-
-    const mensaje = esSintoma
-      ? `Por tus síntomas, te recomiendo ver a un especialista en ${specialty}.\n\n✅ Encontré un sobrecupo disponible:\n\n🏥 ${first["Clínica"]}\n📍 ${first["Dirección"]}\n👨‍⚕️ Dr. ${medicoNombre}\n📅 ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Responde *sí* para reservar o *no* para ver otra opción.`
-      : `✅ Encontré un sobrecupo de ${specialty}:\n\n🏥 ${first["Clínica"]}\n📍 ${first["Dirección"]}\n👨‍⚕️ Dr. ${medicoNombre}\n📅 ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Responde *sí* para reservar.`;
-
-    return NextResponse.json({
-      text: mensaje,
-      session: sessions[userId]
-    });
-
-  } catch (error) {
-    console.error("❌ Error buscando sobrecupos:", error);
-    return NextResponse.json({
-      text: "Error consultando disponibilidad. Por favor intenta más tarde."
-    });
-  }
-}
-
+// Función para obtener especialidades disponibles
 async function getEspecialidadesDisponibles() {
   try {
-    const resp = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}?fields%5B%5D=Especialidad`,
-      { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-    );
-    const data = await resp.json();
-    const especialidades = new Set();
-    data.records?.forEach(record => {
-      if (record.fields?.Especialidad) {
-        especialidades.add(record.fields.Especialidad);
-      }
-    });
-    return Array.from(especialidades).sort();
-  } catch (err) {
-    console.error("❌ Error obteniendo especialidades:", err);
-    return ["Medicina Familiar", "Oftalmología", "Dermatología"];
-  }
-}
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
 
-async function getDoctorName(medicoId) {
-  try {
-    const doctorIdArray = Array.isArray(medicoId) ? medicoId[0] : medicoId;
-    const resp = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorIdArray}`,
-      { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-    );
-    const data = await resp.json();
-    return data.fields?.Name || "Médico";
-  } catch (err) {
-    console.error("❌ Error obteniendo nombre médico:", err);
-    return "Médico";
-  }
-}
-
-async function getDoctorInfo(medicoId) {
-  try {
-    const doctorIdArray = Array.isArray(medicoId) ? medicoId[0] : medicoId;
-    const resp = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorIdArray}`,
-      { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-    );
-    const data = await resp.json();
-    return {
-      name: data.fields?.Name || "Médico",
-      email: data.fields?.Email || null
-    };
-  } catch (err) {
-    console.error("❌ Error obteniendo info médico:", err);
-    return { name: "Médico", email: null };
-  }
-}
-
-async function buscarSobrecupos(specialty) {
-  try {
-    const resp = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100&sort[0][field]=Fecha&sort[0][direction]=asc`,
-      { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-    );
-    const data = await resp.json();
-    
-    if (!data.records) return [];
-    
-    // Filtrar fechas futuras y disponibles
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    
-    return data.records.filter(record => {
-      const fields = record.fields || {};
-      
-      const esEspecialidadCorrecta = fields.Especialidad === specialty;
-      const estaDisponible = fields.Disponible === "Si" || fields.Disponible === true;
-      
-      if (!esEspecialidadCorrecta || !estaDisponible) {
-        return false;
+    const response = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+      {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
       }
-      
-      if (fields.Fecha) {
-        try {
-          const fechaSobrecupo = new Date(fields.Fecha);
-          fechaSobrecupo.setHours(0, 0, 0, 0);
-          return fechaSobrecupo >= hoy;
-        } catch (err) {
-          return false;
-        }
-      }
-      
-      return false;
-    });
-  } catch (err) {
-    console.error("❌ Error consultando sobrecupos:", err);
+    );
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const records = data.records || [];
+    
+    const especialidades = [...new Set(
+      records
+        .filter(r => r.fields?.Especialidad && (r.fields?.Disponible === "Si" || r.fields?.Disponible === true))
+        .map(r => r.fields.Especialidad)
+    )];
+
+    return especialidades;
+  } catch (error) {
+    console.error('Error obteniendo especialidades:', error);
     return [];
   }
 }
 
-async function crearPaciente(patientData) {
+// Función para obtener nombre del doctor
+async function getDoctorName(doctorId) {
   try {
-    if (!AIRTABLE_PATIENTS_TABLE) {
-      console.error("❌ AIRTABLE_PATIENTS_TABLE no configurada");
-      return null;
-    }
-
-    const record = {
-      fields: {
-        Nombre: patientData.name?.trim() || "",
-        Telefono: patientData.phone?.trim() || "",
-        Rut: patientData.rut?.trim() || "",  // ✅ "Rut" no "RUT"
-        Email: patientData.email?.trim() || "",
-        "Fecha Registro": new Date().toISOString().split('T')[0],
-        "Registro Bot": true,
-        Status: "active"
-      }
-    };
-
-    console.log("📝 Creando paciente:", record);
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
 
     const response = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PATIENTS_TABLE}`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorId}`,
       {
-        method: 'POST',
         headers: {
           Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(record),
       }
     );
 
-    const data = await response.json();
-
     if (!response.ok) {
-      console.error("❌ Error Airtable:", data.error);
-      return null;
+      return doctorId; // Fallback al ID si no se puede obtener el nombre
     }
 
-    console.log("✅ Paciente creado:", data.id);
-    return data.id;
+    const data = await response.json();
+    return data.fields?.Name || doctorId;
   } catch (error) {
-    console.error("❌ Error general creando paciente:", error);
-    return null;
+    console.error(`Error obteniendo nombre del médico ${doctorId}:`, error);
+    return doctorId; // Fallback al ID en caso de error
   }
 }
 
-async function actualizarSobrecupo(sobrecupoId, pacienteId, patientName) {
+// Función para obtener información completa del doctor
+async function getDoctorInfo(doctorId) {
   try {
-    const updateData = {
-      fields: {
-        Disponible: "No",
-        "Paciente ID": pacienteId,
-        "Nombre Paciente": patientName,
-        "Fecha Reserva": new Date().toISOString().split('T')[0]
-      }
-    };
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
 
     const response = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${sobrecupoId}`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorId}`,
       {
-        method: 'PATCH',
         headers: {
           Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updateData),
       }
     );
 
     if (!response.ok) {
-      console.error("❌ Error actualizando sobrecupo:", response.status);
-      return false;
+      return { name: doctorId, email: null };
     }
 
-    console.log("✅ Sobrecupo actualizado");
-    return true;
+    const data = await response.json();
+    return {
+      name: data.fields?.Name || doctorId,
+      email: data.fields?.Email || null
+    };
   } catch (error) {
-    console.error("❌ Error general actualizando sobrecupo:", error);
-    return false;
+    console.error(`Error obteniendo info del médico ${doctorId}:`, error);
+    return { name: doctorId, email: null };
+  }
+}
+
+// Handler principal POST
+export async function POST(req) {
+  try {
+    const { message, session: currentSession } = await req.json();
+    
+    if (!message) {
+      return NextResponse.json({ text: "No se recibió mensaje" }, { status: 400 });
+    }
+
+    // Variables de entorno
+    const {
+      AIRTABLE_API_KEY,
+      AIRTABLE_BASE_ID,
+      AIRTABLE_TABLE_ID,
+      AIRTABLE_DOCTORS_TABLE,
+      AIRTABLE_PACIENTES_TABLE,
+      OPENAI_API_KEY,
+      SENDGRID_API_KEY,
+      SENDGRID_FROM_EMAIL
+    } = process.env;
+
+    const text = message.trim();
+    const from = currentSession?.from || "user";
+
+    console.log(`📱 Mensaje recibido: "${text}"`);
+
+    // Respuestas a consultas no médicas
+    if (esConsultaNoMedica(text)) {
+      const respuestasNoMedicas = [
+        "Soy Sobrecupos IA, tu asistente médico especializado. Estoy aquí para ayudarte a encontrar sobrecupos médicos disponibles. 😊\n\n¿Tienes algún síntoma o necesitas ver algún especialista?",
+        "Actualmente me especializo en ayudarte con temas de salud y sobrecupos médicos. 🩺\n\n¿En qué puedo ayudarte con tu salud hoy?",
+        "Estoy aquí para conectarte con médicos y especialistas disponibles. 👨‍⚕️\n\n¿Qué tipo de consulta médica necesitas?"
+      ];
+      
+      const respuestaAleatoria = respuestasNoMedicas[Math.floor(Math.random() * respuestasNoMedicas.length)];
+      return NextResponse.json({ text: respuestaAleatoria });
+    }
+
+    // Manejo de sesiones existentes
+    if (currentSession?.stage) {
+      const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail } = currentSession;
+
+      switch (stage) {
+        case 'awaiting-confirmation':
+          if (text.toLowerCase().includes('si') || text.toLowerCase().includes('sí') || text.toLowerCase().includes('ok')) {
+            sessions[from] = { 
+              ...currentSession, 
+              stage: 'getting-name' 
+            };
+            return NextResponse.json({
+              text: "¡Excelente! 🎉\n\nPara confirmar tu cita necesito algunos datos.\n\nPrimero, ¿cuál es tu nombre completo?",
+              session: sessions[from]
+            });
+          }
+          
+          if (text.toLowerCase().includes('no')) {
+            const nextAttempt = attempts + 1;
+            const availableRecords = records || [];
+            
+            if (nextAttempt < availableRecords.length) {
+              const nextRecord = availableRecords[nextAttempt].fields;
+              const clin = nextRecord["Clínica"] || nextRecord["Clinica"] || "nuestra clínica";
+              const dir = nextRecord["Dirección"] || nextRecord["Direccion"] || "la dirección indicada";
+              const medicoId = Array.isArray(nextRecord["Médico"]) ? 
+                nextRecord["Médico"][0] : nextRecord["Médico"];
+              const medicoNombre = await getDoctorName(medicoId);
+              
+              sessions[from] = { 
+                ...currentSession, 
+                attempts: nextAttempt 
+              };
+              
+              return NextResponse.json({
+                text: `Te muestro otra opción de ${specialty}:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${nextRecord.Fecha} a las ${nextRecord.Hora}\n\n¿Te sirve esta? Confirma con "sí".`,
+                session: sessions[from]
+              });
+            } else {
+              delete sessions[from];
+              return NextResponse.json({
+                text: `Lo siento, esas eran todas las opciones de ${specialty} disponibles.\n\n¿Te gustaría que te contacte cuando tengamos nuevos sobrecupos disponibles?`
+              });
+            }
+          }
+          
+          return NextResponse.json({
+            text: "No entendí tu respuesta. ¿Te sirve esta cita? Responde \"sí\" para confirmar o \"no\" para ver otras opciones."
+          });
+
+        case 'getting-name':
+          if (text.length < 2) {
+            return NextResponse.json({
+              text: "Por favor ingresa tu nombre completo para continuar."
+            });
+          }
+          
+          sessions[from] = { 
+            ...currentSession, 
+            stage: 'getting-rut',
+            patientName: text 
+          };
+          return NextResponse.json({
+            text: `Gracias ${text}! 👤\n\nAhora necesito tu RUT (con guión y dígito verificador).\nEjemplo: 12.345.678-9`,
+            session: sessions[from]
+          });
+
+        case 'getting-rut':
+          if (!validarRUT(text)) {
+            return NextResponse.json({
+              text: "El RUT no es válido. Por favor ingresa tu RUT completo con el formato correcto.\nEjemplo: 12.345.678-9"
+            });
+          }
+          
+          sessions[from] = { 
+            ...currentSession, 
+            stage: 'getting-phone',
+            patientRut: text 
+          };
+          return NextResponse.json({
+            text: "Perfecto! 📋\n\nAhora tu número de teléfono (incluye +56 si es de Chile).\nEjemplo: +56912345678",
+            session: sessions[from]
+          });
+
+        case 'getting-phone':
+          if (text.length < 8) {
+            return NextResponse.json({
+              text: "Por favor ingresa un número de teléfono válido.\nEjemplo: +56912345678"
+            });
+          }
+          
+          sessions[from] = { 
+            ...currentSession, 
+            stage: 'getting-email',
+            patientPhone: text 
+          };
+          return NextResponse.json({
+            text: "Excelente! 📞\n\nFinalmente, tu email para enviarte la confirmación:",
+            session: sessions[from]
+          });
+
+        case 'getting-email':
+          if (!text.includes('@') || !text.includes('.')) {
+            return NextResponse.json({
+              text: "Por favor ingresa un email válido.\nEjemplo: nombre@email.com"
+            });
+          }
+
+          // PROCESO DE CONFIRMACIÓN FINAL
+          const sobrecupoData = records[0]?.fields;
+          let statusText = "";
+          let sobrecupoUpdated = false;
+          let updateError = null;
+          const emailsSent = { patient: false, doctor: false };
+
+          // 1. Crear paciente en Airtable
+          let pacienteId = null;
+          try {
+            console.log("👤 Creando paciente...");
+            const pacienteResponse = await fetch(
+              `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PACIENTES_TABLE}`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  fields: {
+                    Nombre: patientName,
+                    RUT: patientRut,
+                    Telefono: patientPhone,
+                    Email: text,
+                    Edad: 0 // Valor por defecto
+                  }
+                }),
+              }
+            );
+
+            if (pacienteResponse.ok) {
+              const pacienteData = await pacienteResponse.json();
+              pacienteId = pacienteData.id;
+              console.log("✅ Paciente creado:", pacienteId);
+            } else {
+              console.error("❌ Error creando paciente:", await pacienteResponse.text());
+            }
+          } catch (err) {
+            console.error("❌ Error creando paciente:", err);
+          }
+
+          // 2. Actualizar sobrecupo
+          try {
+            console.log("📅 Actualizando sobrecupo...");
+            const updateData = {
+              fields: {
+                Disponible: false,
+                Paciente: pacienteId ? [pacienteId] : undefined,
+                RUT: patientRut,
+                Edad: 0
+              }
+            };
+
+            // Limpiar campos undefined
+            Object.keys(updateData.fields).forEach(key => {
+              if (updateData.fields[key] === undefined) {
+                delete updateData.fields[key];
+              }
+            });
+
+            const updateResponse = await fetch(
+              `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${records[0].id}`,
+              {
+                method: "PATCH",
+                headers: {
+                  Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updateData),
+              }
+            );
+
+            if (updateResponse.ok) {
+              sobrecupoUpdated = true;
+              console.log("✅ Sobrecupo actualizado");
+            } else {
+              const errorData = await updateResponse.text();
+              updateError = errorData;
+              console.error("❌ Error actualizando sobrecupo:", errorData);
+            }
+          } catch (err) {
+            updateError = err.message;
+            console.error("❌ Error actualizando sobrecupo:", err);
+          }
+
+          // 3. Enviar email al paciente
+          if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL) {
+            try {
+              const emailContent = `
+¡Hola ${patientName}!
+
+Tu cita médica ha sido confirmada exitosamente.
+
+📅 DETALLES DE TU CITA:
+• Especialidad: ${specialty}
+• Fecha: ${sobrecupoData.Fecha}
+• Hora: ${sobrecupoData.Hora}
+• Clínica: ${sobrecupoData["Clínica"] || sobrecupoData["Clinica"]}
+• Dirección: ${sobrecupoData["Dirección"] || sobrecupoData["Direccion"]}
+
+👤 TUS DATOS:
+• Nombre: ${patientName}
+• RUT: ${patientRut}
+• Teléfono: ${patientPhone}
+
+📝 RECOMENDACIONES:
+• Llega 15 minutos antes de tu cita
+• Trae tu cédula de identidad
+• Si tienes seguros médicos, trae la credencial
+
+¡Nos vemos pronto!
+
+Saludos,
+Equipo Sobrecupos AI
+              `;
+
+              const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${SENDGRID_API_KEY}`,
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  personalizations: [{
+                    to: [{ email: text, name: patientName }],
+                    subject: `🩺 Cita confirmada: ${specialty} - ${sobrecupoData.Fecha}`
+                  }],
+                  from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos AI" },
+                  content: [{ type: "text/plain", value: emailContent }]
+                })
+              });
+
+              if (emailResponse.ok) {
+                emailsSent.patient = true;
+                console.log("✅ Email enviado al paciente");
+              }
+            } catch (emailErr) {
+              console.error("❌ Error enviando email al paciente:", emailErr);
+            }
+          }
+
+          // 4. Enviar email al médico
+          if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL) {
+            try {
+              const medicoId = Array.isArray(sobrecupoData["Médico"]) ? 
+                sobrecupoData["Médico"][0] : sobrecupoData["Médico"];
+              const doctorInfo = await getDoctorInfo(medicoId);
+              
+              if (doctorInfo.email) {
+                const doctorEmailContent = `
+Dr/a. ${doctorInfo.name},
+
+Se ha registrado un nuevo paciente para su sobrecupo:
+
+📅 DETALLES DE LA CITA:
+• Fecha: ${sobrecupoData.Fecha}
+• Hora: ${sobrecupoData.Hora}
+• Clínica: ${sobrecupoData["Clínica"] || sobrecupoData["Clinica"]}
+
+👤 DATOS DEL PACIENTE:
+• Nombre: ${patientName}
+• RUT: ${patientRut}
+• Teléfono: ${patientPhone}
+• Email: ${text}
+
+El paciente ha sido notificado.
+
+Saludos,
+Sistema Sobrecupos AI
+                `;
+
+                const doctorEmailResp = await fetch("https://api.sendgrid.com/v3/mail/send", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${SENDGRID_API_KEY}`,
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({
+                    personalizations: [{
+                      to: [{ email: doctorInfo.email, name: doctorInfo.name }],
+                      subject: `🩺 Nuevo paciente: ${patientName} - ${sobrecupoData.Fecha}`
+                    }],
+                    from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos AI" },
+                    content: [{ type: "text/plain", value: doctorEmailContent }]
+                  })
+                });
+
+                if (doctorEmailResp.ok) {
+                  emailsSent.doctor = true;
+                  console.log("✅ Email enviado al médico");
+                }
+              }
+            } catch (emailErr) {
+              console.error("❌ Error enviando email al médico:", emailErr);
+            }
+          }
+
+          // Limpiar sesión
+          delete sessions[from];
+
+          // Mensaje final
+          if (sobrecupoUpdated) {
+            statusText = `🎉 ¡CITA CONFIRMADA! 
+
+📋 RESUMEN:
+• ${specialty}
+• ${sobrecupoData.Fecha} a las ${sobrecupoData.Hora}
+• ${sobrecupoData["Clínica"] || sobrecupoData["Clinica"]}
+
+${emailsSent.patient ? "📧 Te hemos enviado la confirmación por email." : "⚠️ No pudimos enviar el email de confirmación."}
+
+💡 Llega 15 minutos antes. ¡Nos vemos pronto!`;
+          } else {
+            statusText = `❌ Hubo un problema al confirmar tu cita. 
+
+No te preocupes, tu información está guardada:
+• Nombre: ${patientName}
+• Cita solicitada: ${specialty} - ${sobrecupoData.Fecha}
+
+Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
+            console.error("❌ Error final actualización sobrecupo:", updateError);
+          }
+
+          console.log("🏥 ======================");
+          console.log("🏥 PROCESO COMPLETADO");
+          console.log("🏥 Paciente creado:", !!pacienteId);
+          console.log("🏥 Sobrecupo actualizado:", sobrecupoUpdated);
+          console.log("🏥 Email paciente:", emailsSent.patient);
+          console.log("🏥 Email médico:", emailsSent.doctor);
+          console.log("🏥 ======================");
+
+          return NextResponse.json({ text: statusText });
+
+        default:
+          break;
+      }
+    }
+
+    // Saludo simple - respuesta inicial
+    if (esSaludoSimple(text)) {
+      return NextResponse.json({
+        text: "¡Hola! 😊 Soy Sobrecupos IA, tu asistente médico personal.\n\n¿En qué te puedo ayudar? Cuéntame tus síntomas, el médico o especialidad que buscas y te ayudo a encontrar una hora disponible."
+      });
+    }
+
+    // Detectar especialidad directa (ej: "necesito oftalmólogo")
+    const especialidadDirecta = detectarEspecialidadDirecta(text);
+    
+    if (especialidadDirecta) {
+      const especialidadesDisponibles = await getEspecialidadesDisponibles();
+      
+      if (!especialidadesDisponibles.includes(especialidadDirecta)) {
+        return NextResponse.json({
+          text: `Entiendo que estás buscando atención especializada.\n\nLamentablemente no tengo sobrecupos de ${especialidadDirecta} disponibles en este momento, pero puedo conseguirte una cita si me dejas tus datos para contactarte apenas tengamos disponibilidad.\n\n¿Te gustaría que te contacte cuando tengamos ${especialidadDirecta} disponible?`
+        });
+      }
+      
+      const specialty = especialidadDirecta;
+      
+      let respuestaEmpatica = "";
+      if (OPENAI_API_KEY) {
+        try {
+          const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${OPENAI_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              temperature: 0.7,
+              max_tokens: 40,
+              messages: [
+                {
+                  role: "system",
+                  content: "Eres Sobrecupos IA, asistente médico chileno, humano y empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al usuario que busca una especialidad específica. No menciones 'Sobrecupos IA' ni uses comillas."
+                },
+                { role: "user", content: `Usuario busca: "${specialty}"` }
+              ]
+            })
+          });
+          const empatJson = await empatRes.json();
+          respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
+        } catch (err) {
+          respuestaEmpatica = "Entiendo que necesitas atención especializada.";
+        }
+      }
+
+      let records = [];
+      try {
+        const resp = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+          { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+        );
+        const data = await resp.json();
+        records = data.records || [];
+      } catch (err) {
+        console.error("❌ Error Airtable:", err);
+        return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
+      }
+
+      const available = records.filter(r => {
+        const fields = r.fields || {};
+        return (
+          (fields.Especialidad === specialty) &&
+          (fields.Disponible === "Si" || fields.Disponible === true)
+        );
+      });
+
+      if (available.length === 0) {
+        return NextResponse.json({
+          text: `${respuestaEmpatica}\n\nLamentablemente no tengo sobrecupos de ${specialty} disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+        });
+      }
+
+      const first = available[0].fields;
+      const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
+      const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
+      const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+      const medicoNombre = await getDoctorName(medicoId);
+
+      sessions[from] = {
+        stage: 'awaiting-confirmation',
+        specialty,
+        records: available,
+        attempts: 0
+      };
+
+      return NextResponse.json({
+        text: `${respuestaEmpatica}\n\n✅ Encontré un sobrecupo de ${specialty}:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+        session: sessions[from]
+      });
+    }
+
+    // Detectar síntomas y mapear a especialidades
+    const especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
+    
+    if (especialidadPorSintomas) {
+      const specialty = especialidadPorSintomas;
+      
+      // Generar respuesta empática usando OpenAI
+      let respuestaEmpatica = "Entiendo tu preocupación.";
+      if (OPENAI_API_KEY) {
+        try {
+          const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${OPENAI_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              temperature: 0.7,
+              max_tokens: 50,
+              messages: [
+                {
+                  role: "system",
+                  content: "Eres Sobrecupos IA, asistente médico chileno empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al paciente que describe síntomas. Sé humano y cercano."
+                },
+                { role: "user", content: `Paciente dice: "${text}"` }
+              ]
+            })
+          });
+          const empatJson = await empatRes.json();
+          respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "Entiendo tu preocupación.";
+        } catch (err) {
+          console.error("❌ Error OpenAI empático:", err);
+        }
+      }
+
+      let records = [];
+      try {
+        const resp = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+          { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+        );
+        const data = await resp.json();
+        records = data.records || [];
+      } catch (err) {
+        console.error("❌ Error consultando Airtable:", err);
+        return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
+      }
+
+      const available = records.filter(r => {
+        const fields = r.fields || {};
+        return (
+          (fields.Especialidad === specialty) &&
+          (fields.Disponible === "Si" || fields.Disponible === true)
+        );
+      });
+
+      if (available.length === 0) {
+        return NextResponse.json({
+          text: `${respuestaEmpatica}\n\nPor lo que me describes, sería bueno que veas a un especialista en ${specialty}.\n\nLamentablemente no tengo sobrecupos disponibles en este momento. ¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+        });
+      }
+
+      const first = available[0].fields;
+      const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
+      const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
+      const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+      const medicoNombre = await getDoctorName(medicoId);
+
+      sessions[from] = {
+        stage: 'awaiting-confirmation',
+        specialty,
+        records: available,
+        attempts: 0
+      };
+
+      return NextResponse.json({
+        text: `${respuestaEmpatica}\n\nPor lo que me describes, te conviene ver a un especialista en ${specialty}.\n\n✅ Encontré un sobrecupo disponible:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+        session: sessions[from]
+      });
+    }
+
+    // Si llega aquí, usar OpenAI como respaldo
+    if (OPENAI_API_KEY) {
+      const especialidadesDisponibles = await getEspecialidadesDisponibles();
+      const especialidadesString = especialidadesDisponibles.join(", ");
+
+      let rawEsp = "";
+      try {
+        const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            temperature: 0,
+            max_tokens: 20,
+            messages: [
+              {
+                role: "system",
+                content: `Eres Sobrecupos IA, asistente médico empático. Dado un síntoma o consulta médica, responde SOLO con EXACTAMENTE una de las siguientes especialidades disponibles (y nada más): ${especialidadesString}. Elige la especialidad que con mayor probabilidad se encarga de ese síntoma. Si mencionan un niño, elige Pediatría. Si no puedes determinar una especialidad específica, elige Medicina Familiar.`
+              },
+              { role: "user", content: `Paciente: "${text}"` }
+            ]
+          })
+        });
+        const j = await aiRes.json();
+        rawEsp = j.choices?.[0]?.message?.content?.trim() || "";
+      } catch (err) {
+        console.error("❌ Error OpenAI:", err);
+        return NextResponse.json({ text: "Lo siento, no entendí. ¿Puedes describirlo de otra forma?" });
+      }
+
+      const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
+
+      let records = [];
+      try {
+        const resp = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+          { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+        );
+        const data = await resp.json();
+        records = data.records || [];
+      } catch (err) {
+        console.error("❌ Error consultando Sobrecupos:", err);
+        return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
+      }
+
+      const available = records.filter(r => {
+        const fields = r.fields || {};
+        return (
+          (fields.Especialidad === specialty) &&
+          (fields.Disponible === "Si" || fields.Disponible === true)
+        );
+      });
+
+      if (available.length === 0) {
+        return NextResponse.json({
+          text: "Entiendo que necesitas atención médica.\n\nLamentablemente no tengo sobrecupos disponibles en este momento que coincidan con tu consulta.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?"
+        });
+      }
+
+      const first = available[0].fields;
+      const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
+      const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
+      const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+      const medicoNombre = await getDoctorName(medicoId);
+
+      sessions[from] = {
+        stage: 'awaiting-confirmation',
+        specialty,
+        records: available,
+        attempts: 0
+      };
+
+      return NextResponse.json({
+        text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\n✅ Encontré un sobrecupo disponible:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+        session: sessions[from]
+      });
+    }
+
+    // Si no hay OpenAI, respuesta por defecto
+    return NextResponse.json({
+      text: "Para ayudarte mejor, ¿podrías contarme qué tipo de especialista necesitas o qué síntomas tienes?\n\nPor ejemplo:\n• \"Necesito un oftalmólogo\"\n• \"Tengo dolor de cabeza\"\n• \"Me duele el pecho\""
+    });
+
+  } catch (error) {
+    console.error('❌ Error en bot route:', error);
+    return NextResponse.json(
+      { text: "Lo siento, hubo un error interno. Por favor, intenta nuevamente." },
+      { status: 500 }
+    );
   }
 }
