@@ -351,7 +351,7 @@ export async function POST(req) {
       AIRTABLE_BASE_ID,
       AIRTABLE_TABLE_ID,
       AIRTABLE_DOCTORS_TABLE,
-      AIRTABLE_PACIENTES_TABLE,
+      AIRTABLE_PATIENTS_TABLE, // ← CORREGIDO: era AIRTABLE_PACIENTES_TABLE
       OPENAI_API_KEY,
       SENDGRID_API_KEY,
       SENDGRID_FROM_EMAIL
@@ -444,7 +444,7 @@ export async function POST(req) {
             specialty,
             records: available,
             attempts: 0,
-            filterAge: edadIngresada
+            patientAge: edadIngresada // ← Guardar la edad para usar después
           };
 
           return NextResponse.json({
@@ -540,29 +540,11 @@ export async function POST(req) {
           
           sessions[from] = { 
             ...currentSession, 
-            stage: 'getting-age',
+            stage: 'getting-email', // ← Saltar directo al email, la edad YA la tenemos
             patientPhone: text 
           };
           return NextResponse.json({
-            text: "Excelente! 📞\n\nAhora necesito tu edad para completar el registro:\nEjemplo: 25",
-            session: sessions[from]
-          });
-
-        case 'getting-age':
-          const edadPaciente = parseInt(text);
-          if (isNaN(edadPaciente) || edadPaciente < 1 || edadPaciente > 120) {
-            return NextResponse.json({
-              text: "Por favor ingresa una edad válida (número entre 1 y 120)."
-            });
-          }
-          
-          sessions[from] = { 
-            ...currentSession, 
-            stage: 'getting-email',
-            patientAge: edadPaciente 
-          };
-          return NextResponse.json({
-            text: "Perfecto! 👶👨👩\n\nFinalmente, tu email para enviarte la confirmación:",
+            text: "Excelente! 📞\n\nFinalmente, tu email para enviarte la confirmación:",
             session: sessions[from]
           });
 
@@ -574,7 +556,7 @@ export async function POST(req) {
           }
 
           // PROCESO DE CONFIRMACIÓN FINAL
-          const { patientAge } = currentSession;
+          const { patientAge } = currentSession; // ← Usar la edad que ya tenemos guardada
           const sobrecupoData = records[0]?.fields;
           let statusText = "";
           let sobrecupoUpdated = false;
@@ -593,7 +575,7 @@ export async function POST(req) {
           try {
             console.log("👤 Creando paciente...");
             const pacienteResponse = await fetch(
-              `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PACIENTES_TABLE}`,
+              `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PATIENTS_TABLE}`,
               {
                 method: "POST",
                 headers: {
@@ -868,7 +850,7 @@ Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
         }
       }
 
-      // Primero necesitamos la edad para filtrar médicos adecuados
+      // Preguntar edad UNA SOLA VEZ al inicio
       sessions[from] = {
         stage: 'getting-age-for-filtering',
         specialty,
@@ -877,7 +859,7 @@ Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
       };
 
       return NextResponse.json({
-        text: `${respuestaEmpatica}\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`,
+        text: `${respuestaEmpatica}\n\nPara encontrar el médico más adecuado para ti, ¿me podrías decir tu edad?\nEjemplo: 25`,
         session: sessions[from]
       });
     }
@@ -918,7 +900,7 @@ Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
         }
       }
 
-      // Primero necesitamos la edad para filtrar médicos adecuados
+      // Preguntar edad UNA SOLA VEZ al inicio
       sessions[from] = {
         stage: 'getting-age-for-filtering',
         specialty,
