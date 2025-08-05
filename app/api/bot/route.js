@@ -258,6 +258,53 @@ async function getDoctorName(doctorId) {
   }
 }
 
+// Función para obtener médicos que atienden la edad del paciente
+async function getMedicosQueAtienden(especialidad, edad) {
+  try {
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
+
+    const response = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}?maxRecords=100`,
+      {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
+      }
+    );
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const medicos = data.records || [];
+    
+    // Filtrar médicos por especialidad y capacidad de atender la edad
+    const medicosCompatibles = medicos.filter(medico => {
+      const fields = medico.fields || {};
+      
+      // Verificar especialidad
+      if (fields.Especialidad !== especialidad) return false;
+      
+      // Verificar si puede atender la edad del paciente
+      const atiende = fields.Atiende;
+      if (!atiende) return true; // Si no está especificado, asumimos que atiende a todos
+      
+      if (atiende === "Ambos") return true;
+      if (atiende === "Niños" && edad <= 17) return true;
+      if (atiende === "Adultos" && edad >= 18) return true;
+      
+      return false;
+    });
+
+    console.log(`👨‍⚕️ Médicos compatibles para ${especialidad} (${edad} años): ${medicosCompatibles.length}`);
+    return medicosCompatibles;
+  } catch (error) {
+    console.error('Error obteniendo médicos compatibles:', error);
+    return [];
+  }
+}
+
 // Función para obtener información completa del doctor
 async function getDoctorInfo(doctorId) {
   try {
@@ -329,9 +376,82 @@ export async function POST(req) {
 
     // Manejo de sesiones existentes
     if (currentSession?.stage) {
-      const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail } = currentSession;
+      const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = currentSession;
 
       switch (stage) {
+        case 'getting-age-for-filtering':
+          const edadIngresada = parseInt(text);
+          if (isNaN(edadIngresada) || edadIngresada < 1 || edadIngresada > 120) {
+            return NextResponse.json({
+              text: "Por favor ingresa una edad válida (número entre 1 y 120)."
+            });
+          }
+
+          // Buscar médicos compatibles con la edad
+          const medicosCompatibles = await getMedicosQueAtienden(specialty, edadIngresada);
+          
+          if (medicosCompatibles.length === 0) {
+            return NextResponse.json({
+              text: `${respuestaEmpatica}\n\nLamentablemente no encontré médicos de ${specialty} que atiendan pacientes de ${edadIngresada} años en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+            });
+          }
+
+          // Obtener IDs de médicos compatibles
+          const medicosIds = medicosCompatibles.map(m => m.id);
+
+          // Buscar sobrecupos disponibles de estos médicos
+          let records = [];
+          try {
+            const resp = await fetch(
+              `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+              { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+            );
+            const data = await resp.json();
+            records = data.records || [];
+          } catch (err) {
+            console.error("❌ Error consultando Airtable:", err);
+            return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
+          }
+
+          const available = records.filter(r => {
+            const fields = r.fields || {};
+            const medicoField = fields["Médico"];
+            
+            // Obtener ID del médico del sobrecupo
+            const medicoId = Array.isArray(medicoField) ? medicoField[0] : medicoField;
+            
+            return (
+              (fields.Especialidad === specialty) &&
+              (fields.Disponible === "Si" || fields.Disponible === true) &&
+              medicosIds.includes(medicoId)
+            );
+          });
+
+          if (available.length === 0) {
+            return NextResponse.json({
+              text: `${respuestaEmpatica}\n\nEncontré médicos de ${specialty} que atienden pacientes de ${edadIngresada} años, pero no tienen sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+            });
+          }
+
+          const first = available[0].fields;
+          const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
+          const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
+          const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+          const medicoNombre = await getDoctorName(medicoId);
+
+          sessions[from] = {
+            stage: 'awaiting-confirmation',
+            specialty,
+            records: available,
+            attempts: 0,
+            filterAge: edadIngresada
+          };
+
+          return NextResponse.json({
+            text: `${respuestaEmpatica}\n\n✅ Encontré un sobrecupo de ${specialty} para pacientes de ${edadIngresada} años:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+            session: sessions[from]
+          });
+
         case 'awaiting-confirmation':
           if (text.toLowerCase().includes('si') || text.toLowerCase().includes('sí') || text.toLowerCase().includes('ok')) {
             sessions[from] = { 
@@ -420,11 +540,29 @@ export async function POST(req) {
           
           sessions[from] = { 
             ...currentSession, 
-            stage: 'getting-email',
+            stage: 'getting-age',
             patientPhone: text 
           };
           return NextResponse.json({
-            text: "Excelente! 📞\n\nFinalmente, tu email para enviarte la confirmación:",
+            text: "Excelente! 📞\n\nAhora necesito tu edad para completar el registro:\nEjemplo: 25",
+            session: sessions[from]
+          });
+
+        case 'getting-age':
+          const edadPaciente = parseInt(text);
+          if (isNaN(edadPaciente) || edadPaciente < 1 || edadPaciente > 120) {
+            return NextResponse.json({
+              text: "Por favor ingresa una edad válida (número entre 1 y 120)."
+            });
+          }
+          
+          sessions[from] = { 
+            ...currentSession, 
+            stage: 'getting-email',
+            patientAge: edadPaciente 
+          };
+          return NextResponse.json({
+            text: "Perfecto! 👶👨👩\n\nFinalmente, tu email para enviarte la confirmación:",
             session: sessions[from]
           });
 
@@ -436,11 +574,19 @@ export async function POST(req) {
           }
 
           // PROCESO DE CONFIRMACIÓN FINAL
+          const { patientAge } = currentSession;
           const sobrecupoData = records[0]?.fields;
           let statusText = "";
           let sobrecupoUpdated = false;
           let updateError = null;
           const emailsSent = { patient: false, doctor: false };
+
+          console.log("🏥 ======================");
+          console.log("🏥 INICIANDO CONFIRMACIÓN");
+          console.log("🏥 Paciente:", patientName);
+          console.log("🏥 Edad:", patientAge);
+          console.log("🏥 Especialidad:", specialty);
+          console.log("🏥 ======================");
 
           // 1. Crear paciente en Airtable
           let pacienteId = null;
@@ -460,7 +606,7 @@ export async function POST(req) {
                     RUT: patientRut,
                     Telefono: patientPhone,
                     Email: text,
-                    Edad: 0 // Valor por defecto
+                    Edad: patientAge
                   }
                 }),
               }
@@ -471,7 +617,8 @@ export async function POST(req) {
               pacienteId = pacienteData.id;
               console.log("✅ Paciente creado:", pacienteId);
             } else {
-              console.error("❌ Error creando paciente:", await pacienteResponse.text());
+              const errorText = await pacienteResponse.text();
+              console.error("❌ Error creando paciente:", errorText);
             }
           } catch (err) {
             console.error("❌ Error creando paciente:", err);
@@ -483,18 +630,15 @@ export async function POST(req) {
             const updateData = {
               fields: {
                 Disponible: false,
-                Paciente: pacienteId ? [pacienteId] : undefined,
                 RUT: patientRut,
-                Edad: 0
+                Edad: patientAge
               }
             };
 
-            // Limpiar campos undefined
-            Object.keys(updateData.fields).forEach(key => {
-              if (updateData.fields[key] === undefined) {
-                delete updateData.fields[key];
-              }
-            });
+            // Solo agregar Paciente si se creó exitosamente
+            if (pacienteId) {
+              updateData.fields.Paciente = [pacienteId];
+            }
 
             const updateResponse = await fetch(
               `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${records[0].id}`,
@@ -724,48 +868,16 @@ Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
         }
       }
 
-      let records = [];
-      try {
-        const resp = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
-          { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-        );
-        const data = await resp.json();
-        records = data.records || [];
-      } catch (err) {
-        console.error("❌ Error Airtable:", err);
-        return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
-      }
-
-      const available = records.filter(r => {
-        const fields = r.fields || {};
-        return (
-          (fields.Especialidad === specialty) &&
-          (fields.Disponible === "Si" || fields.Disponible === true)
-        );
-      });
-
-      if (available.length === 0) {
-        return NextResponse.json({
-          text: `${respuestaEmpatica}\n\nLamentablemente no tengo sobrecupos de ${specialty} disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
-        });
-      }
-
-      const first = available[0].fields;
-      const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
-      const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
-      const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
-      const medicoNombre = await getDoctorName(medicoId);
-
+      // Primero necesitamos la edad para filtrar médicos adecuados
       sessions[from] = {
-        stage: 'awaiting-confirmation',
+        stage: 'getting-age-for-filtering',
         specialty,
-        records: available,
+        respuestaEmpatica,
         attempts: 0
       };
 
       return NextResponse.json({
-        text: `${respuestaEmpatica}\n\n✅ Encontré un sobrecupo de ${specialty}:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+        text: `${respuestaEmpatica}\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`,
         session: sessions[from]
       });
     }
@@ -806,48 +918,16 @@ Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
         }
       }
 
-      let records = [];
-      try {
-        const resp = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
-          { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-        );
-        const data = await resp.json();
-        records = data.records || [];
-      } catch (err) {
-        console.error("❌ Error consultando Airtable:", err);
-        return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
-      }
-
-      const available = records.filter(r => {
-        const fields = r.fields || {};
-        return (
-          (fields.Especialidad === specialty) &&
-          (fields.Disponible === "Si" || fields.Disponible === true)
-        );
-      });
-
-      if (available.length === 0) {
-        return NextResponse.json({
-          text: `${respuestaEmpatica}\n\nPor lo que me describes, sería bueno que veas a un especialista en ${specialty}.\n\nLamentablemente no tengo sobrecupos disponibles en este momento. ¿Te gustaría que te contacte cuando tengamos disponibilidad?`
-        });
-      }
-
-      const first = available[0].fields;
-      const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
-      const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
-      const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
-      const medicoNombre = await getDoctorName(medicoId);
-
+      // Primero necesitamos la edad para filtrar médicos adecuados
       sessions[from] = {
-        stage: 'awaiting-confirmation',
+        stage: 'getting-age-for-filtering',
         specialty,
-        records: available,
+        respuestaEmpatica,
         attempts: 0
       };
 
       return NextResponse.json({
-        text: `${respuestaEmpatica}\n\nPor lo que me describes, te conviene ver a un especialista en ${specialty}.\n\n✅ Encontré un sobrecupo disponible:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+        text: `${respuestaEmpatica}\n\nPor lo que me describes, sería bueno que veas a un especialista en ${specialty}.\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`,
         session: sessions[from]
       });
     }
@@ -887,48 +967,16 @@ Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
 
       const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
 
-      let records = [];
-      try {
-        const resp = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
-          { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-        );
-        const data = await resp.json();
-        records = data.records || [];
-      } catch (err) {
-        console.error("❌ Error consultando Sobrecupos:", err);
-        return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
-      }
-
-      const available = records.filter(r => {
-        const fields = r.fields || {};
-        return (
-          (fields.Especialidad === specialty) &&
-          (fields.Disponible === "Si" || fields.Disponible === true)
-        );
-      });
-
-      if (available.length === 0) {
-        return NextResponse.json({
-          text: "Entiendo que necesitas atención médica.\n\nLamentablemente no tengo sobrecupos disponibles en este momento que coincidan con tu consulta.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?"
-        });
-      }
-
-      const first = available[0].fields;
-      const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
-      const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
-      const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
-      const medicoNombre = await getDoctorName(medicoId);
-
+      // Primero necesitamos la edad para filtrar médicos adecuados
       sessions[from] = {
-        stage: 'awaiting-confirmation',
+        stage: 'getting-age-for-filtering',
         specialty,
-        records: available,
+        respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
         attempts: 0
       };
 
       return NextResponse.json({
-        text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\n✅ Encontré un sobrecupo disponible:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+        text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`,
         session: sessions[from]
       });
     }
