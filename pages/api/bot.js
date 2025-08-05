@@ -1,4 +1,4 @@
-// pages/api/bot.js - VERSIÓN CORREGIDA Y OPTIMIZADA
+// pages/api/bot.js - FIX CRÍTICO COMPLETO
 const sessions = {};
 
 export default async function handler(req, res) {
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
   const afirmativoRe = /^(si|sí|s|ok|vale|perfecto|listo|confirmo|confirmar|dale|claro|quiero|acepto|me sirve)$/i;
   const negativoRe = /^(no|otra|busca más|busca mas|no me sirve|no quiero|siguiente|otro|otra opción|otra opcion)$/i;
 
-  // 🔥 CORRECCIÓN CRÍTICA: Resetear sesión automáticamente después de tiempo
+  // SISTEMA DE TIMEOUTS
   const currentTime = Date.now();
   const sessionTimeout = 10 * 60 * 1000; // 10 minutos
   
@@ -53,12 +53,10 @@ export default async function handler(req, res) {
     sessions[from] = {};
   }
 
-  // Actualizar timestamp de actividad
   currentSession.lastActivity = currentTime;
 
   // === MANEJO DE SALUDOS SIMPLES ===
   if (saludoSimpleRe.test(text)) {
-    // Resetear sesión en saludos
     sessions[from] = { lastActivity: currentTime };
     return res.json({
       text: "¡Hola! 👋 Soy Sobrecupos IA, tu asistente médico.\n\n¿En qué puedo ayudarte hoy? Puedes contarme:\n• Síntomas que tienes\n• Especialista que necesitas\n• Urgencias médicas"
@@ -74,7 +72,6 @@ export default async function handler(req, res) {
 
   // === DETECCIÓN DE CONSULTAS NO MÉDICAS ===
   if (esConsultaNoMedica(text)) {
-    // 🍕 Respuestas específicas y divertidas según el tipo de consulta
     const respuestasEspecificas = getRespuestaEspecificaNoMedica(text);
     
     if (respuestasEspecificas.length > 0) {
@@ -82,11 +79,9 @@ export default async function handler(req, res) {
       return res.json({ text: respuestaAleatoria });
     }
     
-    // Respuestas generales como fallback
     const respuestasGenerales = [
       "Soy tu asistente médico especializado 👩‍⚕️\n\n¿Cómo te sientes hoy? Cuéntame si tienes algún síntoma o necesitas algún especialista.",
-      "Mi especialidad es cuidar tu salud 🩺\n\n¿Hay algo médico en lo que pueda ayudarte? Por ejemplo síntomas, chequeos o especialistas que necesites.",
-      "Estoy aquí para temas de salud 😊\n\n¿Cómo puedo ayudarte médicamente hoy? Cuéntame tus síntomas o qué especialista buscas."
+      "Mi especialidad es cuidar tu salud 🩺\n\n¿Hay algo médico en lo que pueda ayudarte? Por ejemplo síntomas, chequeos o especialistas que necesites."
     ];
     
     return res.json({ 
@@ -100,71 +95,6 @@ export default async function handler(req, res) {
     if (result) return result;
   }
 
-  // ===============================
-  // 🍕 FUNCIÓN PARA RESPUESTAS ESPECÍFICAS NO MÉDICAS
-  // ===============================
-
-  function getRespuestaEspecificaNoMedica(text) {
-    const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-    
-    // 🍕 Comida y restaurantes
-    if (textoLimpio.includes('pizza') || textoLimpio.includes('hamburguesa') || 
-        textoLimpio.includes('comida') || textoLimpio.includes('restaurant') ||
-        textoLimpio.includes('comer') || textoLimpio.includes('hambre')) {
-      return [
-        "¡Me da hambre solo de escucharte! 🍕 Pero soy tu asistente médico, no delivery 😄\n\n¿Cómo está tu salud? ¿Tienes algún síntoma o necesitas ver algún especialista?",
-        "¡Qué rico! 🍽️ Pero yo me especializo en otro tipo de 'alimentación': ¡cuidar tu salud!\n\n¿Hay algo médico en lo que pueda ayudarte?",
-        "Para eso mejor usa una app de delivery 📱🍕 Yo soy experto en encontrar médicos, no pizza!\n\n¿Cómo te sientes hoy? ¿Necesitas alguna consulta médica?"
-      ];
-    }
-    
-    // 🕐 Hora y tiempo
-    if (textoLimpio.includes('hora') || textoLimpio.includes('dia')) {
-      return [
-        "No soy un reloj, ¡pero sí soy tu asistente médico! ⏰👩‍⚕️\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte?",
-        "Para eso mejor mira tu celular 📱 Yo me especializo en horarios médicos.\n\n¿Necesitas algún especialista o tienes síntomas?"
-      ];
-    }
-    
-    // 🎵 Entretenimiento
-    if (textoLimpio.includes('musica') || textoLimpio.includes('cancion') || 
-        textoLimpio.includes('pelicula') || textoLimpio.includes('serie')) {
-      return [
-        "¡Me gusta el entretenimiento! 🎵 Pero mi show favorito es ayudarte con tu salud 🩺\n\n¿Cómo te sientes hoy?",
-        "Para eso mejor usa Spotify o Netflix 📺 Yo soy tu asistente médico personal.\n\n¿Hay algún tema de salud en el que pueda ayudarte?"
-      ];
-    }
-    
-    // ⚽ Deportes
-    if (textoLimpio.includes('futbol') || textoLimpio.includes('deporte') || 
-        textoLimpio.includes('partido')) {
-      return [
-        "¡Los deportes son geniales para la salud! ⚽💪 Hablando de salud...\n\n¿Cómo te sientes? ¿Necesitas algún chequeo médico?",
-        "Mi deporte favorito es mantener a las personas sanas 🏃‍♀️🩺\n\n¿Hay algo médico en lo que pueda ayudarte?"
-      ];
-    }
-    
-    // 🌤️ Clima
-    if (textoLimpio.includes('clima') || textoLimpio.includes('tiempo') || 
-        textoLimpio.includes('lluvia')) {
-      return [
-        "Para el clima mejor checa una app meteorológica ☀️🌧️ Yo me enfoco en el clima de tu salud.\n\n¿Cómo te sientes hoy?",
-        "¡Espero que sea un buen día para cuidar tu salud! 🌟🩺\n\n¿Hay algún síntoma que te preocupe?"
-      ];
-    }
-    
-    // 🛍️ Compras y precios
-    if (textoLimpio.includes('precio') || textoLimpio.includes('costo') || 
-        textoLimpio.includes('comprar') || textoLimpio.includes('tienda')) {
-      return [
-        "No manejo precios de productos, ¡pero sí el valor de tu salud! 💰🩺\n\n¿En qué puedo ayudarte médicamente?",
-        "Para compras mejor usa otra app 🛒 Yo te ayudo a 'comprar' tiempo con un médico rápido.\n\n¿Qué especialista necesitas?"
-      ];
-    }
-    
-    return [];
-  }
-
   // === DETECCIÓN INTELIGENTE DE ESPECIALIDADES ===
   
   // 1. Especialidad directa (ej: "necesito oftalmólogo")
@@ -173,9 +103,10 @@ export default async function handler(req, res) {
     return await buscarYResponderSobrecupos(especialidadDirecta, text, from, res);
   }
 
-  // 2. Síntomas que mapean a especialidades (ej: "veo borroso")
+  // 2. Síntomas que mapean a especialidades (ej: "me pican los ojos")
   const especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
   if (especialidadPorSintomas) {
+    console.log(`🎯 Síntoma detectado: "${text}" → ${especialidadPorSintomas}`);
     return await buscarYResponderSobrecupos(especialidadPorSintomas, text, from, res, true);
   }
 
@@ -184,11 +115,11 @@ export default async function handler(req, res) {
   const especialidadesTexto = especialidadesDisponibles.slice(0, 6).join(', ');
   
   return res.json({
-    text: `Te puedo ayudar a encontrar sobrecupos médicos 🩺\n\nCuéntame:\n• ¿Qué síntomas tienes?\n• ¿Qué especialista necesitas?\n\nEspecialidades disponibles: ${especialidadesTexto}\n\nEjemplo: "Necesito oftalmólogo" o "Tengo dolor de cabeza"`
+    text: `Te puedo ayudar a encontrar sobrecupos médicos 🩺\n\nCuéntame:\n• ¿Qué síntomas tienes?\n• ¿Qué especialista necesitas?\n\nEspecialidades disponibles: ${especialidadesTexto}\n\nEjemplo: "Necesito oftalmólogo" o "Me pican los ojos"`
   });
 
   // ===============================
-  // 🛠️ FUNCIONES AUXILIARES MEJORADAS
+  // 🛠️ FUNCIONES AUXILIARES
   // ===============================
 
   async function manejarSesionActiva(session, message, userId, response) {
@@ -225,7 +156,7 @@ export default async function handler(req, res) {
       const { records = [], specialty } = session;
       const nextAttempt = (session.attempts || 0) + 1;
       
-      if (nextAttempt < records.length && nextAttempt < 3) { // Máximo 3 opciones
+      if (nextAttempt < records.length && nextAttempt < 3) {
         const nextRecord = records[nextAttempt].fields;
         const medicoNombre = await getDoctorName(nextRecord["Médico"]);
         
@@ -240,7 +171,6 @@ export default async function handler(req, res) {
           session: sessions[userId]
         });
       } else {
-        // Se acabaron las opciones
         sessions[userId] = { lastActivity: Date.now() };
         return response.json({
           text: `Entiendo. Por ahora no tengo más sobrecupos de ${specialty} disponibles.\n\n¿Te gustaría que te contacte cuando tengamos nuevas opciones disponibles?\n\nTambién puedes preguntarme por otra especialidad. 😊`
@@ -328,14 +258,12 @@ export default async function handler(req, res) {
       });
     }
     
-    // Procesar reserva final
     return await procesarReservaFinal(session, edad, userId, response);
   }
 
   async function procesarReservaFinal(session, edad, userId, response) {
     const { records, specialty, attempts, patientName, patientPhone, patientRUT } = session;
     
-    // Obtener el sobrecupo seleccionado según el intento actual
     const selectedRecord = records[attempts || 0];
     
     if (!selectedRecord) {
@@ -348,10 +276,7 @@ export default async function handler(req, res) {
     
     try {
       console.log("🏥 Iniciando proceso de reserva final...");
-      console.log("📋 Datos del paciente:", { patientName, patientPhone, patientRUT, edad });
-      console.log("🎯 Sobrecupo seleccionado:", selectedRecord.id, selectedRecord.fields);
       
-      // 1. Crear paciente en Airtable
       const pacienteId = await crearPaciente({
         name: patientName,
         phone: patientPhone,
@@ -367,17 +292,12 @@ export default async function handler(req, res) {
         });
       }
       
-      console.log("✅ Paciente creado con ID:", pacienteId);
-      
-      // 2. Actualizar sobrecupo como reservado
       const sobrecupoActualizado = await actualizarSobrecupo(selectedRecord.id, pacienteId, patientName);
       
-      // 3. Obtener información del médico
       const medicoIds = selectedRecord.fields["Médico"];
       const medicoId = Array.isArray(medicoIds) ? medicoIds[0] : medicoIds;
       const medicoInfo = await getDoctorInfo(medicoId);
       
-      // 4. Limpiar sesión
       sessions[userId] = { lastActivity: Date.now() };
       
       if (sobrecupoActualizado && pacienteId) {
@@ -402,37 +322,11 @@ export default async function handler(req, res) {
 
   async function buscarYResponderSobrecupos(specialty, originalText, userId, response, esSintoma = false) {
     try {
-      // Generar respuesta empática si es síntoma
       let respuestaEmpatica = "";
-      if (esSintoma && OPENAI_API_KEY) {
-        try {
-          const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${OPENAI_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: "gpt-4o-mini",
-              temperature: 0.7,
-              max_tokens: 40,
-              messages: [
-                {
-                  role: "system",
-                  content: "Eres un asistente médico empático. Responde con 1 línea corta mostrando comprensión al paciente."
-                },
-                { role: "user", content: `Paciente dice: "${originalText}"` }
-              ]
-            })
-          });
-          const empatJson = await empatRes.json();
-          respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
-        } catch (err) {
-          console.error("❌ Error OpenAI:", err);
-        }
+      if (esSintoma) {
+        respuestaEmpatica = generarRespuestaEmpatica(originalText, specialty);
       }
 
-      // Buscar sobrecupos disponibles
       const records = await buscarSobrecupos(specialty);
       
       if (records.length === 0) {
@@ -443,7 +337,6 @@ export default async function handler(req, res) {
         return response.json({ text: mensaje });
       }
 
-      // Mostrar primera opción
       const first = records[0].fields;
       const medicoNombre = await getDoctorName(first["Médico"]);
       
@@ -472,69 +365,37 @@ export default async function handler(req, res) {
     }
   }
 
-  // === FUNCIONES DE DETECCIÓN ===
+  // ===============================
+  // 🔍 FUNCIONES DE DETECCIÓN
+  // ===============================
 
   function esConsultaNoMedica(text) {
     const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     
-    // 🍕 CONSULTAS ESPECÍFICAS NO MÉDICAS (alta prioridad)
     const consultasEspecificas = [
-      // Comida y restaurantes
       'quiero pizza', 'pizza', 'hamburguesa', 'sushi', 'comida china',
       'restaurant', 'restaurante', 'comer', 'hambre', 'almuerzo', 'cena', 'desayuno',
-      'delivery', 'pedidos ya', 'uber eats', 'rappi',
-      
-      // Información general
       'que hora es', 'qué hora es', 'hora actual', 'que día es', 'qué día es',
-      'como estas', 'cómo estás', 'como esta', 'cómo está',
-      'quien eres', 'quién eres', 'que eres', 'qué eres',
-      
-      // Entretenimiento
+      'como estas', 'cómo estás', 'quien eres', 'quién eres',
       'chiste', 'broma', 'cancion', 'canción', 'musica', 'música',
-      'pelicula', 'película', 'serie', 'netflix', 'youtube',
-      'futbol', 'fútbol', 'deporte', 'partido', 'equipo',
-      
-      // Servicios generales
-      'clima', 'tiempo', 'lluvia', 'sol', 'temperatura',
-      'precio', 'costo', 'cuanto cuesta', 'cuánto cuesta',
-      'horario', 'horarios', 'abierto', 'cerrado',
-      'direccion', 'dirección', 'ubicacion', 'ubicación', 'donde queda',
-      'telefono', 'teléfono', 'contacto', 'email',
-      
-      // Vida cotidiana
-      'trabajo', 'jefe', 'oficina', 'reunion', 'reunión',
-      'universidad', 'colegio', 'estudiar', 'examen',
-      'viaje', 'vacaciones', 'hotel', 'avion', 'avión',
-      'dinero', 'plata', 'banco', 'credito', 'crédito',
-      'auto', 'carro', 'vehiculo', 'vehículo', 'manejar',
-      'casa', 'departamento', 'arriendo', 'mudanza',
-      'computador', 'celular', 'telefono', 'teléfono', 'internet',
-      'ropa', 'zapatos', 'comprar', 'tienda', 'mall'
+      'futbol', 'fútbol', 'deporte', 'partido', 'clima', 'tiempo'
     ];
     
-    // 🏥 TÉRMINOS MÉDICOS QUE ANULAN LA DETECCIÓN NO MÉDICA
     const terminosMedicos = [
       'dolor', 'duele', 'molestia', 'sintoma', 'síntoma', 'vision', 'visión',
       'ojo', 'ojos', 'cabeza', 'pecho', 'estomago', 'estómago', 'fiebre',
-      'mareo', 'nausea', 'náusea', 'cansancio', 'fatiga', 'tos', 'gripe',
-      'resfriado', 'alergia', 'picazon', 'picazón', 'roncha', 'sarpullido',
       'medico', 'médico', 'doctor', 'especialista', 'consulta', 'cita',
-      'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'malestar',
-      'sobrecupo', 'atencion medica', 'atención médica', 'necesito ver',
-      'quiero ver doctor', 'quiero ver médico', 'busco especialista'
+      'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'picazon', 'picazón'
     ];
     
-    // Primero verificar si contiene términos médicos (prioridad alta)
     const contieneTerminosMedicos = terminosMedicos.some(termino => 
       textoLimpio.includes(termino.toLowerCase())
     );
     
-    // Si tiene términos médicos, NO es consulta no médica
     if (contieneTerminosMedicos) {
       return false;
     }
     
-    // Verificar si contiene consultas específicas no médicas
     const contieneConsultaNoMedica = consultasEspecificas.some(consulta => 
       textoLimpio.includes(consulta.toLowerCase())
     );
@@ -553,10 +414,7 @@ export default async function handler(req, res) {
       'neurologo': 'Neurología', 'neurologia': 'Neurología',
       'otorrino': 'Otorrinolaringología', 'otorrinolaringologia': 'Otorrinolaringología',
       'medicina familiar': 'Medicina Familiar', 'medico general': 'Medicina Familiar',
-      'general': 'Medicina Familiar', 'familiar': 'Medicina Familiar',
-      'traumatologo': 'Traumatología', 'traumatologia': 'Traumatología',
-      'urologo': 'Urología', 'urologia': 'Urología',
-      'ginecologo': 'Ginecología', 'ginecologia': 'Ginecología'
+      'general': 'Medicina Familiar', 'familiar': 'Medicina Familiar'
     };
     
     for (const [key, value] of Object.entries(especialidadesDirectas)) {
@@ -565,64 +423,111 @@ export default async function handler(req, res) {
     return null;
   }
 
+  // 🎯 FUNCIÓN CRÍTICA CORREGIDA
   function detectarEspecialidadPorSintomas(text) {
     const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     
-    // Síntomas oftalmológicos
+    // 👁️ SÍNTOMAS OFTALMOLÓGICOS (PRIORIDAD MÁXIMA)
     const sintomasOftalmologia = [
       'vision borrosa', 'visión borrosa', 'veo borroso', 'veo mal', 'no veo bien',
-      'ojo rojo', 'ojos rojos', 'irritado', 'irritados', 'ardor ojos',
-      'lagrimeo', 'dolor ojos', 'duelen ojos', 'molesta luz', 'fotofobia',
+      'ojo rojo', 'ojos rojos', 'irritado', 'irritados', 'irritacion',
+      'ardor en los ojos', 'quemazón ojos', 'lagrimeo', 'lagrimas',
+      'dolor de ojos', 'duelen los ojos', 'ojo duele', 'dolor ocular',
+      // 🔥 CRÍTICO: Incluir TODAS las variaciones de picazón en ojos
+      'picazon ojos', 'picazón ojos', 'me pican los ojos', 'pican ojos',
+      'comezon ojos', 'comezón ojos', 'ojos con picazon', 'ojos que pican',
+      'picazon en los ojos', 'picazón en los ojos', 'pican mis ojos',
+      'sensible a la luz', 'fotofobia', 'molesta la luz',
       'manchas flotantes', 'moscas volantes', 'puntos negros',
-      'graduacion', 'graduación', 'lentes', 'anteojos', 'revision vista'
+      'graduacion', 'graduación', 'lentes', 'anteojos'
     ];
     
-    // Síntomas dermatológicos
+    // 🏥 SÍNTOMAS DERMATOLÓGICOS (SIN INCLUIR OJOS)
     const sintomasDermatologia = [
-      'picazon', 'picazón', 'me pica', 'comezón', 'sarpullido', 'ronchas',
-      'alergia piel', 'dermatitis', 'eczema', 'lunar', 'lunares',
-      'mancha piel', 'acne', 'acné', 'espinillas', 'granos'
+      'picazon piel', 'picazón piel', 'me pica la piel', 'comezón piel',
+      'picazon cuerpo', 'picazón cuerpo', 'me pica el cuerpo',
+      'sarpullido', 'roncha', 'ronchas', 'erupcion', 'erupción',
+      'alergia piel', 'dermatitis', 'eczema', 'granos', 'acne', 'acné'
     ];
     
-    // Síntomas cardiológicos
+    // 💓 SÍNTOMAS CARDIOLÓGICOS
     const sintomasCardiologia = [
       'dolor pecho', 'duele pecho', 'opresion pecho', 'palpitaciones',
-      'taquicardia', 'corazon late rapido', 'falta aire', 'ahogo', 'disnea'
+      'taquicardia', 'falta aire', 'ahogo', 'disnea'
     ];
     
-    // Síntomas neurológicos
+    // 🧠 SÍNTOMAS NEUROLÓGICOS
     const sintomasNeurologia = [
       'dolor cabeza', 'duele cabeza', 'cefalea', 'migrana', 'migraña',
-      'mareo', 'mareos', 'vertigo', 'vértigo', 'temblor', 'temblores'
+      'mareo', 'mareos', 'vertigo', 'vértigo', 'temblor'
     ];
     
-    // Síntomas otorrino
+    // 👂 SÍNTOMAS OTORRINO
     const sintomasOtorrino = [
       'dolor garganta', 'duele garganta', 'dolor oido', 'no oigo',
-      'ronquera', 'afonía', 'tapado nariz', 'congestion', 'sinusitis'
+      'ronquera', 'afonía', 'tapado nariz', 'congestion'
     ];
     
-    // Verificar cada grupo
+    // 🔍 VERIFICACIÓN JERÁRQUICA (OFTALMOLOGÍA PRIMERO)
     for (const sintoma of sintomasOftalmologia) {
-      if (textoLimpio.includes(sintoma)) return 'Oftalmología';
+      if (textoLimpio.includes(sintoma)) {
+        console.log(`🎯 Síntoma oftalmológico detectado: "${sintoma}"`);
+        return 'Oftalmología';
+      }
     }
-    for (const sintoma of sintomasDermatologia) {
-      if (textoLimpio.includes(sintoma)) return 'Dermatología';
-    }
+    
     for (const sintoma of sintomasCardiologia) {
       if (textoLimpio.includes(sintoma)) return 'Cardiología';
     }
+    
     for (const sintoma of sintomasNeurologia) {
       if (textoLimpio.includes(sintoma)) return 'Neurología';
     }
+    
     for (const sintoma of sintomasOtorrino) {
       if (textoLimpio.includes(sintoma)) return 'Otorrinolaringología';
+    }
+    
+    for (const sintoma of sintomasDermatologia) {
+      if (textoLimpio.includes(sintoma)) return 'Dermatología';
     }
     
     return null;
   }
 
-  // === FUNCIONES DE VALIDACIÓN ===
+  function generarRespuestaEmpatica(texto, especialidad) {
+    const textoLimpio = texto.toLowerCase();
+    
+    if (especialidad === 'Oftalmología') {
+      if (textoLimpio.includes('pican') || textoLimpio.includes('picazon')) {
+        return "Entiendo que la picazón en los ojos es muy molesta.";
+      }
+      if (textoLimpio.includes('borroso')) {
+        return "La visión borrosa puede ser preocupante, es importante revisarla.";
+      }
+      return "Los problemas oculares requieren evaluación especializada.";
+    }
+    
+    return "Es importante que evalúes estos síntomas con un especialista.";
+  }
+
+  function getRespuestaEspecificaNoMedica(text) {
+    const textoLimpio = text.toLowerCase();
+    
+    if (textoLimpio.includes('pizza') || textoLimpio.includes('comida')) {
+      return ["¡Me da hambre solo de escucharte! 🍕 Pero soy tu asistente médico, no delivery 😄\n\n¿Cómo está tu salud? ¿Tienes algún síntoma o necesitas ver algún especialista?"];
+    }
+    
+    if (textoLimpio.includes('hora')) {
+      return ["No soy un reloj, ¡pero sí soy tu asistente médico! ⏰👩‍⚕️\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte?"];
+    }
+    
+    return [];
+  }
+
+  // ===============================
+  // 🔧 FUNCIONES DE VALIDACIÓN
+  // ===============================
 
   function validarTelefono(telefono) {
     const pattern = /^\+56[0-9]{9}$/;
@@ -656,7 +561,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // === FUNCIONES DE AIRTABLE ===
+  // ===============================
+  // 🗄️ FUNCIONES DE AIRTABLE
+  // ===============================
 
   async function getEspecialidadesDisponibles() {
     try {
@@ -711,6 +618,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // 🔥 FUNCIÓN CRÍTICA: FILTRAR FECHAS PASADAS
   async function buscarSobrecupos(specialty) {
     try {
       const resp = await fetch(
@@ -721,13 +629,42 @@ export default async function handler(req, res) {
       
       if (!data.records) return [];
       
+      // 📅 FILTRAR FECHAS FUTURAS Y DISPONIBLES
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0); // Resetear hora para comparar solo fecha
+      
       return data.records.filter(record => {
         const fields = record.fields || {};
-        return (
-          fields.Especialidad === specialty &&
-          (fields.Disponible === "Si" || fields.Disponible === true) &&
-          fields.Fecha && fields.Hora
-        );
+        
+        // Verificar especialidad y disponibilidad
+        const esEspecialidadCorrecta = fields.Especialidad === specialty;
+        const estaDisponible = fields.Disponible === "Si" || fields.Disponible === true;
+        
+        if (!esEspecialidadCorrecta || !estaDisponible) {
+          return false;
+        }
+        
+        // 🔥 VERIFICAR QUE LA FECHA SEA FUTURA
+        if (fields.Fecha) {
+          try {
+            const fechaSobrecupo = new Date(fields.Fecha);
+            fechaSobrecupo.setHours(0, 0, 0, 0);
+            
+            // Solo incluir si la fecha es hoy o futura
+            const esFechaValida = fechaSobrecupo >= hoy;
+            
+            if (!esFechaValida) {
+              console.log(`🗓️ Excluyendo sobrecupo con fecha pasada: ${fields.Fecha}`);
+            }
+            
+            return esFechaValida;
+          } catch (err) {
+            console.error(`❌ Error procesando fecha: ${fields.Fecha}`, err);
+            return false; // Excluir si la fecha no se puede procesar
+          }
+        }
+        
+        return false; // Excluir si no tiene fecha
       });
     } catch (err) {
       console.error("❌ Error consultando sobrecupos:", err);
@@ -742,7 +679,6 @@ export default async function handler(req, res) {
         return null;
       }
 
-      // Validar datos de entrada
       if (!patientData.name || !patientData.phone || !patientData.rut || !patientData.age) {
         console.error("❌ Datos de paciente incompletos:", patientData);
         return null;
@@ -753,7 +689,7 @@ export default async function handler(req, res) {
           Nombre: patientData.name.trim(),
           Telefono: patientData.phone.trim(),
           RUT: patientData.rut.trim(),
-          Edad: parseInt(patientData.age), // Asegurar que sea número
+          Edad: parseInt(patientData.age),
           "Fecha Registro": new Date().toISOString().split('T')[0],
           "Registro Bot": true,
           Status: "active"
@@ -809,8 +745,6 @@ export default async function handler(req, res) {
           "Fecha Reserva": new Date().toISOString().split('T')[0]
         }
       };
-
-      console.log("📤 Datos para actualizar:", updateData);
 
       const response = await fetch(
         `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${sobrecupoId}`,
