@@ -1,4 +1,4 @@
-// pages/api/bot.js - FIX CRÍTICO COMPLETO
+// pages/api/bot.js - VERSIÓN COMPLETA Y DEFINITIVA
 const sessions = {};
 
 export default async function handler(req, res) {
@@ -41,19 +41,33 @@ export default async function handler(req, res) {
   const afirmativoRe = /^(si|sí|s|ok|vale|perfecto|listo|confirmo|confirmar|dale|claro|quiero|acepto|me sirve)$/i;
   const negativoRe = /^(no|otra|busca más|busca mas|no me sirve|no quiero|siguiente|otro|otra opción|otra opcion)$/i;
 
-  // SISTEMA DE TIMEOUTS
+  // 🔥 SISTEMA DE TIMEOUTS Y ANTI-LOOP
   const currentTime = Date.now();
   const sessionTimeout = 10 * 60 * 1000; // 10 minutos
   
   let currentSession = sessions[from] || prevSession || {};
   
+  // Detectar loops (mismo mensaje repetido)
+  if (currentSession.lastMessage === text && currentSession.lastMessageTime) {
+    const timeDiff = currentTime - currentSession.lastMessageTime;
+    if (timeDiff < 30000) { // Menos de 30 segundos
+      console.log(`🔄 LOOP DETECTADO: Reseteando sesión para ${from}`);
+      currentSession = {};
+      sessions[from] = {};
+    }
+  }
+  
+  // Timeout de sesión
   if (currentSession.lastActivity && (currentTime - currentSession.lastActivity) > sessionTimeout) {
     console.log(`🕐 Sesión expirada para ${from}, reseteando...`);
     currentSession = {};
     sessions[from] = {};
   }
 
+  // Actualizar actividad y mensaje
   currentSession.lastActivity = currentTime;
+  currentSession.lastMessage = text;
+  currentSession.lastMessageTime = currentTime;
 
   // === MANEJO DE SALUDOS SIMPLES ===
   if (saludoSimpleRe.test(text)) {
@@ -81,7 +95,8 @@ export default async function handler(req, res) {
     
     const respuestasGenerales = [
       "Soy tu asistente médico especializado 👩‍⚕️\n\n¿Cómo te sientes hoy? Cuéntame si tienes algún síntoma o necesitas algún especialista.",
-      "Mi especialidad es cuidar tu salud 🩺\n\n¿Hay algo médico en lo que pueda ayudarte? Por ejemplo síntomas, chequeos o especialistas que necesites."
+      "Mi especialidad es cuidar tu salud 🩺\n\n¿Hay algo médico en lo que pueda ayudarte? Por ejemplo síntomas, chequeos o especialistas que necesites.",
+      "Estoy aquí para temas de salud 😊\n\n¿Cómo puedo ayudarte médicamente hoy? Cuéntame tus síntomas o qué especialista buscas."
     ];
     
     return res.json({ 
@@ -89,9 +104,9 @@ export default async function handler(req, res) {
     });
   }
 
-  // === MANEJO DE SESIONES ACTIVAS ===
+  // === MANEJO DE SESIONES ACTIVAS CON PROTECCIÓN ANTI-LOOP ===
   if (currentSession.stage) {
-    const result = await manejarSesionActiva(currentSession, text, from, res);
+    const result = await manejarSesionActivaConProteccion(currentSession, text, from, res);
     if (result) return result;
   }
 
@@ -115,14 +130,23 @@ export default async function handler(req, res) {
   const especialidadesTexto = especialidadesDisponibles.slice(0, 6).join(', ');
   
   return res.json({
-    text: `Te puedo ayudar a encontrar sobrecupos médicos 🩺\n\nCuéntame:\n• ¿Qué síntomas tienes?\n• ¿Qué especialista necesitas?\n\nEspecialidades disponibles: ${especialidadesTexto}\n\nEjemplo: "Necesito oftalmólogo" o "Me pican los ojos"`
+    text: `Te puedo ayudar a encontrar sobrecupos médicos 🩺\n\nCuéntame:\n• ¿Qué síntomas tienes?\n• ¿Qué especialista necesitas?\n\nEspecialidades disponibles: ${especialidadesTexto}\n\nEjemplo: "Me pican los ojos" o "Necesito dermatólogo"`
   });
 
   // ===============================
-  // 🛠️ FUNCIONES AUXILIARES
+  // 🛠️ FUNCIONES AUXILIARES COMPLETAS
   // ===============================
 
-  async function manejarSesionActiva(session, message, userId, response) {
+  async function manejarSesionActivaConProteccion(session, message, userId, response) {
+    // 🔥 PROTECCIÓN ANTI-LOOP: Resetear si hay demasiados intentos
+    if (session.attempts > 3) {
+      console.log(`🔄 Demasiados intentos, reseteando sesión para ${userId}`);
+      sessions[userId] = { lastActivity: Date.now() };
+      return response.json({
+        text: "Parece que hubo un problema con nuestra conversación. Empecemos de nuevo.\n\n¿En qué puedo ayudarte? Cuéntame tus síntomas o qué especialista necesitas."
+      });
+    }
+
     switch (session.stage) {
       case 'awaiting-confirmation':
         return await manejarConfirmacion(session, message, userId, response);
@@ -176,6 +200,17 @@ export default async function handler(req, res) {
           text: `Entiendo. Por ahora no tengo más sobrecupos de ${specialty} disponibles.\n\n¿Te gustaría que te contacte cuando tengamos nuevas opciones disponibles?\n\nTambién puedes preguntarme por otra especialidad. 😊`
         });
       }
+    }
+    
+    // Incrementar intentos en caso de respuesta no entendida
+    session.attempts = (session.attempts || 0) + 1;
+    sessions[userId] = { ...session, lastActivity: Date.now() };
+    
+    if (session.attempts >= 2) {
+      sessions[userId] = { lastActivity: Date.now() };
+      return response.json({
+        text: "Parece que hubo confusión. Empecemos de nuevo.\n\n¿En qué puedo ayudarte? Cuéntame tus síntomas o qué especialista necesitas."
+      });
     }
     
     return response.json({
@@ -276,6 +311,8 @@ export default async function handler(req, res) {
     
     try {
       console.log("🏥 Iniciando proceso de reserva final...");
+      console.log("📋 Datos del paciente:", { patientName, patientPhone, patientRUT, edad });
+      console.log("🎯 Sobrecupo seleccionado:", selectedRecord.id, selectedRecord.fields);
       
       const pacienteId = await crearPaciente({
         name: patientName,
@@ -291,6 +328,8 @@ export default async function handler(req, res) {
           text: "❌ Hubo un problema creando tu registro de paciente. Por favor intenta nuevamente."
         });
       }
+      
+      console.log("✅ Paciente creado con ID:", pacienteId);
       
       const sobrecupoActualizado = await actualizarSobrecupo(selectedRecord.id, pacienteId, patientName);
       
@@ -325,6 +364,34 @@ export default async function handler(req, res) {
       let respuestaEmpatica = "";
       if (esSintoma) {
         respuestaEmpatica = generarRespuestaEmpatica(originalText, specialty);
+        
+        if (!respuestaEmpatica && OPENAI_API_KEY) {
+          try {
+            const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${OPENAI_API_KEY}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0.7,
+                max_tokens: 40,
+                messages: [
+                  {
+                    role: "system",
+                    content: "Eres un asistente médico empático. Responde con 1 línea corta mostrando comprensión al paciente."
+                  },
+                  { role: "user", content: `Paciente dice: "${originalText}"` }
+                ]
+              })
+            });
+            const empatJson = await empatRes.json();
+            respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
+          } catch (err) {
+            console.error("❌ Error OpenAI:", err);
+          }
+        }
       }
 
       const records = await buscarSobrecupos(specialty);
@@ -366,26 +433,45 @@ export default async function handler(req, res) {
   }
 
   // ===============================
-  // 🔍 FUNCIONES DE DETECCIÓN
+  // 🔍 FUNCIONES DE DETECCIÓN COMPLETAS
   // ===============================
 
   function esConsultaNoMedica(text) {
     const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     
     const consultasEspecificas = [
+      // Comida y restaurantes
       'quiero pizza', 'pizza', 'hamburguesa', 'sushi', 'comida china',
       'restaurant', 'restaurante', 'comer', 'hambre', 'almuerzo', 'cena', 'desayuno',
+      'delivery', 'pedidos ya', 'uber eats', 'rappi',
+      
+      // Información general
       'que hora es', 'qué hora es', 'hora actual', 'que día es', 'qué día es',
-      'como estas', 'cómo estás', 'quien eres', 'quién eres',
+      'como estas', 'cómo estás', 'como esta', 'cómo está',
+      'quien eres', 'quién eres', 'que eres', 'qué eres',
+      
+      // Entretenimiento
       'chiste', 'broma', 'cancion', 'canción', 'musica', 'música',
-      'futbol', 'fútbol', 'deporte', 'partido', 'clima', 'tiempo'
+      'pelicula', 'película', 'serie', 'netflix', 'youtube',
+      'futbol', 'fútbol', 'deporte', 'partido', 'equipo',
+      
+      // Servicios generales
+      'clima', 'tiempo', 'lluvia', 'sol', 'temperatura',
+      'precio', 'costo', 'cuanto cuesta', 'cuánto cuesta',
+      'horario', 'horarios', 'abierto', 'cerrado',
+      'direccion', 'dirección', 'ubicacion', 'ubicación', 'donde queda',
+      'telefono', 'teléfono', 'contacto', 'email'
     ];
     
     const terminosMedicos = [
       'dolor', 'duele', 'molestia', 'sintoma', 'síntoma', 'vision', 'visión',
       'ojo', 'ojos', 'cabeza', 'pecho', 'estomago', 'estómago', 'fiebre',
+      'mareo', 'nausea', 'náusea', 'cansancio', 'fatiga', 'tos', 'gripe',
+      'resfriado', 'alergia', 'picazon', 'picazón', 'roncha', 'sarpullido',
       'medico', 'médico', 'doctor', 'especialista', 'consulta', 'cita',
-      'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'picazon', 'picazón'
+      'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'malestar',
+      'sobrecupo', 'atencion medica', 'atención médica', 'necesito ver',
+      'quiero ver doctor', 'quiero ver médico', 'busco especialista'
     ];
     
     const contieneTerminosMedicos = terminosMedicos.some(termino => 
@@ -414,7 +500,10 @@ export default async function handler(req, res) {
       'neurologo': 'Neurología', 'neurologia': 'Neurología',
       'otorrino': 'Otorrinolaringología', 'otorrinolaringologia': 'Otorrinolaringología',
       'medicina familiar': 'Medicina Familiar', 'medico general': 'Medicina Familiar',
-      'general': 'Medicina Familiar', 'familiar': 'Medicina Familiar'
+      'general': 'Medicina Familiar', 'familiar': 'Medicina Familiar',
+      'traumatologo': 'Traumatología', 'traumatologia': 'Traumatología',
+      'urologo': 'Urología', 'urologia': 'Urología',
+      'ginecologo': 'Ginecología', 'ginecologia': 'Ginecología'
     };
     
     for (const [key, value] of Object.entries(especialidadesDirectas)) {
@@ -423,52 +512,112 @@ export default async function handler(req, res) {
     return null;
   }
 
-  // 🎯 FUNCIÓN CRÍTICA CORREGIDA
   function detectarEspecialidadPorSintomas(text) {
     const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     
     // 👁️ SÍNTOMAS OFTALMOLÓGICOS (PRIORIDAD MÁXIMA)
     const sintomasOftalmologia = [
+      // Problemas de visión
       'vision borrosa', 'visión borrosa', 'veo borroso', 'veo mal', 'no veo bien',
+      'veo doble', 'vision doble', 'visión doble', 'diplopia',
+      'ceguera', 'no veo nada', 'perdida vision', 'pérdida visión',
+      
+      // Síntomas oculares específicos
       'ojo rojo', 'ojos rojos', 'irritado', 'irritados', 'irritacion',
       'ardor en los ojos', 'quemazón ojos', 'lagrimeo', 'lagrimas',
       'dolor de ojos', 'duelen los ojos', 'ojo duele', 'dolor ocular',
-      // 🔥 CRÍTICO: Incluir TODAS las variaciones de picazón en ojos
+      
+      // 🔥 CRÍTICO: TODAS las variaciones de picazón en ojos
       'picazon ojos', 'picazón ojos', 'me pican los ojos', 'pican ojos',
       'comezon ojos', 'comezón ojos', 'ojos con picazon', 'ojos que pican',
       'picazon en los ojos', 'picazón en los ojos', 'pican mis ojos',
-      'sensible a la luz', 'fotofobia', 'molesta la luz',
-      'manchas flotantes', 'moscas volantes', 'puntos negros',
-      'graduacion', 'graduación', 'lentes', 'anteojos'
+      'me pica el ojo', 'me pican mis ojos', 'tengo picazon en los ojos',
+      
+      // Sensibilidad y molestias
+      'sensible a la luz', 'fotofobia', 'molesta la luz', 'luz molesta',
+      'ojos secos', 'sequedad ocular', 'ojo seco',
+      'cansancio visual', 'fatiga ocular', 'ojos cansados',
+      
+      // Fenómenos visuales
+      'manchas flotantes', 'moscas volantes', 'puntos negros', 'moscas',
+      'destellos', 'luces', 'halos', 'aureolas',
+      
+      // Problemas refractivos
+      'graduacion', 'graduación', 'lentes', 'anteojos', 'gafas',
+      'miopia', 'miopía', 'hipermetropia', 'astigmatismo',
+      
+      // Exámenes y revisiones
+      'revision ojos', 'revisión ojos', 'examen vista', 'control vista',
+      'fondo de ojo', 'presion ocular', 'presión ocular', 'glaucoma'
     ];
     
-    // 🏥 SÍNTOMAS DERMATOLÓGICOS (SIN INCLUIR OJOS)
+    // 🏥 SÍNTOMAS DERMATOLÓGICOS (SIN INCLUIR OJOS EXPLÍCITAMENTE)
     const sintomasDermatologia = [
+      // Picazón corporal (EXCLUYENDO ojos explícitamente)
       'picazon piel', 'picazón piel', 'me pica la piel', 'comezón piel',
       'picazon cuerpo', 'picazón cuerpo', 'me pica el cuerpo',
+      'picazon brazos', 'picazon piernas', 'picazon espalda',
+      
+      // Erupciones y lesiones
       'sarpullido', 'roncha', 'ronchas', 'erupcion', 'erupción',
-      'alergia piel', 'dermatitis', 'eczema', 'granos', 'acne', 'acné'
+      'alergia piel', 'dermatitis', 'eczema', 'urticaria',
+      'granos', 'espinillas', 'acne', 'acné',
+      
+      // Lesiones específicas
+      'lunar', 'lunares', 'mancha piel', 'manchas piel',
+      'verruga', 'verrugas', 'quiste', 'bulto piel',
+      
+      // Condiciones específicas
+      'psoriasis', 'vitiligo', 'herpes', 'hongos piel',
+      'caspa', 'seborrea', 'rosácea', 'cuperosis'
     ];
     
     // 💓 SÍNTOMAS CARDIOLÓGICOS
     const sintomasCardiologia = [
-      'dolor pecho', 'duele pecho', 'opresion pecho', 'palpitaciones',
-      'taquicardia', 'falta aire', 'ahogo', 'disnea'
+      'dolor pecho', 'duele pecho', 'opresion pecho', 'opresión pecho',
+      'palpitaciones', 'taquicardia', 'corazon late rapido', 'corazón late rápido',
+      'arritmia', 'bradicardia', 'corazon irregular', 'corazón irregular',
+      'falta aire', 'ahogo', 'disnea', 'fatiga', 'cansancio extremo',
+      'mareo cardiaco', 'desmayo', 'sincope', 'síncope',
+      'hinchazon piernas', 'hinchazón piernas', 'edema', 'retencion liquidos'
     ];
     
     // 🧠 SÍNTOMAS NEUROLÓGICOS
     const sintomasNeurologia = [
       'dolor cabeza', 'duele cabeza', 'cefalea', 'migrana', 'migraña',
-      'mareo', 'mareos', 'vertigo', 'vértigo', 'temblor'
+      'jaqueca', 'dolor de cabeza intenso', 'dolor de cabeza fuerte',
+      'mareo', 'mareos', 'vertigo', 'vértigo', 'inestabilidad',
+      'temblor', 'temblores', 'convulsion', 'convulsión', 'epilepsia',
+      'entumecimiento', 'hormigueo', 'adormecimiento', 'parestesia',
+      'perdida memoria', 'pérdida memoria', 'olvido', 'confusion',
+      'debilidad muscular', 'paralisis', 'parálisis'
     ];
     
-    // 👂 SÍNTOMAS OTORRINO
+    // 👂 SÍNTOMAS OTORRINOLARINGOLÓGICOS
     const sintomasOtorrino = [
-      'dolor garganta', 'duele garganta', 'dolor oido', 'no oigo',
-      'ronquera', 'afonía', 'tapado nariz', 'congestion'
+      'dolor garganta', 'duele garganta', 'dolor de garganta',
+      'dolor oido', 'duele oido', 'dolor de oído', 'otalgia',
+      'no oigo', 'sordo', 'perdida auditiva', 'pérdida auditiva',
+      'ronquera', 'afonía', 'voz ronca', 'sin voz',
+      'tapado nariz', 'congestion', 'congestión', 'sinusitis',
+      'sangrado nariz', 'epistaxis', 'hemorragia nasal',
+      'zumbido oido', 'tinnitus', 'acufeno'
     ];
     
-    // 🔍 VERIFICACIÓN JERÁRQUICA (OFTALMOLOGÍA PRIMERO)
+    // 🩺 SÍNTOMAS MEDICINA GENERAL/FAMILIAR
+    const sintomasMedicinaGeneral = [
+      'fiebre', 'temperatura', 'calentura', 'escalofrios', 'escalofríos',
+      'malestar general', 'decaimiento', 'astenia', 'cansancio general',
+      'nausea', 'náusea', 'vomito', 'vómito', 'gastritis',
+      'dolor estomago', 'dolor de estómago', 'dolor abdominal',
+      'diarrea', 'estreñimiento', 'constipacion', 'constipación',
+      'tos', 'tos seca', 'tos con flemas', 'gripe', 'resfriado',
+      'dolor muscular', 'dolor articular', 'artralgia', 'mialgia'
+    ];
+    
+    // 🔍 VERIFICACIÓN JERÁRQUICA CON PRIORIDADES MÉDICAS
+    
+    // 1. MÁXIMA PRIORIDAD: Síntomas oftalmológicos
     for (const sintoma of sintomasOftalmologia) {
       if (textoLimpio.includes(sintoma)) {
         console.log(`🎯 Síntoma oftalmológico detectado: "${sintoma}"`);
@@ -476,50 +625,152 @@ export default async function handler(req, res) {
       }
     }
     
+    // 2. Síntomas cardiológicos (urgentes)
     for (const sintoma of sintomasCardiologia) {
-      if (textoLimpio.includes(sintoma)) return 'Cardiología';
+      if (textoLimpio.includes(sintoma)) {
+        console.log(`🎯 Síntoma cardiológico detectado: "${sintoma}"`);
+        return 'Cardiología';
+      }
     }
     
+    // 3. Síntomas neurológicos
     for (const sintoma of sintomasNeurologia) {
-      if (textoLimpio.includes(sintoma)) return 'Neurología';
+      if (textoLimpio.includes(sintoma)) {
+        console.log(`🎯 Síntoma neurológico detectado: "${sintoma}"`);
+        return 'Neurología';
+      }
     }
     
+    // 4. Síntomas otorrinolaringológicos
     for (const sintoma of sintomasOtorrino) {
-      if (textoLimpio.includes(sintoma)) return 'Otorrinolaringología';
+      if (textoLimpio.includes(sintoma)) {
+        console.log(`🎯 Síntoma otorrino detectado: "${sintoma}"`);
+        return 'Otorrinolaringología';
+      }
     }
     
+    // 5. Síntomas dermatológicos (después de descartar ojos)
     for (const sintoma of sintomasDermatologia) {
-      if (textoLimpio.includes(sintoma)) return 'Dermatología';
+      if (textoLimpio.includes(sintoma)) {
+        console.log(`🎯 Síntoma dermatológico detectado: "${sintoma}"`);
+        return 'Dermatología';
+      }
     }
     
+    // 6. Medicina general como último recurso
+    for (const sintoma of sintomasMedicinaGeneral) {
+      if (textoLimpio.includes(sintoma)) {
+        console.log(`🎯 Síntoma general detectado: "${sintoma}"`);
+        return 'Medicina Familiar';
+      }
+    }
+    
+    console.log(`❓ No se detectó especialidad específica para: "${text}"`);
     return null;
   }
 
   function generarRespuestaEmpatica(texto, especialidad) {
     const textoLimpio = texto.toLowerCase();
     
+    // 👁️ Respuestas específicas para oftalmología
     if (especialidad === 'Oftalmología') {
-      if (textoLimpio.includes('pican') || textoLimpio.includes('picazon')) {
+      if (textoLimpio.includes('pican') || textoLimpio.includes('picazon') || textoLimpio.includes('picazón')) {
         return "Entiendo que la picazón en los ojos es muy molesta.";
       }
-      if (textoLimpio.includes('borroso')) {
+      if (textoLimpio.includes('borroso') || textoLimpio.includes('veo mal')) {
         return "La visión borrosa puede ser preocupante, es importante revisarla.";
+      }
+      if (textoLimpio.includes('rojo') || textoLimpio.includes('irritado')) {
+        return "Los ojos rojos e irritados necesitan atención especializada.";
+      }
+      if (textoLimpio.includes('dolor')) {
+        return "El dolor ocular no debe ignorarse, te ayudo a encontrar atención.";
       }
       return "Los problemas oculares requieren evaluación especializada.";
     }
     
-    return "Es importante que evalúes estos síntomas con un especialista.";
+    // 💓 Respuestas para cardiología
+    if (especialidad === 'Cardiología') {
+      if (textoLimpio.includes('pecho')) {
+        return "El dolor de pecho requiere evaluación médica urgente.";
+      }
+      if (textoLimpio.includes('palpitaciones')) {
+        return "Las palpitaciones pueden ser preocupantes, es importante evaluarlas.";
+      }
+      return "Los síntomas cardíacos necesitan atención especializada.";
+    }
+    
+    // 🧠 Respuestas para neurología
+    if (especialidad === 'Neurología') {
+      if (textoLimpio.includes('cabeza')) {
+        return "Los dolores de cabeza persistentes merecen evaluación neurológica.";
+      }
+      if (textoLimpio.includes('mareo')) {
+        return "Los mareos pueden tener varias causas, es importante evaluarlos.";
+      }
+      return "Los síntomas neurológicos requieren atención especializada.";
+    }
+    
+    // 🏥 Respuesta genérica
+    return `Es importante que evalúes estos síntomas con un especialista.`;
   }
 
   function getRespuestaEspecificaNoMedica(text) {
-    const textoLimpio = text.toLowerCase();
+    const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     
-    if (textoLimpio.includes('pizza') || textoLimpio.includes('comida')) {
-      return ["¡Me da hambre solo de escucharte! 🍕 Pero soy tu asistente médico, no delivery 😄\n\n¿Cómo está tu salud? ¿Tienes algún síntoma o necesitas ver algún especialista?"];
+    // 🍕 Comida y restaurantes
+    if (textoLimpio.includes('pizza') || textoLimpio.includes('hamburguesa') || 
+        textoLimpio.includes('comida') || textoLimpio.includes('restaurant') ||
+        textoLimpio.includes('comer') || textoLimpio.includes('hambre')) {
+      return [
+        "¡Me da hambre solo de escucharte! 🍕 Pero soy tu asistente médico, no delivery 😄\n\n¿Cómo está tu salud? ¿Tienes algún síntoma o necesitas ver algún especialista?",
+        "¡Qué rico! 🍽️ Pero yo me especializo en otro tipo de 'alimentación': ¡cuidar tu salud!\n\n¿Hay algo médico en lo que pueda ayudarte?",
+        "Para eso mejor usa una app de delivery 📱🍕 Yo soy experto en encontrar médicos, no pizza!\n\n¿Cómo te sientes hoy? ¿Necesitas alguna consulta médica?"
+      ];
     }
     
-    if (textoLimpio.includes('hora')) {
-      return ["No soy un reloj, ¡pero sí soy tu asistente médico! ⏰👩‍⚕️\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte?"];
+    // 🕐 Hora y tiempo
+    if (textoLimpio.includes('hora') || textoLimpio.includes('dia')) {
+      return [
+        "No soy un reloj, ¡pero sí soy tu asistente médico! ⏰👩‍⚕️\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte?",
+        "Para eso mejor mira tu celular 📱 Yo me especializo en horarios médicos.\n\n¿Necesitas algún especialista o tienes síntomas?"
+      ];
+    }
+    
+    // 🎵 Entretenimiento
+    if (textoLimpio.includes('musica') || textoLimpio.includes('cancion') || 
+        textoLimpio.includes('pelicula') || textoLimpio.includes('serie')) {
+      return [
+        "¡Me gusta el entretenimiento! 🎵 Pero mi show favorito es ayudarte con tu salud 🩺\n\n¿Cómo te sientes hoy?",
+        "Para eso mejor usa Spotify o Netflix 📺 Yo soy tu asistente médico personal.\n\n¿Hay algún tema de salud en el que pueda ayudarte?"
+      ];
+    }
+    
+    // ⚽ Deportes
+    if (textoLimpio.includes('futbol') || textoLimpio.includes('deporte') || 
+        textoLimpio.includes('partido')) {
+      return [
+        "¡Los deportes son geniales para la salud! ⚽💪 Hablando de salud...\n\n¿Cómo te sientes? ¿Necesitas algún chequeo médico?",
+        "Mi deporte favorito es mantener a las personas sanas 🏃‍♀️🩺\n\n¿Hay algo médico en lo que pueda ayudarte?"
+      ];
+    }
+    
+    // 🌤️ Clima
+    if (textoLimpio.includes('clima') || textoLimpio.includes('tiempo') || 
+        textoLimpio.includes('lluvia')) {
+      return [
+        "Para el clima mejor checa una app meteorológica ☀️🌧️ Yo me enfoco en el clima de tu salud.\n\n¿Cómo te sientes hoy?",
+        "¡Espero que sea un buen día para cuidar tu salud! 🌟🩺\n\n¿Hay algún síntoma que te preocupe?"
+      ];
+    }
+    
+    // 🛍️ Compras y precios
+    if (textoLimpio.includes('precio') || textoLimpio.includes('costo') || 
+        textoLimpio.includes('comprar') || textoLimpio.includes('tienda')) {
+      return [
+        "No manejo precios de productos, ¡pero sí el valor de tu salud! 💰🩺\n\n¿En qué puedo ayudarte médicamente?",
+        "Para compras mejor usa otra app 🛒 Yo te ayudo a 'comprar' tiempo con un médico rápido.\n\n¿Qué especialista necesitas?"
+      ];
     }
     
     return [];
@@ -562,7 +813,7 @@ export default async function handler(req, res) {
   }
 
   // ===============================
-  // 🗄️ FUNCIONES DE AIRTABLE
+  // 🗄️ FUNCIONES DE AIRTABLE COMPLETAS
   // ===============================
 
   async function getEspecialidadesDisponibles() {
