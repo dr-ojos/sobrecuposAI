@@ -333,10 +333,23 @@ export default async function handler(req, res) {
   }
 
   async function procesarReservaFinal(session, edad, userId, response) {
-    const { selectedRecord, patientName, patientPhone, patientRUT, specialty } = session;
+    const { records, specialty, attempts, patientName, patientPhone, patientRUT } = session;
+    
+    // Obtener el sobrecupo seleccionado según el intento actual
+    const selectedRecord = records[attempts || 0];
+    
+    if (!selectedRecord) {
+      console.error("❌ No hay sobrecupo seleccionado");
+      sessions[userId] = { lastActivity: Date.now() };
+      return response.json({
+        text: "❌ Error: No se encontró el sobrecupo seleccionado. Por favor intenta nuevamente."
+      });
+    }
     
     try {
       console.log("🏥 Iniciando proceso de reserva final...");
+      console.log("📋 Datos del paciente:", { patientName, patientPhone, patientRUT, edad });
+      console.log("🎯 Sobrecupo seleccionado:", selectedRecord.id, selectedRecord.fields);
       
       // 1. Crear paciente en Airtable
       const pacienteId = await crearPaciente({
@@ -346,11 +359,23 @@ export default async function handler(req, res) {
         age: edad
       });
       
+      if (!pacienteId) {
+        console.error("❌ Error creando paciente");
+        sessions[userId] = { lastActivity: Date.now() };
+        return response.json({
+          text: "❌ Hubo un problema creando tu registro de paciente. Por favor intenta nuevamente."
+        });
+      }
+      
+      console.log("✅ Paciente creado con ID:", pacienteId);
+      
       // 2. Actualizar sobrecupo como reservado
       const sobrecupoActualizado = await actualizarSobrecupo(selectedRecord.id, pacienteId, patientName);
       
       // 3. Obtener información del médico
-      const medicoInfo = await getDoctorInfo(selectedRecord.fields["Médico"]);
+      const medicoIds = selectedRecord.fields["Médico"];
+      const medicoId = Array.isArray(medicoIds) ? medicoIds[0] : medicoIds;
+      const medicoInfo = await getDoctorInfo(medicoId);
       
       // 4. Limpiar sesión
       sessions[userId] = { lastActivity: Date.now() };
@@ -426,7 +451,6 @@ export default async function handler(req, res) {
         stage: 'awaiting-confirmation',
         specialty,
         records,
-        selectedRecord: records[0],
         attempts: 0,
         lastActivity: Date.now()
       };
@@ -718,19 +742,25 @@ export default async function handler(req, res) {
         return null;
       }
 
+      // Validar datos de entrada
+      if (!patientData.name || !patientData.phone || !patientData.rut || !patientData.age) {
+        console.error("❌ Datos de paciente incompletos:", patientData);
+        return null;
+      }
+
       const record = {
         fields: {
-          Nombre: patientData.name,
-          Telefono: patientData.phone,
-          RUT: patientData.rut,
-          Edad: patientData.age,
+          Nombre: patientData.name.trim(),
+          Telefono: patientData.phone.trim(),
+          RUT: patientData.rut.trim(),
+          Edad: parseInt(patientData.age), // Asegurar que sea número
           "Fecha Registro": new Date().toISOString().split('T')[0],
           "Registro Bot": true,
           Status: "active"
         }
       };
 
-      console.log("📝 Creando paciente:", record);
+      console.log("📝 Creando paciente en Airtable:", record);
 
       const response = await fetch(
         `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PATIENTS_TABLE}`,
@@ -747,11 +777,15 @@ export default async function handler(req, res) {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("❌ Error creando paciente:", data);
+        console.error("❌ Error respuesta Airtable:", {
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
         return null;
       }
 
-      console.log("✅ Paciente creado:", data.id);
+      console.log("✅ Paciente creado exitosamente:", data.id);
       return data.id;
     } catch (error) {
       console.error("❌ Error general creando paciente:", error);
@@ -761,6 +795,12 @@ export default async function handler(req, res) {
 
   async function actualizarSobrecupo(sobrecupoId, pacienteId, patientName) {
     try {
+      console.log("📝 Actualizando sobrecupo:", {
+        sobrecupoId,
+        pacienteId, 
+        patientName
+      });
+
       const updateData = {
         fields: {
           Disponible: "No",
@@ -770,7 +810,7 @@ export default async function handler(req, res) {
         }
       };
 
-      console.log("📝 Actualizando sobrecupo:", sobrecupoId, updateData);
+      console.log("📤 Datos para actualizar:", updateData);
 
       const response = await fetch(
         `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${sobrecupoId}`,
@@ -787,11 +827,15 @@ export default async function handler(req, res) {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error("❌ Error actualizando sobrecupo:", data);
+        console.error("❌ Error actualizando sobrecupo:", {
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
         return false;
       }
 
-      console.log("✅ Sobrecupo actualizado:", data.id);
+      console.log("✅ Sobrecupo actualizado exitosamente:", data.id);
       return true;
     } catch (error) {
       console.error("❌ Error general actualizando sobrecupo:", error);
