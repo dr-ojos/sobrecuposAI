@@ -555,9 +555,35 @@ export async function POST(req) {
             });
           }
 
-          // PROCESO DE CONFIRMACIÓN FINAL
-          const { patientAge } = currentSession; // ← Usar la edad que ya tenemos guardada
+          // PROCESO DE CONFIRMACIÓN FINAL CON MEJOR LOGGING
+          const { patientAge, patientName, patientRut, patientPhone } = currentSession;
           const sobrecupoData = records[0]?.fields;
+          
+          // Verificar que tenemos todos los datos necesarios
+          if (!patientAge || !patientName || !patientRut || !patientPhone) {
+            console.error("❌ Datos faltantes en sesión:", {
+              patientAge: !!patientAge,
+              patientName: !!patientName, 
+              patientRut: !!patientRut,
+              patientPhone: !!patientPhone
+            });
+            return NextResponse.json({
+              text: "Hubo un error con los datos. Por favor, reinicia el proceso escribiendo 'hola'."
+            });
+          }
+
+          // Verificar variables de entorno críticas
+          if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_PATIENTS_TABLE) {
+            console.error("❌ Variables de entorno faltantes:", {
+              AIRTABLE_API_KEY: !!AIRTABLE_API_KEY,
+              AIRTABLE_BASE_ID: !!AIRTABLE_BASE_ID,
+              AIRTABLE_PATIENTS_TABLE: !!AIRTABLE_PATIENTS_TABLE
+            });
+            return NextResponse.json({
+              text: "Error de configuración del servidor. Por favor, contacta soporte."
+            });
+          }
+
           let statusText = "";
           let sobrecupoUpdated = false;
           let updateError = null;
@@ -567,13 +593,30 @@ export async function POST(req) {
           console.log("🏥 INICIANDO CONFIRMACIÓN");
           console.log("🏥 Paciente:", patientName);
           console.log("🏥 Edad:", patientAge);
+          console.log("🏥 RUT:", patientRut);
+          console.log("🏥 Teléfono:", patientPhone);
+          console.log("🏥 Email:", text);
           console.log("🏥 Especialidad:", specialty);
+          console.log("🏥 AIRTABLE_PATIENTS_TABLE:", AIRTABLE_PATIENTS_TABLE);
           console.log("🏥 ======================");
 
           // 1. Crear paciente en Airtable
           let pacienteId = null;
           try {
             console.log("👤 Creando paciente...");
+            
+            const pacienteData = {
+              fields: {
+                Nombre: patientName,
+                RUT: patientRut,
+                Telefono: patientPhone,
+                Email: text,
+                Edad: patientAge
+              }
+            };
+            
+            console.log("📤 Datos del paciente a enviar:", pacienteData);
+            
             const pacienteResponse = await fetch(
               `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_PATIENTS_TABLE}`,
               {
@@ -582,28 +625,33 @@ export async function POST(req) {
                   Authorization: `Bearer ${AIRTABLE_API_KEY}`,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                  fields: {
-                    Nombre: patientName,
-                    RUT: patientRut,
-                    Telefono: patientPhone,
-                    Email: text,
-                    Edad: patientAge
-                  }
-                }),
+                body: JSON.stringify(pacienteData),
               }
             );
 
+            console.log("📡 Respuesta Airtable status:", pacienteResponse.status);
+
             if (pacienteResponse.ok) {
-              const pacienteData = await pacienteResponse.json();
-              pacienteId = pacienteData.id;
-              console.log("✅ Paciente creado:", pacienteId);
+              const pacienteResult = await pacienteResponse.json();
+              pacienteId = pacienteResult.id;
+              console.log("✅ Paciente creado exitosamente:", pacienteId);
             } else {
               const errorText = await pacienteResponse.text();
-              console.error("❌ Error creando paciente:", errorText);
+              console.error("❌ Error creando paciente:");
+              console.error("   Status:", pacienteResponse.status);
+              console.error("   Response:", errorText);
+              
+              // Intentar parsear el error
+              try {
+                const errorJson = JSON.parse(errorText);
+                console.error("   Error JSON:", errorJson);
+              } catch (e) {
+                console.error("   Error raw:", errorText);
+              }
             }
           } catch (err) {
-            console.error("❌ Error creando paciente:", err);
+            console.error("❌ Error de conexión creando paciente:", err.message);
+            console.error("   Stack:", err.stack);
           }
 
           // 2. Actualizar sobrecupo
@@ -620,7 +668,12 @@ export async function POST(req) {
             // Solo agregar Paciente si se creó exitosamente
             if (pacienteId) {
               updateData.fields.Paciente = [pacienteId];
+              console.log("🔗 Vinculando paciente al sobrecupo:", pacienteId);
+            } else {
+              console.log("⚠️ No se pudo crear paciente, actualizando solo sobrecupo");
             }
+
+            console.log("📤 Datos de actualización:", updateData);
 
             const updateResponse = await fetch(
               `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${records[0].id}`,
@@ -634,17 +687,22 @@ export async function POST(req) {
               }
             );
 
+            console.log("📡 Respuesta actualización sobrecupo:", updateResponse.status);
+
             if (updateResponse.ok) {
               sobrecupoUpdated = true;
-              console.log("✅ Sobrecupo actualizado");
+              console.log("✅ Sobrecupo actualizado exitosamente");
             } else {
               const errorData = await updateResponse.text();
               updateError = errorData;
-              console.error("❌ Error actualizando sobrecupo:", errorData);
+              console.error("❌ Error actualizando sobrecupo:");
+              console.error("   Status:", updateResponse.status);
+              console.error("   Response:", errorData);
             }
           } catch (err) {
             updateError = err.message;
-            console.error("❌ Error actualizando sobrecupo:", err);
+            console.error("❌ Error de conexión actualizando sobrecupo:", err.message);
+            console.error("   Stack:", err.stack);
           }
 
           // 3. Enviar email al paciente
@@ -762,7 +820,7 @@ Sistema Sobrecupos AI
           // Limpiar sesión
           delete sessions[from];
 
-          // Mensaje final
+          // Mensaje final con mejor lógica
           if (sobrecupoUpdated) {
             statusText = `🎉 ¡CITA CONFIRMADA! 
 
@@ -775,13 +833,17 @@ ${emailsSent.patient ? "📧 Te hemos enviado la confirmación por email." : "�
 
 💡 Llega 15 minutos antes. ¡Nos vemos pronto!`;
           } else {
-            statusText = `❌ Hubo un problema al confirmar tu cita. 
+            // Si no se pudo actualizar el sobrecupo, pero tenemos los datos del paciente
+            statusText = `⚠️ Tu cita está siendo procesada.
 
-No te preocupes, tu información está guardada:
+📋 DATOS REGISTRADOS:
 • Nombre: ${patientName}
-• Cita solicitada: ${specialty} - ${sobrecupoData.Fecha}
+• Especialidad: ${specialty} 
+• Fecha solicitada: ${sobrecupoData.Fecha} a las ${sobrecupoData.Hora}
 
-Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
+Te contactaremos pronto para confirmar los detalles finales.
+
+${updateError ? `Error técnico: ${updateError.substring(0, 100)}...` : ''}`;
             console.error("❌ Error final actualización sobrecupo:", updateError);
           }
 
@@ -791,6 +853,7 @@ Te contactaremos pronto para confirmar. Tu cita está confirmada.`;
           console.log("🏥 Sobrecupo actualizado:", sobrecupoUpdated);
           console.log("🏥 Email paciente:", emailsSent.patient);
           console.log("🏥 Email médico:", emailsSent.doctor);
+          console.log("🏥 Status final:", sobrecupoUpdated ? 'ÉXITO' : 'ERROR');
           console.log("🏥 ======================");
 
           return NextResponse.json({ text: statusText });
