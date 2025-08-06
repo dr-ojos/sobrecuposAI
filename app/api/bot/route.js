@@ -1,4 +1,4 @@
-// app/api/bot/route.js - VERSIÓN COMPLETA CON FIX DEL LOOP DE MEDICINA FAMILIAR
+// app/api/bot/route.js - VERSIÓN COMPLETA CORREGIDA: Sin fechas pasadas + formato DD-MM-YYYY
 import { NextResponse } from 'next/server';
 
 // Estado de sesiones en memoria
@@ -9,6 +9,42 @@ const saludosSimples = [
   "hola","buenas","buenos dias","buenos días","buenas tardes","buenas noches",
   "hey","ey","qué tal","que tal","holi","holis","hello","saludos"
 ];
+
+// 🆕 FUNCIÓN PARA FILTRAR SOLO FECHAS FUTURAS
+function filterFutureDates(records) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  return records.filter(record => {
+    const fields = record.fields || {};
+    const fechaStr = fields.Fecha;
+    
+    if (!fechaStr) return false;
+    
+    // Convertir fecha del registro a objeto Date
+    const recordDate = new Date(fechaStr);
+    
+    // Solo incluir si la fecha es hoy o futura
+    return recordDate >= today;
+  });
+}
+
+// 🆕 FUNCIÓN PARA FORMATEAR FECHA A DD-MM-YYYY
+function formatSpanishDate(dateStr) {
+  if (!dateStr) return dateStr;
+  
+  try {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}-${month}-${year}`;
+  } catch (error) {
+    console.error('Error formateando fecha:', error);
+    return dateStr; // Fallback al formato original
+  }
+}
 
 // Función para detectar saludo simple
 function esSaludoSimple(text) {
@@ -353,66 +389,6 @@ async function getDoctorInfo(doctorId) {
   }
 }
 
-// Funciones de email (SendGrid)
-async function sendWelcomeWhatsApp(patientData, patientId) {
-  try {
-    console.log('📱 Enviando WhatsApp de bienvenida a:', patientData.WhatsApp);
-    
-    const welcomeMessage = `¡Hola ${patientData.Name}! 👋
-
-Bienvenido/a a *Sobrecupos AI* 🩺
-
-Tu registro fue exitoso. Ahora recibirás notificaciones automáticas cuando haya sobrecupos médicos disponibles que coincidan con tus necesidades.
-
-✅ *¿Qué sigue?*
-• Te avisaremos por WhatsApp cuando haya sobrecupos disponibles
-• Podrás confirmar tu cita respondiendo a nuestros mensajes
-• Sin llamadas, sin esperas
-
-🔔 *Próximamente te notificaremos sobre:*
-• Sobrecupos en tu zona
-• Especialidades de tu interés
-• Citas disponibles para hoy o mañana
-
-¿Tienes alguna pregunta? Solo responde este mensaje.
-
-_Sobrecupos AI - Tu salud no puede esperar_`;
-
-    // TODO: Implementar envío real de WhatsApp cuando esté configurado
-    console.log('📱 Mensaje de bienvenida simulado:', welcomeMessage);
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Error enviando WhatsApp de bienvenida:', error);
-    throw error;
-  }
-}
-
-// Función para formatear número de teléfono
-function formatPhoneNumber(phone) {
-  if (!phone) return "";
-  
-  // Remover todos los caracteres no numéricos
-  const cleaned = phone.replace(/\D/g, '');
-  
-  // Si empieza con 56, mantenerlo
-  if (cleaned.startsWith('56')) {
-    return '+' + cleaned;
-  }
-  
-  // Si empieza con 9, agregar código país
-  if (cleaned.startsWith('9')) {
-    return '+56' + cleaned;
-  }
-  
-  // Si son 8 dígitos, agregar 9 y código país
-  if (cleaned.length === 8) {
-    return '+569' + cleaned;
-  }
-  
-  return '+56' + cleaned;
-}
-
 // Handler principal POST
 export async function POST(req) {
   try {
@@ -493,7 +469,8 @@ export async function POST(req) {
             return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
           }
 
-          const available = records.filter(r => {
+          // 🔥 FILTRAR POR MÉDICOS COMPATIBLES Y ESPECIALIDAD
+          const availableFiltered = records.filter(r => {
             const fields = r.fields || {};
             const medicoField = fields["Médico"];
             
@@ -507,17 +484,31 @@ export async function POST(req) {
             );
           });
 
+          // 🆕 FILTRAR SOLO FECHAS FUTURAS
+          const available = filterFutureDates(availableFiltered);
+          console.log(`📅 Sobrecupos futuros encontrados: ${available.length} de ${availableFiltered.length} totales`);
+
           if (available.length === 0) {
             return NextResponse.json({
-              text: `${respuestaEmpatica}\n\nEncontré médicos de ${specialty} que atienden pacientes de ${edadIngresada} años, pero no tienen sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+              text: `${respuestaEmpatica}\n\nEncontré médicos de ${specialty} que atienden pacientes de ${edadIngresada} años, pero no tienen sobrecupos disponibles para fechas futuras.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
             });
           }
+
+          // Ordenar por fecha más próxima
+          available.sort((a, b) => {
+            const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
+            const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
+            return dateA - dateB;
+          });
 
           const first = available[0].fields;
           const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
           const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
           const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
           const medicoNombre = await getDoctorName(medicoId);
+
+          // 🆕 FORMATEAR FECHA EN FORMATO ESPAÑOL
+          const fechaFormateada = formatSpanishDate(first.Fecha);
 
           // 🔥 MANTENER LA ESPECIALIDAD ORIGINAL EN LA NUEVA SESIÓN
           sessions[from] = {
@@ -530,7 +521,7 @@ export async function POST(req) {
           };
 
           return NextResponse.json({
-            text: `${respuestaEmpatica}\n\n✅ Encontré un sobrecupo de ${specialty} para pacientes de ${edadIngresada} años:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${first.Fecha} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+            text: `${respuestaEmpatica}\n\n✅ Encontré un sobrecupo de ${specialty} para pacientes de ${edadIngresada} años:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
             session: sessions[from]
           });
 
@@ -550,27 +541,34 @@ export async function POST(req) {
             const nextAttempt = attempts + 1;
             const availableRecords = records || [];
             
-            if (nextAttempt < availableRecords.length) {
-              const nextRecord = availableRecords[nextAttempt].fields;
+            // 🆕 FILTRAR REGISTROS FUTUROS ANTES DE MOSTRAR ALTERNATIVAS
+            const futureRecords = filterFutureDates(availableRecords);
+            
+            if (nextAttempt < futureRecords.length) {
+              const nextRecord = futureRecords[nextAttempt].fields;
               const clin = nextRecord["Clínica"] || nextRecord["Clinica"] || "nuestra clínica";
               const dir = nextRecord["Dirección"] || nextRecord["Direccion"] || "la dirección indicada";
               const medicoId = Array.isArray(nextRecord["Médico"]) ? 
                 nextRecord["Médico"][0] : nextRecord["Médico"];
               const medicoNombre = await getDoctorName(medicoId);
               
+              // 🆕 FORMATEAR FECHA EN FORMATO ESPAÑOL
+              const fechaFormateada = formatSpanishDate(nextRecord.Fecha);
+              
               sessions[from] = { 
                 ...currentSession, 
-                attempts: nextAttempt 
+                attempts: nextAttempt,
+                records: futureRecords // Actualizar con registros filtrados
               };
               
               return NextResponse.json({
-                text: `Te muestro otra opción de ${specialty}:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${nextRecord.Fecha} a las ${nextRecord.Hora}\n\n¿Te sirve esta? Confirma con "sí".`,
+                text: `Te muestro otra opción de ${specialty}:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${nextRecord.Hora}\n\n¿Te sirve esta? Confirma con "sí".`,
                 session: sessions[from]
               });
             } else {
               delete sessions[from];
               return NextResponse.json({
-                text: `Lo siento, esas eran todas las opciones de ${specialty} disponibles.\n\n¿Te gustaría que te contacte cuando tengamos nuevos sobrecupos disponibles?`
+                text: `Lo siento, esas eran todas las opciones futuras de ${specialty} disponibles.\n\n¿Te gustaría que te contacte cuando tengamos nuevos sobrecupos disponibles?`
               });
             }
           }
@@ -790,6 +788,7 @@ export async function POST(req) {
           // 3. Enviar email al paciente
           if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL) {
             try {
+              const fechaFormateadaEmail = formatSpanishDate(sobrecupoData.Fecha);
               const emailContent = `
 ¡Hola ${patientName}!
 
@@ -797,7 +796,7 @@ Tu cita médica ha sido confirmada exitosamente.
 
 📅 DETALLES DE TU CITA:
 • Especialidad: ${specialty}
-• Fecha: ${sobrecupoData.Fecha}
+• Fecha: ${fechaFormateadaEmail}
 • Hora: ${sobrecupoData.Hora}
 • Clínica: ${sobrecupoData["Clínica"] || sobrecupoData["Clinica"]}
 • Dirección: ${sobrecupoData["Dirección"] || sobrecupoData["Direccion"]}
@@ -827,7 +826,7 @@ Equipo Sobrecupos AI
                 body: JSON.stringify({
                   personalizations: [{
                     to: [{ email: text, name: patientName }],
-                    subject: `🩺 Cita confirmada: ${specialty} - ${sobrecupoData.Fecha}`
+                    subject: `🩺 Cita confirmada: ${specialty} - ${fechaFormateadaEmail}`
                   }],
                   from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos AI" },
                   content: [{ type: "text/plain", value: emailContent }]
@@ -851,13 +850,14 @@ Equipo Sobrecupos AI
               const doctorInfo = await getDoctorInfo(medicoId);
               
               if (doctorInfo.email) {
+                const fechaFormateadaEmail = formatSpanishDate(sobrecupoData.Fecha);
                 const doctorEmailContent = `
 Dr/a. ${doctorInfo.name},
 
 Se ha registrado un nuevo paciente para su sobrecupo:
 
 📅 DETALLES DE LA CITA:
-• Fecha: ${sobrecupoData.Fecha}
+• Fecha: ${fechaFormateadaEmail}
 • Hora: ${sobrecupoData.Hora}
 • Clínica: ${sobrecupoData["Clínica"] || sobrecupoData["Clinica"]}
 
@@ -882,7 +882,7 @@ Sistema Sobrecupos AI
                   body: JSON.stringify({
                     personalizations: [{
                       to: [{ email: doctorInfo.email, name: doctorInfo.name }],
-                      subject: `🩺 Nuevo paciente: ${patientName} - ${sobrecupoData.Fecha}`
+                      subject: `🩺 Nuevo paciente: ${patientName} - ${fechaFormateadaEmail}`
                     }],
                     from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos AI" },
                     content: [{ type: "text/plain", value: doctorEmailContent }]
@@ -904,23 +904,25 @@ Sistema Sobrecupos AI
 
           // Mensaje final con mejor lógica
           if (sobrecupoUpdated) {
+            const fechaFormateadaFinal = formatSpanishDate(sobrecupoData.Fecha);
             statusText = `🎉 ¡CITA CONFIRMADA! 
 
 📋 RESUMEN:
 • ${specialty}
-• ${sobrecupoData.Fecha} a las ${sobrecupoData.Hora}
+• ${fechaFormateadaFinal} a las ${sobrecupoData.Hora}
 • ${sobrecupoData["Clínica"] || sobrecupoData["Clinica"]}
 
 ${emailsSent.patient ? "📧 Te hemos enviado la confirmación por email." : "⚠️ No pudimos enviar el email de confirmación."}
 
 💡 Llega 15 minutos antes. ¡Nos vemos pronto!`;
           } else {
+            const fechaFormateadaFinal = formatSpanishDate(sobrecupoData.Fecha);
             statusText = `⚠️ Tu cita está siendo procesada.
 
 📋 DATOS REGISTRADOS:
 • Nombre: ${patientName}
 • Especialidad: ${specialty} 
-• Fecha solicitada: ${sobrecupoData.Fecha} a las ${sobrecupoData.Hora}
+• Fecha solicitada: ${fechaFormateadaFinal} a las ${sobrecupoData.Hora}
 
 Te contactaremos pronto para confirmar los detalles finales.
 
