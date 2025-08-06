@@ -1,4 +1,4 @@
-// app/api/bot/route.js - MIGRACIÓN COMPLETA DE FUNCIONALIDAD DEL BOT
+// app/api/bot/route.js - VERSIÓN COMPLETA CON FIX DEL LOOP DE MEDICINA FAMILIAR
 import { NextResponse } from 'next/server';
 
 // Estado de sesiones en memoria
@@ -138,45 +138,59 @@ function esConsultaNoMedica(text) {
   return contieneTemasCotidianos && !contieneTerminosMedicos;
 }
 
-// Función para detectar especialidad por síntomas
+// 🔥 FUNCIÓN MEJORADA: Detectar especialidad por síntomas - CON FIX PARA OFTALMOLOGÍA
 function detectarEspecialidadPorSintomas(text) {
   const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   
-  // Síntomas oftalmológicos
+  // 🔍 SÍNTOMAS OFTALMOLÓGICOS - EXPANDIDOS Y MEJORADOS
   const sintomasOftalmologia = [
-    'vision borrosa', 'visión borrosa', 'borrosa', 'borroso',
-    'no veo bien', 'veo mal', 'veo borroso', 'veo doble',
-    'manchas flotantes', 'moscas volantes', 'puntos negros',
-    'ojo rojo', 'ojos rojos', 'irritado', 'irritados',
-    'ardor en los ojos', 'quemazón ojos', 'lagrimeo',
-    'dolor de ojos', 'duelen los ojos', 'ojo duele',
-    'sensible a la luz', 'fotofobia', 'molesta la luz',
-    'graduacion', 'graduación', 'lentes', 'anteojos',
-    'revision ojos', 'revisión ojos', 'examen vista'
+    // Visión y problemas visuales
+    'vision borrosa', 'visión borrosa', 'borrosa', 'borroso', 'veo borroso',
+    'no veo bien', 'veo mal', 'veo doble', 'vision doble', 'visión doble',
+    'manchas flotantes', 'moscas volantes', 'puntos negros', 'manchas en la vista',
+    
+    // Síntomas oculares específicos  
+    'ojo rojo', 'ojos rojos', 'irritado', 'irritados', 'ojos irritados',
+    'ardor en los ojos', 'quemazón ojos', 'lagrimeo', 'lagrimean', 'ojo llora',
+    'dolor de ojos', 'duelen los ojos', 'ojo duele', 'me duele el ojo',
+    
+    // Síntomas relacionados con luz
+    'sensible a la luz', 'fotofobia', 'molesta la luz', 'me molesta la luz',
+    
+    // Palabras clave oftalmológicas
+    'graduacion', 'graduación', 'lentes', 'anteojos', 'gafas',
+    'revision ojos', 'revisión ojos', 'examen vista', 'control vista',
+    
+    // 🆕 NUEVOS SÍNTOMAS ESPECÍFICOS - INCLUYE "PICAN" - FIX CRÍTICO
+    'me pican los ojos', 'ojos pican', 'picazon ojos', 'picazón ojos',
+    'comezon ojos', 'comezón ojos', 'pica el ojo', 'pican', 'picor ojos',
+    'ojos secos', 'sequedad ocular', 'ojo seco',
+    'inflamacion ojo', 'inflamación ojo', 'hinchazon ojo', 'hinchazón ojo',
+    'conjuntivitis', 'orzuelo', 'chalazion', 'chalación'
   ];
   
   // Síntomas dermatológicos
   const sintomasDermatologia = [
-    'picazon', 'picazón', 'me pica', 'comezón',
-    'sarpullido', 'roncha', 'ronchas', 'eruption',
+    'picazon piel', 'picazón piel', 'me pica la piel', 'comezón piel',
+    'sarpullido', 'roncha', 'ronchas', 'eruption', 'erupcion',
     'alergia piel', 'dermatitis', 'eczema',
-    'lunar', 'lunares', 'mancha piel', 'piel',
+    'lunar', 'lunares', 'mancha piel', 'manchas piel',
     'acne', 'acné', 'espinillas', 'granos'
   ];
   
   // Síntomas cardiológicos
   const sintomasCardiologia = [
-    'dolor pecho', 'duele pecho', 'opresion pecho',
-    'palpitaciones', 'taquicardia', 'corazon late rapido',
-    'falta aire', 'sin aire', 'agitacion', 'cansancio extremo'
+    'dolor pecho', 'duele pecho', 'opresion pecho', 'opresión pecho',
+    'palpitaciones', 'taquicardia', 'corazon late rapido', 'corazón late rápido',
+    'falta aire', 'sin aire', 'agitacion', 'agitación', 'cansancio extremo'
   ];
   
   // Síntomas neurológicos
   const sintomasNeurologia = [
-    'dolor cabeza', 'dolor de cabeza', 'cefalea', 'migrana',
+    'dolor cabeza', 'dolor de cabeza', 'cefalea', 'migrana', 'migraña',
     'mareo', 'vertigo', 'vértigo', 'desmayo',
     'hormigueo', 'entumecimiento', 'adormecimiento',
-    'perdida memoria', 'olvidos', 'confusion'
+    'perdida memoria', 'pérdida memoria', 'olvidos', 'confusion', 'confusión'
   ];
   
   // Síntomas pediátricos
@@ -186,8 +200,11 @@ function detectarEspecialidadPorSintomas(text) {
     'menor', 'pequeño', 'pequeña', 'infante'
   ];
   
-  // Evaluar síntomas
-  if (sintomasOftalmologia.some(s => textoLimpio.includes(s))) return 'Oftalmología';
+  // 🔥 EVALUAR SÍNTOMAS EN ORDEN DE PRIORIDAD - OFTALMOLOGÍA PRIMERO
+  if (sintomasOftalmologia.some(s => textoLimpio.includes(s))) {
+    console.log('🔍 Síntomas oftalmológicos detectados:', textoLimpio);
+    return 'Oftalmología';
+  }
   if (sintomasDermatologia.some(s => textoLimpio.includes(s))) return 'Dermatología';
   if (sintomasCardiologia.some(s => textoLimpio.includes(s))) return 'Cardiología';
   if (sintomasNeurologia.some(s => textoLimpio.includes(s))) return 'Neurología';
@@ -336,6 +353,66 @@ async function getDoctorInfo(doctorId) {
   }
 }
 
+// Funciones de email (SendGrid)
+async function sendWelcomeWhatsApp(patientData, patientId) {
+  try {
+    console.log('📱 Enviando WhatsApp de bienvenida a:', patientData.WhatsApp);
+    
+    const welcomeMessage = `¡Hola ${patientData.Name}! 👋
+
+Bienvenido/a a *Sobrecupos AI* 🩺
+
+Tu registro fue exitoso. Ahora recibirás notificaciones automáticas cuando haya sobrecupos médicos disponibles que coincidan con tus necesidades.
+
+✅ *¿Qué sigue?*
+• Te avisaremos por WhatsApp cuando haya sobrecupos disponibles
+• Podrás confirmar tu cita respondiendo a nuestros mensajes
+• Sin llamadas, sin esperas
+
+🔔 *Próximamente te notificaremos sobre:*
+• Sobrecupos en tu zona
+• Especialidades de tu interés
+• Citas disponibles para hoy o mañana
+
+¿Tienes alguna pregunta? Solo responde este mensaje.
+
+_Sobrecupos AI - Tu salud no puede esperar_`;
+
+    // TODO: Implementar envío real de WhatsApp cuando esté configurado
+    console.log('📱 Mensaje de bienvenida simulado:', welcomeMessage);
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Error enviando WhatsApp de bienvenida:', error);
+    throw error;
+  }
+}
+
+// Función para formatear número de teléfono
+function formatPhoneNumber(phone) {
+  if (!phone) return "";
+  
+  // Remover todos los caracteres no numéricos
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Si empieza con 56, mantenerlo
+  if (cleaned.startsWith('56')) {
+    return '+' + cleaned;
+  }
+  
+  // Si empieza con 9, agregar código país
+  if (cleaned.startsWith('9')) {
+    return '+56' + cleaned;
+  }
+  
+  // Si son 8 dígitos, agregar 9 y código país
+  if (cleaned.length === 8) {
+    return '+569' + cleaned;
+  }
+  
+  return '+56' + cleaned;
+}
+
 // Handler principal POST
 export async function POST(req) {
   try {
@@ -351,7 +428,7 @@ export async function POST(req) {
       AIRTABLE_BASE_ID,
       AIRTABLE_TABLE_ID,
       AIRTABLE_DOCTORS_TABLE,
-      AIRTABLE_PATIENTS_TABLE, // ← CORREGIDO: era AIRTABLE_PACIENTES_TABLE
+      AIRTABLE_PATIENTS_TABLE,
       OPENAI_API_KEY,
       SENDGRID_API_KEY,
       SENDGRID_FROM_EMAIL
@@ -374,7 +451,7 @@ export async function POST(req) {
       return NextResponse.json({ text: respuestaAleatoria });
     }
 
-    // Manejo de sesiones existentes
+    // 🔥 MANEJO DE SESIONES EXISTENTES - LÓGICA CORREGIDA PARA CONSERVAR ESPECIALIDAD
     if (currentSession?.stage) {
       const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = currentSession;
 
@@ -387,7 +464,10 @@ export async function POST(req) {
             });
           }
 
-          // Buscar médicos compatibles con la edad
+          // 🔥 CRÍTICO: MANTENER LA ESPECIALIDAD ORIGINAL DE LA SESIÓN
+          console.log(`🎯 Manteniendo especialidad original: ${specialty} para edad ${edadIngresada}`);
+
+          // Buscar médicos compatibles con la edad PARA LA ESPECIALIDAD CORRECTA
           const medicosCompatibles = await getMedicosQueAtienden(specialty, edadIngresada);
           
           if (medicosCompatibles.length === 0) {
@@ -421,7 +501,7 @@ export async function POST(req) {
             const medicoId = Array.isArray(medicoField) ? medicoField[0] : medicoField;
             
             return (
-              (fields.Especialidad === specialty) &&
+              (fields.Especialidad === specialty) && // 🔥 USA LA ESPECIALIDAD ORIGINAL
               (fields.Disponible === "Si" || fields.Disponible === true) &&
               medicosIds.includes(medicoId)
             );
@@ -439,12 +519,14 @@ export async function POST(req) {
           const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
           const medicoNombre = await getDoctorName(medicoId);
 
+          // 🔥 MANTENER LA ESPECIALIDAD ORIGINAL EN LA NUEVA SESIÓN
           sessions[from] = {
             stage: 'awaiting-confirmation',
-            specialty,
+            specialty: specialty, // 🎯 ESPECIALIDAD ORIGINAL CONSERVADA
             records: available,
             attempts: 0,
-            patientAge: edadIngresada // ← Guardar la edad para usar después
+            patientAge: edadIngresada,
+            respuestaEmpatica: respuestaEmpatica // También conservar respuesta empática
           };
 
           return NextResponse.json({
@@ -540,7 +622,7 @@ export async function POST(req) {
           
           sessions[from] = { 
             ...currentSession, 
-            stage: 'getting-email', // ← Saltar directo al email, la edad YA la tenemos
+            stage: 'getting-email',
             patientPhone: text 
           };
           return NextResponse.json({
@@ -833,7 +915,6 @@ ${emailsSent.patient ? "📧 Te hemos enviado la confirmación por email." : "�
 
 💡 Llega 15 minutos antes. ¡Nos vemos pronto!`;
           } else {
-            // Si no se pudo actualizar el sobrecupo, pero tenemos los datos del paciente
             statusText = `⚠️ Tu cita está siendo procesada.
 
 📋 DATOS REGISTRADOS:
@@ -870,7 +951,7 @@ ${updateError ? `Error técnico: ${updateError.substring(0, 100)}...` : ''}`;
       });
     }
 
-    // Detectar especialidad directa (ej: "necesito oftalmólogo")
+    // 🔥 DETECTAR ESPECIALIDAD DIRECTA PRIMERO (ej: "necesito oftalmólogo")
     const especialidadDirecta = detectarEspecialidadDirecta(text);
     
     if (especialidadDirecta) {
@@ -913,10 +994,10 @@ ${updateError ? `Error técnico: ${updateError.substring(0, 100)}...` : ''}`;
         }
       }
 
-      // Preguntar edad UNA SOLA VEZ al inicio
+      // 🔥 CONSERVAR LA ESPECIALIDAD DETECTADA EN LA SESIÓN
       sessions[from] = {
         stage: 'getting-age-for-filtering',
-        specialty,
+        specialty: specialty, // 🎯 ESPECIALIDAD ORIGINAL GUARDADA
         respuestaEmpatica,
         attempts: 0
       };
@@ -927,11 +1008,12 @@ ${updateError ? `Error técnico: ${updateError.substring(0, 100)}...` : ''}`;
       });
     }
 
-    // Detectar síntomas y mapear a especialidades
+    // 🔥 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES
     const especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
     
     if (especialidadPorSintomas) {
       const specialty = especialidadPorSintomas;
+      console.log(`🎯 Especialidad detectada por síntomas: ${specialty}`);
       
       // Generar respuesta empática usando OpenAI
       let respuestaEmpatica = "Entiendo tu preocupación.";
@@ -963,10 +1045,10 @@ ${updateError ? `Error técnico: ${updateError.substring(0, 100)}...` : ''}`;
         }
       }
 
-      // Preguntar edad UNA SOLA VEZ al inicio
+      // 🔥 CONSERVAR LA ESPECIALIDAD DETECTADA POR SÍNTOMAS EN LA SESIÓN
       sessions[from] = {
         stage: 'getting-age-for-filtering',
-        specialty,
+        specialty: specialty, // 🎯 ESPECIALIDAD POR SÍNTOMAS GUARDADA
         respuestaEmpatica,
         attempts: 0
       };
@@ -1012,10 +1094,10 @@ ${updateError ? `Error técnico: ${updateError.substring(0, 100)}...` : ''}`;
 
       const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
 
-      // Primero necesitamos la edad para filtrar médicos adecuados
+      // 🔥 CONSERVAR LA ESPECIALIDAD DETECTADA POR OPENAI EN LA SESIÓN
       sessions[from] = {
         stage: 'getting-age-for-filtering',
-        specialty,
+        specialty: specialty, // 🎯 ESPECIALIDAD OPENAI GUARDADA
         respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
         attempts: 0
       };
