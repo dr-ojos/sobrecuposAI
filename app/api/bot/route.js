@@ -731,8 +731,7 @@ export async function POST(req) {
                     "Nombre": patientName,
                     "RUT": patientRut,
                     "Telefono": patientPhone,
-                    "Email": text,
-                    "Fecha Reserva": new Date().toISOString().split('T')[0]
+                    "Email": text
                   }
                 })
               }
