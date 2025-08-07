@@ -758,11 +758,7 @@ export async function POST(req) {
                     "RUT": patientRut,
                     "Telefono": patientPhone,
                     "Email": text,
-                    "Edad": sessionPatientAge,
-                    "Fecha Registro": new Date().toISOString().split('T')[0],
-                    "Ultima Cita": sobrecupoData.Fecha,
-                    "Especialidad": specialty,
-                    "Estado": "Activo"
+                    "Edad": sessionPatientAge
                   }
                 };
 
