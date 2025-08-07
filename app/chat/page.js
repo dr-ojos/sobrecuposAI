@@ -118,6 +118,60 @@ function ChatComponent() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Escuchar mensajes de la ventana de pago
+  useEffect(() => {
+    const handlePaymentMessage = (event) => {
+      // Verificar que el mensaje viene del dominio correcto
+      if (event.origin !== window.location.origin) {
+        return;
+      }
+
+      console.log('💳 Mensaje de pago recibido:', event.data);
+
+      if (event.data.type === 'PAYMENT_SUCCESS') {
+        // Pago exitoso - mostrar mensaje de confirmación
+        const successMessage = {
+          from: "bot",
+          text: `✅ ¡Pago confirmado exitosamente!\n\n💳 ID Transacción: ${event.data.transactionId}\n\n🎉 ¡Tu cita médica ha sido reservada!\n\nRecibirás un email de confirmación en breve con todos los detalles.\n\n¡Gracias por usar Sobrecupos AI!`,
+          timestamp: new Date()
+        };
+
+        setMessages(msgs => [...msgs, successMessage]);
+
+        // Limpiar la sesión después del pago exitoso
+        setSession({});
+
+      } else if (event.data.type === 'PAYMENT_CANCELLED') {
+        // Pago cancelado
+        const cancelledMessage = {
+          from: "bot",
+          text: `⚠️ Pago cancelado.\n\nPuedes intentar nuevamente cuando estés listo. Escribe "enlace" para obtener nuevamente el enlace de pago.`,
+          timestamp: new Date()
+        };
+
+        setMessages(msgs => [...msgs, cancelledMessage]);
+
+      } else if (event.data.type === 'PAYMENT_SUCCESS_RESERVATION_ERROR') {
+        // Pago exitoso pero error en reserva
+        const errorMessage = {
+          from: "bot",
+          text: `💳 Pago procesado exitosamente (ID: ${event.data.transactionId})\n\n⚠️ Pero hubo un problema confirmando tu reserva.\n\nPor favor contacta soporte con tu ID de transacción.`,
+          timestamp: new Date()
+        };
+
+        setMessages(msgs => [...msgs, errorMessage]);
+      }
+    };
+
+    // Añadir event listener
+    window.addEventListener('message', handlePaymentMessage);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('message', handlePaymentMessage);
+    };
+  }, []);
+
   // Enviar segundo mensaje de bienvenida después de un delay
   useEffect(() => {
     if (messages.length === 1) {

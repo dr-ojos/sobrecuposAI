@@ -15,16 +15,12 @@ export async function POST(req) {
     console.log('🧪 Probando WhatsApp a:', testNumber);
 
     // Mensaje de prueba
-    const testMessage = `🧪 PRUEBA SOBRECUPOS AI
-
-¡Hola! Este es un mensaje de prueba del sistema.
-
-✅ Las credenciales de Twilio están funcionando correctamente.
-📱 El servicio de WhatsApp está operativo.
+    // Mensaje más simple para WhatsApp Business
+    const testMessage = `Hola! Este es un mensaje de prueba de Sobrecupos AI.
 
 Timestamp: ${new Date().toLocaleString('es-CL')}
 
-_Sistema Sobrecupos AI_`;
+Sistema Sobrecupos AI`;
 
     const result = await whatsAppService.sendMessage(testNumber, testMessage);
 

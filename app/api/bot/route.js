@@ -690,8 +690,52 @@ Ejemplos:
             });
           }
 
+          // Generar sesión de pago
+          const paymentSessionId = `PAY_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+          const sobrecupoDataForPayment = currentSession.records[0]?.fields;
+          const paymentAmount = "15000"; // Precio fijo por ahora
+          
+          // Obtener nombre del doctor para la URL de pago
+          const doctorNameForPayment = await getDoctorName(
+            Array.isArray(sobrecupoDataForPayment["Médico"]) ? 
+              sobrecupoDataForPayment["Médico"][0] : sobrecupoDataForPayment["Médico"]
+          );
+          
+          // Crear URL de pago con todos los parámetros
+          const paymentUrl = `/pago?sobrecupoId=${currentSession.records[0].id}&patientName=${encodeURIComponent(currentSession.patientName)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
+          
+          // Actualizar sesión con datos de pago
+          sessions[from] = { 
+            ...currentSession, 
+            stage: 'pending-payment',
+            patientEmail: text,
+            paymentSessionId: paymentSessionId,
+            paymentUrl: paymentUrl
+          };
+          
+          return NextResponse.json({
+            text: `✅ ¡Perfecto! Tengo todos tus datos:\n\n👤 ${currentSession.patientName}\n📧 ${text}\n📱 ${currentSession.patientPhone}\n🆔 ${currentSession.patientRut}\n📅 ${currentSession.patientAge} años\n\n💰 **Último paso: Confirmar pago**\n\nValor de la consulta: $${parseInt(paymentAmount).toLocaleString('es-CL')} CLP\n\n👆 **[Ir a pagar](${paymentUrl})**\n\nHaz clic en el enlace para completar el pago y confirmar tu reserva. Una vez que completes el pago, tu cita será confirmada automáticamente.`,
+            session: sessions[from]
+          });
+
+        case 'pending-payment':
+          // Usuario escribió algo mientras esperaba el pago
+          if (text.toLowerCase().includes('enlace') || text.toLowerCase().includes('pago') || text.toLowerCase().includes('reenviar')) {
+            // Reenviar enlace de pago
+            const paymentUrl = currentSession.paymentUrl || '/pago';
+            return NextResponse.json({
+              text: `Aquí tienes nuevamente el enlace de pago:\n\n👆 **[Ir a pagar](${paymentUrl})**\n\nCompleta el pago para confirmar tu reserva.`
+            });
+          }
+          
+          return NextResponse.json({
+            text: `⏳ Tu pago está pendiente.\n\nPor favor, completa el pago haciendo clic en el enlace que te envié para confirmar tu reserva.\n\nEscribe "enlace" si necesitas que te reenvíe el enlace de pago.`
+          });
+
+        case 'payment-completed':
+          // Esta sección se ejecutará después de que se confirme el pago
           // 🔥 VERIFICACIÓN ROBUSTA DE DATOS DE SESIÓN
-          const { patientAge, patientName, patientRut, patientPhone, records, specialty } = currentSession;
+          const { patientAge, patientName, patientRut, patientPhone, patientEmail, records, specialty } = currentSession;
           
           console.log("🔍 === DEBUG SESIÓN ===");
           console.log("📋 Datos de sesión disponibles:", {
