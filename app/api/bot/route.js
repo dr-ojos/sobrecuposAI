@@ -728,10 +728,10 @@ export async function POST(req) {
                 body: JSON.stringify({
                   fields: {
                     "Disponible": "No",
-                    "Paciente Nombre": patientName,
-                    "Paciente RUT": patientRut,
-                    "Paciente Teléfono": patientPhone,
-                    "Paciente Email": text,
+                    "Nombre": patientName,
+                    "RUT": patientRut,
+                    "Telefono": patientPhone,
+                    "Email": text,
                     "Fecha Reserva": new Date().toISOString().split('T')[0]
                   }
                 })
@@ -754,15 +754,15 @@ export async function POST(req) {
                 
                 const patientData = {
                   fields: {
-                    "Name": patientName,
+                    "Nombre": patientName,
                     "RUT": patientRut,
-                    "Phone": patientPhone,
+                    "Telefono": patientPhone,
                     "Email": text,
-                    "Age": sessionPatientAge,
-                    "Registration Date": new Date().toISOString().split('T')[0],
-                    "Last Appointment": sobrecupoData.Fecha,
-                    "Specialty": specialty,
-                    "Status": "Active"
+                    "Edad": sessionPatientAge,
+                    "Fecha Registro": new Date().toISOString().split('T')[0],
+                    "Ultima Cita": sobrecupoData.Fecha,
+                    "Especialidad": specialty,
+                    "Estado": "Activo"
                   }
                 };
 
