@@ -388,8 +388,16 @@ async function buscarSobrecuposPorEspecialidad(especialidad, edad = null) {
     
     if (edad !== null) {
       const edadInt = parseInt(edad);
+      // Solo cambiar a Pediatría para especialidades que NO atienden niños
       if (edadInt < 18) {
-        filterFormula = `AND({Especialidad} = "Pediatría", {Disponible} = "Si")`;
+        const especialidadesQueAtiendenNinos = [
+          'Oftalmología', 'Dermatología', 'Neurología', 'Traumatología', 
+          'Cardiología', 'Otorrinolaringología', 'Urología'
+        ];
+        
+        if (!especialidadesQueAtiendenNinos.includes(especialidad)) {
+          filterFormula = `AND({Especialidad} = "Pediatría", {Disponible} = "Si")`;
+        }
       }
     }
 
@@ -498,8 +506,18 @@ export async function POST(req) {
 
           let finalSpecialty = sessionSpecialty;
           if (inputPatientAge < 18 && sessionSpecialty !== 'Pediatría') {
-            finalSpecialty = 'Pediatría';
-            console.log(`🔄 Cambiando a Pediatría por edad: ${inputPatientAge}`);
+            // Solo cambiar a Pediatría para especialidades que NO atienden niños
+            const especialidadesQueAtiendenNinos = [
+              'Oftalmología', 'Dermatología', 'Neurología', 'Traumatología', 
+              'Cardiología', 'Otorrinolaringología', 'Urología'
+            ];
+            
+            if (!especialidadesQueAtiendenNinos.includes(sessionSpecialty)) {
+              finalSpecialty = 'Pediatría';
+              console.log(`🔄 Cambiando a Pediatría por edad: ${inputPatientAge}`);
+            } else {
+              console.log(`👶 Manteniendo ${sessionSpecialty} para niño/adolescente`);
+            }
           }
 
           const sobrecupoRecords = await buscarSobrecuposPorEspecialidad(finalSpecialty, inputPatientAge);
@@ -900,6 +918,14 @@ Equipo Sobrecupos AI`;
 
     // 🧠 FLUJO INICIAL CON IA AVANZADA (NUEVO + ORIGINAL)
     
+    // IMPORTANTE: Si ya hay una sesión activa con especialidad, no re-ejecutar detección
+    if (currentSession.specialty && currentSession.stage !== 'initial') {
+      console.log(`⚠️  Sesión activa detectada con especialidad: ${currentSession.specialty}, stage: ${currentSession.stage}`);
+      return NextResponse.json({
+        text: "Ya tienes una consulta en proceso. Por favor, sigue las instrucciones anteriores o escribe 'hola' para comenzar de nuevo."
+      });
+    }
+    
     // Saludo simple - respuesta inicial
     if (esSaludoSimple(text)) {
       return NextResponse.json({
@@ -1057,7 +1083,7 @@ Equipo Sobrecupos AI`;
     }
 
     // 🧠 RESPALDO CON OPENAI (SOLO SI NO SE DETECTÓ NADA ANTES)
-    if (OPENAI_API_KEY) {
+    if (OPENAI_API_KEY && !sessions[from]?.specialty) {
       const especialidadesDisponibles = await getEspecialidadesDisponibles();
       const especialidadesString = especialidadesDisponibles.join(", ");
 
