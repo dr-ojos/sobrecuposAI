@@ -98,6 +98,7 @@ function ChatComponent() {
         setMessages((msgs) => [...msgs, { 
           from: "bot", 
           text: data.text || "¿En qué puedo ayudarte?",
+          paymentButton: data.paymentButton || null,
           timestamp: new Date()
         }]);
       }
@@ -242,6 +243,7 @@ function ChatComponent() {
         setMessages((msgs) => [...msgs, { 
           from: "bot", 
           text: data.text,
+          paymentButton: data.paymentButton || null,
           timestamp: new Date()
         }]);
       }
@@ -318,6 +320,21 @@ function ChatComponent() {
               <div className="message-content">
                 <div className={`message-bubble ${msg.from}`}>
                   <p>{msg.text}</p>
+                  {msg.paymentButton && (
+                    <div className="payment-button-container">
+                      <button
+                        onClick={() => window.open(msg.paymentButton.url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes')}
+                        className="payment-button"
+                      >
+                        <span className="button-icon">💳</span>
+                        <div className="button-content">
+                          <span className="button-text">{msg.paymentButton.text}</span>
+                          <span className="button-amount">{msg.paymentButton.amount}</span>
+                        </div>
+                        <span className="button-arrow">→</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="message-time">
                   {formatTime(msg.timestamp)}
@@ -890,6 +907,84 @@ function ChatComponent() {
             border-radius: 13px;
             bottom: 0.6rem;
             right: 0.6rem;
+          }
+        }
+
+        /* Payment Button Styles */
+        .payment-button-container {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .payment-button {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 1rem;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          animation: pulseGlow 2s infinite;
+        }
+
+        .payment-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .payment-button:active {
+          transform: translateY(0);
+        }
+
+        .button-icon {
+          font-size: 1.5rem;
+          color: white;
+        }
+
+        .button-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.25rem;
+        }
+
+        .button-text {
+          color: white;
+          font-weight: 600;
+          font-size: 1rem;
+          line-height: 1;
+        }
+
+        .button-amount {
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 0.85rem;
+          font-weight: 500;
+        }
+
+        .button-arrow {
+          color: white;
+          font-size: 1.2rem;
+          font-weight: bold;
+          opacity: 0.8;
+          transition: transform 0.2s ease;
+        }
+
+        .payment-button:hover .button-arrow {
+          transform: translateX(4px);
+        }
+
+        @keyframes pulseGlow {
+          0%, 100% {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          }
+          50% {
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5);
           }
         }
 

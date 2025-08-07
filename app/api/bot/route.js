@@ -743,8 +743,13 @@ Ejemplos:
             };
             
             return NextResponse.json({
-              text: `✅ ¡Perfecto! Tengo todos tus datos:\n\n👤 ${currentSession.patientName}\n📧 ${text}\n📱 ${currentSession.patientPhone}\n🆔 ${currentSession.patientRut}\n📅 ${currentSession.patientAge} años\n\n💰 **Último paso: Confirmar pago**\n\nValor autorización de sobrecupo: **$${parseInt(paymentAmount).toLocaleString('es-CL')} CLP**\n\n🔗 **Haz clic aquí para pagar:**\n👆 **[Procesar Pago](${paymentUrl})**\n\nUna vez que completes el pago, tu cita será confirmada automáticamente. ¡Es muy rápido!`,
-              session: sessions[from]
+              text: `✅ ¡Perfecto! Tengo todos tus datos:\n\n👤 ${currentSession.patientName}\n📧 ${text}\n📱 ${currentSession.patientPhone}\n🆔 ${currentSession.patientRut}\n📅 ${currentSession.patientAge} años\n\n💰 **Último paso: Confirmar pago**\n\nValor autorización de sobrecupo: **$${parseInt(paymentAmount).toLocaleString('es-CL')} CLP**`,
+              session: sessions[from],
+              paymentButton: {
+                text: "💳 Procesar Pago",
+                url: paymentUrl,
+                amount: `$${parseInt(paymentAmount).toLocaleString('es-CL')} CLP`
+              }
             });
 
           } catch (linkError) {
@@ -762,8 +767,13 @@ Ejemplos:
             };
             
             return NextResponse.json({
-              text: `✅ ¡Perfecto! Tengo todos tus datos:\n\n👤 ${currentSession.patientName}\n📧 ${text}\n📱 ${currentSession.patientPhone}\n🆔 ${currentSession.patientRut}\n📅 ${currentSession.patientAge} años\n\n💰 **Último paso: Confirmar pago**\n\nValor autorización de sobrecupo: **$${parseInt(paymentAmount).toLocaleString('es-CL')} CLP**\n\n🔗 **Haz clic aquí para pagar:**\n👆 **[Procesar Pago](${fallbackPaymentUrl})**\n\nUna vez que completes el pago, tu cita será confirmada automáticamente. ¡Es muy rápido!`,
-              session: sessions[from]
+              text: `✅ ¡Perfecto! Tengo todos tus datos:\n\n👤 ${currentSession.patientName}\n📧 ${text}\n📱 ${currentSession.patientPhone}\n🆔 ${currentSession.patientRut}\n📅 ${currentSession.patientAge} años\n\n💰 **Último paso: Confirmar pago**\n\nValor autorización de sobrecupo: **$${parseInt(paymentAmount).toLocaleString('es-CL')} CLP**`,
+              session: sessions[from],
+              paymentButton: {
+                text: "💳 Procesar Pago",
+                url: fallbackPaymentUrl,
+                amount: `$${parseInt(paymentAmount).toLocaleString('es-CL')} CLP`
+              }
             });
           }
 
@@ -773,7 +783,12 @@ Ejemplos:
             // Reenviar enlace de pago
             const paymentUrl = currentSession.paymentUrl || '/pago';
             return NextResponse.json({
-              text: `🔗 **Aquí tienes nuevamente el enlace de pago:**\n\n👆 **[Procesar Pago](${paymentUrl})**\n\nValor: **$2.990 CLP**\n\nCompleta el pago para confirmar tu reserva.`
+              text: `🔗 **Aquí tienes nuevamente el enlace de pago:**\n\nValor: **$2.990 CLP**\n\nCompleta el pago para confirmar tu reserva.`,
+              paymentButton: {
+                text: "💳 Procesar Pago",
+                url: paymentUrl,
+                amount: "$2.990 CLP"
+              }
             });
           }
           
