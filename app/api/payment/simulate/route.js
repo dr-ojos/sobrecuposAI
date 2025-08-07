@@ -7,7 +7,7 @@ export async function POST(req) {
       sobrecupoId, 
       patientData, 
       appointmentData, 
-      paymentAmount 
+      paymentAmount = "2990" // Precio por defecto actualizado
     } = await req.json();
 
     console.log('💳 Simulando pago:', {

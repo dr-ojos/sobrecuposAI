@@ -235,7 +235,7 @@ export async function POST(req) {
 • Email: ${patientData.email}
 • Edad: ${patientData.age} años
 
-💳 PAGO CONFIRMADO: $${parseInt(appointmentData.amount || '15000').toLocaleString('es-CL')} CLP
+💳 PAGO CONFIRMADO: $${parseInt(appointmentData.amount || '2990').toLocaleString('es-CL')} CLP
 ID Transacción: ${transactionId}
 
 ✅ El paciente ha confirmado su asistencia.
@@ -295,7 +295,7 @@ Sistema Sobrecupos AI`;
 • Teléfono: ${patientData.phone}
 
 💳 PAGO CONFIRMADO:
-• Monto: $${parseInt(appointmentData.amount || '15000').toLocaleString('es-CL')} CLP
+• Monto: $${parseInt(appointmentData.amount || '2990').toLocaleString('es-CL')} CLP
 • ID Transacción: ${transactionId}
 
 📝 RECOMENDACIONES:
