@@ -137,20 +137,30 @@ function esConsultaNoMedica(text) {
   }
   
   const temasCotidianos = [
-    'pizza', 'comida', 'restaurant', 'comer', 'almuerzo', 'cena', 'desayuno',
-    'clima', 'tiempo', 'lluvia', 'sol', 'temperatura',
-    'futbol', 'deporte', 'partido', 'equipo',
-    'musica', 'cancion', 'cantante', 'banda',
-    'pelicula', 'serie', 'netflix', 'television',
-    'trabajo', 'jefe', 'oficina', 'reunion',
-    'universidad', 'colegio', 'estudiar', 'examen',
-    'viaje', 'vacaciones', 'hotel', 'avion',
-    'dinero', 'plata', 'banco', 'credito',
-    'amor', 'pareja', 'novia', 'novio', 'esposa', 'esposo',
-    'auto', 'carro', 'vehiculo', 'manejar',
-    'casa', 'departamento', 'arriendo', 'mudanza',
-    'computador', 'celular', 'telefono', 'internet',
-    'ropa', 'zapatos', 'comprar', 'tienda'
+    // Comida y bebidas
+    'pizza', 'hamburguesa', 'sandwich', 'empanada', 'asado', 'completo', 'sopaipilla',
+    'comida', 'restaurant', 'comer', 'almuerzo', 'cena', 'desayuno', 'once',
+    'cafe', 'te', 'jugo', 'bebida', 'cerveza', 'vino', 'pisco',
+    // Clima y tiempo
+    'clima', 'tiempo', 'lluvia', 'sol', 'temperatura', 'frio', 'calor', 'nieve',
+    // Deportes y entretenimiento
+    'futbol', 'deporte', 'partido', 'equipo', 'gimnasio', 'ejercicio',
+    'musica', 'cancion', 'cantante', 'banda', 'concierto',
+    'pelicula', 'serie', 'netflix', 'television', 'youtube',
+    // Trabajo y estudios
+    'trabajo', 'jefe', 'oficina', 'reunion', 'sueldo', 'pega',
+    'universidad', 'colegio', 'estudiar', 'examen', 'clase',
+    // Viajes y lugares
+    'viaje', 'vacaciones', 'hotel', 'avion', 'playa', 'campo', 'ciudad',
+    // Dinero y compras
+    'dinero', 'plata', 'banco', 'credito', 'comprar', 'tienda', 'mall',
+    // Relaciones
+    'amor', 'pareja', 'novia', 'novio', 'esposa', 'esposo', 'familia',
+    // Transporte y tecnología
+    'auto', 'carro', 'vehiculo', 'manejar', 'micro', 'metro',
+    'computador', 'celular', 'telefono', 'internet', 'whatsapp',
+    // Vivienda y otros
+    'casa', 'departamento', 'arriendo', 'mudanza', 'ropa', 'zapatos'
   ];
   
   // Si contiene algún tema cotidiano y NO contiene términos médicos específicos
