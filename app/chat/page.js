@@ -22,7 +22,7 @@ function ChatComponent() {
   const searchParams = useSearchParams();
 
   // Función para renderizar Markdown básico
-  const renderMarkdown = (text) => {
+  const renderMarkdown = (text, paymentButton = null) => {
     if (!text) return '';
     
     let html = text
@@ -33,7 +33,33 @@ function ChatComponent() {
       // Convertir saltos de línea a <br>
       .replace(/\n/g, '<br>');
     
+    // Si hay un botón de pago, hacer clickeable el texto relacionado con pago
+    if (paymentButton) {
+      // Detectar y hacer clickeable frases de pago
+      html = html
+        .replace(
+          /(💰.*?Confirmar pago.*?)(<br>|$)/g, 
+          `<span class="payment-trigger-text" data-payment-url="${paymentButton.url}">$1</span>$2`
+        )
+        .replace(
+          /(Último paso.*?pago.*?)(<br>|$)/gi, 
+          `<span class="payment-trigger-text" data-payment-url="${paymentButton.url}">$1</span>$2`
+        )
+        .replace(
+          /(Valor.*?autorización.*?CLP.*?)(<br>|$)/gi, 
+          `<span class="payment-trigger-text" data-payment-url="${paymentButton.url}">$1</span>$2`
+        );
+    }
+    
     return html;
+  };
+
+  // Función para manejar clicks en texto de pago
+  const handlePaymentTextClick = (event) => {
+    const paymentUrl = event.target.getAttribute('data-payment-url');
+    if (paymentUrl) {
+      window.open(paymentUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+    }
   };
 
   useEffect(() => {
@@ -337,7 +363,8 @@ function ChatComponent() {
                   {msg.from === 'bot' ? (
                     <div 
                       className="message-text"
-                      dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.text) }}
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.text, msg.paymentButton) }}
+                      onClick={handlePaymentTextClick}
                     />
                   ) : (
                     <p>{msg.text}</p>
@@ -623,6 +650,37 @@ function ChatComponent() {
         .message-text em {
           font-style: italic;
           color: inherit;
+        }
+
+        .payment-trigger-text {
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-radius: 4px;
+          padding: 2px 4px;
+          margin: -2px -4px;
+          position: relative;
+        }
+
+        .payment-trigger-text:hover {
+          background: rgba(16, 185, 129, 0.1);
+          color: #059669;
+          transform: translateY(-1px);
+        }
+
+        .payment-trigger-text:active {
+          transform: translateY(0);
+          background: rgba(16, 185, 129, 0.2);
+        }
+
+        .payment-trigger-text::after {
+          content: ' 👆';
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          font-size: 0.8em;
+        }
+
+        .payment-trigger-text:hover::after {
+          opacity: 1;
         }
 
         .message-time {
