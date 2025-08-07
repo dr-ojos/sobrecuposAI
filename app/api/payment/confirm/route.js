@@ -57,12 +57,25 @@ export async function POST(req) {
       appointmentData 
     } = await req.json();
 
-    console.log('🔄 Confirmando pago y procesando reserva:', {
+    console.log('🔄 === INICIO CONFIRMACIÓN DE PAGO ===');
+    console.log('📋 Datos recibidos:', {
       sessionId,
       transactionId,
       sobrecupoId,
-      patient: patientData.name
+      patientData,
+      appointmentData
     });
+
+    // Validar que sobrecupoId esté presente y tenga formato correcto
+    if (!sobrecupoId) {
+      console.error('❌ sobrecupoId es requerido');
+      throw new Error('sobrecupoId es requerido');
+    }
+
+    if (typeof sobrecupoId !== 'string' || sobrecupoId.length < 10) {
+      console.error('❌ sobrecupoId tiene formato inválido:', sobrecupoId);
+      throw new Error('sobrecupoId tiene formato inválido');
+    }
 
     // Variables de entorno necesarias
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
@@ -71,7 +84,16 @@ export async function POST(req) {
     const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
     const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL;
 
+    console.log('🔧 Variables de entorno:', {
+      AIRTABLE_API_KEY: AIRTABLE_API_KEY ? '✅ Presente' : '❌ Faltante',
+      AIRTABLE_BASE_ID: AIRTABLE_BASE_ID ? '✅ Presente' : '❌ Faltante',
+      AIRTABLE_TABLE_ID: AIRTABLE_TABLE_ID ? '✅ Presente' : '❌ Faltante',
+      SENDGRID_API_KEY: SENDGRID_API_KEY ? '✅ Presente' : '❌ Faltante',
+      SENDGRID_FROM_EMAIL: SENDGRID_FROM_EMAIL ? '✅ Presente' : '❌ Faltante'
+    });
+
     if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
+      console.error('❌ VARIABLES DE AIRTABLE NO CONFIGURADAS');
       throw new Error('Variables de Airtable no configuradas');
     }
 
@@ -126,21 +148,25 @@ export async function POST(req) {
       }
 
       // 2. ACTUALIZAR SOBRECUPO (CRÍTICO)
-      console.log("📅 Actualizando sobrecupo...");
+      console.log("📅 === ACTUALIZANDO SOBRECUPO ===");
+      console.log("🆔 Sobrecupo ID:", sobrecupoId);
       
       const updateData = {
         fields: {
           Disponible: "No",
-          RUT: patientData.rut,
-          Edad: patientData.age,
-          Nombre: patientData.name,
-          Telefono: patientData.phone,
-          Email: patientData.email,
+          RUT: String(patientData.rut || ''),
+          Edad: parseInt(patientData.age) || 0,
+          Nombre: String(patientData.name || ''),
+          Telefono: String(patientData.phone || ''),
+          Email: String(patientData.email || ''),
           "Pagado": "Sí",
-          "ID Transacción": transactionId,
+          "ID Transacción": String(transactionId || ''),
           "Fecha Pago": new Date().toISOString()
         }
       };
+
+      console.log("📝 Datos a actualizar:", updateData);
+      console.log("🔗 URL de actualización:", `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${sobrecupoId}`);
 
       const updateResponse = await fetch(
         `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${sobrecupoId}`,
@@ -154,13 +180,21 @@ export async function POST(req) {
         }
       );
 
+      console.log("📡 Response status:", updateResponse.status);
+      console.log("📡 Response ok:", updateResponse.ok);
+
       if (updateResponse.ok) {
         sobrecupoUpdated = true;
         console.log("✅ Sobrecupo actualizado exitosamente");
       } else {
         const errorData = await updateResponse.json();
         console.error("❌ Error actualizando sobrecupo:", errorData);
-        throw new Error(`Error actualizando sobrecupo: ${updateResponse.status}`);
+        console.error("❌ Response completa:", {
+          status: updateResponse.status,
+          statusText: updateResponse.statusText,
+          errorData
+        });
+        throw new Error(`Error actualizando sobrecupo: ${updateResponse.status} - ${JSON.stringify(errorData)}`);
       }
 
       // 3. OBTENER DATOS DEL SOBRECUPO PARA NOTIFICACIONES
@@ -340,7 +374,10 @@ Equipo Sobrecupos AI`;
         "Error procesando la reserva";
 
     } catch (error) {
-      console.error("❌ Error procesando reserva:", error);
+      console.error("❌ === ERROR PROCESANDO RESERVA ===");
+      console.error("❌ Error message:", error.message);
+      console.error("❌ Error stack:", error.stack);
+      console.error("❌ Error completo:", error);
       throw error;
     }
 
