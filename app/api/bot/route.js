@@ -711,6 +711,10 @@ Ejemplos:
               body: JSON.stringify({
                 sobrecupoId: currentSession.records[0].id,
                 patientName: currentSession.patientName,
+                patientRut: currentSession.patientRut,
+                patientPhone: currentSession.patientPhone,
+                patientEmail: text,
+                patientAge: currentSession.patientAge,
                 doctorName: doctorNameForPayment,
                 specialty: currentSession.specialty,
                 date: formatSpanishDate(sobrecupoDataForPayment.Fecha),
@@ -729,7 +733,7 @@ Ejemplos:
               console.log('✅ Enlace corto creado:', paymentUrl);
             } else {
               // Fallback al enlace largo si falla
-              paymentUrl = `/pago?sobrecupoId=${currentSession.records[0].id}&patientName=${encodeURIComponent(currentSession.patientName)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
+              paymentUrl = `/pago?sobrecupoId=${currentSession.records[0].id}&patientName=${encodeURIComponent(currentSession.patientName)}&patientRut=${encodeURIComponent(currentSession.patientRut)}&patientPhone=${encodeURIComponent(currentSession.patientPhone)}&patientEmail=${encodeURIComponent(text)}&patientAge=${encodeURIComponent(currentSession.patientAge)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
               console.log('⚠️ Fallback a enlace largo:', linkResult.error);
             }
 
@@ -756,7 +760,7 @@ Ejemplos:
             console.error('❌ Error creando enlace de pago:', linkError);
             
             // Fallback al enlace largo
-            const fallbackPaymentUrl = `/pago?sobrecupoId=${currentSession.records[0].id}&patientName=${encodeURIComponent(currentSession.patientName)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
+            const fallbackPaymentUrl = `/pago?sobrecupoId=${currentSession.records[0].id}&patientName=${encodeURIComponent(currentSession.patientName)}&patientRut=${encodeURIComponent(currentSession.patientRut)}&patientPhone=${encodeURIComponent(currentSession.patientPhone)}&patientEmail=${encodeURIComponent(text)}&patientAge=${encodeURIComponent(currentSession.patientAge)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
             
             sessions[from] = { 
               ...currentSession, 

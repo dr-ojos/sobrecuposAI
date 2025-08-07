@@ -17,12 +17,16 @@ function PagoContent() {
     const data = {
       sobrecupoId: searchParams.get('sobrecupoId'),
       patientName: searchParams.get('patientName'),
+      patientRut: searchParams.get('patientRut'),
+      patientPhone: searchParams.get('patientPhone'),
+      patientEmail: searchParams.get('patientEmail'),
+      patientAge: searchParams.get('patientAge'),
       doctorName: searchParams.get('doctorName'),
       specialty: searchParams.get('specialty'),
       date: searchParams.get('date'),
       time: searchParams.get('time'),
       clinic: searchParams.get('clinic'),
-      amount: searchParams.get('amount') || '15000',
+      amount: searchParams.get('amount') || '2990',
       sessionId: searchParams.get('sessionId')
     };
 
@@ -85,10 +89,10 @@ function PagoContent() {
               sobrecupoId: paymentData.sobrecupoId,
               patientData: {
                 name: paymentData.patientName,
-                rut: result.patientRut || 'N/A',
-                phone: result.patientPhone || 'N/A',
-                email: result.patientEmail || 'N/A',
-                age: result.patientAge || 'N/A'
+                rut: paymentData.patientRut || 'N/A',
+                phone: paymentData.patientPhone || 'N/A',
+                email: paymentData.patientEmail || 'N/A',
+                age: paymentData.patientAge || 'N/A'
               },
               appointmentData: {
                 doctor: paymentData.doctorName,

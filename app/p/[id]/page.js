@@ -20,7 +20,7 @@ function PaymentRedirectContent() {
           const data = result.data;
           
           // Construir URL completa de pago
-          const paymentUrl = `/pago?sobrecupoId=${data.sobrecupoId}&patientName=${encodeURIComponent(data.patientName)}&doctorName=${encodeURIComponent(data.doctorName)}&specialty=${encodeURIComponent(data.specialty)}&date=${encodeURIComponent(data.date)}&time=${encodeURIComponent(data.time)}&clinic=${encodeURIComponent(data.clinic)}&amount=${data.amount}&sessionId=${data.sessionId}`;
+          const paymentUrl = `/pago?sobrecupoId=${data.sobrecupoId}&patientName=${encodeURIComponent(data.patientName)}&patientRut=${encodeURIComponent(data.patientRut)}&patientPhone=${encodeURIComponent(data.patientPhone)}&patientEmail=${encodeURIComponent(data.patientEmail)}&patientAge=${encodeURIComponent(data.patientAge)}&doctorName=${encodeURIComponent(data.doctorName)}&specialty=${encodeURIComponent(data.specialty)}&date=${encodeURIComponent(data.date)}&time=${encodeURIComponent(data.time)}&clinic=${encodeURIComponent(data.clinic)}&amount=${data.amount}&sessionId=${data.sessionId}`;
           
           console.log('✅ Redirigiendo a:', paymentUrl);
           

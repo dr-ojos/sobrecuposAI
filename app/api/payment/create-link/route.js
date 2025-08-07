@@ -11,7 +11,7 @@ export async function POST(req) {
     console.log('🔗 Creando enlace de pago corto:', paymentData);
 
     // Validar datos requeridos
-    const requiredFields = ['sobrecupoId', 'patientName', 'doctorName', 'specialty', 'date', 'time', 'clinic', 'sessionId'];
+    const requiredFields = ['sobrecupoId', 'patientName', 'patientRut', 'patientPhone', 'patientEmail', 'patientAge', 'doctorName', 'specialty', 'date', 'time', 'clinic', 'sessionId'];
     for (const field of requiredFields) {
       if (!paymentData[field]) {
         return NextResponse.json({
