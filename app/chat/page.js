@@ -30,6 +30,8 @@ function ChatComponent() {
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       // Convertir *texto* a <em>texto</em>
       .replace(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g, '<em>$1</em>')
+      // Convertir URLs en enlaces clickeables (detectar /p/, /pago, http, https)
+      .replace(/(https?:\/\/[^\s<]+|\/p\/[A-Z0-9]+|\/pago\?[^\s<]+)/gi, '<a href="$1" target="_blank" class="payment-link">$1</a>')
       // Convertir saltos de línea a <br>
       .replace(/\n/g, '<br>');
     
@@ -681,6 +683,30 @@ function ChatComponent() {
 
         .payment-trigger-text:hover::after {
           opacity: 1;
+        }
+
+        .payment-link {
+          color: #007AFF !important;
+          text-decoration: underline;
+          font-weight: 600;
+          transition: all 0.2s ease;
+          display: inline-block;
+          padding: 2px 4px;
+          border-radius: 4px;
+          background: rgba(0, 122, 255, 0.1);
+          margin: 2px 0;
+          word-break: break-all;
+        }
+
+        .payment-link:hover {
+          color: #0051D0 !important;
+          background: rgba(0, 122, 255, 0.2);
+          transform: translateY(-1px);
+          text-decoration: underline;
+        }
+
+        .payment-link:active {
+          transform: translateY(0);
         }
 
         .message-time {
