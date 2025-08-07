@@ -915,7 +915,7 @@ Equipo Sobrecupos AI`;
       });
     }
 
-    // 🧠 ANÁLISIS PRINCIPAL CON IA MÉDICA
+    // 🧠 ANÁLISIS PRINCIPAL CON IA MÉDICA (SOLO UNA VEZ)
     console.log('🧠 Iniciando análisis con IA médica avanzada...');
     const aiAnalysis = analyzeWithMedicalAI(text);
     console.log('🧠 Resultado del análisis IA:', aiAnalysis);
@@ -973,7 +973,8 @@ Equipo Sobrecupos AI`;
         specialty: specialty,
         respuestaEmpatica,
         attempts: 0,
-        aiAnalysis: aiAnalysis  // 🧠 Guardar análisis de IA
+        aiAnalysis: aiAnalysis,
+        processed: true  // 🔥 MARCAR COMO PROCESADO
       };
 
       // 🧠 MENSAJE MEJORADO CON IA
@@ -990,7 +991,7 @@ Equipo Sobrecupos AI`;
       });
     }
 
-    // 🧠 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES (POTENCIADO)
+    // 🧠 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES (SOLO SI NO HAY ESPECIALIDAD DIRECTA)
     const especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
     
     if (especialidadPorSintomas) {
@@ -1037,7 +1038,8 @@ Equipo Sobrecupos AI`;
         specialty: specialty,
         respuestaEmpatica,
         attempts: 0,
-        aiAnalysis: aiAnalysis  // 🧠 Guardar análisis de IA
+        aiAnalysis: aiAnalysis,
+        processed: true  // 🔥 MARCAR COMO PROCESADO
       };
 
       // 🧠 RESPUESTA INTELIGENTE SEGÚN URGENCIA
@@ -1055,7 +1057,7 @@ Equipo Sobrecupos AI`;
       });
     }
 
-    // 🧠 RESPALDO CON OPENAI (MEJORADO)
+    // 🧠 RESPALDO CON OPENAI (SOLO SI NO SE DETECTÓ NADA ANTES)
     if (OPENAI_API_KEY) {
       const especialidadesDisponibles = await getEspecialidadesDisponibles();
       const especialidadesString = especialidadesDisponibles.join(", ");
@@ -1101,7 +1103,8 @@ Equipo Sobrecupos AI`;
         specialty: specialty,
         respuestaEmpatica: finalResponse,
         attempts: 0,
-        aiAnalysis: aiAnalysis  // 🧠 Guardar análisis de IA
+        aiAnalysis: aiAnalysis,
+        processed: true  // 🔥 MARCAR COMO PROCESADO
       };
 
       let responseMessage = `${finalResponse}\n\nPor lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`;

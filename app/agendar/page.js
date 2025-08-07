@@ -280,7 +280,7 @@ const AgendarSobrecuposPage = () => {
           {/* Hero Section */}
           <section className="hero-section">
             <div className="hero-content">
-              <h2 className="main-title">Encuentra tu cita médica</h2>
+              <h2 className="main-title">Encuentra tu Sobrecupo</h2>
               <p className="main-subtitle">Sobrecupos disponibles para reservar ahora</p>
             </div>
           </section>
