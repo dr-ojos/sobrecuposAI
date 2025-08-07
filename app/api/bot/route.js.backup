@@ -1,4 +1,4 @@
-// app/api/bot/route.js - VERSIÓN FINAL CORREGIDA COMPLETA
+// app/api/bot/route.js - VERSIÓN FINAL CORREGIDA Y COMPLETA
 import { NextResponse } from 'next/server';
 
 // Estado de sesiones en memoria
@@ -426,7 +426,7 @@ export async function POST(req) {
       return NextResponse.json({ text: respuestaAleatoria });
     }
 
-    // 🔥 MANEJO DE SESIONES EXISTENTES - LÓGICA CORREGIDA PARA CONSERVAR ESPECIALIDAD
+    // 🔥 MANEJO DE SESIONES EXISTENTES
     if (currentSession?.stage) {
       const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = currentSession;
 
@@ -439,10 +439,9 @@ export async function POST(req) {
             });
           }
 
-          // 🔥 CRÍTICO: MANTENER LA ESPECIALIDAD ORIGINAL DE LA SESIÓN
           console.log(`🎯 Manteniendo especialidad original: ${specialty} para edad ${edadIngresada}`);
 
-          // Buscar médicos compatibles con la edad PARA LA ESPECIALIDAD CORRECTA
+          // Buscar médicos compatibles con la edad
           const medicosCompatibles = await getMedicosQueAtienden(specialty, edadIngresada);
           
           if (medicosCompatibles.length === 0) {
@@ -468,22 +467,21 @@ export async function POST(req) {
             return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
           }
 
-          // 🔥 FILTRAR POR MÉDICOS COMPATIBLES Y ESPECIALIDAD
+          // Filtrar por médicos compatibles y especialidad
           const availableFiltered = sobrecuposRecords.filter(r => {
             const fields = r.fields || {};
             const medicoField = fields["Médico"];
             
-            // Obtener ID del médico del sobrecupo
             const medicoId = Array.isArray(medicoField) ? medicoField[0] : medicoField;
             
             return (
-              (fields.Especialidad === specialty) && // 🔥 USA LA ESPECIALIDAD ORIGINAL
+              (fields.Especialidad === specialty) &&
               (fields.Disponible === "Si" || fields.Disponible === true) &&
               medicosIds.includes(medicoId)
             );
           });
 
-          // 🆕 FILTRAR SOLO FECHAS FUTURAS
+          // Filtrar solo fechas futuras
           const available = filterFutureDates(availableFiltered);
           console.log(`📅 Sobrecupos futuros encontrados: ${available.length} de ${availableFiltered.length} totales`);
 
@@ -506,17 +504,16 @@ export async function POST(req) {
           const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
           const medicoNombre = await getDoctorName(medicoId);
 
-          // 🆕 FORMATEAR FECHA EN FORMATO ESPAÑOL
+          // Formatear fecha en formato español
           const fechaFormateada = formatSpanishDate(first.Fecha);
 
-          // 🔥 MANTENER LA ESPECIALIDAD ORIGINAL EN LA NUEVA SESIÓN
           sessions[from] = {
             stage: 'awaiting-confirmation',
-            specialty: specialty, // 🎯 ESPECIALIDAD ORIGINAL CONSERVADA
+            specialty: specialty,
             records: available,
             attempts: 0,
             patientAge: edadIngresada,
-            respuestaEmpatica: respuestaEmpatica // También conservar respuesta empática
+            respuestaEmpatica: respuestaEmpatica
           };
 
           return NextResponse.json({
@@ -540,7 +537,6 @@ export async function POST(req) {
             const nextAttempt = attempts + 1;
             const availableRecords = records || [];
             
-            // 🆕 FILTRAR REGISTROS FUTUROS ANTES DE MOSTRAR ALTERNATIVAS
             const futureRecords = filterFutureDates(availableRecords);
             
             if (nextAttempt < futureRecords.length) {
@@ -551,13 +547,12 @@ export async function POST(req) {
                 nextRecord["Médico"][0] : nextRecord["Médico"];
               const medicoNombre = await getDoctorName(medicoId);
               
-              // 🆕 FORMATEAR FECHA EN FORMATO ESPAÑOL
               const fechaFormateada = formatSpanishDate(nextRecord.Fecha);
               
               sessions[from] = { 
                 ...currentSession, 
                 attempts: nextAttempt,
-                records: futureRecords // Actualizar con registros filtrados
+                records: futureRecords
               };
               
               return NextResponse.json({
@@ -634,7 +629,7 @@ export async function POST(req) {
             });
           }
 
-          // 🔥 FIX: VERIFICACIÓN ROBUSTA DE DATOS DE SESIÓN
+          // 🔥 VERIFICACIÓN ROBUSTA DE DATOS DE SESIÓN
           const { patientAge, patientName, patientRut, patientPhone, records, specialty } = currentSession;
           
           console.log("🔍 === DEBUG SESIÓN ===");
@@ -711,7 +706,7 @@ export async function POST(req) {
                 const pacienteData = {
                   fields: {
                     Nombre: patientName,
-                    RUT: patientRut,      // ✅ Mantienes RUT en mayúsculas
+                    RUT: patientRut,
                     Telefono: patientPhone,
                     Email: text,
                     Edad: patientAge,
@@ -742,7 +737,6 @@ export async function POST(req) {
                   const errorData = await pacienteResponse.json();
                   console.error("⚠️ Error creando paciente:", errorData);
                   
-                  // 🆕 LOG DETALLADO DEL ERROR
                   console.error("📋 Detalles del error paciente:", {
                     status: pacienteResponse.status,
                     message: errorData.error?.message || 'Error desconocido',
@@ -757,26 +751,21 @@ export async function POST(req) {
               console.log("⚠️ AIRTABLE_PATIENTS_TABLE no configurado, saltando creación de paciente");
             }
 
-            // 2. ACTUALIZAR SOBRECUPO (CRÍTICO)
+            // 2. ACTUALIZAR SOBRECUPO (CRÍTICO) - SIN CAMPO PACIENTE
             console.log("📅 Actualizando sobrecupo...");
             console.log("🎯 Sobrecupo ID:", sobrecupoId);
             
             const updateData = {
               fields: {
-                Disponible: "No",      // ✅ String "No"
-                RUT: patientRut,       // ✅ Mantienes RUT en mayúsculas
-                Edad: patientAge,      // ✅ Número
-                Nombre: patientName,   // ✅ String
-                Telefono: patientPhone, // ✅ String
-                Email: text            // ✅ String
+                Disponible: "No",
+                RUT: patientRut,
+                Edad: patientAge,
+                Nombre: patientName,
+                Telefono: patientPhone,
+                Email: text
+                // 🔥 REMOVIDO: Campo "Paciente" no existe en tabla Sobrecupos
               }
             };
-
-            // Solo agregar vinculación si se creó el paciente
-            if (pacienteId) {
-              updateData.fields.Paciente = [pacienteId];
-              console.log("🔗 Vinculando paciente al sobrecupo:", pacienteId);
-            }
 
             console.log("📤 Datos de actualización sobrecupo:", updateData);
 
@@ -801,7 +790,6 @@ export async function POST(req) {
               const errorData = await updateResponse.json();
               console.error("❌ Error actualizando sobrecupo:", errorData);
               
-              // 🆕 LOG DETALLADO PARA DEBUGGING CRÍTICO
               console.error("🚨 Detalles del error sobrecupo:", {
                 status: updateResponse.status,
                 message: errorData.error?.message || 'Error desconocido',
@@ -814,14 +802,13 @@ export async function POST(req) {
               throw new Error(`Error actualizando sobrecupo: ${updateResponse.status} - ${errorData.error?.message}`);
             }
 
-            // 3. ENVIAR EMAIL (SI ESTÁ CONFIGURADO)
+            // 3. ENVIAR EMAIL DE CONFIRMACIÓN (SI ESTÁ CONFIGURADO)
             if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && sobrecupoUpdated) {
               try {
                 console.log("📧 Enviando email de confirmación...");
                 
                 const fechaFormateada = formatSpanishDate(sobrecupoData.Fecha);
-                const emailContent = `
-¡Hola ${patientName}!
+                const emailContent = `¡Hola ${patientName}!
 
 Tu cita médica ha sido confirmada exitosamente.
 
@@ -845,8 +832,7 @@ Tu cita médica ha sido confirmada exitosamente.
 ¡Nos vemos pronto!
 
 Saludos,
-Equipo Sobrecupos AI
-                `;
+Equipo Sobrecupos AI`;
 
                 const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
                   method: "POST",
@@ -878,7 +864,6 @@ Equipo Sobrecupos AI
           } catch (error) {
             console.error("❌ Error en proceso de confirmación:", error);
             
-            // 🆕 MENSAJE DE ERROR MÁS ESPECÍFICO
             let errorMessage = "Lo siento, hubo un error procesando tu reserva.";
             
             if (error.message.includes('404')) {
@@ -889,7 +874,6 @@ Equipo Sobrecupos AI
               errorMessage = "Error: Sin permisos para actualizar. Contacta soporte.";
             }
             
-            // Limpiar sesión
             delete sessions[from];
             
             return NextResponse.json({
@@ -900,7 +884,7 @@ Equipo Sobrecupos AI
           // Limpiar sesión
           delete sessions[from];
 
-          // MENSAJE FINAL
+          // MENSAJE FINAL DE CONFIRMACIÓN
           if (sobrecupoUpdated) {
             const fechaFormateadaFinal = formatSpanishDate(sobrecupoData.Fecha);
             statusText = `🎉 ¡CITA CONFIRMADA! 
@@ -947,7 +931,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       });
     }
 
-    // 🔥 DETECTAR ESPECIALIDAD DIRECTA PRIMERO (ej: "necesito oftalmólogo")
+    // 🔥 DETECTAR ESPECIALIDAD DIRECTA PRIMERO
     const especialidadDirecta = detectarEspecialidadDirecta(text);
     
     if (especialidadDirecta) {
@@ -990,10 +974,9 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         }
       }
 
-      // 🔥 CONSERVAR LA ESPECIALIDAD DETECTADA EN LA SESIÓN
       sessions[from] = {
         stage: 'getting-age-for-filtering',
-        specialty: specialty, // 🎯 ESPECIALIDAD ORIGINAL GUARDADA
+        specialty: specialty,
         respuestaEmpatica,
         attempts: 0
       };
@@ -1011,7 +994,6 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       const specialty = especialidadPorSintomas;
       console.log(`🎯 Especialidad detectada por síntomas: ${specialty}`);
       
-      // Generar respuesta empática usando OpenAI
       let respuestaEmpatica = "Entiendo tu preocupación.";
       if (OPENAI_API_KEY) {
         try {
@@ -1041,10 +1023,9 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         }
       }
 
-      // 🔥 CONSERVAR LA ESPECIALIDAD DETECTADA POR SÍNTOMAS EN LA SESIÓN
       sessions[from] = {
         stage: 'getting-age-for-filtering',
-        specialty: specialty, // 🎯 ESPECIALIDAD POR SÍNTOMAS GUARDADA
+        specialty: specialty,
         respuestaEmpatica,
         attempts: 0
       };
@@ -1090,10 +1071,9 @@ Te contactaremos pronto para confirmar los detalles finales.`;
 
       const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
 
-      // 🔥 CONSERVAR LA ESPECIALIDAD DETECTADA POR OPENAI EN LA SESIÓN
       sessions[from] = {
         stage: 'getting-age-for-filtering',
-        specialty: specialty, // 🎯 ESPECIALIDAD OPENAI GUARDADA
+        specialty: specialty,
         respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
         attempts: 0
       };
