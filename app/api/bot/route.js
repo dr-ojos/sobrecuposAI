@@ -897,6 +897,63 @@ Ejemplos:
                   );
                   
                   console.log("✅ WhatsApp enviado al médico exitosamente");
+                  
+                  // Enviar email al médico también
+                  if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && doctorInfo.email) {
+                    try {
+                      console.log("📧 Enviando email de notificación al médico...");
+                      
+                      const doctorEmailContent = `¡Hola Dr/a. ${doctorInfo.name}!
+
+¡Tienes un nuevo paciente registrado! 🎉
+
+📅 DETALLES DE LA CITA:
+• Fecha: ${fechaFormateada}
+• Hora: ${sobrecupoData.Hora}  
+• Especialidad: ${specialty}
+• Clínica: ${sobrecupoData["Clínica"] || sobrecupoData["Clinica"] || "Clínica"}
+• Dirección: ${sobrecupoData["Dirección"] || sobrecupoData["Direccion"] || ""}
+
+👤 DATOS DEL PACIENTE:
+• Nombre: ${patientName}
+• RUT: ${patientRut}
+• Teléfono: ${patientPhone}
+• Email: ${text}
+• Edad: ${patientAge} años
+
+✅ El paciente ha confirmado su asistencia.
+
+Saludos,
+Sistema Sobrecupos AI`;
+
+                      const doctorEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${SENDGRID_API_KEY}`,
+                          "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                          personalizations: [{
+                            to: [{ email: doctorInfo.email, name: doctorInfo.name }],
+                            subject: `👨‍⚕️ Nuevo paciente: ${patientName} - ${fechaFormateada} ${sobrecupoData.Hora}`
+                          }],
+                          from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos AI" },
+                          content: [{ type: "text/plain", value: doctorEmailContent }]
+                        })
+                      });
+
+                      if (doctorEmailResponse.ok) {
+                        console.log("✅ Email enviado al médico exitosamente");
+                      } else {
+                        const errorData = await doctorEmailResponse.json();
+                        console.error("❌ Error enviando email al médico:", errorData);
+                      }
+                    } catch (doctorEmailErr) {
+                      console.error("⚠️ Error enviando email al médico (no crítico):", doctorEmailErr);
+                    }
+                  } else {
+                    console.log("⚠️ Email al médico no enviado - falta SendGrid config o email del médico");
+                  }
                 } else {
                   console.log("⚠️ Médico no tiene WhatsApp configurado");
                 }
