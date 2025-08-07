@@ -1,5 +1,6 @@
 // app/api/bot/route.js - VERSIÓN FINAL CORREGIDA Y COMPLETA
 import { NextResponse } from 'next/server';
+import whatsAppService from '../../../lib/whatsapp-service';
 
 // Estado de sesiones en memoria
 const sessions = {};
@@ -385,17 +386,18 @@ async function getDoctorInfo(doctorId) {
     );
 
     if (!response.ok) {
-      return { name: doctorId, email: null };
+      return { name: doctorId, email: null, whatsapp: null };
     }
 
     const data = await response.json();
     return {
       name: data.fields?.Name || doctorId,
-      email: data.fields?.Email || null
+      email: data.fields?.Email || null,
+      whatsapp: data.fields?.WhatsApp || data.fields?.Whatsapp || data.fields?.Telefono || null
     };
   } catch (error) {
     console.error(`Error obteniendo info del médico ${doctorId}:`, error);
-    return { name: doctorId, email: null };
+    return { name: doctorId, email: null, whatsapp: null };
   }
 }
 
@@ -861,7 +863,49 @@ Ejemplos:
               throw new Error(`Error actualizando sobrecupo: ${updateResponse.status} - ${errorData.error?.message}`);
             }
 
-            // 3. ENVIAR EMAIL DE CONFIRMACIÓN (SI ESTÁ CONFIGURADO)
+            // 3. NOTIFICAR AL MÉDICO VIA WHATSAPP
+            if (sobrecupoUpdated) {
+              try {
+                console.log("📱 Enviando WhatsApp al médico...");
+                
+                const medicoId = Array.isArray(sobrecupoData["Médico"]) ? 
+                  sobrecupoData["Médico"][0] : sobrecupoData["Médico"];
+                
+                // Obtener datos completos del médico incluyendo WhatsApp
+                const doctorInfo = await getDoctorInfo(medicoId);
+                
+                if (doctorInfo.whatsapp) {
+                  const fechaFormateada = formatSpanishDate(sobrecupoData.Fecha);
+                  
+                  await whatsAppService.notifyDoctorNewPatient(
+                    {
+                      name: doctorInfo.name,
+                      whatsapp: doctorInfo.whatsapp
+                    },
+                    {
+                      name: patientName,
+                      rut: patientRut,
+                      phone: patientPhone,
+                      email: text
+                    },
+                    {
+                      fecha: fechaFormateada,
+                      hora: sobrecupoData.Hora,
+                      clinica: sobrecupoData["Clínica"] || sobrecupoData["Clinica"] || "Clínica",
+                      direccion: sobrecupoData["Dirección"] || sobrecupoData["Direccion"] || ""
+                    }
+                  );
+                  
+                  console.log("✅ WhatsApp enviado al médico exitosamente");
+                } else {
+                  console.log("⚠️ Médico no tiene WhatsApp configurado");
+                }
+              } catch (whatsappErr) {
+                console.error("⚠️ Error enviando WhatsApp al médico (no crítico):", whatsappErr);
+              }
+            }
+
+            // 4. ENVIAR EMAIL DE CONFIRMACIÓN (SI ESTÁ CONFIGURADO)
             if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && sobrecupoUpdated) {
               try {
                 console.log("📧 Enviando email de confirmación...");
