@@ -21,6 +21,21 @@ function ChatComponent() {
   const inputRef = useRef(null);
   const searchParams = useSearchParams();
 
+  // Función para renderizar Markdown básico
+  const renderMarkdown = (text) => {
+    if (!text) return '';
+    
+    let html = text
+      // Convertir **texto** a <strong>texto</strong>
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // Convertir *texto* a <em>texto</em>
+      .replace(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g, '<em>$1</em>')
+      // Convertir saltos de línea a <br>
+      .replace(/\n/g, '<br>');
+    
+    return html;
+  };
+
   useEffect(() => {
     const initialMessage = searchParams.get('initial');
     console.log('🔍 URL completa:', window.location.href);
@@ -319,7 +334,14 @@ function ChatComponent() {
             <div key={i} className={`message-wrapper ${msg.from}`}>
               <div className="message-content">
                 <div className={`message-bubble ${msg.from}`}>
-                  <p>{msg.text}</p>
+                  {msg.from === 'bot' ? (
+                    <div 
+                      className="message-text"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.text) }}
+                    />
+                  ) : (
+                    <p>{msg.text}</p>
+                  )}
                   {msg.paymentButton && (
                     <div className="payment-button-container">
                       <button
@@ -585,6 +607,22 @@ function ChatComponent() {
           margin: 0;
           font-size: 0.9rem;
           white-space: pre-line;
+        }
+
+        .message-text {
+          margin: 0;
+          font-size: 0.9rem;
+          line-height: 1.4;
+        }
+
+        .message-text strong {
+          font-weight: 600;
+          color: inherit;
+        }
+
+        .message-text em {
+          font-style: italic;
+          color: inherit;
         }
 
         .message-time {
@@ -856,6 +894,10 @@ function ChatComponent() {
           }
 
           .message-bubble p {
+            font-size: 0.85rem;
+          }
+
+          .message-text {
             font-size: 0.85rem;
           }
 
