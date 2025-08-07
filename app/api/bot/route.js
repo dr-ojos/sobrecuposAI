@@ -414,12 +414,61 @@ export async function POST(req) {
 
     console.log(`📱 Mensaje recibido: "${text}"`);
 
-    // Respuestas a consultas no médicas
+    // Respuestas a consultas no médicas con OpenAI para mayor humanidad
     if (esConsultaNoMedica(text)) {
+      // Si tenemos OpenAI, generar respuesta inteligente y humana
+      if (OPENAI_API_KEY) {
+        try {
+          const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${OPENAI_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              temperature: 0.8,
+              max_tokens: 120,
+              messages: [
+                {
+                  role: "system",
+                  content: `Eres Sobrecupos IA, un asistente médico chileno muy humano y empático. El usuario te escribió algo que no es médico: "${text}". 
+
+Responde de forma:
+1. HUMANA y con humor sutil si es apropiado
+2. Reconoce lo que dijeron de forma natural 
+3. Redirige suavemente hacia temas de salud
+4. Pregunta si tienen algún problema de salud o síntoma
+5. Máximo 3 líneas
+6. Usa emojis apropiados pero sin exceso
+7. Sé conversacional, no robótico
+
+Ejemplos:
+- Si mencionan pizza: "¡Mmm, pizza! 🍕 Espero que sea una pizza saludable 😄 Hablando de salud, ¿hay algo que te moleste físicamente o necesitas ver algún especialista?"
+- Si mencionan música: "¡La música es genial para el alma! 🎵 Y hablando de bienestar, ¿cómo has estado de salud? ¿Algún síntoma o consulta médica que tengas pendiente?"
+- Si mencionan trabajo: "El trabajo puede ser estresante a veces 😅 ¿Has sentido que el estrés te está afectando físicamente? ¿Tienes algún síntoma o necesitas ver algún médico?"`
+                },
+                { role: "user", content: text }
+              ]
+            })
+          });
+
+          const aiJson = await aiRes.json();
+          const respuestaIA = aiJson.choices?.[0]?.message?.content?.trim();
+          
+          if (respuestaIA) {
+            return NextResponse.json({ text: respuestaIA });
+          }
+        } catch (err) {
+          console.error("❌ Error OpenAI para consulta no médica:", err);
+        }
+      }
+      
+      // Fallback: respuestas más humanas predefinidas
       const respuestasNoMedicas = [
-        "Soy Sobrecupos IA, tu asistente médico especializado. Estoy aquí para ayudarte a encontrar sobrecupos médicos disponibles. 😊\n\n¿Tienes algún síntoma o necesitas ver algún especialista?",
-        "Actualmente me especializo en ayudarte con temas de salud y sobrecupos médicos. 🩺\n\n¿En qué puedo ayudarte con tu salud hoy?",
-        "Estoy aquí para conectarte con médicos y especialistas disponibles. 👨‍⚕️\n\n¿Qué tipo de consulta médica necesitas?"
+        "¡Jaja! Me especializo más en temas de salud que en eso 😄\n\nPero hablando de bienestar, ¿cómo has estado? ¿Tienes algún síntoma o necesitas ver algún especialista?",
+        "Entiendo, pero soy más experto en conectarte con médicos 👨‍⚕️\n\n¿Hay algo relacionado con tu salud en lo que pueda ayudarte hoy?",
+        "Me encantaría ayudarte con eso, pero mi especialidad es la salud 🩺\n\n¿Tienes algún malestar o consulta médica pendiente?"
       ];
       
       const respuestaAleatoria = respuestasNoMedicas[Math.floor(Math.random() * respuestasNoMedicas.length)];
