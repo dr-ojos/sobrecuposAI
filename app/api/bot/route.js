@@ -485,9 +485,91 @@ export async function POST(req) {
     const currentSession = sessions[from] || {};
     const { stage = 'initial' } = currentSession;
 
+    console.log(`🔍 DEBUG - from: ${from}`);
     console.log(`📊 Estado actual: ${stage}`);
+    console.log(`🎯 Especialidad en sesión: ${currentSession.specialty || 'ninguna'}`);
+    console.log(`💾 Sesiones activas:`, Object.keys(sessions));
 
     // 🔄 MANEJO DE ETAPAS DEL FLUJO (MANTENIDO DEL ORIGINAL + IA)
+    // VERIFICACIÓN ESPECIAL: Si hay especialidad en sesión y texto parece edad, forzar flujo
+    if (currentSession.specialty && /^\d+$/.test(text.trim()) && 
+        (currentSession.stage === 'getting-age-for-filtering' || !currentSession.stage)) {
+      console.log(`🚨 FORZANDO case getting-age-for-filtering - especialidad: ${currentSession.specialty}`);
+      // Asegurar que el stage sea correcto
+      const correctedSession = { ...currentSession, stage: 'getting-age-for-filtering' };
+      sessions[from] = correctedSession;
+      // Forzar entrada al case correcto
+      switch ('getting-age-for-filtering') {
+        case 'getting-age-for-filtering':
+          const ageText = text.trim();
+          
+          if (!/^\d+$/.test(ageText) || parseInt(ageText) < 1 || parseInt(ageText) > 120) {
+            return NextResponse.json({
+              text: "Por favor ingresa una edad válida (número entre 1 y 120 años).\nEjemplo: 25"
+            });
+          }
+
+          const inputPatientAge = parseInt(ageText);
+          const { specialty: sessionSpecialty } = correctedSession;
+
+          console.log(`👤 Edad recibida: ${inputPatientAge}, Especialidad: ${sessionSpecialty}`);
+
+          let finalSpecialty = sessionSpecialty;
+          if (inputPatientAge < 18 && sessionSpecialty !== 'Pediatría') {
+            // Solo cambiar a Pediatría para especialidades que NO atienden niños
+            const especialidadesQueAtiendenNinos = [
+              'Oftalmología', 'Dermatología', 'Neurología', 'Traumatología', 
+              'Cardiología', 'Otorrinolaringología', 'Urología'
+            ];
+            
+            if (!especialidadesQueAtiendenNinos.includes(sessionSpecialty)) {
+              finalSpecialty = 'Pediatría';
+              console.log(`🔄 Cambiando a Pediatría por edad: ${inputPatientAge}`);
+            } else {
+              console.log(`👶 Manteniendo ${sessionSpecialty} para niño/adolescente`);
+            }
+          }
+
+          const sobrecupoRecords = await buscarSobrecuposPorEspecialidad(finalSpecialty, inputPatientAge);
+          
+          if (!sobrecupoRecords || sobrecupoRecords.length === 0) {
+            delete sessions[from];
+            return NextResponse.json({
+              text: `Lo siento, no tengo sobrecupos disponibles de ${finalSpecialty} en este momento.\n\n¿Te gustaría que te contacte cuando haya nuevas disponibilidades? O si prefieres, puedo buscar en otra especialidad.`
+            });
+          }
+
+          const futureRecords = filterFutureDates(sobrecupoRecords);
+          if (futureRecords.length === 0) {
+            delete sessions[from];
+            return NextResponse.json({
+              text: `Encontré sobrecupos de ${finalSpecialty}, pero todos son para fechas pasadas.\n\n¿Te gustaría que te contacte cuando haya nuevas fechas disponibles?`
+            });
+          }
+
+          const first = futureRecords[0].fields;
+          const clinica = first["Clínica"] || first["Clinica"] || "nuestra clínica";
+          const direccion = first["Dirección"] || first["Direccion"] || "la dirección indicada";
+          const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+          const medicoNombre = await getDoctorName(medicoId);
+          const fechaFormateada = formatSpanishDate(first.Fecha);
+
+          sessions[from] = {
+            ...correctedSession,
+            stage: 'awaiting-confirmation',
+            patientAge: inputPatientAge,
+            specialty: finalSpecialty,
+            records: futureRecords,
+            attempts: 0
+          };
+
+          return NextResponse.json({
+            text: `🎉 ¡Encontré un sobrecupo de ${finalSpecialty}!\n\n📍 ${clinica}\n📍 ${direccion}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+            session: sessions[from]
+          });
+      }
+    }
+    
     if (stage && stage !== 'initial') {
       switch (stage) {
         case 'getting-age-for-filtering':
@@ -918,8 +1000,12 @@ Equipo Sobrecupos AI`;
 
     // 🧠 FLUJO INICIAL CON IA AVANZADA (NUEVO + ORIGINAL)
     
-    // IMPORTANTE: Si ya hay una sesión activa con especialidad, no re-ejecutar detección
-    if (currentSession.specialty && currentSession.stage !== 'initial') {
+    // IMPORTANTE: Si hay una sesión activa y parece ser un número (edad), forzar el flujo correcto
+    if (currentSession.specialty && /^\d+$/.test(text.trim()) && currentSession.stage === 'getting-age-for-filtering') {
+      console.log(`🔥 FORZANDO flujo de edad - especialidad: ${currentSession.specialty}`);
+      // Forzar que entre al case 'getting-age-for-filtering'
+      // No hacer nada aquí, dejar que siga el flujo normal
+    } else if (currentSession.specialty && currentSession.stage !== 'initial' && currentSession.stage !== 'getting-age-for-filtering') {
       console.log(`⚠️  Sesión activa detectada con especialidad: ${currentSession.specialty}, stage: ${currentSession.stage}`);
       return NextResponse.json({
         text: "Ya tienes una consulta en proceso. Por favor, sigue las instrucciones anteriores o escribe 'hola' para comenzar de nuevo."
