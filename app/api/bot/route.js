@@ -157,8 +157,8 @@ function esConsultaNoMedica(text) {
     // Relaciones
     'amor', 'pareja', 'novia', 'novio', 'esposa', 'esposo', 'familia',
     // Transporte y tecnología
-    'auto', 'carro', 'vehiculo', 'manejar', 'micro', 'metro',
-    'computador', 'celular', 'telefono', 'internet', 'whatsapp',
+    'auto', 'carro', 'vehiculo', 'manejar', 'micro', 'metro', 'uber', 'taxi', 'bus', 'colectivo',
+    'computador', 'celular', 'telefono', 'internet', 'whatsapp', 'instagram', 'tiktok',
     // Vivienda y otros
     'casa', 'departamento', 'arriendo', 'mudanza', 'ropa', 'zapatos'
   ];
@@ -1095,14 +1095,11 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       });
     }
 
-    // Si llega aquí, usar OpenAI como respaldo
+    // Si llega aquí, usar OpenAI como evaluador inteligente
     if (OPENAI_API_KEY) {
-      const especialidadesDisponibles = await getEspecialidadesDisponibles();
-      const especialidadesString = especialidadesDisponibles.join(", ");
-
-      let rawEsp = "";
       try {
-        const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        // PRIMER PASO: Evaluar si es consulta médica o no médica
+        const evaluationRes = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${OPENAI_API_KEY}`,
@@ -1110,37 +1107,82 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
-            temperature: 0,
-            max_tokens: 20,
+            temperature: 0.3,
+            max_tokens: 150,
             messages: [
               {
                 role: "system",
-                content: `Eres Sobrecupos IA, asistente médico empático. Dado un síntoma o consulta médica, responde SOLO con EXACTAMENTE una de las siguientes especialidades disponibles (y nada más): ${especialidadesString}. Elige la especialidad que con mayor probabilidad se encarga de ese síntoma. Si mencionan un niño, elige Pediatría. Si no puedes determinar una especialidad específica, elige Medicina Familiar.`
+                content: `Eres un evaluador inteligente. Analiza si el mensaje del usuario es:
+1. MÉDICO: Síntomas, dolencias, necesidad de especialistas, problemas de salud
+2. NO_MÉDICO: Temas cotidianos (comida, transporte, entretenimiento, etc.)
+
+Si es NO_MÉDICO, responde de forma humana y redirige hacia salud.
+Si es MÉDICO, responde solo "MÉDICO".
+
+Ejemplos:
+- "Quiero uber" → NO_MÉDICO: "¡Uber para moverse por la ciudad! 🚗 Mientras esperas, ¿cómo has estado de salud? ¿Algún malestar o consulta médica?"
+- "Me duele la cabeza" → MÉDICO
+- "Tengo hambre" → NO_MÉDICO: "¡El hambre es normal! 🍽️ Espero que comas algo rico y saludable. Hablando de salud, ¿cómo te has sentido últimamente?"`
               },
-              { role: "user", content: `Paciente: "${text}"` }
+              { role: "user", content: text }
             ]
           })
         });
-        const j = await aiRes.json();
-        rawEsp = j.choices?.[0]?.message?.content?.trim() || "";
+
+        const evaluationJson = await evaluationRes.json();
+        const evaluationResult = evaluationJson.choices?.[0]?.message?.content?.trim() || "";
+
+        // Si la respuesta es "MÉDICO", proceder con detección de especialidad
+        if (evaluationResult === "MÉDICO") {
+          const especialidadesDisponibles = await getEspecialidadesDisponibles();
+          const especialidadesString = especialidadesDisponibles.join(", ");
+
+          const specialtyRes = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${OPENAI_API_KEY}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              temperature: 0,
+              max_tokens: 20,
+              messages: [
+                {
+                  role: "system",
+                  content: `Responde SOLO con una de estas especialidades: ${especialidadesString}. Si mencionan niño, elige Pediatría. Si no estás seguro, elige Medicina Familiar.`
+                },
+                { role: "user", content: text }
+              ]
+            })
+          });
+
+          const specialtyJson = await specialtyRes.json();
+          const rawEsp = specialtyJson.choices?.[0]?.message?.content?.trim() || "";
+          const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
+
+          sessions[from] = {
+            stage: 'getting-age-for-filtering',
+            specialty: specialty,
+            respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
+            attempts: 0
+          };
+
+          return NextResponse.json({
+            text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`,
+            session: sessions[from]
+          });
+        } else {
+          // Si no es "MÉDICO", usar la respuesta generada (ya incluye redirección)
+          return NextResponse.json({ text: evaluationResult });
+        }
+
       } catch (err) {
-        console.error("❌ Error OpenAI:", err);
-        return NextResponse.json({ text: "Lo siento, no entendí. ¿Puedes describirlo de otra forma?" });
+        console.error("❌ Error OpenAI evaluación:", err);
+        return NextResponse.json({
+          text: "No estoy seguro de cómo ayudarte con eso 🤔\n\nSoy tu asistente médico, así que cuéntame: ¿tienes algún síntoma o necesitas ver algún especialista?"
+        });
       }
-
-      const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
-
-      sessions[from] = {
-        stage: 'getting-age-for-filtering',
-        specialty: specialty,
-        respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
-        attempts: 0
-      };
-
-      return NextResponse.json({
-        text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`,
-        session: sessions[from]
-      });
     }
 
     // Si no hay OpenAI, respuesta por defecto
