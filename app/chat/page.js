@@ -166,6 +166,7 @@ function ChatComponent() {
   useEffect(() => {
     console.log('🔧 === REGISTRANDO LISTENER DE POSTMESSAGE ===');
     console.log('🔧 Window location:', window.location.origin);
+    console.log('🔧 Timestamp:', new Date().toISOString());
     
     const handlePaymentMessage = (event) => {
       console.log('📨 === MENSAJE RECIBIDO ===');
@@ -197,6 +198,9 @@ function ChatComponent() {
         console.log('✅ Transaction ID:', event.data.transactionId);
         console.log('✅ Session ID:', event.data.sessionId);
         console.log('✅ Reservation confirmed:', event.data.reservationConfirmed);
+        
+        // 🆘 DEBUG TEMPORAL - Alert para confirmar que llega el mensaje
+        alert('🎉 PAGO EXITOSO RECIBIDO! Verifica consola.');
         
         // Pago exitoso - mostrar mensaje de confirmación con detalles completos
         const appointment = event.data.appointmentDetails || {};
