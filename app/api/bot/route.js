@@ -175,7 +175,10 @@ function esConsultaNoMedica(text) {
     'resfriado', 'alergia', 'picazon', 'picazón', 'roncha', 'sarpullido',
     'medico', 'médico', 'doctor', 'especialista', 'consulta', 'cita',
     'urgente', 'emergencia', 'salud', 'enfermo', 'enferma', 'malestar',
-    'sobrecupo', 'atencion medica', 'atención médica'
+    'sobrecupo', 'atencion medica', 'atención médica',
+    // 🆕 Términos oftalmológicos específicos
+    'lentes', 'anteojos', 'gafas', 'control', 'revision', 'revisión',
+    'examen vista', 'control vista', 'manchas flotantes', 'pican ojos'
   ];
   
   const contieneTerminosMedicos = terminosMedicos.some(termino => 
@@ -433,8 +436,14 @@ export async function POST(req) {
 
     console.log(`📱 Mensaje recibido: "${text}"`);
 
-    // Respuestas a consultas no médicas con OpenAI para mayor humanidad
-    if (esConsultaNoMedica(text)) {
+    // 🔥 PRIMERO: Detectar si es consulta médica específica
+    const especialidadDetectada = detectarEspecialidadPorSintomas(text);
+    if (especialidadDetectada) {
+      console.log(`🎯 Especialidad detectada directamente: ${especialidadDetectada} para texto: "${text}"`);
+      // Saltamos toda la lógica de consulta no médica y vamos directo al procesamiento médico
+      // Esto significa que ejecutaremos el código que está en la línea ~1275
+      // No hacemos nada aquí, solo evitamos que se ejecute esConsultaNoMedica
+    } else if (esConsultaNoMedica(text)) {
       // Si tenemos OpenAI, generar respuesta inteligente y humana
       if (OPENAI_API_KEY) {
         try {
