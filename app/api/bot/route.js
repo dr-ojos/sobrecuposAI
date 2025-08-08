@@ -93,6 +93,109 @@ function validarRUT(rut) {
   return dv === dvEsperado;
 }
 
+// 🆕 FUNCIONES DE VALIDACIÓN INTELIGENTE
+
+// Detectar si el usuario confunde RUT con teléfono
+function esFormatoTelefono(text) {
+  const cleaned = text.replace(/[^\d+]/g, '');
+  return (cleaned.startsWith('+56') && cleaned.length >= 11) || 
+         (cleaned.startsWith('56') && cleaned.length >= 10) ||
+         (cleaned.startsWith('9') && cleaned.length === 9) ||
+         (cleaned.length === 8 && /^\d+$/.test(cleaned));
+}
+
+// Detectar si el usuario confunde teléfono con RUT  
+function esFormatoRUT(text) {
+  const cleaned = text.replace(/[.\-\s]/g, '').toUpperCase();
+  return /^\d{7,8}[0-9K]$/.test(cleaned) && !esFormatoTelefono(text);
+}
+
+// Validar teléfono chileno más inteligentemente
+function validarTelefono(telefono) {
+  const cleaned = telefono.replace(/[^\d+]/g, '');
+  
+  // Formatos válidos:
+  // +56912345678 (con +56)
+  // 56912345678 (sin +)
+  // 912345678 (solo celular)
+  // 12345678 (teléfono fijo)
+  
+  if (cleaned.startsWith('+56')) {
+    return cleaned.length >= 11 && cleaned.length <= 12;
+  }
+  if (cleaned.startsWith('56')) {
+    return cleaned.length >= 10 && cleaned.length <= 11;
+  }
+  if (cleaned.startsWith('9')) {
+    return cleaned.length === 9;
+  }
+  if (cleaned.length === 8 && /^\d+$/.test(cleaned)) {
+    return true; // Teléfono fijo
+  }
+  
+  return false;
+}
+
+// Validar email más estricto
+function validarEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+}
+
+// Validar edad
+function validarEdad(edad) {
+  const num = parseInt(edad);
+  return !isNaN(num) && num >= 0 && num <= 120;
+}
+
+// Detectar confusiones entre campos y dar feedback específico
+function analizarConfusion(text, campoEsperado) {
+  const mensajes = {
+    rut: {
+      esEmail: "Veo que ingresaste un email 📧. Necesito tu RUT primero.\n\nPor favor ingresa tu RUT con el formato: 12.345.678-9",
+      esTelefono: "Parece un número de teléfono 📱. Necesito tu RUT primero.\n\nPor favor ingresa tu RUT con el formato: 12.345.678-9", 
+      general: "El RUT debe tener el formato: 12.345.678-9\n\nPor favor ingresa tu RUT completo con guión y dígito verificador."
+    },
+    telefono: {
+      esRUT: "Veo que ingresaste un RUT 🆔. Ya tengo tu RUT, ahora necesito tu teléfono.\n\nIngresa tu número de teléfono: +56912345678",
+      esEmail: "Parece un email 📧. Necesito tu teléfono primero.\n\nIngresa tu número con formato: +56912345678",
+      general: "Por favor ingresa un teléfono válido.\n\nEjemplos: +56912345678 o 912345678"
+    },
+    email: {
+      esRUT: "Veo que ingresaste un RUT 🆔. Ya tengo tus datos, ahora necesito tu email.\n\nIngresa tu email: nombre@email.com",
+      esTelefono: "Parece un teléfono 📱. Ya tengo tu teléfono, ahora necesito tu email.\n\nIngresa tu email: nombre@email.com",
+      general: "Por favor ingresa un email válido.\n\nEjemplo: nombre@email.com"
+    },
+    edad: {
+      general: "Por favor ingresa solo tu edad en números.\n\nEjemplo: 25"
+    }
+  };
+
+  if (campoEsperado === 'rut') {
+    if (text.includes('@')) return mensajes.rut.esEmail;
+    if (esFormatoTelefono(text)) return mensajes.rut.esTelefono;
+    return mensajes.rut.general;
+  }
+  
+  if (campoEsperado === 'telefono') {
+    if (esFormatoRUT(text)) return mensajes.telefono.esRUT;
+    if (text.includes('@')) return mensajes.telefono.esEmail;
+    return mensajes.telefono.general;
+  }
+  
+  if (campoEsperado === 'email') {
+    if (esFormatoRUT(text)) return mensajes.email.esRUT;
+    if (esFormatoTelefono(text)) return mensajes.email.esTelefono;
+    return mensajes.email.general;
+  }
+  
+  if (campoEsperado === 'edad') {
+    return mensajes.edad.general;
+  }
+  
+  return null;
+}
+
 // Función para detectar especialidad directa
 function detectarEspecialidadDirecta(text) {
   const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
@@ -646,12 +749,21 @@ Ejemplos:
 
         case 'getting-age-for-confirmed-appointment':
           // 🆕 VALIDAR EDAD DESPUÉS DE CONFIRMAR LA CITA
-          const edadConfirmada = parseInt(text);
-          if (isNaN(edadConfirmada) || edadConfirmada < 1 || edadConfirmada > 120) {
+          if (!validarEdad(text)) {
+            const mensajeError = analizarConfusion(text, 'edad');
+            currentSession.attempts = (currentSession.attempts || 0) + 1;
+            
+            // Si ya intentó 3 veces, ofrecer ayuda adicional
+            const ayudaAdicional = currentSession.attempts >= 3 ? 
+              "\n\n💡 *Solo necesito tu edad en números:*\n• Si tienes 25 años, escribe: 25\n• Si tienes 3 años, escribe: 3\n• Solo números del 1 al 120" : "";
+            
+            sessions[from] = { ...currentSession };
             return NextResponse.json({
-              text: "Por favor ingresa una edad válida (número entre 1 y 120)."
+              text: mensajeError + ayudaAdicional
             });
           }
+          
+          const edadConfirmada = parseInt(text);
 
           // Validar si el médico atiende pacientes de esa edad
           const { doctorInfo, selectedRecord } = currentSession;
@@ -740,7 +852,8 @@ Ejemplos:
           sessions[from] = {
             ...currentSession,
             patientAge: edadConfirmada,
-            stage: 'getting-rut'
+            stage: 'getting-rut',
+            attempts: 0 // Reset attempts para el siguiente campo
           };
 
           return NextResponse.json({
@@ -749,12 +862,21 @@ Ejemplos:
           });
 
         case 'getting-age-for-filtering':
-          const edadIngresada = parseInt(text);
-          if (isNaN(edadIngresada) || edadIngresada < 1 || edadIngresada > 120) {
+          if (!validarEdad(text)) {
+            const mensajeError = analizarConfusion(text, 'edad');
+            currentSession.attempts = (currentSession.attempts || 0) + 1;
+            
+            // Si ya intentó 3 veces, ofrecer ayuda adicional
+            const ayudaAdicional = currentSession.attempts >= 3 ? 
+              "\n\n💡 *Solo necesito tu edad en números:*\n• Si tienes 25 años, escribe: 25\n• Si tienes 3 años, escribe: 3\n• Solo números del 1 al 120" : "";
+            
+            sessions[from] = { ...currentSession };
             return NextResponse.json({
-              text: "Por favor ingresa una edad válida (número entre 1 y 120)."
+              text: mensajeError + ayudaAdicional
             });
           }
+          
+          const edadIngresada = parseInt(text);
 
           console.log(`🎯 Manteniendo especialidad original: ${specialty} para edad ${edadIngresada}`);
 
@@ -907,15 +1029,24 @@ Ejemplos:
 
         case 'getting-rut':
           if (!validarRUT(text)) {
+            const mensajeError = analizarConfusion(text, 'rut');
+            currentSession.attempts = (currentSession.attempts || 0) + 1;
+            
+            // Si ya intentó 3 veces, ofrecer ayuda adicional
+            const ayudaAdicional = currentSession.attempts >= 3 ? 
+              "\n\n💡 *¿Necesitas ayuda?* Un RUT válido tiene esta forma:\n• 12.345.678-9 (con puntos y guión)\n• 12345678-9 (sin puntos pero con guión)\n• El último dígito puede ser un número del 0-9 o la letra K" : "";
+            
+            sessions[from] = { ...currentSession };
             return NextResponse.json({
-              text: "El RUT no es válido. Por favor ingresa tu RUT completo con el formato correcto.\nEjemplo: 12.345.678-9"
+              text: mensajeError + ayudaAdicional
             });
           }
           
           sessions[from] = { 
             ...currentSession, 
             stage: 'getting-phone',
-            patientRut: text 
+            patientRut: text,
+            attempts: 0 // Reset attempts para el siguiente campo
           };
           return NextResponse.json({
             text: "Perfecto! 📋\n\nAhora tu número de teléfono (incluye +56 si es de Chile).\nEjemplo: +56912345678",
@@ -923,16 +1054,25 @@ Ejemplos:
           });
 
         case 'getting-phone':
-          if (text.length < 8) {
+          if (!validarTelefono(text)) {
+            const mensajeError = analizarConfusion(text, 'telefono');
+            currentSession.attempts = (currentSession.attempts || 0) + 1;
+            
+            // Si ya intentó 3 veces, ofrecer ayuda adicional
+            const ayudaAdicional = currentSession.attempts >= 3 ? 
+              "\n\n💡 *Formatos válidos de teléfono:*\n• +56912345678 (celular con +56)\n• 912345678 (celular sin código)\n• 221234567 (fijo con código de área)\n• 12345678 (fijo sin código)" : "";
+            
+            sessions[from] = { ...currentSession };
             return NextResponse.json({
-              text: "Por favor ingresa un número de teléfono válido.\nEjemplo: +56912345678"
+              text: mensajeError + ayudaAdicional
             });
           }
           
           sessions[from] = { 
             ...currentSession, 
             stage: 'getting-email',
-            patientPhone: text 
+            patientPhone: text,
+            attempts: 0 // Reset attempts para el siguiente campo
           };
           return NextResponse.json({
             text: "Excelente! 📞\n\nFinalmente, tu email para enviarte la confirmación:",
@@ -940,9 +1080,17 @@ Ejemplos:
           });
 
         case 'getting-email':
-          if (!text.includes('@') || !text.includes('.')) {
+          if (!validarEmail(text)) {
+            const mensajeError = analizarConfusion(text, 'email');
+            currentSession.attempts = (currentSession.attempts || 0) + 1;
+            
+            // Si ya intentó 3 veces, ofrecer ayuda adicional
+            const ayudaAdicional = currentSession.attempts >= 3 ? 
+              "\n\n💡 *Un email válido debe tener:*\n• Un nombre: juan\n• El símbolo @\n• Un dominio: gmail.com\n• Ejemplo completo: juan@gmail.com" : "";
+            
+            sessions[from] = { ...currentSession };
             return NextResponse.json({
-              text: "Por favor ingresa un email válido.\nEjemplo: nombre@email.com"
+              text: mensajeError + ayudaAdicional
             });
           }
 
