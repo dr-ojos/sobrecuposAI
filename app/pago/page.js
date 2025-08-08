@@ -97,6 +97,8 @@ function PagoContent() {
         
         // Confirmar la reserva en el backend
         addDebugLog('🔄 Iniciando confirmación de reserva...');
+        setMessage('¡Pago exitoso! ⏳ Espera... procesando reserva...');
+        
         try {
           const confirmPayload = {
             sessionId: paymentData.sessionId,
@@ -144,7 +146,15 @@ function PagoContent() {
                 type: 'PAYMENT_SUCCESS',
                 transactionId: result.transactionId,
                 sessionId: paymentData.sessionId,
-                reservationConfirmed: true
+                reservationConfirmed: true,
+                appointmentDetails: {
+                  doctorName: paymentData.doctorName,
+                  specialty: paymentData.specialty,
+                  date: paymentData.date,
+                  time: paymentData.time,
+                  clinic: paymentData.clinic,
+                  patientName: paymentData.patientName
+                }
               };
               
               console.log('📨 === ENVIANDO MENSAJE AL CHAT ===');
@@ -170,8 +180,12 @@ function PagoContent() {
               // Dar un momento para que se procese el mensaje antes de cerrar
               setTimeout(() => {
                 console.log('🔄 Cerrando ventana de pago...');
+                // Intentar enfocar la ventana padre antes de cerrar
+                if (window.opener && !window.opener.closed) {
+                  window.opener.focus();
+                }
                 window.close();
-              }, 2000); // Aumentado de 1.5s a 2s
+              }, 1500); // Optimizado para cierre rápido
             } else {
               console.log('❌ No hay window.opener - usuario puede haber navegado directamente');
               // Si no hay ventana padre, cerrar después de 3 segundos

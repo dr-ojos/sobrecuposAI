@@ -164,7 +164,8 @@ function ChatComponent() {
 
   // Escuchar mensajes de la ventana de pago
   useEffect(() => {
-    console.log('🔧 Registrando listener de postMessage en chat');
+    console.log('🔧 === REGISTRANDO LISTENER DE POSTMESSAGE ===');
+    console.log('🔧 Window location:', window.location.origin);
     
     const handlePaymentMessage = (event) => {
       console.log('📨 === MENSAJE RECIBIDO ===');
@@ -197,10 +198,11 @@ function ChatComponent() {
         console.log('✅ Session ID:', event.data.sessionId);
         console.log('✅ Reservation confirmed:', event.data.reservationConfirmed);
         
-        // Pago exitoso - mostrar mensaje de confirmación
+        // Pago exitoso - mostrar mensaje de confirmación con detalles completos
+        const appointment = event.data.appointmentDetails || {};
         const successMessage = {
           from: "bot",
-          text: `✅ ¡Pago confirmado exitosamente!\n\n💳 ID Transacción: ${event.data.transactionId}\n\n🎉 ¡Tu cita médica ha sido reservada!\n\nRecibirás un email de confirmación en breve con todos los detalles.\n\n¡Gracias por usar Sobrecupos AI!`,
+          text: `🎉 ¡Pago confirmado exitosamente!\n\n💳 **TRANSACCIÓN COMPLETADA**\nID: ${event.data.transactionId}\n\n📋 **DETALLES DE TU CITA CONFIRMADA**\n👤 Paciente: ${appointment.patientName || 'N/A'}\n👨‍⚕️ Doctor: ${appointment.doctorName || 'N/A'}\n🏥 Especialidad: ${appointment.specialty || 'N/A'}\n📅 Fecha: ${appointment.date || 'N/A'}\n🕐 Hora: ${appointment.time || 'N/A'}\n🏨 Clínica: ${appointment.clinic || 'N/A'}\n\n📧 **PRÓXIMOS PASOS**\n✅ Recibirás un email de confirmación con todos los detalles\n📍 Llega 15 minutos antes a la clínica\n🆔 No olvides traer tu cédula de identidad\n💊 El pago ya está procesado\n\n¡Nos vemos en tu cita! 👩‍⚕️👨‍⚕️`,
           timestamp: new Date()
         };
 
@@ -213,6 +215,16 @@ function ChatComponent() {
           const newMessages = [...msgs, successMessage];
           console.log('📝 Nuevos mensajes:', newMessages.length);
           console.log('📝 Último mensaje añadido:', newMessages[newMessages.length - 1]);
+          
+          // Forzar scroll después de actualizar
+          setTimeout(() => {
+            const container = document.querySelector('.messages-container');
+            if (container) {
+              container.scrollTop = container.scrollHeight;
+              console.log('📜 Scroll forzado al final');
+            }
+          }, 100);
+          
           return newMessages;
         });
 
