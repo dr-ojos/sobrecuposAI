@@ -508,122 +508,219 @@ Ejemplos:
       const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = currentSession;
 
       switch (stage) {
-        case 'getting-age-for-medical-recommendation':
-          // 🆕 NUEVO FLUJO: Validar edad para recomendación médica ya mostrada
-          const edadRecomendacion = parseInt(text);
-          if (isNaN(edadRecomendacion) || edadRecomendacion < 1 || edadRecomendacion > 120) {
+        case 'confirming-appointment':
+          // 🆕 CONFIRMAR SI LE SIRVE LA CITA PROPUESTA
+          const respuesta = text.toLowerCase().trim();
+          
+          if (respuesta.includes('sí') || respuesta.includes('si') || respuesta === 's' || respuesta === 'yes' || respuesta === 'ok' || respuesta === 'vale') {
+            // Confirmar cita y preguntar edad
+            sessions[from] = {
+              ...currentSession,
+              stage: 'getting-age-for-confirmed-appointment'
+            };
+            
+            return NextResponse.json({
+              text: "¡Excelente! Para completar tu reserva, necesito conocer tu edad.\n\nPor favor dime tu edad:\nEjemplo: 25",
+              session: sessions[from]
+            });
+          } 
+          else if (respuesta.includes('no') || respuesta === 'n') {
+            // Ofrecer otras opciones
+            const { records, selectedRecord } = currentSession;
+            const otrasOpciones = records.filter(r => r !== selectedRecord).slice(0, 2);
+            
+            if (otrasOpciones.length > 0) {
+              let mensaje = "Entiendo. Te muestro otras opciones disponibles:\n\n";
+              
+              otrasOpciones.forEach((record, index) => {
+                const fecha = new Date(record.fields.Fecha).toLocaleDateString('es-ES', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric'
+                });
+                mensaje += `${index + 1}. 📅 ${fecha} a las ${record.fields.Hora}\n📍 ${record.fields["Clínica"] || record.fields["Clinica"]}\n\n`;
+              });
+              
+              mensaje += "¿Alguna de estas opciones te sirve mejor? Responde con el número (1 o 2) o escribe 'no' si ninguna te conviene.";
+              
+              sessions[from] = {
+                ...currentSession,
+                stage: 'choosing-alternative',
+                alternativeOptions: otrasOpciones
+              };
+              
+              return NextResponse.json({
+                text: mensaje,
+                session: sessions[from]
+              });
+            } else {
+              return NextResponse.json({
+                text: "Entiendo. Lamentablemente no tengo más opciones disponibles en este momento.\n\n¿Te gustaría que te ayude con algún otro síntoma o consulta?"
+              });
+            }
+          } 
+          else {
+            return NextResponse.json({
+              text: "No entendí tu respuesta. ¿Te sirve la cita que te propuse?\n\nResponde **Sí** para confirmar o **No** si prefieres otra opción."
+            });
+          }
+
+        case 'choosing-alternative':
+          // 🆕 ELEGIR ENTRE OPCIONES ALTERNATIVAS
+          const opcionText = text.toLowerCase().trim();
+          const { alternativeOptions } = currentSession;
+          
+          if (opcionText === '1' && alternativeOptions[0]) {
+            const selectedAlt = alternativeOptions[0];
+            const doctorId = Array.isArray(selectedAlt.fields["Médico"]) ? 
+              selectedAlt.fields["Médico"][0] : selectedAlt.fields["Médico"];
+            
+            const doctorInfo = await getDoctorInfo(doctorId);
+            
+            sessions[from] = {
+              ...currentSession,
+              selectedRecord: selectedAlt,
+              doctorInfo: doctorInfo,
+              stage: 'getting-age-for-confirmed-appointment'
+            };
+            
+            return NextResponse.json({
+              text: "¡Excelente elección! Para completar tu reserva, necesito conocer tu edad.\n\nPor favor dime tu edad:\nEjemplo: 25",
+              session: sessions[from]
+            });
+          } 
+          else if (opcionText === '2' && alternativeOptions[1]) {
+            const selectedAlt = alternativeOptions[1];
+            const doctorId = Array.isArray(selectedAlt.fields["Médico"]) ? 
+              selectedAlt.fields["Médico"][0] : selectedAlt.fields["Médico"];
+            
+            const doctorInfo = await getDoctorInfo(doctorId);
+            
+            sessions[from] = {
+              ...currentSession,
+              selectedRecord: selectedAlt,
+              doctorInfo: doctorInfo,
+              stage: 'getting-age-for-confirmed-appointment'
+            };
+            
+            return NextResponse.json({
+              text: "¡Excelente elección! Para completar tu reserva, necesito conocer tu edad.\n\nPor favor dime tu edad:\nEjemplo: 25",
+              session: sessions[from]
+            });
+          }
+          else if (opcionText.includes('no') || opcionText === 'n') {
+            return NextResponse.json({
+              text: "Entiendo. Lamentablemente no tengo más opciones disponibles en este momento.\n\n¿Te gustaría que te ayude con algún otro síntoma o consulta?"
+            });
+          }
+          else {
+            return NextResponse.json({
+              text: "Por favor responde con el número de la opción que prefieres (1 o 2) o escribe 'no' si ninguna te conviene."
+            });
+          }
+
+        case 'getting-age-for-confirmed-appointment':
+          // 🆕 VALIDAR EDAD DESPUÉS DE CONFIRMAR LA CITA
+          const edadConfirmada = parseInt(text);
+          if (isNaN(edadConfirmada) || edadConfirmada < 1 || edadConfirmada > 120) {
             return NextResponse.json({
               text: "Por favor ingresa una edad válida (número entre 1 y 120)."
             });
           }
 
-          console.log(`🎯 Validando edad ${edadRecomendacion} para recomendación médica`);
-
-          // Verificar si el médico recomendado puede atender esta edad
-          const { doctorInfo, selectedRecord, motivo } = currentSession;
+          // Validar si el médico atiende pacientes de esa edad
+          const { doctorInfo, selectedRecord } = currentSession;
+          const atiende = doctorInfo.atiende || "Ambos";
           
-          let puedeAtender = true;
-          let razonRechazo = "";
+          let edadCompatible = true;
+          let mensajeEdad = "";
           
-          if (doctorInfo.atiende === "Niños" && edadRecomendacion >= 18) {
-            puedeAtender = false;
-            razonRechazo = "este médico especializa en pediatría (menores de 18 años)";
-          } else if (doctorInfo.atiende === "Adultos" && edadRecomendacion < 18) {
-            puedeAtender = false;
-            razonRechazo = "este médico atiende solo pacientes adultos (18+ años)";
+          if (atiende === "Niños" && edadConfirmada >= 18) {
+            edadCompatible = false;
+            mensajeEdad = "Este médico se especializa en pediatría (menores de 18 años).";
+          } else if (atiende === "Adultos" && edadConfirmada < 18) {
+            edadCompatible = false;
+            mensajeEdad = "Este médico atiende solo adultos (18 años o más).";
           }
 
-          if (!puedeAtender) {
-            // Buscar médico alternativo
-            console.log(`🔄 Buscando médico alternativo para edad ${edadRecomendacion}`);
-            
+          if (!edadCompatible) {
+            // Buscar alternativas para la edad
             try {
-              const medicosCompatibles = await getMedicosQueAtienden(specialty, edadRecomendacion);
-              
-              if (medicosCompatibles.length === 0) {
-                return NextResponse.json({
-                  text: `Lo siento, ${razonRechazo}, y no tengo otros médicos de ${specialty} disponibles que atiendan pacientes de ${edadRecomendacion} años.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad adecuada para tu edad?`
-                });
-              }
-
-              // Buscar sobrecupos de médicos compatibles
-              const medicosIds = medicosCompatibles.map(m => m.id);
-              const resp = await fetch(
-                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
-                { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-              );
-              const data = await resp.json();
-              const sobrecuposRecords = data.records || [];
-
-              const availableFiltered = sobrecuposRecords.filter(r => {
-                const fields = r.fields || {};
-                const medicoField = fields["Médico"];
-                const medicoId = Array.isArray(medicoField) ? medicoField[0] : medicoField;
-                return (
-                  (fields.Especialidad === specialty) &&
-                  (fields.Disponible === "Si" || fields.Disponible === true) &&
-                  medicosIds.includes(medicoId)
-                );
+              const alternativas = currentSession.records.filter(record => {
+                const altDoctorId = Array.isArray(record.fields["Médico"]) ? 
+                  record.fields["Médico"][0] : record.fields["Médico"];
+                return altDoctorId !== (Array.isArray(selectedRecord.fields["Médico"]) ? 
+                  selectedRecord.fields["Médico"][0] : selectedRecord.fields["Médico"]);
               });
 
-              const available = filterFutureDates(availableFiltered);
-              
-              if (available.length === 0) {
-                return NextResponse.json({
-                  text: `${razonRechazo}, y aunque hay otros médicos que atienden tu edad, no tienen sobrecupos disponibles.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
-                });
+              if (alternativas.length > 0) {
+                const altRecord = alternativas[0];
+                const altDoctorId = Array.isArray(altRecord.fields["Médico"]) ? 
+                  altRecord.fields["Médico"][0] : altRecord.fields["Médico"];
+                
+                const altDoctorInfo = await getDoctorInfo(altDoctorId);
+                const altAtiende = altDoctorInfo.atiende || "Ambos";
+                
+                // Verificar si la alternativa es compatible
+                let altCompatible = true;
+                if (altAtiende === "Niños" && edadConfirmada >= 18) altCompatible = false;
+                if (altAtiende === "Adultos" && edadConfirmada < 18) altCompatible = false;
+                
+                if (altCompatible) {
+                  const fechaAlt = new Date(altRecord.fields.Fecha).toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  });
+                  
+                  let altAtiendeTxt = "";
+                  switch(altAtiende) {
+                    case "Niños": altAtiendeTxt = " (especialista en pediatría)"; break;
+                    case "Adultos": altAtiendeTxt = " (atiende solo adultos)"; break;
+                    case "Ambos": altAtiendeTxt = " (atiende pacientes de todas las edades)"; break;
+                    default: altAtiendeTxt = " (atiende pacientes de todas las edades)";
+                  }
+                  
+                  // Actualizar sesión con nueva selección
+                  sessions[from] = {
+                    ...currentSession,
+                    selectedRecord: altRecord,
+                    doctorInfo: altDoctorInfo,
+                    patientAge: edadConfirmada,
+                    stage: 'getting-name'
+                  };
+                  
+                  return NextResponse.json({
+                    text: `${mensajeEdad}\n\n✅ Sin embargo, tengo otra opción perfecta para ti:\n\n👨‍⚕️ **Dr. ${altDoctorInfo.name}**${altAtiendeTxt}\n📅 ${fechaAlt} a las ${altRecord.fields.Hora}\n📍 ${altRecord.fields["Clínica"] || altRecord.fields["Clinica"]}\n\n¡Perfecto! Ahora necesito tus datos para completar la reserva.\n\nPor favor, dime tu **nombre completo**:`,
+                    session: sessions[from]
+                  });
+                }
               }
-
-              // Mostrar médico alternativo
-              available.sort((a, b) => {
-                const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
-                const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
-                return dateA - dateB;
-              });
-
-              const newRecord = available[0].fields;
-              const newMedicoId = Array.isArray(newRecord["Médico"]) ? newRecord["Médico"][0] : newRecord["Médico"];
-              const newMedicoNombre = await getDoctorName(newMedicoId);
-              const fechaFormateada = formatSpanishDate(newRecord.Fecha);
-              const clin = newRecord["Clínica"] || newRecord["Clinica"] || "nuestra clínica";
-              const dir = newRecord["Dirección"] || newRecord["Direccion"] || "la dirección indicada";
-
-              sessions[from] = {
-                stage: 'awaiting-confirmation',
-                specialty: specialty,
-                records: available,
-                attempts: 0,
-                patientAge: edadRecomendacion,
-                motivo: motivo // 🆕 MANTENER MOTIVO
-              };
-
+              
               return NextResponse.json({
-                text: `Tienes razón, ${razonRechazo}.\n\n✅ Te conseguí una alternativa: **Dr. ${newMedicoNombre}** que sí atiende pacientes de ${edadRecomendacion} años.\n\n📅 ${fechaFormateada} a las ${newRecord.Hora}\n📍 ${clin}, ${dir}\n\n¿Te sirve esta opción? Confirma con "sí".`,
-                session: sessions[from]
+                text: `${mensajeEdad}\n\nLamentablemente no tengo otros médicos disponibles para tu edad en este momento. Te sugiero intentar más tarde o contactar directamente a la clínica.`
               });
-
+              
             } catch (error) {
-              console.error("❌ Error buscando médico alternativo:", error);
+              console.error("❌ Error buscando alternativas:", error);
               return NextResponse.json({
-                text: "Disculpa, hubo un error buscando alternativas. Intenta más tarde."
+                text: `${mensajeEdad}\n\nPor favor, intenta nuevamente más tarde.`
               });
             }
-          } else {
-            // El médico SÍ puede atender esta edad
-            sessions[from] = {
-              stage: 'awaiting-confirmation',
-              specialty: specialty,
-              records: currentSession.records,
-              attempts: 0,
-              patientAge: edadRecomendacion,
-              motivo: motivo // 🆕 MANTENER MOTIVO
-            };
-
-            return NextResponse.json({
-              text: `Perfecto, el Dr. ${doctorInfo.name} puede atender pacientes de ${edadRecomendacion} años.\n\n¿Confirmas esta cita? Responde "sí" para continuar.`,
-              session: sessions[from]
-            });
           }
+
+          // Si la edad es compatible, continuar
+          sessions[from] = {
+            ...currentSession,
+            patientAge: edadConfirmada,
+            stage: 'getting-name'
+          };
+
+          return NextResponse.json({
+            text: "¡Perfecto! La cita te queda ideal.\n\nAhora necesito tus datos para completar la reserva.\n\nPor favor, dime tu **nombre completo**:",
+            session: sessions[from]
+          });
 
         case 'getting-age-for-filtering':
           const edadIngresada = parseInt(text);
@@ -1536,7 +1633,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
 
         // Guardar en sesión incluyendo motivo original
         sessions[from] = {
-          stage: 'getting-age-for-medical-recommendation',
+          stage: 'confirming-appointment',
           specialty: specialty,
           respuestaEmpatica,
           motivo: text, // 🆕 GUARDAR MOTIVO ORIGINAL
@@ -1547,7 +1644,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         };
 
         return NextResponse.json({
-          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n👨‍⚕️ Tengo disponible al **Dr. ${doctorInfo.name}**${atiendeTxt}\n📅 ${fechaFormateada} a las ${first.Hora}\n📍 ${clin}, ${dir}\n\n¿Te sirve esta cita? Para confirmar, necesito conocer tu edad.\nEjemplo: 25`,
+          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n👨‍⚕️ Tengo disponible al **Dr. ${doctorInfo.name}**${atiendeTxt}\n📅 ${fechaFormateada} a las ${first.Hora}\n📍 ${clin}, ${dir}\n\n¿Te sirve esta cita?\n\nResponde **Sí** para confirmar o **No** si prefieres otra opción.`,
           session: sessions[from]
         });
 
