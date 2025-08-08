@@ -261,18 +261,23 @@ export async function POST(req) {
       // 4. NOTIFICAR AL MÉDICO VIA WHATSAPP Y EMAIL
       if (sobrecupoUpdated) {
         try {
-          console.log("📱 Enviando notificaciones al médico...");
+          console.log("📱 === INICIANDO NOTIFICACIONES AL MÉDICO ===");
           
           const medicoId = Array.isArray(sobrecupoFields["Médico"]) ? 
             sobrecupoFields["Médico"][0] : sobrecupoFields["Médico"];
           
+          console.log("🩺 Médico ID obtenido:", medicoId);
+          
           const doctorInfo = await getDoctorInfo(medicoId);
+          console.log("🩺 Doctor info obtenido:", doctorInfo);
           
           if (doctorInfo.whatsapp) {
             const fechaFormateada = formatSpanishDate(sobrecupoFields.Fecha);
+            console.log("📅 Fecha formateada:", fechaFormateada);
             
             // WhatsApp al médico
-            await whatsAppService.notifyDoctorNewPatient(
+            console.log("📱 Intentando enviar WhatsApp al médico...");
+            const whatsappResult = await whatsAppService.notifyDoctorNewPatient(
               {
                 name: doctorInfo.name,
                 whatsapp: doctorInfo.whatsapp
@@ -292,7 +297,13 @@ export async function POST(req) {
               motivo // 🆕 AGREGAR MOTIVO AL WHATSAPP
             );
             
-            console.log("✅ WhatsApp enviado al médico exitosamente");
+            console.log("📱 ✅ Resultado WhatsApp:", whatsappResult);
+          } else {
+            console.log("⚠️ Doctor no tiene WhatsApp configurado:", {
+              doctorInfo,
+              whatsapp: doctorInfo.whatsapp
+            });
+          }
             
             // Email al médico
             if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && doctorInfo.email) {
