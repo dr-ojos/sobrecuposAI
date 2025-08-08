@@ -594,7 +594,7 @@ Ejemplos:
           };
 
           return NextResponse.json({
-            text: `✅ Encontré un sobrecupo de ${specialty} para pacientes de ${edadIngresada} años:\n\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+            text: `✅ Encontré un sobrecupo de ${specialty} para pacientes de ${edadIngresada} años:\n\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n📍 ${clin}\n📍 ${dir}\n\n¿Te sirve? Confirma con "sí".`,
             session: sessions[from]
           });
 
@@ -633,7 +633,7 @@ Ejemplos:
               };
               
               return NextResponse.json({
-                text: `Te muestro otra opción de ${specialty}:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${nextRecord.Hora}\n\n¿Te sirve esta? Confirma con "sí".`,
+                text: `Te muestro otra opción de ${specialty}:\n\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${nextRecord.Hora}\n📍 ${clin}\n📍 ${dir}\n\n¿Te sirve esta? Confirma con "sí".`,
                 session: sessions[from]
               });
             } else {
