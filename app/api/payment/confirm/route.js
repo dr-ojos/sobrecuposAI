@@ -112,9 +112,9 @@ export async function POST(req) {
     let emailSent = false;
 
     try {
-      // 1. CREAR PACIENTE EN TABLA PACIENTES (SI EXISTE)
+      // 1. CREAR PACIENTE EN TABLA PACIENTES (DESACTIVADO TEMPORALMENTE)
       let pacienteId = null;
-      if (process.env.AIRTABLE_PATIENTS_TABLE) {
+      if (false && process.env.AIRTABLE_PATIENTS_TABLE) {
         try {
           console.log("👤 Creando paciente en tabla Pacientes...");
           
