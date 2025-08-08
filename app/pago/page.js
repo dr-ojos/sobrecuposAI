@@ -11,13 +11,9 @@ function PagoContent() {
   const [processing, setProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState('pending'); // pending, processing, success, error
   const [message, setMessage] = useState('');
-  const [debugLogs, setDebugLogs] = useState([]);
-  const [showDebug, setShowDebug] = useState(false);
-
-  // Función para añadir logs de debug
+  // Función simple de logging para producción
   const addDebugLog = (message) => {
     console.log(message);
-    setDebugLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
   };
 
   useEffect(() => {
@@ -140,7 +136,7 @@ function PagoContent() {
           addDebugLog(`📋 Resultado de confirmación: ${JSON.stringify(confirmResult)}`);
           
           if (confirmResult.success) {
-            setMessage('¡Reserva confirmada exitosamente! Redirigiendo al chat...');
+            setMessage('¡Reserva confirmada exitosamente! Cerrando ventana...');
             
             // Notificar al chat que el pago y reserva fueron exitosos
             if (window.opener) {
@@ -150,6 +146,16 @@ function PagoContent() {
                 sessionId: paymentData.sessionId,
                 reservationConfirmed: true
               }, '*');
+              
+              // Dar un momento para que se procese el mensaje antes de cerrar
+              setTimeout(() => {
+                window.close();
+              }, 1500);
+            } else {
+              // Si no hay ventana padre, cerrar después de 2 segundos
+              setTimeout(() => {
+                window.close();
+              }, 2000);
             }
           } else {
             setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
@@ -181,11 +187,7 @@ function PagoContent() {
           }
         }
 
-        // DEBUG: NO cerrar ventana para poder ver errores
-        console.log('🔍 MODO DEBUG: Ventana NO se cerrará automáticamente');
-        // setTimeout(() => {
-        //   window.close();
-        // }, 3000);
+        // El cierre se maneja individualmente en cada caso arriba
 
       } else {
         setPaymentStatus('error');
@@ -231,43 +233,6 @@ function PagoContent() {
         <button onClick={handleClose} className="close-button">
           Cerrar
         </button>
-        
-        <button 
-          onClick={() => setShowDebug(!showDebug)} 
-          className="debug-button"
-          style={{
-            marginTop: '1rem',
-            padding: '0.5rem 1rem',
-            background: '#007AFF',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          {showDebug ? 'Ocultar' : 'Ver'} Logs de Debug
-        </button>
-
-        {showDebug && (
-          <div className="debug-logs" style={{
-            marginTop: '1rem',
-            padding: '1rem',
-            background: '#f5f5f5',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            maxHeight: '300px',
-            overflowY: 'auto',
-            fontSize: '12px',
-            fontFamily: 'monospace'
-          }}>
-            <h4>Logs de Debug:</h4>
-            {debugLogs.map((log, index) => (
-              <div key={index} style={{ marginBottom: '4px', wordBreak: 'break-all' }}>
-                {log}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     );
   }
