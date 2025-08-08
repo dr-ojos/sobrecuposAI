@@ -11,6 +11,14 @@ function PagoContent() {
   const [processing, setProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState('pending'); // pending, processing, success, error
   const [message, setMessage] = useState('');
+  const [debugLogs, setDebugLogs] = useState([]);
+  const [showDebug, setShowDebug] = useState(false);
+
+  // Función para añadir logs de debug
+  const addDebugLog = (message) => {
+    console.log(message);
+    setDebugLogs(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+  };
 
   useEffect(() => {
     // Obtener datos del pago desde URL params
@@ -41,15 +49,15 @@ function PagoContent() {
   }, [searchParams]);
 
   const handlePaymentSubmit = async () => {
-    console.log('🟡 === INICIANDO PAGO ===');
-    console.log('📋 Payment data:', paymentData);
+    addDebugLog('🟡 === INICIANDO PAGO ===');
+    addDebugLog(`📋 Payment data: ${JSON.stringify(paymentData)}`);
     
     if (!paymentData) {
-      console.error('❌ No hay datos de pago disponibles');
+      addDebugLog('❌ No hay datos de pago disponibles');
       return;
     }
 
-    console.log('✅ Iniciando proceso de pago...');
+    addDebugLog('✅ Iniciando proceso de pago...');
     setProcessing(true);
     setPaymentStatus('processing');
     setMessage('Procesando pago...');
@@ -77,22 +85,22 @@ function PagoContent() {
         })
       });
 
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response ok:', response.ok);
+      addDebugLog(`📡 Simulate response status: ${response.status}`);
+      addDebugLog(`📡 Simulate response ok: ${response.ok}`);
       
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('📋 Resultado de simulación:', result);
+      addDebugLog(`📋 Resultado de simulación: ${JSON.stringify(result)}`);
 
       if (result.success) {
         setPaymentStatus('success');
         setMessage('¡Pago exitoso! Procesando reserva...');
         
         // Confirmar la reserva en el backend
-        console.log('🔄 Iniciando confirmación de reserva...');
+        addDebugLog('🔄 Iniciando confirmación de reserva...');
         try {
           const confirmPayload = {
             sessionId: paymentData.sessionId,
@@ -115,7 +123,7 @@ function PagoContent() {
             }
           };
           
-          console.log('📦 Payload de confirmación:', confirmPayload);
+          addDebugLog(`📦 Payload de confirmación: ${JSON.stringify(confirmPayload)}`);
           
           const confirmResponse = await fetch('/api/payment/confirm', {
             method: 'POST',
@@ -125,11 +133,11 @@ function PagoContent() {
             body: JSON.stringify(confirmPayload)
           });
 
-          console.log('📡 Confirm response status:', confirmResponse.status);
-          console.log('📡 Confirm response ok:', confirmResponse.ok);
+          addDebugLog(`📡 Confirm response status: ${confirmResponse.status}`);
+          addDebugLog(`📡 Confirm response ok: ${confirmResponse.ok}`);
 
           const confirmResult = await confirmResponse.json();
-          console.log('📋 Resultado de confirmación:', confirmResult);
+          addDebugLog(`📋 Resultado de confirmación: ${JSON.stringify(confirmResult)}`);
           
           if (confirmResult.success) {
             setMessage('¡Reserva confirmada exitosamente! Redirigiendo al chat...');
@@ -157,9 +165,9 @@ function PagoContent() {
             }
           }
         } catch (confirmError) {
-          console.error('❌ === ERROR CONFIRMANDO RESERVA ===');
-          console.error('❌ Error:', confirmError);
-          console.error('❌ Stack:', confirmError.stack);
+          addDebugLog('❌ === ERROR CONFIRMANDO RESERVA ===');
+          addDebugLog(`❌ Error: ${confirmError.message}`);
+          addDebugLog(`❌ Stack: ${confirmError.stack}`);
           setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
           
           // Notificar el error al chat
@@ -173,10 +181,11 @@ function PagoContent() {
           }
         }
 
-        // Cerrar ventana después de 3 segundos
-        setTimeout(() => {
-          window.close();
-        }, 3000);
+        // DEBUG: NO cerrar ventana para poder ver errores
+        console.log('🔍 MODO DEBUG: Ventana NO se cerrará automáticamente');
+        // setTimeout(() => {
+        //   window.close();
+        // }, 3000);
 
       } else {
         setPaymentStatus('error');
@@ -222,6 +231,43 @@ function PagoContent() {
         <button onClick={handleClose} className="close-button">
           Cerrar
         </button>
+        
+        <button 
+          onClick={() => setShowDebug(!showDebug)} 
+          className="debug-button"
+          style={{
+            marginTop: '1rem',
+            padding: '0.5rem 1rem',
+            background: '#007AFF',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          {showDebug ? 'Ocultar' : 'Ver'} Logs de Debug
+        </button>
+
+        {showDebug && (
+          <div className="debug-logs" style={{
+            marginTop: '1rem',
+            padding: '1rem',
+            background: '#f5f5f5',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            maxHeight: '300px',
+            overflowY: 'auto',
+            fontSize: '12px',
+            fontFamily: 'monospace'
+          }}>
+            <h4>Logs de Debug:</h4>
+            {debugLogs.map((log, index) => (
+              <div key={index} style={{ marginBottom: '4px', wordBreak: 'break-all' }}>
+                {log}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
