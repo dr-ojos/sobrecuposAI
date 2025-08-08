@@ -49,13 +49,22 @@ function formatSpanishDate(dateString) {
 
 export async function POST(req) {
   try {
+    console.log('🟡 === PARSEANDO REQUEST ===');
+    let requestData;
+    try {
+      requestData = await req.json();
+    } catch (parseError) {
+      console.error('❌ Error parseando JSON del request:', parseError);
+      throw new Error(`Error parseando JSON: ${parseError.message}`);
+    }
+    
     const { 
       sessionId, 
       transactionId, 
       sobrecupoId, 
       patientData, 
       appointmentData 
-    } = await req.json();
+    } = requestData;
 
     console.log('🔄 === INICIO CONFIRMACIÓN DE PAGO ===');
     console.log('📋 Datos recibidos:', {
@@ -393,11 +402,24 @@ Equipo Sobrecupos AI`;
     });
 
   } catch (error) {
-    console.error('❌ Error confirmando pago:', error);
+    console.error('❌ === ERROR CONFIRMANDO PAGO ===');
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error completo:', error);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error cause:', error.cause);
     
+    // Retornar información detallada del error para debugging
     return NextResponse.json({
       success: false,
-      error: error.message || 'Error procesando la confirmación de pago'
+      error: error.message || 'Error procesando la confirmación de pago',
+      errorDetails: {
+        name: error.name,
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        cause: error.cause
+      },
+      timestamp: new Date().toISOString()
     }, { status: 500 });
   }
 }
