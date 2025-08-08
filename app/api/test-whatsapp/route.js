@@ -51,11 +51,19 @@ export async function GET() {
     process.env.TWILIO_WHATSAPP_NUMBER
   );
 
+  console.log('🔍 VERIFICANDO CONFIGURACIÓN TWILIO:');
+  console.log('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID ? 'Configurado' : 'NO configurado');
+  console.log('TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN ? 'Configurado' : 'NO configurado');
+  console.log('TWILIO_WHATSAPP_NUMBER:', process.env.TWILIO_WHATSAPP_NUMBER ? 'Configurado' : 'NO configurado');
+
   return NextResponse.json({
     configured,
     twilioConfigured: configured,
     accountSid: process.env.TWILIO_ACCOUNT_SID ? 
       process.env.TWILIO_ACCOUNT_SID.substring(0, 10) + '...' : 
+      'No configurado',
+    authToken: process.env.TWILIO_AUTH_TOKEN ? 
+      'Configurado (' + process.env.TWILIO_AUTH_TOKEN.length + ' chars)' : 
       'No configurado',
     whatsappNumber: process.env.TWILIO_WHATSAPP_NUMBER || 'No configurado',
     environment: process.env.NODE_ENV || 'development'
