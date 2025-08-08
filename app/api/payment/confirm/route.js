@@ -173,17 +173,11 @@ export async function POST(req) {
       // Preparar los datos con validación estricta
       const edad = patientData.age ? parseInt(String(patientData.age), 10) : null;
       
+      // Solo actualizar campos que SABEMOS que existen en Airtable
       const updateData = {
         fields: {
-          Disponible: "No",
-          RUT: String(patientData.rut || '').trim(),
-          ...(edad && edad > 0 ? { Edad: edad } : {}), // Solo incluir si es válido
-          Nombre: String(patientData.name || '').trim(),
-          Telefono: String(patientData.phone || '').trim(),
-          Email: String(patientData.email || '').trim(),
-          "Pagado": "Sí",
-          "ID Transacción": String(transactionId || '').trim(),
-          "Fecha Pago": new Date().toISOString()
+          Disponible: "No"
+          // Remover todos los campos que no existen hasta confirmar estructura
         }
       };
 
