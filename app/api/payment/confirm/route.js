@@ -297,30 +297,127 @@ export async function POST(req) {
             // Email al médico
             if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && doctorInfo.email) {
               try {
-                const doctorEmailContent = `¡Hola Dr/a. ${doctorInfo.name}!
+                const doctorEmailContent = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuevo Sobrecupo - SobrecuposIA</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);">
+    
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #171717 0%, #404040 100%); color: white; padding: 2rem; text-align: center;">
+      <h1 style="margin: 0; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.025em;">
+        🩺 SobrecuposIA
+      </h1>
+      <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.9;">
+        Sistema de gestión médica
+      </p>
+    </div>
 
-¡Tienes un nuevo paciente registrado! 🎉
+    <!-- Content -->
+    <div style="padding: 2rem;">
+      
+      <!-- Greeting -->
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="margin: 0 0 0.5rem 0; color: #171717; font-size: 1.25rem; font-weight: 600;">
+          ¡Hola Dr/a. ${doctorInfo.name}!
+        </h2>
+        <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">
+          Tienes un nuevo sobrecupo disponible para tu agenda.
+        </p>
+      </div>
 
-📅 DETALLES DE LA CITA:
-• Fecha: ${fechaFormateada}
-• Hora: ${sobrecupoFields.Hora}  
-• Especialidad: ${appointmentData.specialty}
-• Clínica: ${sobrecupoFields["Clínica"] || sobrecupoFields["Clinica"] || "Clínica"}
+      <!-- Success Badge -->
+      <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+        <span style="color: #0369a1; font-size: 1rem; font-weight: 600;">
+          🎉 ¡Nuevo Sobrecupo Confirmado!
+        </span>
+      </div>
 
-👤 DATOS DEL PACIENTE:
-• Nombre: ${patientData.name}
-• RUT: ${patientData.rut}
-• Teléfono: ${patientData.phone}
-• Email: ${patientData.email}
-• Edad: ${patientData.age} años${motivo ? `\n• Motivo de consulta: ${motivo}` : ''}
+      <!-- Appointment Details -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          📅 Detalles de la Cita
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Fecha:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${fechaFormateada}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Hora:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${sobrecupoFields.Hora}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Especialidad:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${appointmentData.specialty}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Clínica:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${sobrecupoFields["Clínica"] || sobrecupoFields["Clinica"] || "Clínica"}</td>
+          </tr>
+        </table>
+      </div>
 
-💳 PAGO CONFIRMADO: $${parseInt(appointmentData.amount || '2990').toLocaleString('es-CL')} CLP
-ID Transacción: ${transactionId}
+      <!-- Patient Details -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          👤 Datos del Paciente
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Nombre:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${patientData.name}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">RUT:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${patientData.rut}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Teléfono:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${patientData.phone}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Email:</td>
+            <td style="padding: 0.5rem 0; color: #0369a1; font-size: 0.9rem;">${patientData.email}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Edad:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${patientData.age} años</td>
+          </tr>${motivo ? `
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Motivo:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; background: #fef3c7; padding: 0.5rem; border-radius: 4px; font-style: italic;">${motivo}</td>
+          </tr>` : ''}
+        </table>
+      </div>
 
-✅ El paciente ha confirmado su asistencia.
+      <!-- Status Confirmation -->
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1rem; text-align: center; margin-bottom: 1.5rem;">
+        <span style="color: #166534; font-size: 0.9rem; font-weight: 600;">
+          ✅ El paciente ha confirmado su asistencia
+        </span>
+      </div>
 
-Saludos,
-Sistema Sobrecupos AI`;
+    </div>
+
+    <!-- Footer -->
+    <div style="background: #f9fafb; border-top: 1px solid #e5e5e5; padding: 1.5rem; text-align: center;">
+      <p style="margin: 0 0 0.5rem 0; color: #666; font-size: 0.85rem;">
+        Este es un mensaje automático del sistema
+      </p>
+      <p style="margin: 0; color: #171717; font-size: 0.9rem; font-weight: 600;">
+        SobrecuposIA
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>`;
 
                 const doctorEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
                   method: "POST",
@@ -331,10 +428,10 @@ Sistema Sobrecupos AI`;
                   body: JSON.stringify({
                     personalizations: [{
                       to: [{ email: doctorInfo.email, name: doctorInfo.name }],
-                      subject: `👨‍⚕️ Nuevo paciente PAGADO: ${patientData.name} - ${fechaFormateada}`
+                      subject: `👨‍⚕️ Nuevo sobrecupo: ${patientData.name} - ${fechaFormateada}`
                     }],
                     from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos AI" },
-                    content: [{ type: "text/plain", value: doctorEmailContent }]
+                    content: [{ type: "text/html", value: doctorEmailContent }]
                   })
                 });
 
@@ -357,35 +454,148 @@ Sistema Sobrecupos AI`;
           console.log("📧 Enviando email de confirmación al paciente...");
           
           const fechaFormateada = formatSpanishDate(sobrecupoFields.Fecha);
-          const emailContent = `¡Hola ${patientData.name}!
+          const emailContent = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cita Confirmada - SobrecuposIA</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);">
+    
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #171717 0%, #404040 100%); color: white; padding: 2rem; text-align: center;">
+      <h1 style="margin: 0; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.025em;">
+        🩺 SobrecuposIA
+      </h1>
+      <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.9;">
+        Tu cita médica confirmada
+      </p>
+    </div>
 
-¡Tu pago ha sido procesado exitosamente! 💳✅
+    <!-- Content -->
+    <div style="padding: 2rem;">
+      
+      <!-- Greeting -->
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="margin: 0 0 0.5rem 0; color: #171717; font-size: 1.25rem; font-weight: 600;">
+          ¡Hola ${patientData.name}!
+        </h2>
+        <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">
+          Tu pago ha sido procesado exitosamente y tu cita está confirmada.
+        </p>
+      </div>
 
-📅 DETALLES DE TU CITA CONFIRMADA:
-• Especialidad: ${appointmentData.specialty}
-• Fecha: ${fechaFormateada}
-• Hora: ${sobrecupoFields.Hora}
-• Clínica: ${sobrecupoFields["Clínica"] || sobrecupoFields["Clinica"]}
-• Dirección: ${sobrecupoFields["Dirección"] || sobrecupoFields["Direccion"]}
+      <!-- Success Badge -->
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+        <span style="color: #166534; font-size: 1rem; font-weight: 600;">
+          ✅ ¡Cita Confirmada Exitosamente!
+        </span>
+      </div>
 
-👤 TUS DATOS:
-• Nombre: ${patientData.name}
-• RUT: ${patientData.rut}
-• Teléfono: ${patientData.phone}
+      <!-- Appointment Details -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          📅 Detalles de tu Cita
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Especialidad:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${appointmentData.specialty}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Fecha:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${fechaFormateada}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Hora:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${sobrecupoFields.Hora}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Clínica:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${sobrecupoFields["Clínica"] || sobrecupoFields["Clinica"]}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Dirección:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${sobrecupoFields["Dirección"] || sobrecupoFields["Direccion"]}</td>
+          </tr>
+        </table>
+      </div>
 
-💳 PAGO CONFIRMADO:
-• Monto: $${parseInt(appointmentData.amount || '2990').toLocaleString('es-CL')} CLP
-• ID Transacción: ${transactionId}
+      <!-- Patient Data -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          👤 Tus Datos
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Nombre:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${patientData.name}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">RUT:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${patientData.rut}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Teléfono:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${patientData.phone}</td>
+          </tr>
+        </table>
+      </div>
 
-📝 RECOMENDACIONES:
-• Llega 15 minutos antes de tu cita
-• Trae tu cédula de identidad
-• El pago ya está procesado
+      <!-- Payment Confirmation -->
+      <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #0369a1; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #bae6fd; padding-bottom: 0.5rem;">
+          💳 Pago Confirmado
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Monto:</td>
+            <td style="padding: 0.5rem 0; color: #0369a1; font-size: 0.9rem; font-weight: 600;">$${parseInt(appointmentData.amount || '2990').toLocaleString('es-CL')} CLP</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">ID Transacción:</td>
+            <td style="padding: 0.5rem 0; color: #0369a1; font-size: 0.85rem; font-family: monospace;">${transactionId}</td>
+          </tr>
+        </table>
+      </div>
 
-¡Nos vemos pronto!
+      <!-- Recommendations -->
+      <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #92400e; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #fcd34d; padding-bottom: 0.5rem;">
+          📝 Recomendaciones Importantes
+        </h3>
+        <ul style="margin: 0; padding-left: 1.5rem; color: #92400e; font-size: 0.9rem; line-height: 1.6;">
+          <li style="margin-bottom: 0.5rem;"><strong>Llega 15 minutos antes</strong> de tu cita</li>
+          <li style="margin-bottom: 0.5rem;">Trae tu <strong>cédula de identidad</strong></li>
+          <li style="margin-bottom: 0;">El pago ya está procesado - <strong>no necesitas pagar en clínica</strong></li>
+        </ul>
+      </div>
 
-Saludos,
-Equipo Sobrecupos AI`;
+      <!-- Final Message -->
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <p style="margin: 0; color: #171717; font-size: 1rem; font-weight: 600;">
+          ¡Nos vemos pronto! 🎉
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="background: #f9fafb; border-top: 1px solid #e5e5e5; padding: 1.5rem; text-align: center;">
+      <p style="margin: 0 0 0.5rem 0; color: #666; font-size: 0.85rem;">
+        Si tienes alguna consulta, responde a este email
+      </p>
+      <p style="margin: 0; color: #171717; font-size: 0.9rem; font-weight: 600;">
+        Equipo SobrecuposIA
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>`;
 
           const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
             method: "POST",
@@ -399,7 +609,7 @@ Equipo Sobrecupos AI`;
                 subject: `🩺 Pago confirmado - Cita: ${appointmentData.specialty} - ${fechaFormateada}`
               }],
               from: { email: SENDGRID_FROM_EMAIL, name: "Sobrecupos AI" },
-              content: [{ type: "text/plain", value: emailContent }]
+              content: [{ type: "text/html", value: emailContent }]
             })
           });
 
