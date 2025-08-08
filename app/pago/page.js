@@ -160,8 +160,12 @@ function PagoContent() {
               console.log('📨 === ENVIANDO MENSAJE AL CHAT ===');
               console.log('📨 Message:', successMessage);
               console.log('📨 Window opener exists:', !!window.opener);
-              console.log('📨 Window opener closed:', window.opener.closed);
+              console.log('📨 Window opener closed:', window.opener && window.opener.closed);
               console.log('📨 Target origin:', window.location.origin);
+              console.log('📨 Current URL:', window.location.href);
+              
+              // 🆘 DEBUG TEMPORAL - Alert para confirmar envío
+              alert('📨 ENVIANDO POSTMESSAGE AL CHAT - Verifica consola del chat!');
               
               try {
                 window.opener.postMessage(successMessage, window.location.origin);
