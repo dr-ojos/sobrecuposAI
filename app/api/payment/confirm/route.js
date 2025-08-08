@@ -112,13 +112,18 @@ export async function POST(req) {
     let emailSent = false;
 
     try {
-      // 1. CREAR PACIENTE EN TABLA PACIENTES (DESACTIVADO TEMPORALMENTE)
+      // 1. CREAR PACIENTE EN TABLA PACIENTES
       let pacienteId = null;
-      if (false && process.env.AIRTABLE_PATIENTS_TABLE) {
+      console.log("🔍 Verificando creación de paciente...");
+      console.log("🔍 AIRTABLE_PATIENTS_TABLE:", process.env.AIRTABLE_PATIENTS_TABLE);
+      
+      if (process.env.AIRTABLE_PATIENTS_TABLE) {
         try {
-          console.log("👤 Creando paciente en tabla Pacientes...");
+          console.log("👤 === CREANDO PACIENTE EN TABLA PACIENTES ===");
+          console.log("👤 Datos del paciente:", patientData);
           
           const edadPaciente = patientData.age ? parseInt(String(patientData.age), 10) : null;
+          console.log("👤 Edad procesada:", edadPaciente);
           
           const pacienteDataForCreation = {
             fields: {
@@ -127,18 +132,23 @@ export async function POST(req) {
               Telefono: String(patientData.phone || '').trim(),
               Email: String(patientData.email || '').trim(),
               ...(edadPaciente && edadPaciente > 0 ? { Edad: edadPaciente } : {}),
-              "Fecha Registro": new Date().toISOString().split('T')[0],
-              "ID Transacción": String(transactionId || '').trim()
+              "Fecha Registro": new Date().toISOString().split('T')[0]
+              // Removido "ID Transacción" ya que ese campo no existe en la tabla
             }
           };
+          
+          console.log("👤 Datos para creación (antes de limpiar):", pacienteDataForCreation);
           
           // Limpiar campos vacíos
           Object.keys(pacienteDataForCreation.fields).forEach(key => {
             const value = pacienteDataForCreation.fields[key];
             if (value === '' || value === 'N/A' || value === null || value === undefined) {
+              console.log("🧹 Removiendo campo vacío:", key);
               delete pacienteDataForCreation.fields[key];
             }
           });
+          
+          console.log("👤 Datos finales para creación:", pacienteDataForCreation);
           
           const pacienteResponse = await fetch(
             `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_PATIENTS_TABLE}`,
@@ -152,13 +162,19 @@ export async function POST(req) {
             }
           );
 
+          console.log("📡 Response status:", pacienteResponse.status);
+          console.log("📡 Response ok:", pacienteResponse.ok);
+          
           if (pacienteResponse.ok) {
             const pacienteResult = await pacienteResponse.json();
             pacienteId = pacienteResult.id;
             pacienteCreated = true;
             console.log("✅ Paciente creado exitosamente:", pacienteId);
+            console.log("✅ Datos del paciente creado:", pacienteResult);
           } else {
-            console.error("⚠️ Error creando paciente (no crítico)");
+            const errorData = await pacienteResponse.json();
+            console.error("❌ Error creando paciente - Status:", pacienteResponse.status);
+            console.error("❌ Error creando paciente - Detalles:", errorData);
           }
 
         } catch (pacienteErr) {

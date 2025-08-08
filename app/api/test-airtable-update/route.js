@@ -49,12 +49,12 @@ export async function GET(req) {
     const currentRecord = await getResponse.json();
     console.log('✅ Registro actual:', currentRecord);
 
-    // 2. Intentar una actualización mínima de prueba
-    console.log('🔄 Probando actualización mínima...');
+    // 2. Intentar una actualización mínima de prueba (igual que el endpoint real)
+    console.log('🔄 Probando actualización mínima igual al endpoint de confirmación...');
     
     const testUpdateData = {
       fields: {
-        "ID Transacción": "TEST_" + Date.now()
+        Disponible: "No"
       }
     };
 

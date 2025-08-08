@@ -140,25 +140,50 @@ function PagoContent() {
             
             // Notificar al chat que el pago y reserva fueron exitosos
             if (window.opener) {
-              window.opener.postMessage({
+              const successMessage = {
                 type: 'PAYMENT_SUCCESS',
                 transactionId: result.transactionId,
                 sessionId: paymentData.sessionId,
                 reservationConfirmed: true
-              }, '*');
+              };
+              
+              console.log('📨 === ENVIANDO MENSAJE AL CHAT ===');
+              console.log('📨 Message:', successMessage);
+              console.log('📨 Window opener exists:', !!window.opener);
+              console.log('📨 Window opener closed:', window.opener.closed);
+              console.log('📨 Target origin:', window.location.origin);
+              
+              try {
+                window.opener.postMessage(successMessage, window.location.origin);
+                console.log('✅ Mensaje enviado al chat con origin específico');
+              } catch (postMessageError) {
+                console.error('❌ Error enviando postMessage:', postMessageError);
+                // Intentar con * como fallback
+                try {
+                  window.opener.postMessage(successMessage, '*');
+                  console.log('✅ Mensaje enviado al chat con origin wildcard');
+                } catch (fallbackError) {
+                  console.error('❌ Error enviando postMessage fallback:', fallbackError);
+                }
+              }
               
               // Dar un momento para que se procese el mensaje antes de cerrar
               setTimeout(() => {
+                console.log('🔄 Cerrando ventana de pago...');
                 window.close();
-              }, 1500);
+              }, 2000); // Aumentado de 1.5s a 2s
             } else {
-              // Si no hay ventana padre, cerrar después de 2 segundos
+              console.log('❌ No hay window.opener - usuario puede haber navegado directamente');
+              // Si no hay ventana padre, cerrar después de 3 segundos
               setTimeout(() => {
                 window.close();
-              }, 2000);
+              }, 3000);
             }
           } else {
             setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
+            console.error('❌ Error en confirmación:', confirmResult);
+            
+            // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
             
             // Notificar el problema al chat
             if (window.opener) {
@@ -175,6 +200,9 @@ function PagoContent() {
           addDebugLog(`❌ Error: ${confirmError.message}`);
           addDebugLog(`❌ Stack: ${confirmError.stack}`);
           setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
+          console.error('❌ Catch error confirmando reserva:', confirmError);
+          
+          // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
           
           // Notificar el error al chat
           if (window.opener) {
@@ -192,6 +220,8 @@ function PagoContent() {
       } else {
         setPaymentStatus('error');
         setMessage(result.error || 'Error procesando el pago. Intenta nuevamente.');
+        console.error('❌ Error en simulación de pago:', result);
+        // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
       }
 
     } catch (error) {
@@ -200,6 +230,7 @@ function PagoContent() {
       console.error('❌ Stack:', error.stack);
       setPaymentStatus('error');
       setMessage(`Error de conexión: ${error.message}`);
+      // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
     } finally {
       setProcessing(false);
     }

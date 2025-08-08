@@ -164,15 +164,39 @@ function ChatComponent() {
 
   // Escuchar mensajes de la ventana de pago
   useEffect(() => {
+    console.log('🔧 Registrando listener de postMessage en chat');
+    
     const handlePaymentMessage = (event) => {
-      // Verificar que el mensaje viene del dominio correcto
-      if (event.origin !== window.location.origin) {
+      console.log('📨 === MENSAJE RECIBIDO ===');
+      console.log('📨 Origin:', event.origin);
+      console.log('📨 Data:', event.data);
+      console.log('📨 Data type:', typeof event.data);
+      console.log('📨 Data keys:', Object.keys(event.data || {}));
+      console.log('📨 Expected origin:', window.location.origin);
+      
+      // Verificar que el mensaje viene del dominio correcto o es localhost
+      const isValidOrigin = event.origin === window.location.origin || 
+                           event.origin.includes('localhost') || 
+                           event.origin === 'null'; // Para casos de file://
+      
+      if (!isValidOrigin) {
+        console.log('❌ Mensaje rechazado: origen incorrecto');
+        console.log('📨 Origins comparison:', {
+          received: event.origin,
+          expected: window.location.origin,
+          isLocalhost: event.origin.includes('localhost')
+        });
         return;
       }
 
       console.log('💳 Mensaje de pago recibido:', event.data);
 
       if (event.data.type === 'PAYMENT_SUCCESS') {
+        console.log('✅ === PROCESANDO PAGO EXITOSO ===');
+        console.log('✅ Transaction ID:', event.data.transactionId);
+        console.log('✅ Session ID:', event.data.sessionId);
+        console.log('✅ Reservation confirmed:', event.data.reservationConfirmed);
+        
         // Pago exitoso - mostrar mensaje de confirmación
         const successMessage = {
           from: "bot",
@@ -180,7 +204,19 @@ function ChatComponent() {
           timestamp: new Date()
         };
 
-        setMessages(msgs => [...msgs, successMessage]);
+        console.log('📝 Añadiendo mensaje de éxito al chat:', successMessage);
+        console.log('📝 Mensajes estado antes de actualizar:', messages.length);
+        
+        setMessages(msgs => {
+          console.log('📝 === CALLBACK SETMESSAGES ===');
+          console.log('📝 Mensajes previos:', msgs.length);
+          const newMessages = [...msgs, successMessage];
+          console.log('📝 Nuevos mensajes:', newMessages.length);
+          console.log('📝 Último mensaje añadido:', newMessages[newMessages.length - 1]);
+          return newMessages;
+        });
+
+        console.log('📝 setMessages callback ejecutado');
 
         // Limpiar la sesión después del pago exitoso
         setSession({});
