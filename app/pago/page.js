@@ -104,6 +104,7 @@ function PagoContent() {
             sessionId: paymentData.sessionId,
             transactionId: result.transactionId,
             sobrecupoId: paymentData.sobrecupoId,
+            motivo: paymentData.motivo || null, // 🆕 MOTIVO DE CONSULTA
             patientData: {
               name: paymentData.patientName,
               rut: paymentData.patientRut || 'N/A',

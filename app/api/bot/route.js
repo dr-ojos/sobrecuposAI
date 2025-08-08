@@ -854,7 +854,8 @@ Ejemplos:
                 time: sobrecupoDataForPayment.Hora,
                 clinic: sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica',
                 amount: paymentAmount,
-                sessionId: paymentSessionId
+                sessionId: paymentSessionId,
+                motivo: currentSession.motivo || null // 🆕 AGREGAR MOTIVO DE CONSULTA
               })
             });
 

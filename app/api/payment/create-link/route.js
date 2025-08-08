@@ -30,6 +30,7 @@ export async function POST(req) {
     paymentLinks[shortId] = {
       ...paymentData,
       amount: paymentData.amount || "2990", // Precio por defecto actualizado
+      motivo: paymentData.motivo || null, // 🆕 GUARDAR MOTIVO DE CONSULTA
       createdAt: new Date(),
       expiresAt: expiresAt,
       used: false

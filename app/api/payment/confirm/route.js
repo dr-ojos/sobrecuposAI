@@ -63,7 +63,8 @@ export async function POST(req) {
       transactionId, 
       sobrecupoId, 
       patientData, 
-      appointmentData 
+      appointmentData,
+      motivo = null // 🆕 MOTIVO DE CONSULTA
     } = requestData;
 
     console.log('🔄 === INICIO CONFIRMACIÓN DE PAGO ===');
@@ -132,8 +133,11 @@ export async function POST(req) {
               Telefono: String(patientData.phone || '').trim(),
               Email: String(patientData.email || '').trim(),
               ...(edadPaciente && edadPaciente > 0 ? { Edad: edadPaciente } : {}),
-              "Fecha Registro": new Date().toISOString().split('T')[0]
-              // Removido "ID Transacción" ya que ese campo no existe en la tabla
+              "Fecha Registro": new Date().toISOString().split('T')[0],
+              // 🆕 NUEVOS CAMPOS SOLICITADOS
+              ...(motivo ? { "Motivo Consulta": String(motivo).trim() } : {}),
+              "Estado Pago": "Pagado",
+              "ID Transaccion": transactionId
             }
           };
           
@@ -284,7 +288,8 @@ export async function POST(req) {
                 hora: sobrecupoFields.Hora,
                 clinica: sobrecupoFields["Clínica"] || sobrecupoFields["Clinica"] || "Clínica",
                 direccion: sobrecupoFields["Dirección"] || sobrecupoFields["Direccion"] || ""
-              }
+              },
+              motivo // 🆕 AGREGAR MOTIVO AL WHATSAPP
             );
             
             console.log("✅ WhatsApp enviado al médico exitosamente");
@@ -307,7 +312,7 @@ export async function POST(req) {
 • RUT: ${patientData.rut}
 • Teléfono: ${patientData.phone}
 • Email: ${patientData.email}
-• Edad: ${patientData.age} años
+• Edad: ${patientData.age} años${motivo ? `\n• Motivo de consulta: ${motivo}` : ''}
 
 💳 PAGO CONFIRMADO: $${parseInt(appointmentData.amount || '2990').toLocaleString('es-CL')} CLP
 ID Transacción: ${transactionId}
