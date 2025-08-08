@@ -41,8 +41,15 @@ function PagoContent() {
   }, [searchParams]);
 
   const handlePaymentSubmit = async () => {
-    if (!paymentData) return;
+    console.log('🟡 === INICIANDO PAGO ===');
+    console.log('📋 Payment data:', paymentData);
+    
+    if (!paymentData) {
+      console.error('❌ No hay datos de pago disponibles');
+      return;
+    }
 
+    console.log('✅ Iniciando proceso de pago...');
     setProcessing(true);
     setPaymentStatus('processing');
     setMessage('Procesando pago...');
@@ -70,42 +77,59 @@ function PagoContent() {
         })
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+      }
+
       const result = await response.json();
+      console.log('📋 Resultado de simulación:', result);
 
       if (result.success) {
         setPaymentStatus('success');
         setMessage('¡Pago exitoso! Procesando reserva...');
         
         // Confirmar la reserva en el backend
+        console.log('🔄 Iniciando confirmación de reserva...');
         try {
+          const confirmPayload = {
+            sessionId: paymentData.sessionId,
+            transactionId: result.transactionId,
+            sobrecupoId: paymentData.sobrecupoId,
+            patientData: {
+              name: paymentData.patientName,
+              rut: paymentData.patientRut || 'N/A',
+              phone: paymentData.patientPhone || 'N/A',
+              email: paymentData.patientEmail || 'N/A',
+              age: paymentData.patientAge || 'N/A'
+            },
+            appointmentData: {
+              doctor: paymentData.doctorName,
+              specialty: paymentData.specialty,
+              date: paymentData.date,
+              time: paymentData.time,
+              clinic: paymentData.clinic,
+              amount: paymentData.amount
+            }
+          };
+          
+          console.log('📦 Payload de confirmación:', confirmPayload);
+          
           const confirmResponse = await fetch('/api/payment/confirm', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              sessionId: paymentData.sessionId,
-              transactionId: result.transactionId,
-              sobrecupoId: paymentData.sobrecupoId,
-              patientData: {
-                name: paymentData.patientName,
-                rut: paymentData.patientRut || 'N/A',
-                phone: paymentData.patientPhone || 'N/A',
-                email: paymentData.patientEmail || 'N/A',
-                age: paymentData.patientAge || 'N/A'
-              },
-              appointmentData: {
-                doctor: paymentData.doctorName,
-                specialty: paymentData.specialty,
-                date: paymentData.date,
-                time: paymentData.time,
-                clinic: paymentData.clinic,
-                amount: paymentData.amount
-              }
-            })
+            body: JSON.stringify(confirmPayload)
           });
 
+          console.log('📡 Confirm response status:', confirmResponse.status);
+          console.log('📡 Confirm response ok:', confirmResponse.ok);
+
           const confirmResult = await confirmResponse.json();
+          console.log('📋 Resultado de confirmación:', confirmResult);
           
           if (confirmResult.success) {
             setMessage('¡Reserva confirmada exitosamente! Redirigiendo al chat...');
@@ -133,8 +157,20 @@ function PagoContent() {
             }
           }
         } catch (confirmError) {
-          console.error('Error confirmando reserva:', confirmError);
+          console.error('❌ === ERROR CONFIRMANDO RESERVA ===');
+          console.error('❌ Error:', confirmError);
+          console.error('❌ Stack:', confirmError.stack);
           setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
+          
+          // Notificar el error al chat
+          if (window.opener) {
+            window.opener.postMessage({
+              type: 'PAYMENT_SUCCESS_RESERVATION_ERROR',
+              transactionId: result.transactionId,
+              sessionId: paymentData.sessionId,
+              error: confirmError.message
+            }, '*');
+          }
         }
 
         // Cerrar ventana después de 3 segundos
@@ -148,9 +184,11 @@ function PagoContent() {
       }
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error('❌ === ERROR EN FLUJO DE PAGO ===');
+      console.error('❌ Error:', error);
+      console.error('❌ Stack:', error.stack);
       setPaymentStatus('error');
-      setMessage('Error de conexión. Intenta nuevamente.');
+      setMessage(`Error de conexión: ${error.message}`);
     } finally {
       setProcessing(false);
     }
