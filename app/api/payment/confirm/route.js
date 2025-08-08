@@ -304,9 +304,9 @@ export async function POST(req) {
               whatsapp: doctorInfo.whatsapp
             });
           }
-            
-            // Email al médico
-            if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && doctorInfo.email) {
+          
+          // Email al médico
+          if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && doctorInfo.email) {
               try {
                 const doctorEmailContent = `
 <!DOCTYPE html>
@@ -453,7 +453,6 @@ export async function POST(req) {
                 console.error("⚠️ Error enviando email al médico:", doctorEmailErr);
               }
             }
-          }
         } catch (whatsappErr) {
           console.error("⚠️ Error enviando notificaciones al médico:", whatsappErr);
         }
