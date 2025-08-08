@@ -16,7 +16,7 @@ export async function POST(req) {
     console.log('🩺 Doctor ID:', doctorId);
 
     // Obtener datos del médico desde Airtable
-    const doctorResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/sobrecupos/medicos/${doctorId}`);
+    const doctorResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/doctors/${doctorId}`);
     
     if (!doctorResponse.ok) {
       console.error('❌ Error obteniendo médico:', doctorResponse.status);
@@ -27,14 +27,29 @@ export async function POST(req) {
 
     const doctorData = await doctorResponse.json();
     console.log('🩺 Doctor data completa:', JSON.stringify(doctorData, null, 2));
-    console.log('🩺 Doctor WhatsApp:', doctorData.whatsapp);
+    
+    // Obtener campos desde la estructura de Airtable
+    const doctorFields = doctorData.fields || {};
+    const whatsappNumber = doctorFields.WhatsApp || doctorFields.whatsapp;
+    const doctorName = doctorFields.Name || doctorFields.name;
+    const especialidad = doctorFields.Especialidad || doctorFields.especialidad;
+    
+    console.log('🩺 Doctor WhatsApp:', whatsappNumber);
+    console.log('🩺 Doctor Name:', doctorName);
+    console.log('🩺 Doctor Especialidad:', especialidad);
 
-    if (!doctorData.whatsapp) {
+    if (!whatsappNumber) {
       console.log('❌ Médico NO tiene WhatsApp configurado');
       return NextResponse.json({
         success: false,
         error: 'Médico sin WhatsApp configurado',
-        doctorData: doctorData
+        doctorData: {
+          id: doctorData.id,
+          name: doctorName,
+          especialidad: especialidad,
+          whatsapp: whatsappNumber,
+          allFields: doctorFields
+        }
       });
     }
 
@@ -59,8 +74,15 @@ export async function POST(req) {
     console.log('🩺 Test appointment data:', testAppointmentData);
     console.log('🩺 Test motivo:', testMotivo);
 
+    // Preparar datos del médico en el formato esperado por el servicio WhatsApp
+    const doctorForWhatsApp = {
+      name: doctorName,
+      whatsapp: whatsappNumber,
+      especialidad: especialidad
+    };
+
     const result = await whatsAppService.notifyDoctorNewPatient(
-      doctorData, 
+      doctorForWhatsApp, 
       testPatientData, 
       testAppointmentData, 
       testMotivo
@@ -72,9 +94,9 @@ export async function POST(req) {
       success: true,
       result: result,
       doctorData: {
-        name: doctorData.name,
-        whatsapp: doctorData.whatsapp,
-        especialidad: doctorData.especialidad
+        name: doctorName,
+        whatsapp: whatsappNumber,
+        especialidad: especialidad
       },
       message: result.simulated ? 
         'Notificación simulada (modo desarrollo)' : 
