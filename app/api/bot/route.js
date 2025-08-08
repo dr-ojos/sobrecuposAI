@@ -189,12 +189,18 @@ function esConsultaNoMedica(text) {
 function detectarEspecialidadPorSintomas(text) {
   const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   
-  // 🔍 SÍNTOMAS OFTALMOLÓGICOS - EXPANDIDOS Y MEJORADOS
+  // 🔍 SÍNTOMAS OFTALMOLÓGICOS - EXPANDIDOS Y MEJORADOS + FRASES DIRECTAS
   const sintomasOftalmologia = [
     // Visión y problemas visuales
     'vision borrosa', 'visión borrosa', 'borrosa', 'borroso', 'veo borroso',
     'no veo bien', 'veo mal', 'veo doble', 'vision doble', 'visión doble',
     'manchas flotantes', 'moscas volantes', 'puntos negros', 'manchas en la vista',
+    
+    // 🆕 FRASES DIRECTAS DE LAS TARJETAS DE EJEMPLO - FIX CRÍTICO
+    'veo manchas flotantes', 'necesito control de lentes', 'control de lentes',
+    'me pican los ojos', 'tengo el ojo irritado', 'ojo irritado',
+    'revision de lentes', 'revisión de lentes', 'examen de vista',
+    'control vista', 'control de vista', 'control ocular',
     
     // Síntomas oculares específicos  
     'ojo rojo', 'ojos rojos', 'irritado', 'irritados', 'ojos irritados',
@@ -209,7 +215,7 @@ function detectarEspecialidadPorSintomas(text) {
     'revision ojos', 'revisión ojos', 'examen vista', 'control vista',
     
     // 🆕 NUEVOS SÍNTOMAS ESPECÍFICOS - INCLUYE "PICAN" - FIX CRÍTICO
-    'me pican los ojos', 'ojos pican', 'picazon ojos', 'picazón ojos',
+    'ojos pican', 'picazon ojos', 'picazón ojos',
     'comezon ojos', 'comezón ojos', 'pica el ojo', 'pican', 'picor ojos',
     'ojos secos', 'sequedad ocular', 'ojo seco',
     'inflamacion ojo', 'inflamación ojo', 'hinchazon ojo', 'hinchazón ojo',
@@ -248,8 +254,9 @@ function detectarEspecialidadPorSintomas(text) {
   ];
   
   // 🔥 EVALUAR SÍNTOMAS EN ORDEN DE PRIORIDAD - OFTALMOLOGÍA PRIMERO
-  if (sintomasOftalmologia.some(s => textoLimpio.includes(s))) {
-    console.log('🔍 Síntomas oftalmológicos detectados:', textoLimpio);
+  const sintomaDetectado = sintomasOftalmologia.find(s => textoLimpio.includes(s));
+  if (sintomaDetectado) {
+    console.log('🔍 Síntomas oftalmológicos detectados:', sintomaDetectado, '- Texto original:', textoLimpio);
     return 'Oftalmología';
   }
   if (sintomasDermatologia.some(s => textoLimpio.includes(s))) return 'Dermatología';
