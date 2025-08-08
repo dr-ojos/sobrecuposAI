@@ -192,10 +192,18 @@ function PagoContent() {
               }, 1500); // Optimizado para cierre rápido
             } else {
               console.log('❌ No hay window.opener - usuario puede haber navegado directamente');
-              // Si no hay ventana padre, cerrar después de 3 segundos
+              
+              // Mostrar mensaje de éxito pero explicar que debe cerrar manualmente
+              setMessage('¡Pago y reserva exitosos! 🎉\n\nComo esta ventana no se abrió desde el chat, debes cerrarla manualmente.\n\nRevisarás tu email de confirmación en unos minutos.');
+              
+              // Intentar cerrar después de 5 segundos (puede fallar por seguridad del navegador)
               setTimeout(() => {
-                window.close();
-              }, 3000);
+                try {
+                  window.close();
+                } catch (e) {
+                  console.log('No se pudo cerrar automáticamente - usuario debe cerrar manualmente');
+                }
+              }, 5000);
             }
           } else {
             setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
