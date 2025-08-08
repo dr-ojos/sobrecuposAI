@@ -27,8 +27,8 @@ export async function POST(req) {
     // Simular delay de procesamiento de pago
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Simular éxito del pago (95% de probabilidad)
-    const paymentSuccess = Math.random() > 0.05;
+    // Simular éxito del pago (100% para testing - cambiar a Math.random() > 0.05 en producción)
+    const paymentSuccess = true; // Math.random() > 0.05;
 
     if (paymentSuccess) {
       // Generar ID de transacción simulado
