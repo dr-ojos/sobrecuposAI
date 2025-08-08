@@ -580,7 +580,7 @@ export async function POST(req) {
         <ul style="margin: 0; padding-left: 1.5rem; color: #92400e; font-size: 0.9rem; line-height: 1.6;">
           <li style="margin-bottom: 0.5rem;"><strong>Llega 15 minutos antes</strong> de tu cita</li>
           <li style="margin-bottom: 0.5rem;">Trae tu <strong>cédula de identidad</strong></li>
-          <li style="margin-bottom: 0;">Este pago es por el <strong>sobrecupo</strong>. Debes pagar la <strong>consulta médica</strong> en clínica</li>
+          <li style="margin-bottom: 0;">Recuerda que este pago es por el <strong>sobrecupo</strong>. Debes pagar tu <strong>consulta</strong> en la clínica</li>
         </ul>
       </div>
 
