@@ -118,17 +118,27 @@ export async function POST(req) {
         try {
           console.log("👤 Creando paciente en tabla Pacientes...");
           
+          const edadPaciente = patientData.age ? parseInt(String(patientData.age), 10) : null;
+          
           const pacienteDataForCreation = {
             fields: {
-              Nombre: patientData.name,
-              RUT: patientData.rut,
-              Telefono: patientData.phone,
-              Email: patientData.email,
-              Edad: patientData.age,
+              Nombre: String(patientData.name || '').trim(),
+              RUT: String(patientData.rut || '').trim(),
+              Telefono: String(patientData.phone || '').trim(),
+              Email: String(patientData.email || '').trim(),
+              ...(edadPaciente && edadPaciente > 0 ? { Edad: edadPaciente } : {}),
               "Fecha Registro": new Date().toISOString().split('T')[0],
-              "ID Transacción": transactionId
+              "ID Transacción": String(transactionId || '').trim()
             }
           };
+          
+          // Limpiar campos vacíos
+          Object.keys(pacienteDataForCreation.fields).forEach(key => {
+            const value = pacienteDataForCreation.fields[key];
+            if (value === '' || value === 'N/A' || value === null || value === undefined) {
+              delete pacienteDataForCreation.fields[key];
+            }
+          });
           
           const pacienteResponse = await fetch(
             `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_PATIENTS_TABLE}`,
@@ -160,19 +170,30 @@ export async function POST(req) {
       console.log("📅 === ACTUALIZANDO SOBRECUPO ===");
       console.log("🆔 Sobrecupo ID:", sobrecupoId);
       
+      // Preparar los datos con validación estricta
+      const edad = patientData.age ? parseInt(String(patientData.age), 10) : null;
+      
       const updateData = {
         fields: {
           Disponible: "No",
-          RUT: String(patientData.rut || ''),
-          Edad: parseInt(patientData.age) || 0,
-          Nombre: String(patientData.name || ''),
-          Telefono: String(patientData.phone || ''),
-          Email: String(patientData.email || ''),
+          RUT: String(patientData.rut || '').trim(),
+          ...(edad && edad > 0 ? { Edad: edad } : {}), // Solo incluir si es válido
+          Nombre: String(patientData.name || '').trim(),
+          Telefono: String(patientData.phone || '').trim(),
+          Email: String(patientData.email || '').trim(),
           "Pagado": "Sí",
-          "ID Transacción": String(transactionId || ''),
+          "ID Transacción": String(transactionId || '').trim(),
           "Fecha Pago": new Date().toISOString()
         }
       };
+
+      // Limpiar campos vacíos que pueden causar errores en Airtable
+      Object.keys(updateData.fields).forEach(key => {
+        const value = updateData.fields[key];
+        if (value === '' || value === 'N/A' || value === null || value === undefined) {
+          delete updateData.fields[key];
+        }
+      });
 
       console.log("📝 Datos a actualizar:", updateData);
       console.log("🔗 URL de actualización:", `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${sobrecupoId}`);
