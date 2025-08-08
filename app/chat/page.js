@@ -172,6 +172,68 @@ function ChatComponent() {
     console.log('🔧 Window location:', window.location.origin);
     console.log('🔧 Timestamp:', new Date().toISOString());
     
+    // 🔄 FALLBACK: Revisar localStorage periódicamente
+    const checkLocalStorageForPayment = () => {
+      const storedMessage = localStorage.getItem('payment_success_message');
+      if (storedMessage) {
+        console.log('💾 === MENSAJE ENCONTRADO EN LOCALSTORAGE ===');
+        try {
+          const paymentData = JSON.parse(storedMessage);
+          console.log('💾 Datos:', paymentData);
+          
+          // Limpiar localStorage
+          localStorage.removeItem('payment_success_message');
+          
+          // Procesar como si fuera postMessage
+          handlePaymentSuccess(paymentData);
+        } catch (error) {
+          console.error('❌ Error parseando mensaje de localStorage:', error);
+        }
+      }
+    };
+
+    // 🔄 Función para procesar pago exitoso (desde postMessage o localStorage)
+    const handlePaymentSuccess = (paymentData) => {
+      console.log('✅ === PROCESANDO PAGO EXITOSO ===');
+      console.log('✅ Transaction ID:', paymentData.transactionId);
+      console.log('✅ Session ID:', paymentData.sessionId);
+      console.log('✅ Reservation confirmed:', paymentData.reservationConfirmed);
+      
+      // 🆘 DEBUG TEMPORAL - Alert para confirmar que llega el mensaje
+      alert('🎉 PAGO EXITOSO PROCESADO! Mensaje aparecerá en chat.');
+      
+      // Pago exitoso - mostrar mensaje de confirmación con detalles completos
+      const appointment = paymentData.appointmentDetails || {};
+      const successMessage = {
+        from: "bot",
+        text: `🎉 ¡Pago confirmado exitosamente!\n\n💳 **TRANSACCIÓN COMPLETADA**\nID: ${paymentData.transactionId}\n\n📋 **DETALLES DE TU CITA CONFIRMADA**\n👤 Paciente: ${appointment.patientName || 'N/A'}\n👨‍⚕️ Doctor: ${appointment.doctorName || 'N/A'}\n🏥 Especialidad: ${appointment.specialty || 'N/A'}\n📅 Fecha: ${appointment.date || 'N/A'}\n🕐 Hora: ${appointment.time || 'N/A'}\n🏨 Clínica: ${appointment.clinic || 'N/A'}\n\n📧 **PRÓXIMOS PASOS**\n✅ Recibirás un email de confirmación con todos los detalles\n📍 Llega 15 minutos antes a la clínica\n🆔 No olvides traer tu cédula de identidad\n💊 El pago ya está procesado\n\n¡Nos vemos en tu cita! 👩‍⚕️👨‍⚕️`,
+        timestamp: new Date()
+      };
+
+      console.log('📝 Añadiendo mensaje de éxito al chat:', successMessage);
+      
+      setMessages(msgs => {
+        console.log('📝 === CALLBACK SETMESSAGES ===');
+        console.log('📝 Mensajes previos:', msgs.length);
+        const newMessages = [...msgs, successMessage];
+        console.log('📝 Nuevos mensajes:', newMessages.length);
+        
+        // Forzar scroll después de actualizar
+        setTimeout(() => {
+          const container = document.querySelector('.messages-container');
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+            console.log('📜 Scroll forzado al final');
+          }
+        }, 100);
+        
+        return newMessages;
+      });
+
+      // Limpiar la sesión después del pago exitoso
+      setSession({});
+    };
+
     const handlePaymentMessage = (event) => {
       console.log('📨 === MENSAJE RECIBIDO ===');
       console.log('📨 Origin:', event.origin);
@@ -198,49 +260,7 @@ function ChatComponent() {
       console.log('💳 Mensaje de pago recibido:', event.data);
 
       if (event.data.type === 'PAYMENT_SUCCESS') {
-        console.log('✅ === PROCESANDO PAGO EXITOSO ===');
-        console.log('✅ Transaction ID:', event.data.transactionId);
-        console.log('✅ Session ID:', event.data.sessionId);
-        console.log('✅ Reservation confirmed:', event.data.reservationConfirmed);
-        
-        // 🆘 DEBUG TEMPORAL - Alert para confirmar que llega el mensaje
-        alert('🎉 PAGO EXITOSO RECIBIDO! Verifica consola.');
-        
-        // Pago exitoso - mostrar mensaje de confirmación con detalles completos
-        const appointment = event.data.appointmentDetails || {};
-        const successMessage = {
-          from: "bot",
-          text: `🎉 ¡Pago confirmado exitosamente!\n\n💳 **TRANSACCIÓN COMPLETADA**\nID: ${event.data.transactionId}\n\n📋 **DETALLES DE TU CITA CONFIRMADA**\n👤 Paciente: ${appointment.patientName || 'N/A'}\n👨‍⚕️ Doctor: ${appointment.doctorName || 'N/A'}\n🏥 Especialidad: ${appointment.specialty || 'N/A'}\n📅 Fecha: ${appointment.date || 'N/A'}\n🕐 Hora: ${appointment.time || 'N/A'}\n🏨 Clínica: ${appointment.clinic || 'N/A'}\n\n📧 **PRÓXIMOS PASOS**\n✅ Recibirás un email de confirmación con todos los detalles\n📍 Llega 15 minutos antes a la clínica\n🆔 No olvides traer tu cédula de identidad\n💊 El pago ya está procesado\n\n¡Nos vemos en tu cita! 👩‍⚕️👨‍⚕️`,
-          timestamp: new Date()
-        };
-
-        console.log('📝 Añadiendo mensaje de éxito al chat:', successMessage);
-        console.log('📝 Mensajes estado antes de actualizar:', messages.length);
-        
-        setMessages(msgs => {
-          console.log('📝 === CALLBACK SETMESSAGES ===');
-          console.log('📝 Mensajes previos:', msgs.length);
-          const newMessages = [...msgs, successMessage];
-          console.log('📝 Nuevos mensajes:', newMessages.length);
-          console.log('📝 Último mensaje añadido:', newMessages[newMessages.length - 1]);
-          
-          // Forzar scroll después de actualizar
-          setTimeout(() => {
-            const container = document.querySelector('.messages-container');
-            if (container) {
-              container.scrollTop = container.scrollHeight;
-              console.log('📜 Scroll forzado al final');
-            }
-          }, 100);
-          
-          return newMessages;
-        });
-
-        console.log('📝 setMessages callback ejecutado');
-
-        // Limpiar la sesión después del pago exitoso
-        setSession({});
-
+        handlePaymentSuccess(event.data);
       } else if (event.data.type === 'PAYMENT_CANCELLED') {
         // Pago cancelado
         const cancelledMessage = {
@@ -266,9 +286,13 @@ function ChatComponent() {
     // Añadir event listener
     window.addEventListener('message', handlePaymentMessage);
 
+    // 🔄 Polling de localStorage cada 1 segundo
+    const pollInterval = setInterval(checkLocalStorageForPayment, 1000);
+
     // Cleanup
     return () => {
       window.removeEventListener('message', handlePaymentMessage);
+      clearInterval(pollInterval);
     };
   }, []);
 

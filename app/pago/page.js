@@ -191,19 +191,36 @@ function PagoContent() {
                 window.close();
               }, 1500); // Optimizado para cierre rápido
             } else {
-              console.log('❌ No hay window.opener - usuario puede haber navegado directamente');
+              console.log('❌ No hay window.opener - usando localStorage como fallback');
               
-              // Mostrar mensaje de éxito pero explicar que debe cerrar manualmente
-              setMessage('¡Pago y reserva exitosos! 🎉\n\nComo esta ventana no se abrió desde el chat, debes cerrarla manualmente.\n\nRevisarás tu email de confirmación en unos minutos.');
+              // 🔄 FALLBACK: Usar localStorage para comunicar con el chat
+              const fallbackMessage = {
+                type: 'PAYMENT_SUCCESS',
+                transactionId: result.transactionId,
+                sessionId: paymentData.sessionId,
+                reservationConfirmed: true,
+                appointmentDetails: {
+                  doctorName: paymentData.doctorName,
+                  specialty: paymentData.specialty,
+                  date: paymentData.date,
+                  time: paymentData.time,
+                  clinic: paymentData.clinic,
+                  patientName: paymentData.patientName
+                },
+                timestamp: new Date().toISOString()
+              };
               
-              // Intentar cerrar después de 5 segundos (puede fallar por seguridad del navegador)
+              // Guardar en localStorage
+              localStorage.setItem('payment_success_message', JSON.stringify(fallbackMessage));
+              console.log('💾 Mensaje guardado en localStorage para el chat');
+              
+              // Mostrar mensaje de éxito
+              setMessage('¡Pago y reserva exitosos! 🎉\n\nCierra esta ventana y revisa el chat para ver los detalles.\n\nTambién recibirás email de confirmación.');
+              
+              // Cerrar después de 3 segundos
               setTimeout(() => {
-                try {
-                  window.close();
-                } catch (e) {
-                  console.log('No se pudo cerrar automáticamente - usuario debe cerrar manualmente');
-                }
-              }, 5000);
+                window.close();
+              }, 3000);
             }
           } else {
             setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
