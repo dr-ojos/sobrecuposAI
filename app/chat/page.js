@@ -60,7 +60,11 @@ function ChatComponent() {
   const handlePaymentTextClick = (event) => {
     const paymentUrl = event.target.getAttribute('data-payment-url');
     if (paymentUrl) {
-      window.open(paymentUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      console.log('💳 === ABRIENDO VENTANA DE PAGO DESDE TEXTO ===');
+      console.log('💳 URL:', paymentUrl);
+      const popup = window.open(paymentUrl, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+      console.log('💳 Popup abierto:', !!popup);
+      console.log('💳 Popup closed:', popup ? popup.closed : 'N/A');
     }
   };
 
@@ -426,7 +430,16 @@ function ChatComponent() {
                   {msg.paymentButton && (
                     <div className="payment-button-container">
                       <button
-                        onClick={() => window.open(msg.paymentButton.url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes')}
+                        onClick={() => {
+                          console.log('💳 === ABRIENDO VENTANA DE PAGO DESDE BOTÓN ===');
+                          console.log('💳 URL:', msg.paymentButton.url);
+                          const popup = window.open(msg.paymentButton.url, '_blank', 'width=600,height=700,scrollbars=yes,resizable=yes');
+                          console.log('💳 Popup abierto:', !!popup);
+                          console.log('💳 Popup closed:', popup ? popup.closed : 'N/A');
+                          if (!popup) {
+                            alert('⚠️ El navegador bloqueó el popup. Por favor permite popups para este sitio.');
+                          }
+                        }}
                         className="payment-button"
                       >
                         <span className="button-icon">💳</span>
