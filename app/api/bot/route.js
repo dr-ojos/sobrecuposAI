@@ -736,7 +736,7 @@ Ejemplos:
           }
 
           // Si la edad es compatible, continuar (ya tenemos el nombre)
-          const primerNombre = currentSession.patientName.split(' ')[0];
+          const nombrePaciente = currentSession.patientName.split(' ')[0];
           sessions[from] = {
             ...currentSession,
             patientAge: edadConfirmada,
@@ -744,7 +744,7 @@ Ejemplos:
           };
 
           return NextResponse.json({
-            text: `¡Perfecto, ${primerNombre}! La cita te queda ideal.\n\nAhora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12345678-9`,
+            text: `¡Perfecto, ${nombrePaciente}! La cita te queda ideal.\n\nAhora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12345678-9`,
             session: sessions[from]
           });
 
