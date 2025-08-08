@@ -513,14 +513,14 @@ Ejemplos:
           const respuesta = text.toLowerCase().trim();
           
           if (respuesta.includes('sí') || respuesta.includes('si') || respuesta === 's' || respuesta === 'yes' || respuesta === 'ok' || respuesta === 'vale') {
-            // Confirmar cita y preguntar edad
+            // Confirmar cita y preguntar nombre completo primero
             sessions[from] = {
               ...currentSession,
-              stage: 'getting-age-for-confirmed-appointment'
+              stage: 'getting-name-for-confirmed-appointment'
             };
             
             return NextResponse.json({
-              text: "¡Excelente! Para completar tu reserva, necesito conocer tu edad.\n\nPor favor dime tu edad:\nEjemplo: 25",
+              text: "¡Excelente! Para completar tu reserva, necesito tus datos.\n\nPor favor dime tu **nombre completo**:",
               session: sessions[from]
             });
           } 
@@ -581,11 +581,11 @@ Ejemplos:
               ...currentSession,
               selectedRecord: selectedAlt,
               doctorInfo: doctorInfo,
-              stage: 'getting-age-for-confirmed-appointment'
+              stage: 'getting-name-for-confirmed-appointment'
             };
             
             return NextResponse.json({
-              text: "¡Excelente elección! Para completar tu reserva, necesito conocer tu edad.\n\nPor favor dime tu edad:\nEjemplo: 25",
+              text: "¡Excelente elección! Para completar tu reserva, necesito tus datos.\n\nPor favor dime tu **nombre completo**:",
               session: sessions[from]
             });
           } 
@@ -600,11 +600,11 @@ Ejemplos:
               ...currentSession,
               selectedRecord: selectedAlt,
               doctorInfo: doctorInfo,
-              stage: 'getting-age-for-confirmed-appointment'
+              stage: 'getting-name-for-confirmed-appointment'
             };
             
             return NextResponse.json({
-              text: "¡Excelente elección! Para completar tu reserva, necesito conocer tu edad.\n\nPor favor dime tu edad:\nEjemplo: 25",
+              text: "¡Excelente elección! Para completar tu reserva, necesito tus datos.\n\nPor favor dime tu **nombre completo**:",
               session: sessions[from]
             });
           }
@@ -618,6 +618,31 @@ Ejemplos:
               text: "Por favor responde con el número de la opción que prefieres (1 o 2) o escribe 'no' si ninguna te conviene."
             });
           }
+
+        case 'getting-name-for-confirmed-appointment':
+          // 🆕 OBTENER NOMBRE COMPLETO DESPUÉS DE CONFIRMAR LA CITA
+          const nombreCompleto = text.trim();
+          
+          if (nombreCompleto.length < 2) {
+            return NextResponse.json({
+              text: "Por favor ingresa tu nombre completo."
+            });
+          }
+
+          // Extraer primer nombre para saludo personalizado
+          const primerNombre = nombreCompleto.split(' ')[0];
+          
+          // Guardar nombre y pasar a solicitar edad
+          sessions[from] = {
+            ...currentSession,
+            patientName: nombreCompleto,
+            stage: 'getting-age-for-confirmed-appointment'
+          };
+
+          return NextResponse.json({
+            text: `¡Perfecto, ${primerNombre}! Ahora necesito conocer tu edad para completar la reserva.\n\nPor favor dime tu edad:\nEjemplo: 25`,
+            session: sessions[from]
+          });
 
         case 'getting-age-for-confirmed-appointment':
           // 🆕 VALIDAR EDAD DESPUÉS DE CONFIRMAR LA CITA
@@ -688,11 +713,11 @@ Ejemplos:
                     selectedRecord: altRecord,
                     doctorInfo: altDoctorInfo,
                     patientAge: edadConfirmada,
-                    stage: 'getting-name'
+                    stage: 'getting-rut'
                   };
                   
                   return NextResponse.json({
-                    text: `${mensajeEdad}\n\n✅ Sin embargo, tengo otra opción perfecta para ti:\n\n👨‍⚕️ **Dr. ${altDoctorInfo.name}**${altAtiendeTxt}\n📅 ${fechaAlt} a las ${altRecord.fields.Hora}\n📍 ${altRecord.fields["Clínica"] || altRecord.fields["Clinica"]}\n\n¡Perfecto! Ahora necesito tus datos para completar la reserva.\n\nPor favor, dime tu **nombre completo**:`,
+                    text: `${mensajeEdad}\n\n✅ Sin embargo, tengo otra opción perfecta para ti:\n\n👨‍⚕️ **Dr. ${altDoctorInfo.name}**${altAtiendeTxt}\n📅 ${fechaAlt} a las ${altRecord.fields.Hora}\n📍 ${altRecord.fields["Clínica"] || altRecord.fields["Clinica"]}\n\n¡Perfecto! Ahora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12345678-9`,
                     session: sessions[from]
                   });
                 }
@@ -710,15 +735,16 @@ Ejemplos:
             }
           }
 
-          // Si la edad es compatible, continuar
+          // Si la edad es compatible, continuar (ya tenemos el nombre)
+          const primerNombre = currentSession.patientName.split(' ')[0];
           sessions[from] = {
             ...currentSession,
             patientAge: edadConfirmada,
-            stage: 'getting-name'
+            stage: 'getting-rut'
           };
 
           return NextResponse.json({
-            text: "¡Perfecto! La cita te queda ideal.\n\nAhora necesito tus datos para completar la reserva.\n\nPor favor, dime tu **nombre completo**:",
+            text: `¡Perfecto, ${primerNombre}! La cita te queda ideal.\n\nAhora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12345678-9`,
             session: sessions[from]
           });
 
