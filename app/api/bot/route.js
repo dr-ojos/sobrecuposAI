@@ -523,7 +523,7 @@ Ejemplos:
           
           if (medicosCompatibles.length === 0) {
             return NextResponse.json({
-              text: `${respuestaEmpatica}\n\nLamentablemente no encontré médicos de ${specialty} que atiendan pacientes de ${edadIngresada} años en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+              text: `Lamentablemente no encontré médicos de ${specialty} que atiendan pacientes de ${edadIngresada} años en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
             });
           }
 
@@ -564,7 +564,7 @@ Ejemplos:
 
           if (available.length === 0) {
             return NextResponse.json({
-              text: `${respuestaEmpatica}\n\nEncontré médicos de ${specialty} que atienden pacientes de ${edadIngresada} años, pero no tienen sobrecupos disponibles para fechas futuras.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+              text: `Encontré médicos de ${specialty} que atienden pacientes de ${edadIngresada} años, pero no tienen sobrecupos disponibles para fechas futuras.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
             });
           }
 
@@ -594,7 +594,7 @@ Ejemplos:
           };
 
           return NextResponse.json({
-            text: `${respuestaEmpatica}\n\n✅ Encontré un sobrecupo de ${specialty} para pacientes de ${edadIngresada} años:\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
+            text: `✅ Encontré un sobrecupo de ${specialty} para pacientes de ${edadIngresada} años:\n\n📍 ${clin}\n📍 ${dir}\n👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n\n¿Te sirve? Confirma con "sí".`,
             session: sessions[from]
           });
 
