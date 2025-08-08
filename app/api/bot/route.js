@@ -508,6 +508,123 @@ Ejemplos:
       const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = currentSession;
 
       switch (stage) {
+        case 'getting-age-for-medical-recommendation':
+          // 🆕 NUEVO FLUJO: Validar edad para recomendación médica ya mostrada
+          const edadRecomendacion = parseInt(text);
+          if (isNaN(edadRecomendacion) || edadRecomendacion < 1 || edadRecomendacion > 120) {
+            return NextResponse.json({
+              text: "Por favor ingresa una edad válida (número entre 1 y 120)."
+            });
+          }
+
+          console.log(`🎯 Validando edad ${edadRecomendacion} para recomendación médica`);
+
+          // Verificar si el médico recomendado puede atender esta edad
+          const { doctorInfo, selectedRecord, motivo } = currentSession;
+          
+          let puedeAtender = true;
+          let razonRechazo = "";
+          
+          if (doctorInfo.atiende === "Niños" && edadRecomendacion >= 18) {
+            puedeAtender = false;
+            razonRechazo = "este médico especializa en pediatría (menores de 18 años)";
+          } else if (doctorInfo.atiende === "Adultos" && edadRecomendacion < 18) {
+            puedeAtender = false;
+            razonRechazo = "este médico atiende solo pacientes adultos (18+ años)";
+          }
+
+          if (!puedeAtender) {
+            // Buscar médico alternativo
+            console.log(`🔄 Buscando médico alternativo para edad ${edadRecomendacion}`);
+            
+            try {
+              const medicosCompatibles = await getMedicosQueAtienden(specialty, edadRecomendacion);
+              
+              if (medicosCompatibles.length === 0) {
+                return NextResponse.json({
+                  text: `Lo siento, ${razonRechazo}, y no tengo otros médicos de ${specialty} disponibles que atiendan pacientes de ${edadRecomendacion} años.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad adecuada para tu edad?`
+                });
+              }
+
+              // Buscar sobrecupos de médicos compatibles
+              const medicosIds = medicosCompatibles.map(m => m.id);
+              const resp = await fetch(
+                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+                { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+              );
+              const data = await resp.json();
+              const sobrecuposRecords = data.records || [];
+
+              const availableFiltered = sobrecuposRecords.filter(r => {
+                const fields = r.fields || {};
+                const medicoField = fields["Médico"];
+                const medicoId = Array.isArray(medicoField) ? medicoField[0] : medicoField;
+                return (
+                  (fields.Especialidad === specialty) &&
+                  (fields.Disponible === "Si" || fields.Disponible === true) &&
+                  medicosIds.includes(medicoId)
+                );
+              });
+
+              const available = filterFutureDates(availableFiltered);
+              
+              if (available.length === 0) {
+                return NextResponse.json({
+                  text: `${razonRechazo}, y aunque hay otros médicos que atienden tu edad, no tienen sobrecupos disponibles.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+                });
+              }
+
+              // Mostrar médico alternativo
+              available.sort((a, b) => {
+                const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
+                const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
+                return dateA - dateB;
+              });
+
+              const newRecord = available[0].fields;
+              const newMedicoId = Array.isArray(newRecord["Médico"]) ? newRecord["Médico"][0] : newRecord["Médico"];
+              const newMedicoNombre = await getDoctorName(newMedicoId);
+              const fechaFormateada = formatSpanishDate(newRecord.Fecha);
+              const clin = newRecord["Clínica"] || newRecord["Clinica"] || "nuestra clínica";
+              const dir = newRecord["Dirección"] || newRecord["Direccion"] || "la dirección indicada";
+
+              sessions[from] = {
+                stage: 'awaiting-confirmation',
+                specialty: specialty,
+                records: available,
+                attempts: 0,
+                patientAge: edadRecomendacion,
+                motivo: motivo // 🆕 MANTENER MOTIVO
+              };
+
+              return NextResponse.json({
+                text: `Tienes razón, ${razonRechazo}.\n\n✅ Te conseguí una alternativa: **Dr. ${newMedicoNombre}** que sí atiende pacientes de ${edadRecomendacion} años.\n\n📅 ${fechaFormateada} a las ${newRecord.Hora}\n📍 ${clin}, ${dir}\n\n¿Te sirve esta opción? Confirma con "sí".`,
+                session: sessions[from]
+              });
+
+            } catch (error) {
+              console.error("❌ Error buscando médico alternativo:", error);
+              return NextResponse.json({
+                text: "Disculpa, hubo un error buscando alternativas. Intenta más tarde."
+              });
+            }
+          } else {
+            // El médico SÍ puede atender esta edad
+            sessions[from] = {
+              stage: 'awaiting-confirmation',
+              specialty: specialty,
+              records: currentSession.records,
+              attempts: 0,
+              patientAge: edadRecomendacion,
+              motivo: motivo // 🆕 MANTENER MOTIVO
+            };
+
+            return NextResponse.json({
+              text: `Perfecto, el Dr. ${doctorInfo.name} puede atender pacientes de ${edadRecomendacion} años.\n\n¿Confirmas esta cita? Responde "sí" para continuar.`,
+              session: sessions[from]
+            });
+          }
+
         case 'getting-age-for-filtering':
           const edadIngresada = parseInt(text);
           if (isNaN(edadIngresada) || edadIngresada < 1 || edadIngresada > 120) {
@@ -1275,53 +1392,170 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       });
     }
 
-    // 🔥 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES
+    // 🔥 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES - FLUJO MEJORADO
     const especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
     
     if (especialidadPorSintomas) {
       const specialty = especialidadPorSintomas;
       console.log(`🎯 Especialidad detectada por síntomas: ${specialty}`);
       
-      let respuestaEmpatica = "Entiendo tu preocupación.";
-      if (OPENAI_API_KEY) {
-        try {
-          const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${OPENAI_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: "gpt-4o-mini",
-              temperature: 0.7,
-              max_tokens: 50,
-              messages: [
-                {
-                  role: "system",
-                  content: "Eres Sobrecupos IA, asistente médico chileno empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al paciente que describe síntomas. Sé humano y cercano."
+      // 🆕 BUSCAR MÉDICOS DISPONIBLES INMEDIATAMENTE
+      try {
+        const resp = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+          { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+        );
+        const data = await resp.json();
+        const sobrecuposRecords = data.records || [];
+
+        // Filtrar por especialidad y disponibilidad
+        const availableFiltered = sobrecuposRecords.filter(record => {
+          const fields = record.fields || {};
+          return fields.Especialidad === specialty && 
+                 (fields.Disponible === "Si" || fields.Disponible === true);
+        });
+
+        // Filtrar solo fechas futuras
+        const available = filterFutureDates(availableFiltered);
+
+        if (available.length === 0) {
+          let respuestaEmpatica = "Entiendo tu preocupación.";
+          if (OPENAI_API_KEY) {
+            try {
+              const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${OPENAI_API_KEY}`,
+                  "Content-Type": "application/json"
                 },
-                { role: "user", content: `Paciente dice: "${text}"` }
-              ]
-            })
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  temperature: 0.7,
+                  max_tokens: 50,
+                  messages: [
+                    {
+                      role: "system",
+                      content: "Eres Sobrecupos IA, asistente médico chileno empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al paciente que describe síntomas. Sé humano y cercano."
+                    },
+                    { role: "user", content: `Paciente dice: "${text}"` }
+                  ]
+                })
+              });
+              const empatJson = await empatRes.json();
+              respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "Entiendo tu preocupación.";
+            } catch (err) {
+              console.error("❌ Error OpenAI empático:", err);
+            }
+          }
+
+          return NextResponse.json({
+            text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en ${specialty}, pero lamentablemente no tengo sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
           });
-          const empatJson = await empatRes.json();
-          respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "Entiendo tu preocupación.";
-        } catch (err) {
-          console.error("❌ Error OpenAI empático:", err);
         }
+
+        // Ordenar por fecha más próxima y tomar el primero
+        available.sort((a, b) => {
+          const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
+          const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
+          return dateA - dateB;
+        });
+
+        const first = available[0].fields;
+        const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+        
+        // 🆕 OBTENER INFO COMPLETA DEL MÉDICO
+        let doctorInfo = { name: 'Doctor', atiende: 'Ambos' };
+        try {
+          const doctorResponse = await fetch(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}/${medicoId}`,
+            { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+          );
+          
+          if (doctorResponse.ok) {
+            const doctorData = await doctorResponse.json();
+            doctorInfo = {
+              name: doctorData.fields?.Name || doctorData.fields?.Nombre || 'Doctor',
+              atiende: doctorData.fields?.Atiende || 'Ambos'
+            };
+          }
+        } catch (err) {
+          console.error("❌ Error obteniendo info del médico:", err);
+        }
+
+        // Generar respuesta empática
+        let respuestaEmpatica = "Entiendo tu preocupación.";
+        if (OPENAI_API_KEY) {
+          try {
+            const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${OPENAI_API_KEY}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0.7,
+                max_tokens: 60,
+                messages: [
+                  {
+                    role: "system",
+                    content: "Eres una secretaria médica chilena empática y profesional. Responde con comprensión al paciente que describe su problema médico. Máximo 2 líneas, tono cálido y humano."
+                  },
+                  { role: "user", content: `Paciente dice: "${text}"` }
+                ]
+              })
+            });
+            const empatJson = await empatRes.json();
+            respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "Entiendo tu preocupación.";
+          } catch (err) {
+            console.error("❌ Error OpenAI empático:", err);
+          }
+        }
+
+        // Formatear fecha en español
+        const fechaFormateada = formatSpanishDate(first.Fecha);
+        const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
+        const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
+
+        // 🆕 TEXTO SOBRE QUÉ PACIENTES ATIENDE
+        let atiendeTxt = "";
+        switch(doctorInfo.atiende) {
+          case "Niños":
+            atiendeTxt = " (especialista en pediatría)";
+            break;
+          case "Adultos":
+            atiendeTxt = " (atiende solo adultos)";
+            break;
+          case "Ambos":
+            atiendeTxt = " (atiende niños y adultos)";
+            break;
+          default:
+            atiendeTxt = " (atiende pacientes de todas las edades)";
+        }
+
+        // Guardar en sesión incluyendo motivo original
+        sessions[from] = {
+          stage: 'getting-age-for-medical-recommendation',
+          specialty: specialty,
+          respuestaEmpatica,
+          motivo: text, // 🆕 GUARDAR MOTIVO ORIGINAL
+          records: available,
+          attempts: 0,
+          doctorInfo,
+          selectedRecord: first
+        };
+
+        return NextResponse.json({
+          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n👨‍⚕️ Tengo disponible al **Dr. ${doctorInfo.name}**${atiendeTxt}\n📅 ${fechaFormateada} a las ${first.Hora}\n📍 ${clin}, ${dir}\n\n¿Te sirve esta cita? Para confirmar, necesito conocer tu edad.\nEjemplo: 25`,
+          session: sessions[from]
+        });
+
+      } catch (error) {
+        console.error("❌ Error consultando médicos:", error);
+        return NextResponse.json({
+          text: "Disculpa, hay un problema técnico consultando la disponibilidad. Intenta más tarde."
+        });
       }
-
-      sessions[from] = {
-        stage: 'getting-age-for-filtering',
-        specialty: specialty,
-        respuestaEmpatica,
-        attempts: 0
-      };
-
-      return NextResponse.json({
-        text: `${respuestaEmpatica}\n\nPor lo que me describes, sería bueno que veas a un especialista en ${specialty}.\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`,
-        session: sessions[from]
-      });
     }
 
     // Si llega aquí, usar OpenAI como evaluador inteligente
