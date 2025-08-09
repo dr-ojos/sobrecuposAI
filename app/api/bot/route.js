@@ -471,25 +471,30 @@ function detectarEspecialidadPorSintomas(text) {
     'conjuntivitis', 'orzuelo', 'chalazion', 'chalación'
   ];
   
-  // Síntomas dermatológicos
+  // Síntomas dermatológicos - EXPANDIDO CON VARIANTES NATURALES
   const sintomasDermatologia = [
-    'picazon piel', 'picazón piel', 'me pica la piel', 'comezón piel',
+    'picazon piel', 'picazón piel', 'me pica la piel', 'comezón piel', 'pica la piel',
+    'me duele la piel', 'duele la piel', 'dolor en la piel',
     'sarpullido', 'roncha', 'ronchas', 'eruption', 'erupcion',
-    'alergia piel', 'dermatitis', 'eczema',
-    'lunar', 'lunares', 'mancha piel', 'manchas piel',
-    'acne', 'acné', 'espinillas', 'granos'
+    'alergia piel', 'dermatitis', 'eczema', 'tengo alergia',
+    'lunar', 'lunares', 'mancha piel', 'manchas piel', 'tengo manchas',
+    'acne', 'acné', 'espinillas', 'granos', 'tengo acne', 'tengo granos'
   ];
   
-  // Síntomas cardiológicos
+  // Síntomas cardiológicos - EXPANDIDO CON VARIANTES NATURALES
   const sintomasCardiologia = [
-    'dolor pecho', 'duele pecho', 'opresion pecho', 'opresión pecho',
+    'dolor pecho', 'duele pecho', 'me duele el pecho', 'duele el pecho',
+    'opresion pecho', 'opresión pecho', 'presion en el pecho',
     'palpitaciones', 'taquicardia', 'corazon late rapido', 'corazón late rápido',
-    'falta aire', 'sin aire', 'agitacion', 'agitación', 'cansancio extremo'
+    'late rapido el corazon', 'late rápido el corazón',
+    'falta aire', 'sin aire', 'me falta aire', 'no puedo respirar',
+    'agitacion', 'agitación', 'cansancio extremo', 'muy cansado'
   ];
   
-  // Síntomas neurológicos
+  // Síntomas neurológicos - EXPANDIDO CON VARIANTES "DUELE"
   const sintomasNeurologia = [
-    'dolor cabeza', 'dolor de cabeza', 'cefalea', 'migrana', 'migraña',
+    'dolor cabeza', 'dolor de cabeza', 'me duele la cabeza', 'duele la cabeza', 
+    'duele cabeza', 'cabeza duele', 'cefalea', 'migrana', 'migraña',
     'mareo', 'vertigo', 'vértigo', 'desmayo',
     'hormigueo', 'entumecimiento', 'adormecimiento',
     'perdida memoria', 'pérdida memoria', 'olvidos', 'confusion', 'confusión'
@@ -750,8 +755,16 @@ Ejemplos:
     }
 
     // 🔥 MANEJO DE SESIONES EXISTENTES
+    // Priorizar la sesión del request sobre la sesión interna del servidor
+    const activeSession = currentSession || sessions[from];
+    
+    // Si viene sesión en el request, actualizarla en la memoria del servidor
     if (currentSession?.stage) {
-      const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = currentSession;
+      sessions[from] = currentSession;
+    }
+    
+    if (activeSession?.stage) {
+      const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = activeSession;
 
       switch (stage) {
         case 'confirming-appointment':
@@ -772,8 +785,41 @@ Ejemplos:
           } 
           else if (respuesta.includes('no') || respuesta === 'n') {
             // Ofrecer otras opciones
-            const { records, selectedRecord } = currentSession;
-            const otrasOpciones = records.filter(r => r !== selectedRecord).slice(0, 2);
+            const { records, selectedRecord, esMedicoEspecifico, specialty, doctorName } = currentSession;
+            
+            // 🆕 MANEJO ESPECIAL PARA MÉDICO ESPECÍFICO
+            if (esMedicoEspecifico) {
+              const otrasOpciones = records.filter(r => r !== selectedRecord).slice(0, 2);
+              
+              if (otrasOpciones.length > 0) {
+                let mensaje = `Entiendo que esa hora no te conviene. Te muestro otras opciones disponibles con **${doctorName}**:\n\n`;
+                
+                otrasOpciones.forEach((record, index) => {
+                  const fechaFormateada = formatSpanishDate(record.fields?.Fecha);
+                  mensaje += `${index + 1}. 📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${record.fields?.["Clínica"] || record.fields?.["Clinica"]}\n\n`;
+                });
+                
+                mensaje += "¿Alguna de estas fechas te sirve mejor? Responde con el número (1 o 2) o escribe **'otros'** si prefieres ver médicos diferentes.";
+                
+                sessions[from] = {
+                  ...currentSession,
+                  stage: 'choosing-alternative',
+                  alternativeOptions: otrasOpciones
+                };
+                
+                return NextResponse.json({
+                  text: mensaje,
+                  session: sessions[from]
+                });
+              } else {
+                return NextResponse.json({
+                  text: `Lamentablemente **${doctorName}** solo tiene esa fecha disponible.\n\n¿Te gustaría que te ayude a buscar otros médicos de ${specialty} que tengan más horarios disponibles?`
+                });
+              }
+            }
+            
+            // MANEJO ORIGINAL PARA BÚSQUEDAS POR SÍNTOMAS
+            const otrasOpciones = records?.filter(r => r !== selectedRecord).slice(0, 2) || [];
             
             if (otrasOpciones.length > 0) {
               let mensaje = "Entiendo. Te muestro otras opciones disponibles:\n\n";
@@ -854,6 +900,22 @@ Ejemplos:
               session: sessions[from]
             });
           }
+          else if (opcionText.includes('otros') || opcionText.includes('otro')) {
+            const { esMedicoEspecifico, specialty } = currentSession;
+            
+            if (esMedicoEspecifico) {
+              // Limpiar sesión y buscar otros médicos de la misma especialidad
+              delete sessions[from];
+              
+              return NextResponse.json({
+                text: `Perfecto, te ayudo a buscar otros médicos de **${specialty}** con horarios disponibles.\n\n¿Me podrías decir tu edad? Esto me ayuda a encontrar médicos que atiendan pacientes de tu rango etario.\n\nEjemplo: 25`
+              });
+            } else {
+              return NextResponse.json({
+                text: "Entiendo. ¿Te gustaría que te ayude a buscar en otra especialidad o tienes algún otro síntoma que pueda evaluar?"
+              });
+            }
+          }
           else if (opcionText.includes('no') || opcionText === 'n') {
             return NextResponse.json({
               text: "Entiendo. Lamentablemente no tengo más opciones disponibles en este momento.\n\n¿Te gustaría que te ayude con algún otro síntoma o consulta?"
@@ -861,7 +923,7 @@ Ejemplos:
           }
           else {
             return NextResponse.json({
-              text: "Por favor responde con el número de la opción que prefieres (1 o 2) o escribe 'no' si ninguna te conviene."
+              text: "Por favor responde con el número de la opción que prefieres (1 o 2), escribe **'otros'** para ver médicos diferentes, o **'no'** si ninguna te conviene."
             });
           }
 
@@ -1833,7 +1895,10 @@ Te contactaremos pronto para confirmar los detalles finales.`;
               selectedSobrecupo: sobrecupo.id,
               doctorName: medico.name,
               specialty: medico.especialidad,
-              attempts: 0
+              records: sobrecupos, // 🆕 INCLUIR TODOS LOS SOBRECUPOS DEL MÉDICO
+              selectedRecord: sobrecupos[0], // 🆕 INCLUIR REGISTRO SELECCIONADO
+              attempts: 0,
+              esMedicoEspecifico: true // 🆕 MARCAR COMO MÉDICO ESPECÍFICO
             };
 
             return NextResponse.json({
