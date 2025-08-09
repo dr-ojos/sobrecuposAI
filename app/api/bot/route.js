@@ -902,8 +902,11 @@ Ejemplos:
         case 'confirming-appointment':
           // 🆕 CONFIRMAR SI LE SIRVE LA CITA PROPUESTA
           const respuesta = text.toLowerCase().trim();
+          console.log('🔍 CONFIRMING-APPOINTMENT - Texto recibido:', text);
+          console.log('🔍 CONFIRMING-APPOINTMENT - Respuesta normalizada:', respuesta);
           
           if (respuesta.includes('sí') || respuesta.includes('si') || respuesta === 's' || respuesta === 'yes' || respuesta === 'ok' || respuesta === 'vale') {
+            console.log('✅ CONFIRMING-APPOINTMENT - Detectado SÍ');
             // Confirmar cita y preguntar nombre completo primero
             sessions[from] = {
               ...currentSession,
@@ -915,9 +918,12 @@ Ejemplos:
               session: sessions[from]
             });
           } 
-          else if ((respuesta.startsWith('no') || respuesta.includes(' no ') || respuesta.includes(' no,') || respuesta.includes(' no.')) && (respuesta.includes('otro') || respuesta.includes('otra') || respuesta.includes('diferente') || respuesta.includes('distinto') || respuesta.includes('profesional') || respuesta.includes('médico') || respuesta.includes('medico') || respuesta.includes('doctor'))) {
+          else if (/\bno\b/i.test(respuesta) && (respuesta.includes('otro') || respuesta.includes('otra') || respuesta.includes('diferente') || respuesta.includes('distinto') || respuesta.includes('profesional') || respuesta.includes('médico') || respuesta.includes('medico') || respuesta.includes('doctor'))) {
             // Usuario dice "no, quiero otro profesional/médico/doctor"
-            console.log("🔄 Usuario rechaza cita y pide otro profesional");
+            console.log("🔄 CONFIRMING-APPOINTMENT - Detectado NO + OTRO PROFESIONAL");
+            console.log("🔄 Regex test:", /\bno\b/i.test(respuesta));
+            console.log("🔄 Contiene 'otro':", respuesta.includes('otro'));
+            console.log("🔄 Contiene 'profesional':", respuesta.includes('profesional'));
             const { specialty, records } = currentSession;
             
             // Buscar otras opciones disponibles de la misma especialidad
@@ -964,7 +970,7 @@ Ejemplos:
               });
             }
           }
-          else if ((respuesta.startsWith('no') || respuesta.includes(' no ') || respuesta.includes(' no,') || respuesta.includes(' no.') || respuesta === 'no' || respuesta === 'n')) {
+          else if (/\bno\b/i.test(respuesta) || respuesta === 'n') {
             // Ofrecer otras opciones
             const { records, selectedRecord, esMedicoEspecifico, specialty, doctorName } = currentSession;
             
@@ -1390,7 +1396,7 @@ Ejemplos:
           
           const respuestaLower = text.toLowerCase().trim();
           
-          if ((respuestaLower.startsWith('no') || respuestaLower.includes(' no ') || respuestaLower.includes(' no,') || respuestaLower.includes(' no.') || respuestaLower === 'no') && (respuestaLower.includes('otro') || respuestaLower.includes('otra') || respuestaLower.includes('diferente') || respuestaLower.includes('distinto') || respuestaLower.includes('profesional') || respuestaLower.includes('médico') || respuestaLower.includes('medico') || respuestaLower.includes('doctor'))) {
+          if (/\bno\b/i.test(respuestaLower) && (respuestaLower.includes('otro') || respuestaLower.includes('otra') || respuestaLower.includes('diferente') || respuestaLower.includes('distinto') || respuestaLower.includes('profesional') || respuestaLower.includes('médico') || respuestaLower.includes('medico') || respuestaLower.includes('doctor'))) {
             // Usuario dice "no, quiero otro profesional/médico/doctor" - mostrar otras opciones
             console.log("🔄 Usuario rechaza cita y pide otro profesional en awaiting-confirmation");
             const availableRecords = records || [];
@@ -1431,7 +1437,7 @@ Ejemplos:
               });
             }
           }
-          else if (respuestaLower.startsWith('no') || respuestaLower.includes(' no ') || respuestaLower.includes(' no,') || respuestaLower.includes(' no.') || respuestaLower === 'no') {
+          else if (/\bno\b/i.test(respuestaLower)) {
             const nextAttempt = attempts + 1;
             const availableRecords = records || [];
             
