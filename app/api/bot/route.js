@@ -196,6 +196,119 @@ function analizarConfusion(text, campoEsperado) {
   return null;
 }
 
+// 🆕 FUNCIÓN PARA DETECTAR MÉDICO ESPECÍFICO POR NOMBRE
+function detectarMedicoEspecifico(text) {
+  const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  
+  // Patrones que indican búsqueda de médico específico
+  const patronesMedico = [
+    /\b(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
+    /\b(?:medico|médico)\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
+    /\bhora\s+con\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
+    /\bhora\s+con\s+(?:medico|médico)\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
+    /\bnecesito\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
+    /\bquiero\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
+    /\bbusco\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i
+  ];
+  
+  for (const patron of patronesMedico) {
+    const match = text.match(patron);
+    if (match && match[1]) {
+      const nombreMedico = match[1].trim();
+      console.log(`🔍 Médico específico detectado: "${nombreMedico}"`);
+      return nombreMedico;
+    }
+  }
+  
+  return null;
+}
+
+// Función para buscar médico por nombre en Airtable
+async function buscarMedicoPorNombre(nombreBuscado) {
+  try {
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
+
+    const response = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}?maxRecords=100`,
+      {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
+      }
+    );
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const doctors = data.records || [];
+    
+    const nombreLimpio = nombreBuscado.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    
+    // Buscar coincidencia exacta o parcial
+    const medicoEncontrado = doctors.find(doctor => {
+      const nombreDoctor = (doctor.fields?.Name || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+      
+      // Coincidencia exacta
+      if (nombreDoctor === nombreLimpio) return true;
+      
+      // Coincidencia por apellido o nombre
+      const partesNombreBuscado = nombreLimpio.split(' ');
+      const partesNombreDoctor = nombreDoctor.split(' ');
+      
+      return partesNombreBuscado.some(parte => 
+        partesNombreDoctor.some(parteDoctor => 
+          parte.length > 2 && parteDoctor.includes(parte)
+        )
+      );
+    });
+
+    if (medicoEncontrado) {
+      console.log(`✅ Médico encontrado: ${medicoEncontrado.fields?.Name}`);
+      return {
+        id: medicoEncontrado.id,
+        name: medicoEncontrado.fields?.Name,
+        especialidad: medicoEncontrado.fields?.Especialidad
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error buscando médico por nombre:', error);
+    return null;
+  }
+}
+
+// Función para buscar sobrecupos del médico específico
+async function buscarSobrecuposDeMedico(medicoId) {
+  try {
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
+
+    const response = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100&filterByFormula=AND(Disponible="Si",Doctor="${medicoId}")`,
+      {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
+      }
+    );
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    const sobrecupos = data.records || [];
+    
+    // Filtrar solo fechas futuras
+    return filterFutureDates(sobrecupos);
+  } catch (error) {
+    console.error('Error buscando sobrecupos del médico:', error);
+    return [];
+  }
+}
+
 // Función para detectar especialidad directa
 function detectarEspecialidadDirecta(text) {
   const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
@@ -1662,6 +1775,57 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         text: `${respuestaEmpatica}\n\nPara encontrar el médico más adecuado para ti, ¿me podrías decir tu edad?\nEjemplo: 25`,
         session: sessions[from]
       });
+    }
+
+    // 🔥 DETECTAR MÉDICO ESPECÍFICO POR NOMBRE
+    const medicoEspecifico = detectarMedicoEspecifico(text);
+    
+    if (medicoEspecifico) {
+      console.log(`🔍 Buscando médico específico: ${medicoEspecifico}`);
+      
+      try {
+        // Buscar médico en la base de datos
+        const medico = await buscarMedicoPorNombre(medicoEspecifico);
+        
+        if (medico) {
+          console.log(`✅ Médico encontrado: ${medico.name} - ${medico.especialidad}`);
+          
+          // Buscar sobrecupos disponibles de este médico
+          const sobrecupos = await buscarSobrecuposDeMedico(medico.id);
+          
+          if (sobrecupos.length > 0) {
+            // Mostrar sobrecupos disponibles del médico específico
+            const sobrecupo = sobrecupos[0]; // Tomar el primero disponible
+            const fechaFormateada = formatSpanishDate(sobrecupo.fields?.Fecha);
+            
+            sessions[from] = {
+              stage: 'confirming-appointment',
+              selectedSobrecupo: sobrecupo.id,
+              doctorName: medico.name,
+              specialty: medico.especialidad,
+              attempts: 0
+            };
+
+            return NextResponse.json({
+              text: `¡Perfecto! Encontré disponibilidad con ${medico.name} (${medico.especialidad}).\n\n📅 **Sobrecupo disponible:**\n• Fecha: ${fechaFormateada}\n• Hora: ${sobrecupo.fields?.Hora}\n• Clínica: ${sobrecupo.fields?.["Clínica"] || sobrecupo.fields?.["Clinica"]}\n\n¿Te interesa reservar esta cita? Responde **"sí"** para continuar.`,
+              session: sessions[from]
+            });
+          } else {
+            return NextResponse.json({
+              text: `Encontré al Dr/a. ${medico.name} (${medico.especialidad}), pero lamentablemente no tiene sobrecupos disponibles en este momento.\n\n¿Te gustaría que te ayude a encontrar otro médico de ${medico.especialidad} que sí tenga disponibilidad?`
+            });
+          }
+        } else {
+          return NextResponse.json({
+            text: `No pude encontrar al médico "${medicoEspecifico}" en nuestra base de datos.\n\n¿Podrías verificar el nombre completo? O si prefieres, puedo ayudarte a encontrar un especialista por área médica.\n\nPor ejemplo: "Necesito un oftalmólogo" o "Busco un dermatólogo"`
+          });
+        }
+      } catch (error) {
+        console.error('Error buscando médico específico:', error);
+        return NextResponse.json({
+          text: `Hubo un problema buscando al médico "${medicoEspecifico}". ¿Podrías intentar nuevamente o prefieres que te ayude a buscar por especialidad?`
+        });
+      }
     }
 
     // 🔥 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES - FLUJO MEJORADO
