@@ -2058,10 +2058,10 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         case 'choosing-from-alternatives':
           // Manejar selección de opciones alternativas
           const selectedOption = text.toLowerCase().trim();
-          const { alternativeOptions } = currentSession;
+          const { alternativeOptions: altOptions } = currentSession;
           
-          if (selectedOption === '1' && alternativeOptions[0]) {
-            const selectedRecord = alternativeOptions[0];
+          if (selectedOption === '1' && altOptions[0]) {
+            const selectedRecord = altOptions[0];
             sessions[from] = {
               ...currentSession,
               selectedRecord: selectedRecord,
@@ -2081,8 +2081,8 @@ Te contactaremos pronto para confirmar los detalles finales.`;
               session: sessions[from]
             });
           }
-          else if (selectedOption === '2' && alternativeOptions[1]) {
-            const selectedRecord = alternativeOptions[1];
+          else if (selectedOption === '2' && altOptions[1]) {
+            const selectedRecord = altOptions[1];
             sessions[from] = {
               ...currentSession,
               selectedRecord: selectedRecord,
