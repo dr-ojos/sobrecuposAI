@@ -309,48 +309,68 @@ async function buscarSobrecuposDeMedico(medicoId) {
       }
     }
 
-    // Probar diferentes filtros posibles
-    const filtrosPosibles = [
-      `AND(Disponible="Si",Doctor="${medicoId}")`,
-      `AND(Disponible="Si",Medico="${medicoId}")`,
-      `AND({Disponible}="Si",{Doctor}="${medicoId}")`,
-      `AND({Disponible}="Si",{Medico}="${medicoId}")`,
-      `AND(Disponible=TRUE(),Doctor="${medicoId}")`,
-      `AND(Disponible=TRUE(),Medico="${medicoId}")`
-    ];
+    // 🔧 FIX: Usar el filtro correcto basado en debug
+    // Campo correcto: "Médico" (con tilde) y es un array que contiene el ID
+    const filtroCorrect = `AND({Disponible}="Si",FIND("${medicoId}",ARRAYJOIN({Médico},",")))`;
+    
+    console.log(`🔍 DEBUG: Usando filtro correcto: ${filtroCorrect}`);
+    
+    const response = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100&filterByFormula=${encodeURIComponent(filtroCorrect)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        },
+      }
+    );
 
     let sobrecuposEncontrados = [];
     
-    for (const filtro of filtrosPosibles) {
-      try {
-        console.log(`🔍 DEBUG: Probando filtro: ${filtro}`);
-        
-        const response = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100&filterByFormula=${encodeURIComponent(filtro)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          const sobrecupos = data.records || [];
-          
-          console.log(`🔍 DEBUG: Filtro "${filtro}" encontró ${sobrecupos.length} sobrecupos`);
-          
-          if (sobrecupos.length > 0) {
-            // Filtrar solo fechas futuras
-            sobrecuposEncontrados = filterFutureDates(sobrecupos);
-            console.log(`✅ DEBUG: Después de filtrar fechas futuras: ${sobrecuposEncontrados.length} sobrecupos`);
-            break; // Usar el primer filtro que funcione
-          }
-        } else {
-          console.log(`❌ DEBUG: Filtro "${filtro}" falló con status: ${response.status}`);
+    if (response.ok) {
+      const data = await response.json();
+      const sobrecupos = data.records || [];
+      
+      console.log(`🔍 DEBUG: Filtro encontró ${sobrecupos.length} sobrecupos`);
+      
+      if (sobrecupos.length > 0) {
+        // Filtrar solo fechas futuras
+        sobrecuposEncontrados = filterFutureDates(sobrecupos);
+        console.log(`✅ DEBUG: Después de filtrar fechas futuras: ${sobrecuposEncontrados.length} sobrecupos`);
+      }
+    } else {
+      console.log(`❌ DEBUG: Filtro falló con status: ${response.status}`);
+      
+      // Fallback: buscar manualmente sin filtro
+      const fallbackResponse = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
+        {
+          headers: {
+            Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+          },
         }
-      } catch (filterError) {
-        console.log(`❌ DEBUG: Error con filtro "${filtro}":`, filterError.message);
+      );
+      
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json();
+        const allRecords = fallbackData.records || [];
+        
+        console.log(`🔍 DEBUG: Fallback - buscando manualmente en ${allRecords.length} sobrecupos`);
+        
+        const manualFiltered = allRecords.filter(record => {
+          const fields = record.fields || {};
+          const disponible = fields.Disponible === "Si";
+          const medico = fields.Médico;
+          const tienemedico = Array.isArray(medico) && medico.includes(medicoId);
+          
+          if (disponible && tienemedico) {
+            console.log(`✅ DEBUG: Sobrecupo manual encontrado: ${record.id}`);
+            return true;
+          }
+          return false;
+        });
+        
+        sobrecuposEncontrados = filterFutureDates(manualFiltered);
+        console.log(`✅ DEBUG: Fallback encontró ${sobrecuposEncontrados.length} sobrecupos futuros`);
       }
     }
 
