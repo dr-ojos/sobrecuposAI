@@ -73,24 +73,55 @@ function esSaludoSimple(text) {
   return saludosSimples.includes(limpio);
 }
 
-// Función para validar RUT chileno
+// Función para validar RUT chileno - MEJORADA para aceptar puntos y guiones
 function validarRUT(rut) {
-  rut = rut.replace(/[.\-]/g, '').toUpperCase();
-  if (!/^[0-9]+[0-9K]$/.test(rut)) return false;
+  if (!rut || typeof rut !== 'string') return false;
+  
+  const rutOriginal = rut.trim();
+  console.log('🆔 Validando RUT original:', rutOriginal);
+  
+  // Limpiar RUT: eliminar puntos, guiones y espacios, convertir a mayúsculas
+  rut = rut.replace(/[\.\-\s]/g, '').toUpperCase();
+  console.log('🆔 RUT limpio:', rut);
+  
+  // Verificar formato básico: al menos 8 dígitos + dígito verificador (número o K)
+  if (!/^[0-9]{7,8}[0-9K]$/.test(rut)) {
+    console.log('❌ RUT no cumple formato básico');
+    return false;
+  }
+  
+  // Validar longitud (mínimo 8, máximo 9 caracteres)
+  if (rut.length < 8 || rut.length > 9) {
+    console.log('❌ RUT longitud incorrecta:', rut.length);
+    return false;
+  }
+  
   const cuerpo = rut.slice(0, -1);
   const dv = rut.slice(-1);
+  
+  console.log('🆔 Cuerpo:', cuerpo, 'DV:', dv);
+  
   let suma = 0;
   let multiplicador = 2;
+  
   for (let i = cuerpo.length - 1; i >= 0; i--) {
     suma += parseInt(cuerpo[i]) * multiplicador;
     multiplicador = multiplicador < 7 ? multiplicador + 1 : 2;
   }
+  
   const dvCalculado = 11 - (suma % 11);
   let dvEsperado;
+  
   if (dvCalculado === 11) dvEsperado = '0';
   else if (dvCalculado === 10) dvEsperado = 'K';
   else dvEsperado = dvCalculado.toString();
-  return dv === dvEsperado;
+  
+  console.log('🆔 DV esperado:', dvEsperado, 'DV ingresado:', dv);
+  
+  const esValido = dv === dvEsperado;
+  console.log('🆔 RUT válido:', esValido);
+  
+  return esValido;
 }
 
 // 🆕 FUNCIONES DE VALIDACIÓN INTELIGENTE
@@ -106,8 +137,18 @@ function esFormatoTelefono(text) {
 
 // Detectar si el usuario confunde teléfono con RUT  
 function esFormatoRUT(text) {
-  const cleaned = text.replace(/[.\-\s]/g, '').toUpperCase();
-  return /^\d{7,8}[0-9K]$/.test(cleaned) && !esFormatoTelefono(text);
+  if (!text || typeof text !== 'string') return false;
+  
+  // Usar la misma lógica de limpieza que validarRUT
+  const cleaned = text.replace(/[\.\-\s]/g, '').toUpperCase();
+  console.log('🔍 Detectando formato RUT:', text, '→', cleaned);
+  
+  // Verificar que parece un RUT pero no es teléfono
+  const pareceRUT = /^[0-9]{7,8}[0-9K]$/.test(cleaned);
+  const esRUT = pareceRUT && !esFormatoTelefono(text);
+  
+  console.log('🔍 Parece RUT:', pareceRUT, 'Es RUT (no teléfono):', esRUT);
+  return esRUT;
 }
 
 // Validar teléfono chileno más inteligentemente
@@ -152,9 +193,9 @@ function validarEdad(edad) {
 function analizarConfusion(text, campoEsperado) {
   const mensajes = {
     rut: {
-      esEmail: "Veo que ingresaste un email 📧. Necesito tu RUT primero.\n\nPor favor ingresa tu RUT con el formato: 12.345.678-9",
-      esTelefono: "Parece un número de teléfono 📱. Necesito tu RUT primero.\n\nPor favor ingresa tu RUT con el formato: 12.345.678-9", 
-      general: "El RUT debe tener el formato: 12.345.678-9\n\nPor favor ingresa tu RUT completo con guión y dígito verificador."
+      esEmail: "Veo que ingresaste un email 📧. Necesito tu RUT primero.\n\nPor favor ingresa tu RUT con el formato: 12.345.678-9 o 12345678-9",
+      esTelefono: "Parece un número de teléfono 📱. Necesito tu RUT primero.\n\nPor favor ingresa tu RUT con el formato: 12.345.678-9 o 12345678-9", 
+      general: "El RUT debe incluir el dígito verificador con guión.\n\nFormatos válidos:\n• 12.345.678-9 (con puntos)\n• 12345678-9 (sin puntos)\n\nPor favor ingresa tu RUT completo."
     },
     telefono: {
       esRUT: "Veo que ingresaste un RUT 🆔. Ya tengo tu RUT, ahora necesito tu teléfono.\n\nIngresa tu número de teléfono: +56912345678",
@@ -437,9 +478,45 @@ function esConsultaNoMedica(text) {
   return contieneTemasCotidianos && !contieneTerminosMedicos;
 }
 
+// Función para normalizar texto y corregir errores tipográficos comunes
+function normalizarTextoMedico(text) {
+  let textoNormalizado = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  
+  // Correcciones de errores tipográficos comunes en síntomas
+  const correcciones = {
+    // Cabeza y términos relacionados
+    'cabezo': 'cabeza',
+    'caveza': 'cabeza', 
+    'cabesa': 'cabeza',
+    'me duele el cabezo': 'me duele la cabeza',
+    'dolor de cabezo': 'dolor de cabeza',
+    'duele el cabezo': 'duele la cabeza',
+    
+    // Otros errores comunes
+    'porfesionales': 'profesionales',
+    'neurologo': 'neurólogo',
+    'oftamologo': 'oftalmólogo',
+    'oftalmologo': 'oftalmólogo',
+    'dermatologo': 'dermatólogo',
+    'cardiologo': 'cardiólogo',
+    'picason': 'picazón',
+    'comezon': 'comezón',
+    'vision': 'visión',
+    'presion': 'presión'
+  };
+  
+  // Aplicar correcciones
+  Object.keys(correcciones).forEach(error => {
+    const regex = new RegExp(error, 'gi');
+    textoNormalizado = textoNormalizado.replace(regex, correcciones[error]);
+  });
+  
+  return textoNormalizado;
+}
+
 // 🔥 FUNCIÓN MEJORADA: Detectar especialidad por síntomas - CON FIX PARA OFTALMOLOGÍA
 function detectarEspecialidadPorSintomas(text) {
-  const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const textoLimpio = normalizarTextoMedico(text);
   
   // 🔍 SÍNTOMAS OFTALMOLÓGICOS - EXPANDIDOS Y MEJORADOS + FRASES DIRECTAS
   const sintomasOftalmologia = [
@@ -494,10 +571,13 @@ function detectarEspecialidadPorSintomas(text) {
     'agitacion', 'agitación', 'cansancio extremo', 'muy cansado'
   ];
   
-  // Síntomas neurológicos - EXPANDIDO CON VARIANTES "DUELE"
+  // Síntomas neurológicos - EXPANDIDO CON VARIANTES "DUELE" Y CORRECCIONES TIPOGRÁFICAS
   const sintomasNeurologia = [
     'dolor cabeza', 'dolor de cabeza', 'me duele la cabeza', 'duele la cabeza', 
     'duele cabeza', 'cabeza duele', 'cefalea', 'migrana', 'migraña',
+    // Incluir variantes tipográficas directamente
+    'me duele el cabezo', 'dolor de cabezo', 'duele el cabezo', 'cabezo duele', 'cabezo',
+    'me duele la cabezo', 'dolor cabezo', 'duele cabezo', 'tengo dolor de cabezo',
     'mareo', 'vertigo', 'vértigo', 'desmayo',
     'hormigueo', 'entumecimiento', 'adormecimiento',
     'perdida memoria', 'pérdida memoria', 'olvidos', 'confusion', 'confusión'
@@ -522,22 +602,52 @@ function detectarEspecialidadPorSintomas(text) {
   // Síntomas medicina familiar adultos
   const sintomasMedicinaFamiliarAdultos = [
     'control adulto', 'examen preventivo', 'chequeo general',
-    'resfriado adulto', 'gripe adulto', 'dolor general',
+    'resfriado adulto', 'gripe adulto',
+    // Removed "dolor general" - demasiado genérico, puede interceptar síntomas específicos
+    'dolor muscular general', 'dolor corporal general', 'malestar general',
     'presion arterial', 'presión arterial', 'hipertension', 'hipertensión',
     'diabetes', 'colesterol', 'examenes generales', 'exámenes generales'
   ];
   
   // 🔥 EVALUAR SÍNTOMAS EN ORDEN DE PRIORIDAD - OFTALMOLOGÍA PRIMERO
+  console.log('🔍 Evaluando síntomas. Texto original:', text);
+  console.log('🔍 Texto normalizado:', textoLimpio);
+  
   const sintomaDetectado = sintomasOftalmologia.find(s => textoLimpio.includes(s));
   if (sintomaDetectado) {
-    console.log('🔍 Síntomas oftalmológicos detectados:', sintomaDetectado, '- Texto original:', textoLimpio);
+    console.log('✅ Síntomas oftalmológicos detectados:', sintomaDetectado);
     return 'Oftalmología';
   }
-  if (sintomasDermatologia.some(s => textoLimpio.includes(s))) return 'Dermatología';
-  if (sintomasCardiologia.some(s => textoLimpio.includes(s))) return 'Cardiología';
-  if (sintomasNeurologia.some(s => textoLimpio.includes(s))) return 'Neurología';
-  if (sintomasMedicinaFamiliarNinos.some(s => textoLimpio.includes(s))) return 'Medicina Familiar Niños';
-  if (sintomasMedicinaFamiliarAdultos.some(s => textoLimpio.includes(s))) return 'Medicina Familiar Adultos';
+  
+  const sintomaDermato = sintomasDermatologia.find(s => textoLimpio.includes(s));
+  if (sintomaDermato) {
+    console.log('✅ Síntomas dermatológicos detectados:', sintomaDermato);
+    return 'Dermatología';
+  }
+  
+  const sintomaCardio = sintomasCardiologia.find(s => textoLimpio.includes(s));
+  if (sintomaCardio) {
+    console.log('✅ Síntomas cardiológicos detectados:', sintomaCardio);
+    return 'Cardiología';
+  }
+  
+  const sintomaNeuro = sintomasNeurologia.find(s => textoLimpio.includes(s));
+  if (sintomaNeuro) {
+    console.log('✅ Síntomas neurológicos detectados:', sintomaNeuro);
+    return 'Neurología';
+  }
+  
+  const sintomaMFNinos = sintomasMedicinaFamiliarNinos.find(s => textoLimpio.includes(s));
+  if (sintomaMFNinos) {
+    console.log('✅ Síntomas medicina familiar niños detectados:', sintomaMFNinos);
+    return 'Medicina Familiar Niños';
+  }
+  
+  const sintomaMFAdultos = sintomasMedicinaFamiliarAdultos.find(s => textoLimpio.includes(s));
+  if (sintomaMFAdultos) {
+    console.log('✅ Síntomas medicina familiar adultos detectados:', sintomaMFAdultos);
+    return 'Medicina Familiar Adultos';
+  }
   if (sintomasPediatria.some(s => textoLimpio.includes(s))) return 'Pediatría';
   
   return null;
@@ -1086,7 +1196,7 @@ Ejemplos:
                   };
                   
                   return NextResponse.json({
-                    text: `${mensajeEdad}\n\n✅ Sin embargo, tengo otra opción perfecta para ti:\n\n👨‍⚕️ **Dr. ${altDoctorInfo.name}**${altAtiendeTxt}\n📅 ${fechaAlt} a las ${altRecord.fields.Hora}\n📍 ${altRecord.fields["Clínica"] || altRecord.fields["Clinica"]}\n\n¡Perfecto! Ahora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12345678-9`,
+                    text: `${mensajeEdad}\n\n✅ Sin embargo, tengo otra opción perfecta para ti:\n\n👨‍⚕️ **Dr. ${altDoctorInfo.name}**${altAtiendeTxt}\n📅 ${fechaAlt} a las ${altRecord.fields.Hora}\n📍 ${altRecord.fields["Clínica"] || altRecord.fields["Clinica"]}\n\n¡Perfecto! Ahora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12.345.678-9 o 12345678-9`,
                     session: sessions[from]
                   });
                 }
@@ -1114,7 +1224,7 @@ Ejemplos:
           };
 
           return NextResponse.json({
-            text: `¡Perfecto, ${nombrePaciente}! La cita te queda ideal.\n\nAhora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12345678-9`,
+            text: `¡Perfecto, ${nombrePaciente}! La cita te queda ideal.\n\nAhora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12.345.678-9 o 12345678-9`,
             session: sessions[from]
           });
 
@@ -1280,7 +1390,7 @@ Ejemplos:
             patientName: text 
           };
           return NextResponse.json({
-            text: `Gracias ${text}! 👤\n\nAhora necesito tu RUT (con guión y dígito verificador).\nEjemplo: 12.345.678-9`,
+            text: `Gracias ${text}! 👤\n\nAhora necesito tu RUT (con guión y dígito verificador).\nEjemplos: 12.345.678-9 o 12345678-9`,
             session: sessions[from]
           });
 
@@ -1963,15 +2073,27 @@ Te contactaremos pronto para confirmar los detalles finales.`;
                                            respuestaNoOptions.includes('otros médicos') ||
                                            respuestaNoOptions.includes('hay otros') ||
                                            respuestaNoOptions.includes('otros doctores') ||
+                                           respuestaNoOptions.includes('tienes otros') ||
+                                           respuestaNoOptions.includes('otros porfesionales') || // typo común
+                                           respuestaNoOptions.includes('otros profesional') ||
+                                           respuestaNoOptions.includes('con hora en neurologia') ||
+                                           respuestaNoOptions.includes('con hora de neurologia') ||
                                            (respuestaNoOptions.includes('otros') && respuestaNoOptions.includes(specialtyNoOptions?.toLowerCase())) ||
                                            respuestaNoOptions.includes('más opciones') ||
                                            respuestaNoOptions.includes('otras opciones');
           
           if (preguntaOtrosProfesionales) {
             console.log("🔄 Usuario pregunta por otros profesionales de", specialtyNoOptions);
-            delete sessions[from];
+            // MANTENER la sesión para la siguiente respuesta sobre datos de contacto
+            sessions[from] = {
+              ...currentSession,
+              stage: 'no-more-options-available',
+              specialty: specialtyNoOptions,
+              waitingForContactResponse: true
+            };
             return NextResponse.json({
-              text: `Como te mencioné anteriormente, no tengo más sobrecupos disponibles de **${specialtyNoOptions}** en este momento.\n\n📝 Si quieres, puedo tomar tus datos de contacto para avisarte cuando tengamos nuevos sobrecupos de ${specialtyNoOptions} disponibles. ¿Te parece bien?`
+              text: `Como te mencioné anteriormente, no tengo más sobrecupos disponibles de **${specialtyNoOptions}** en este momento.\n\n📝 Si quieres, puedo tomar tus datos de contacto para avisarte cuando tengamos nuevos sobrecupos de ${specialtyNoOptions} disponibles. ¿Te parece bien?`,
+              session: sessions[from]
             });
           }
           
@@ -2383,17 +2505,67 @@ Ejemplos:
           const rawEsp = specialtyJson.choices?.[0]?.message?.content?.trim() || "";
           const specialty = especialidadesDisponibles.includes(rawEsp) ? rawEsp : "Medicina Familiar";
 
-          sessions[from] = {
-            stage: 'getting-age-for-filtering',
-            specialty: specialty,
-            respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
-            attempts: 0
-          };
-
-          return NextResponse.json({
-            text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nPara encontrar el médico más adecuado, ¿me podrías decir tu edad?\nEjemplo: 25`,
-            session: sessions[from]
-          });
+          // ✅ BÚSQUEDA DIRECTA SIN PEDIR EDAD PRIMERO
+          try {
+            const sobrecuposDisponibles = await fetchSobrecupos(specialty);
+            const sobrecuposFuturos = filterFutureDates(sobrecuposDisponibles);
+            
+            if (sobrecuposFuturos.length === 0) {
+              return NextResponse.json({
+                text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nLamentablemente no tengo sobrecupos disponibles de **${specialty}** en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`
+              });
+            }
+            
+            // Ordenar por fecha más próxima y tomar el primero
+            sobrecuposFuturos.sort((a, b) => new Date(a.fields?.Fecha) - new Date(b.fields?.Fecha));
+            const first = sobrecuposFuturos[0].fields;
+            
+            // Obtener información del médico
+            const doctorId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+            const doctorInfo = await getDoctorInfo(doctorId);
+            const medicoNombre = doctorInfo.name || 'Médico';
+            
+            // Formatear fecha
+            const fechaFormateada = formatSpanishDate(first.Fecha);
+            const clinica = first["Clínica"] || first["Clinica"] || "Clínica";
+            const direccion = first["Dirección"] || first["Direccion"] || "";
+            
+            // Información de rango etario
+            let atiendeTxt = "";
+            switch(doctorInfo.atiende) {
+              case "Niños":
+                atiendeTxt = " (especialista en pediatría)";
+                break;
+              case "Adultos":
+                atiendeTxt = " (atiende solo adultos)";
+                break;
+              case "Ambos":
+                atiendeTxt = " (atiende niños y adultos)";
+                break;
+              default:
+                atiendeTxt = " (atiende pacientes de todas las edades)";
+            }
+            
+            sessions[from] = {
+              stage: 'awaiting-confirmation',
+              specialty: specialty,
+              records: sobrecuposFuturos,
+              motivo: text,
+              respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
+              attempts: 0
+            };
+            
+            return NextResponse.json({
+              text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\n✅ Encontré un sobrecupo disponible:\n\n👨‍⚕️ **Dr. ${medicoNombre}**${atiendeTxt}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n📍 ${clinica}\n📍 ${direccion}\n\n¿Te sirve esta opción? Confirma con **"sí"** para reservar.`,
+              session: sessions[from]
+            });
+            
+          } catch (error) {
+            console.error('❌ Error buscando sobrecupos en flujo directo:', error);
+            return NextResponse.json({
+              text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nHubo un error al buscar sobrecupos. Por favor intenta nuevamente.`
+            });
+          }
         } else {
           // Si no es "MÉDICO", usar la respuesta generada (ya incluye redirección)
           return NextResponse.json({ text: evaluationResult });

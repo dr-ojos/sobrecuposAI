@@ -200,47 +200,14 @@ export default function MedicoInfoPage({ params }) {
             </section>
           )}
 
-          {/* Contacto - Solo si hay información disponible */}
-          {(fields.Email || fields.WhatsApp) && (
-            <section className="contact-section">
-              <h3 className="section-title">📞 Información de Contacto</h3>
-              
-              <div className="contact-grid">
-                {fields.Email && (
-                  <div className="contact-item">
-                    <div className="contact-icon email-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2"/>
-                        <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
-                      </svg>
-                    </div>
-                    <div className="contact-info">
-                      <span className="contact-label">Email profesional</span>
-                      <span className="contact-value">{fields.Email}</span>
-                    </div>
-                  </div>
-                )}
-                
-                {fields.WhatsApp && (
-                  <div className="contact-item">
-                    <div className="contact-icon whatsapp-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .948.684l1.498 4.493a1 1 0 0 1-.502 1.21l-2.257 1.13a11.042 11.042 0 0 0 5.516 5.516l1.13-2.257a1 1 0 0 1 1.21-.502l4.493 1.498a1 1 0 0 1 .684.949V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <div className="contact-info">
-                      <span className="contact-label">WhatsApp</span>
-                      <span className="contact-value">{fields.WhatsApp}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="contact-notice">
-                <p>💡 <strong>Importante:</strong> Para reservar sobrecupos, utiliza el botón "Reservar Sobrecupo" desde la lista principal.</p>
-              </div>
-            </section>
-          )}
+          {/* Información importante para pacientes */}
+          <section className="patient-info">
+            <div className="info-notice">
+              <h3 className="notice-title">💡 Información Importante</h3>
+              <p><strong>Para reservar sobrecupos:</strong> Utiliza el botón "Reservar Sobrecupo" desde la lista principal de citas disponibles.</p>
+              <p><strong>Contacto directo:</strong> Todas las consultas y reservas se manejan a través de nuestra plataforma para tu seguridad y la del profesional.</p>
+            </div>
+          </section>
 
           {/* Botón de acción */}
           <section className="action-section">
@@ -451,7 +418,7 @@ export default function MedicoInfoPage({ params }) {
 
         .professional-info,
         .experience-section,
-        .contact-section {
+        .patient-info {
           background: white;
           border-radius: 16px;
           padding: 2rem;
@@ -550,76 +517,30 @@ export default function MedicoInfoPage({ params }) {
           color: #374151;
         }
 
-        /* Contact */
-        .contact-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
+        /* Patient Info */
+        .info-notice {
+          background: #f0f9ff;
+          border: 1px solid #bae6fd;
+          border-radius: 12px;
+          padding: 1.5rem;
         }
 
-        .contact-item {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 1rem;
-          background: #f9fafb;
-          border-radius: 8px;
-          border: 1px solid #e5e7eb;
+        .notice-title {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #0c4a6e;
+          margin: 0 0 1rem 0;
         }
 
-        .contact-icon {
-          width: 40px;
-          height: 40px;
-          background: #ff9500;
-          color: white;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .contact-icon.email-icon {
-          background: #3b82f6;
-        }
-
-        .contact-icon.whatsapp-icon {
-          background: #10b981;
-        }
-
-        .contact-notice {
-          margin-top: 1.5rem;
-          padding: 1rem;
-          background: #fffbeb;
-          border: 1px solid #fed7aa;
-          border-radius: 8px;
-        }
-
-        .contact-notice p {
-          margin: 0;
+        .info-notice p {
+          margin: 0 0 0.75rem 0;
           font-size: 0.875rem;
-          color: #92400e;
-          line-height: 1.4;
+          color: #0c4a6e;
+          line-height: 1.5;
         }
 
-        .contact-info {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .contact-label {
-          font-size: 0.75rem;
-          color: #666;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .contact-value {
-          font-size: 0.875rem;
-          color: #171717;
-          font-weight: 500;
+        .info-notice p:last-child {
+          margin-bottom: 0;
         }
 
         /* Action Section */
@@ -665,11 +586,6 @@ export default function MedicoInfoPage({ params }) {
             grid-template-columns: repeat(2, 1fr);
           }
 
-          .contact-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-          }
         }
 
         /* Responsive - Mobile */
@@ -691,7 +607,7 @@ export default function MedicoInfoPage({ params }) {
 
           .professional-info,
           .experience-section,
-          .contact-section,
+          .patient-info,
           .doctor-profile {
             padding: 1.5rem;
           }
@@ -708,9 +624,6 @@ export default function MedicoInfoPage({ params }) {
             padding: 0.75rem;
           }
 
-          .contact-notice {
-            padding: 0.75rem;
-          }
         }
 
         /* Very small screens */
@@ -726,7 +639,7 @@ export default function MedicoInfoPage({ params }) {
 
           .professional-info,
           .experience-section,
-          .contact-section,
+          .patient-info,
           .doctor-profile {
             padding: 1rem;
           }
@@ -735,14 +648,6 @@ export default function MedicoInfoPage({ params }) {
             padding: 1rem;
           }
 
-          .contact-item {
-            padding: 0.75rem;
-          }
-
-          .contact-icon {
-            width: 32px;
-            height: 32px;
-          }
         }
 
         /* Safe area for iPhones */
