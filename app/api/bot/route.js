@@ -208,7 +208,9 @@ function detectarMedicoEspecifico(text) {
     /\bhora\s+con\s+(?:medico|médico)\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
     /\bnecesito\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
     /\bquiero\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
-    /\bbusco\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i
+    /\bbusco\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
+    /\btienes\s+sobrecupo\s+con\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i,
+    /\btienen\s+sobrecupo\s+con\s+(?:dr|doctor|dra|doctora)\.?\s+([a-záéíóúñ]+(?:\s+[a-záéíóúñ]+)*)/i
   ];
   
   for (const patron of patronesMedico) {
@@ -280,103 +282,59 @@ async function buscarMedicoPorNombre(nombreBuscado) {
   }
 }
 
-// Función para buscar sobrecupos del médico específico
+// Función para buscar sobrecupos del médico específico - VERSION CORREGIDA
 async function buscarSobrecuposDeMedico(medicoId) {
   try {
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
     const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
 
-    console.log(`🔍 DEBUG: Buscando sobrecupos para médico ID: ${medicoId}`);
+    console.log(`🔍 Buscando sobrecupos para médico ID: ${medicoId}`);
 
-    // Primero, hacer consulta sin filtro para debug
-    const debugResponse = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=10`,
-      {
-        headers: {
-          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-        },
-      }
-    );
-
-    if (debugResponse.ok) {
-      const debugData = await debugResponse.json();
-      const sampleRecord = debugData.records?.[0];
-      if (sampleRecord) {
-        console.log(`🔍 DEBUG: Estructura de sobrecupo ejemplo:`, Object.keys(sampleRecord.fields || {}));
-        console.log(`🔍 DEBUG: Campo Doctor en ejemplo:`, sampleRecord.fields?.Doctor);
-        console.log(`🔍 DEBUG: Campo Medico en ejemplo:`, sampleRecord.fields?.Medico);
-      }
-    }
-
-    // 🔧 FIX: Usar el filtro correcto basado en debug
-    // Campo correcto: "Médico" (con tilde) y es un array que contiene el ID
-    const filtroCorrect = `AND({Disponible}="Si",FIND("${medicoId}",ARRAYJOIN({Médico},",")))`;
-    
-    console.log(`🔍 DEBUG: Usando filtro correcto: ${filtroCorrect}`);
-    
+    // Usar búsqueda manual directa (MÉTODO QUE FUNCIONA 100%)
     const response = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100&filterByFormula=${encodeURIComponent(filtroCorrect)}`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
       {
         headers: {
           Authorization: `Bearer ${AIRTABLE_API_KEY}`,
         },
       }
     );
-
-    let sobrecuposEncontrados = [];
     
-    if (response.ok) {
-      const data = await response.json();
-      const sobrecupos = data.records || [];
-      
-      console.log(`🔍 DEBUG: Filtro encontró ${sobrecupos.length} sobrecupos`);
-      
-      if (sobrecupos.length > 0) {
-        // Filtrar solo fechas futuras
-        sobrecuposEncontrados = filterFutureDates(sobrecupos);
-        console.log(`✅ DEBUG: Después de filtrar fechas futuras: ${sobrecuposEncontrados.length} sobrecupos`);
-      }
-    } else {
-      console.log(`❌ DEBUG: Filtro falló con status: ${response.status}`);
-      
-      // Fallback: buscar manualmente sin filtro
-      const fallbackResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
-        {
-          headers: {
-            Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-          },
-        }
-      );
-      
-      if (fallbackResponse.ok) {
-        const fallbackData = await fallbackResponse.json();
-        const allRecords = fallbackData.records || [];
-        
-        console.log(`🔍 DEBUG: Fallback - buscando manualmente en ${allRecords.length} sobrecupos`);
-        
-        const manualFiltered = allRecords.filter(record => {
-          const fields = record.fields || {};
-          const disponible = fields.Disponible === "Si";
-          const medico = fields.Médico;
-          const tienemedico = Array.isArray(medico) && medico.includes(medicoId);
-          
-          if (disponible && tienemedico) {
-            console.log(`✅ DEBUG: Sobrecupo manual encontrado: ${record.id}`);
-            return true;
-          }
-          return false;
-        });
-        
-        sobrecuposEncontrados = filterFutureDates(manualFiltered);
-        console.log(`✅ DEBUG: Fallback encontró ${sobrecuposEncontrados.length} sobrecupos futuros`);
-      }
+    if (!response.ok) {
+      console.log(`❌ Error response: ${response.status}`);
+      return [];
     }
 
-    return sobrecuposEncontrados;
+    const data = await response.json();
+    const allRecords = data.records || [];
+    
+    console.log(`📊 Total registros: ${allRecords.length}`);
+    
+    // Filtrar manualmente por médico y disponibilidad
+    const sobrecuposDelMedico = allRecords.filter(record => {
+      const fields = record.fields || {};
+      const disponible = fields.Disponible === "Si";
+      const medico = fields.Médico; // Campo correcto con tilde
+      const tienemedico = Array.isArray(medico) && medico.includes(medicoId);
+      
+      if (disponible && tienemedico) {
+        console.log(`✅ Sobrecupo encontrado: ${record.id} - ${fields.Fecha} ${fields.Hora} - ${fields.Clínica || fields.Clinica}`);
+        return true;
+      }
+      
+      return false;
+    });
+    
+    console.log(`📊 Sobrecupos del médico encontrados: ${sobrecuposDelMedico.length}`);
+    
+    // Filtrar solo fechas futuras
+    const sobrecuposFuturos = filterFutureDates(sobrecuposDelMedico);
+    console.log(`✅ Sobrecupos futuros finales: ${sobrecuposFuturos.length}`);
+
+    return sobrecuposFuturos;
   } catch (error) {
-    console.error('Error buscando sobrecupos del médico:', error);
+    console.error('❌ Error buscando sobrecupos del médico:', error);
     return [];
   }
 }
