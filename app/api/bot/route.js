@@ -915,6 +915,55 @@ Ejemplos:
               session: sessions[from]
             });
           } 
+          else if (respuesta.includes('no') && (respuesta.includes('otro') || respuesta.includes('otra') || respuesta.includes('diferente') || respuesta.includes('distinto') || respuesta.includes('profesional') || respuesta.includes('médico') || respuesta.includes('medico') || respuesta.includes('doctor'))) {
+            // Usuario dice "no, quiero otro profesional/médico/doctor"
+            console.log("🔄 Usuario rechaza cita y pide otro profesional");
+            const { specialty, records } = currentSession;
+            
+            // Buscar otras opciones disponibles de la misma especialidad
+            const otrasOpciones = records ? records.slice(1, 3) : []; // Tomar las siguientes 2 opciones
+            
+            if (otrasOpciones.length > 0) {
+              let mensaje = `Entiendo que prefieres otro profesional. Te muestro otras opciones de **${specialty}**:\n\n`;
+              
+              for (let i = 0; i < otrasOpciones.length; i++) {
+                const record = otrasOpciones[i];
+                const doctorId = Array.isArray(record.fields["Médico"]) ? 
+                  record.fields["Médico"][0] : record.fields["Médico"];
+                const doctorInfo = await getDoctorInfo(doctorId);
+                const fechaFormateada = formatSpanishDate(record.fields?.Fecha);
+                
+                // Información de rango etario
+                let atiendeTxt = "";
+                switch(doctorInfo.atiende) {
+                  case "Niños": atiendeTxt = " (especialista en pediatría)"; break;
+                  case "Adultos": atiendeTxt = " (atiende solo adultos)"; break;
+                  case "Ambos": atiendeTxt = " (atiende niños y adultos)"; break;
+                  default: atiendeTxt = " (atiende pacientes de todas las edades)";
+                }
+                
+                mensaje += `${i + 1}. 👨‍⚕️ **Dr. ${doctorInfo.name}**${atiendeTxt}\n📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${record.fields?.["Clínica"] || record.fields?.["Clinica"]}\n\n`;
+              }
+              
+              mensaje += "¿Alguna de estas opciones te sirve mejor? Responde con el número (1 o 2).";
+              
+              sessions[from] = {
+                ...currentSession,
+                stage: 'choosing-alternative',
+                alternativeOptions: otrasOpciones
+              };
+              
+              return NextResponse.json({
+                text: mensaje,
+                session: sessions[from]
+              });
+            } else {
+              // No hay más opciones disponibles
+              return NextResponse.json({
+                text: `Lamentablemente no tengo más profesionales de **${specialty}** disponibles en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`
+              });
+            }
+          }
           else if (respuesta.includes('no') || respuesta === 'n') {
             // Ofrecer otras opciones
             const { records, selectedRecord, esMedicoEspecifico, specialty, doctorName } = currentSession;
@@ -1339,7 +1388,50 @@ Ejemplos:
             });
           }
           
-          if (text.toLowerCase().includes('no')) {
+          const respuestaLower = text.toLowerCase().trim();
+          
+          if (respuestaLower.includes('no') && (respuestaLower.includes('otro') || respuestaLower.includes('otra') || respuestaLower.includes('diferente') || respuestaLower.includes('distinto') || respuestaLower.includes('profesional') || respuestaLower.includes('médico') || respuestaLower.includes('medico') || respuestaLower.includes('doctor'))) {
+            // Usuario dice "no, quiero otro profesional/médico/doctor" - mostrar otras opciones
+            console.log("🔄 Usuario rechaza cita y pide otro profesional en awaiting-confirmation");
+            const availableRecords = records || [];
+            const futureRecords = filterFutureDates(availableRecords);
+            const otrasOpciones = futureRecords.slice(1, 3); // Tomar las siguientes 2 opciones
+            
+            if (otrasOpciones.length > 0) {
+              let mensaje = `Entiendo que prefieres otro profesional. Te muestro otras opciones de **${specialty}**:\n\n`;
+              
+              for (let i = 0; i < otrasOpciones.length; i++) {
+                const record = otrasOpciones[i];
+                const medicoId = Array.isArray(record.fields["Médico"]) ? 
+                  record.fields["Médico"][0] : record.fields["Médico"];
+                const medicoNombre = await getDoctorName(medicoId);
+                const fechaFormateada = formatSpanishDate(record.fields?.Fecha);
+                const clin = record.fields?.["Clínica"] || record.fields?.["Clinica"] || "Clínica";
+                const dir = record.fields?.["Dirección"] || record.fields?.["Direccion"] || "";
+                
+                mensaje += `${i + 1}. 👨‍⚕️ **Dr. ${medicoNombre}**\n📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${clin}\n📍 ${dir}\n\n`;
+              }
+              
+              mensaje += "¿Alguna de estas opciones te sirve mejor? Responde con el número (1 o 2).";
+              
+              sessions[from] = {
+                ...currentSession,
+                stage: 'choosing-from-alternatives',
+                alternativeOptions: otrasOpciones,
+                attempts: 0
+              };
+              
+              return NextResponse.json({
+                text: mensaje,
+                session: sessions[from]
+              });
+            } else {
+              return NextResponse.json({
+                text: `Lamentablemente no tengo más profesionales de **${specialty}** disponibles en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`
+              });
+            }
+          }
+          else if (respuestaLower.includes('no')) {
             const nextAttempt = attempts + 1;
             const availableRecords = records || [];
             
@@ -1962,6 +2054,59 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           console.log("🏥 ======================");
 
           return NextResponse.json({ text: statusText });
+
+        case 'choosing-from-alternatives':
+          // Manejar selección de opciones alternativas
+          const selectedOption = text.toLowerCase().trim();
+          const { alternativeOptions } = currentSession;
+          
+          if (selectedOption === '1' && alternativeOptions[0]) {
+            const selectedRecord = alternativeOptions[0];
+            sessions[from] = {
+              ...currentSession,
+              selectedRecord: selectedRecord,
+              stage: 'awaiting-confirmation',
+              attempts: 0
+            };
+            
+            const medicoId = Array.isArray(selectedRecord.fields["Médico"]) ? 
+              selectedRecord.fields["Médico"][0] : selectedRecord.fields["Médico"];
+            const medicoNombre = await getDoctorName(medicoId);
+            const fechaFormateada = formatSpanishDate(selectedRecord.fields?.Fecha);
+            const clin = selectedRecord.fields?.["Clínica"] || selectedRecord.fields?.["Clinica"];
+            const dir = selectedRecord.fields?.["Dirección"] || selectedRecord.fields?.["Direccion"] || "";
+            
+            return NextResponse.json({
+              text: `Perfecto. Has seleccionado:\n\n👨‍⚕️ **Dr. ${medicoNombre}**\n📅 ${fechaFormateada} a las ${selectedRecord.fields?.Hora}\n📍 ${clin}\n📍 ${dir}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
+              session: sessions[from]
+            });
+          }
+          else if (selectedOption === '2' && alternativeOptions[1]) {
+            const selectedRecord = alternativeOptions[1];
+            sessions[from] = {
+              ...currentSession,
+              selectedRecord: selectedRecord,
+              stage: 'awaiting-confirmation',
+              attempts: 0
+            };
+            
+            const medicoId = Array.isArray(selectedRecord.fields["Médico"]) ? 
+              selectedRecord.fields["Médico"][0] : selectedRecord.fields["Médico"];
+            const medicoNombre = await getDoctorName(medicoId);
+            const fechaFormateada = formatSpanishDate(selectedRecord.fields?.Fecha);
+            const clin = selectedRecord.fields?.["Clínica"] || selectedRecord.fields?.["Clinica"];
+            const dir = selectedRecord.fields?.["Dirección"] || selectedRecord.fields?.["Direccion"] || "";
+            
+            return NextResponse.json({
+              text: `Perfecto. Has seleccionado:\n\n👨‍⚕️ **Dr. ${medicoNombre}**\n📅 ${fechaFormateada} a las ${selectedRecord.fields?.Hora}\n📍 ${clin}\n📍 ${dir}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
+              session: sessions[from]
+            });
+          }
+          else {
+            return NextResponse.json({
+              text: "Por favor responde con el número de la opción que prefieres: **1** o **2**."
+            });
+          }
 
         case 'asking-for-other-doctors':
           // Manejar respuesta sobre si quiere buscar otros médicos
