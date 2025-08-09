@@ -889,8 +889,17 @@ Ejemplos:
               });
             } else {
               console.log("⚠️ No hay más opciones alternativas disponibles");
+              
+              // Cambiar a stage para manejar consultas sobre disponibilidad
+              sessions[from] = {
+                ...currentSession,
+                stage: 'no-more-options-available',
+                specialty: specialty
+              };
+              
               return NextResponse.json({
-                text: `Entiendo que esa fecha no te sirve. Lamentablemente no tengo más sobrecupos disponibles de **${specialty}** en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`
+                text: `Entiendo que esa fecha no te sirve. Lamentablemente no tengo más sobrecupos disponibles de **${specialty}** en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`,
+                session: sessions[from]
               });
             }
           } 
@@ -1939,6 +1948,54 @@ Te contactaremos pronto para confirmar los detalles finales.`;
               session: sessions[from]
             });
           }
+          break;
+
+        case 'no-more-options-available':
+          // Manejar respuestas cuando no hay más opciones disponibles
+          const respuestaNoOptions = text.toLowerCase().trim();
+          const { specialty: specialtyNoOptions } = currentSession;
+          
+          // Detectar si pregunta por otros profesionales de la misma especialidad
+          const preguntaOtrosProfesionales = respuestaNoOptions.includes('otros profesionales') ||
+                                           respuestaNoOptions.includes('otro neurólogo') ||
+                                           respuestaNoOptions.includes('otros neurólogos') ||
+                                           respuestaNoOptions.includes('otro médico') ||
+                                           respuestaNoOptions.includes('otros médicos') ||
+                                           respuestaNoOptions.includes('hay otros') ||
+                                           respuestaNoOptions.includes('otros doctores') ||
+                                           (respuestaNoOptions.includes('otros') && respuestaNoOptions.includes(specialtyNoOptions?.toLowerCase())) ||
+                                           respuestaNoOptions.includes('más opciones') ||
+                                           respuestaNoOptions.includes('otras opciones');
+          
+          if (preguntaOtrosProfesionales) {
+            console.log("🔄 Usuario pregunta por otros profesionales de", specialtyNoOptions);
+            delete sessions[from];
+            return NextResponse.json({
+              text: `Como te mencioné anteriormente, no tengo más sobrecupos disponibles de **${specialtyNoOptions}** en este momento.\n\n📝 Si quieres, puedo tomar tus datos de contacto para avisarte cuando tengamos nuevos sobrecupos de ${specialtyNoOptions} disponibles. ¿Te parece bien?`
+            });
+          }
+          
+          // Si responde afirmativamente para dejar datos
+          if (respuestaNoOptions.includes('sí') || respuestaNoOptions.includes('si') || respuestaNoOptions === 's' || respuestaNoOptions === 'ok' || respuestaNoOptions === 'vale' || respuestaNoOptions.includes('bueno')) {
+            delete sessions[from];
+            return NextResponse.json({
+              text: `Perfecto. Para avisarte cuando haya sobrecupos de **${specialtyNoOptions}** disponibles, necesito tus datos:\n\n• **Nombre completo**\n• **Número de teléfono**\n• **Email** (opcional)\n\nPor favor compártelos en tu próximo mensaje.`
+            });
+          }
+          
+          // Si dice que no
+          if (respuestaNoOptions.includes('no') || respuestaNoOptions === 'n') {
+            delete sessions[from];
+            return NextResponse.json({
+              text: "Entiendo. Si cambias de opinión o tienes otros síntomas o consultas médicas, no dudes en escribirme. Estoy aquí para ayudarte."
+            });
+          }
+          
+          // Si no entiende la respuesta
+          return NextResponse.json({
+            text: `Por favor responde **'sí'** si quieres que te avise cuando haya sobrecupos de ${specialtyNoOptions} disponibles, o **'no'** si prefieres dejarlo por ahora.`,
+            session: sessions[from]
+          });
           break;
 
         default:
