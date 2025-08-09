@@ -354,6 +354,9 @@ function detectarEspecialidadDirecta(text) {
     'otorrino': 'Otorrinolaringología', 'otorrinolaringologia': 'Otorrinolaringología',
     'medicina familiar': 'Medicina Familiar', 'medico general': 'Medicina Familiar',
     'general': 'Medicina Familiar', 'familiar': 'Medicina Familiar',
+    'medicina familiar niños': 'Medicina Familiar Niños', 'medicina familiar ninos': 'Medicina Familiar Niños',
+    'medico general niños': 'Medicina Familiar Niños', 'medico general ninos': 'Medicina Familiar Niños',
+    'medicina familiar adultos': 'Medicina Familiar Adultos', 'medico general adultos': 'Medicina Familiar Adultos',
     'urologo': 'Urología', 'urologia': 'Urología',
     'ginecologo': 'Ginecología', 'ginecologia': 'Ginecología',
     'psiquiatra': 'Psiquiatría', 'psiquiatria': 'Psiquiatría',
@@ -507,6 +510,23 @@ function detectarEspecialidadPorSintomas(text) {
     'menor', 'pequeño', 'pequeña', 'infante'
   ];
   
+  // Síntomas medicina familiar niños
+  const sintomasMedicinaFamiliarNinos = [
+    'control niño sano', 'control nino sano', 'vacunas', 'vacuna',
+    'resfriado niño', 'resfriado nino', 'fiebre niño', 'fiebre nino',
+    'mi niño tiene fiebre', 'mi nino tiene fiebre', 'niño con fiebre', 'nino con fiebre',
+    'tos niño', 'tos nino', 'diarrea niño', 'diarrea nino',
+    'dolor estomago niño', 'dolor estomago nino', 'vomitos niño', 'vomitos nino'
+  ];
+  
+  // Síntomas medicina familiar adultos
+  const sintomasMedicinaFamiliarAdultos = [
+    'control adulto', 'examen preventivo', 'chequeo general',
+    'resfriado adulto', 'gripe adulto', 'dolor general',
+    'presion arterial', 'presión arterial', 'hipertension', 'hipertensión',
+    'diabetes', 'colesterol', 'examenes generales', 'exámenes generales'
+  ];
+  
   // 🔥 EVALUAR SÍNTOMAS EN ORDEN DE PRIORIDAD - OFTALMOLOGÍA PRIMERO
   const sintomaDetectado = sintomasOftalmologia.find(s => textoLimpio.includes(s));
   if (sintomaDetectado) {
@@ -516,6 +536,8 @@ function detectarEspecialidadPorSintomas(text) {
   if (sintomasDermatologia.some(s => textoLimpio.includes(s))) return 'Dermatología';
   if (sintomasCardiologia.some(s => textoLimpio.includes(s))) return 'Cardiología';
   if (sintomasNeurologia.some(s => textoLimpio.includes(s))) return 'Neurología';
+  if (sintomasMedicinaFamiliarNinos.some(s => textoLimpio.includes(s))) return 'Medicina Familiar Niños';
+  if (sintomasMedicinaFamiliarAdultos.some(s => textoLimpio.includes(s))) return 'Medicina Familiar Adultos';
   if (sintomasPediatria.some(s => textoLimpio.includes(s))) return 'Pediatría';
   
   return null;
@@ -2175,7 +2197,7 @@ Ejemplos:
               messages: [
                 {
                   role: "system",
-                  content: `Responde SOLO con una de estas especialidades: ${especialidadesString}. Si mencionan niño, elige Pediatría. Si no estás seguro, elige Medicina Familiar.`
+                  content: `Responde SOLO con una de estas especialidades: ${especialidadesString}. Si mencionan niño, elige Pediatría o Medicina Familiar Niños. Si mencionan adulto, elige Medicina Familiar Adultos. Si no estás seguro, elige Medicina Familiar.`
                 },
                 { role: "user", content: text }
               ]

@@ -20,8 +20,9 @@ export default function RegistroPage() {
   const [step, setStep] = useState(1); // Empezar directamente en step 1 (datos)
 
   const specialties = [
-    'Medicina Familiar', 'Oftalmología', 'Dermatología', 
-    'Pediatría', 'Cardiología', 'Neurología', 'Otorrinolaringología'
+    'Medicina Familiar', 'Medicina Familiar Niños', 'Medicina Familiar Adultos',
+    'Oftalmología', 'Dermatología', 'Pediatría', 'Cardiología', 
+    'Neurología', 'Otorrinolaringología'
   ];
 
   // Función para calcular edad desde fecha de nacimiento

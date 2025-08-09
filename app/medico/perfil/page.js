@@ -25,9 +25,9 @@ export default function PerfilMedico() {
   });
 
   const especialidades = [
-    "Oftalmología", "Medicina Familiar", "Dermatología", "Pediatría", 
-    "Otorrinolaringología", "Neurología", "Cardiología", "Ginecología",
-    "Traumatología", "Psiquiatría", "Urología", "Endocrinología",
+    "Oftalmología", "Medicina Familiar", "Medicina Familiar Niños", "Medicina Familiar Adultos",
+    "Dermatología", "Pediatría", "Otorrinolaringología", "Neurología", "Cardiología", 
+    "Ginecología", "Traumatología", "Psiquiatría", "Urología", "Endocrinología",
     "Gastroenterología", "Neumología", "Reumatología", "Oncología",
     "Hematología", "Nefrología", "Infectología", "Geriatría",
     "Medicina Interna", "Anestesiología", "Radiología", "Patología"
