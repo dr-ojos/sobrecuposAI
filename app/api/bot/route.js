@@ -851,7 +851,17 @@ Ejemplos:
             }
             
             // MANEJO ORIGINAL PARA BÚSQUEDAS POR SÍNTOMAS
-            const otrasOpciones = records?.filter(r => r.id !== selectedRecord?.id).slice(0, 2) || [];
+            console.log(`🔍 DEBUG: Filtrando opciones alternativas`);
+            console.log(`📋 Records disponibles: ${records?.length || 0}`);
+            console.log(`🎯 ID del registro seleccionado: ${selectedRecord?.id}`);
+            
+            const otrasOpciones = records?.filter(r => {
+              const isNotSelected = r.id !== selectedRecord?.id;
+              console.log(`📝 Comparando ${r.id} !== ${selectedRecord?.id} = ${isNotSelected}`);
+              return isNotSelected;
+            }).slice(0, 2) || [];
+            
+            console.log(`✅ Opciones alternativas encontradas: ${otrasOpciones.length}`);
             
             if (otrasOpciones.length > 0) {
               let mensaje = "Entiendo. Te muestro otras opciones disponibles:\n\n";
@@ -878,8 +888,9 @@ Ejemplos:
                 session: sessions[from]
               });
             } else {
+              console.log("⚠️ No hay más opciones alternativas disponibles");
               return NextResponse.json({
-                text: "Entiendo perfectamente que esa fecha no te sirve. Lamentablemente no tengo más opciones disponibles en este momento para esa especialidad.\n\n¿Te gustaría que te ayude con algún otro síntoma o consulta médica?"
+                text: `Entiendo que esa fecha no te sirve. Lamentablemente no tengo más sobrecupos disponibles de **${specialty}** en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`
               });
             }
           } 
@@ -2202,7 +2213,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           records: available,
           attempts: 0,
           doctorInfo,
-          selectedRecord: first
+          selectedRecord: available[0] // 🔧 FIX: Guardar el registro completo con id, no solo fields
         };
 
         return NextResponse.json({
