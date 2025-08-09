@@ -287,8 +287,11 @@ async function buscarSobrecuposDeMedico(medicoId) {
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
     const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
 
-    const response = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100&filterByFormula=AND(Disponible="Si",Doctor="${medicoId}")`,
+    console.log(`🔍 DEBUG: Buscando sobrecupos para médico ID: ${medicoId}`);
+
+    // Primero, hacer consulta sin filtro para debug
+    const debugResponse = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=10`,
       {
         headers: {
           Authorization: `Bearer ${AIRTABLE_API_KEY}`,
@@ -296,13 +299,62 @@ async function buscarSobrecuposDeMedico(medicoId) {
       }
     );
 
-    if (!response.ok) return [];
+    if (debugResponse.ok) {
+      const debugData = await debugResponse.json();
+      const sampleRecord = debugData.records?.[0];
+      if (sampleRecord) {
+        console.log(`🔍 DEBUG: Estructura de sobrecupo ejemplo:`, Object.keys(sampleRecord.fields || {}));
+        console.log(`🔍 DEBUG: Campo Doctor en ejemplo:`, sampleRecord.fields?.Doctor);
+        console.log(`🔍 DEBUG: Campo Medico en ejemplo:`, sampleRecord.fields?.Medico);
+      }
+    }
 
-    const data = await response.json();
-    const sobrecupos = data.records || [];
+    // Probar diferentes filtros posibles
+    const filtrosPosibles = [
+      `AND(Disponible="Si",Doctor="${medicoId}")`,
+      `AND(Disponible="Si",Medico="${medicoId}")`,
+      `AND({Disponible}="Si",{Doctor}="${medicoId}")`,
+      `AND({Disponible}="Si",{Medico}="${medicoId}")`,
+      `AND(Disponible=TRUE(),Doctor="${medicoId}")`,
+      `AND(Disponible=TRUE(),Medico="${medicoId}")`
+    ];
+
+    let sobrecuposEncontrados = [];
     
-    // Filtrar solo fechas futuras
-    return filterFutureDates(sobrecupos);
+    for (const filtro of filtrosPosibles) {
+      try {
+        console.log(`🔍 DEBUG: Probando filtro: ${filtro}`);
+        
+        const response = await fetch(
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100&filterByFormula=${encodeURIComponent(filtro)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const sobrecupos = data.records || [];
+          
+          console.log(`🔍 DEBUG: Filtro "${filtro}" encontró ${sobrecupos.length} sobrecupos`);
+          
+          if (sobrecupos.length > 0) {
+            // Filtrar solo fechas futuras
+            sobrecuposEncontrados = filterFutureDates(sobrecupos);
+            console.log(`✅ DEBUG: Después de filtrar fechas futuras: ${sobrecuposEncontrados.length} sobrecupos`);
+            break; // Usar el primer filtro que funcione
+          }
+        } else {
+          console.log(`❌ DEBUG: Filtro "${filtro}" falló con status: ${response.status}`);
+        }
+      } catch (filterError) {
+        console.log(`❌ DEBUG: Error con filtro "${filtro}":`, filterError.message);
+      }
+    }
+
+    return sobrecuposEncontrados;
   } catch (error) {
     console.error('Error buscando sobrecupos del médico:', error);
     return [];
