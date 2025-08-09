@@ -915,7 +915,7 @@ Ejemplos:
               session: sessions[from]
             });
           } 
-          else if (respuesta.includes('no') && (respuesta.includes('otro') || respuesta.includes('otra') || respuesta.includes('diferente') || respuesta.includes('distinto') || respuesta.includes('profesional') || respuesta.includes('médico') || respuesta.includes('medico') || respuesta.includes('doctor'))) {
+          else if ((respuesta.startsWith('no') || respuesta.includes(' no ') || respuesta.includes(' no,') || respuesta.includes(' no.')) && (respuesta.includes('otro') || respuesta.includes('otra') || respuesta.includes('diferente') || respuesta.includes('distinto') || respuesta.includes('profesional') || respuesta.includes('médico') || respuesta.includes('medico') || respuesta.includes('doctor'))) {
             // Usuario dice "no, quiero otro profesional/médico/doctor"
             console.log("🔄 Usuario rechaza cita y pide otro profesional");
             const { specialty, records } = currentSession;
@@ -964,7 +964,7 @@ Ejemplos:
               });
             }
           }
-          else if (respuesta.includes('no') || respuesta === 'n') {
+          else if ((respuesta.startsWith('no') || respuesta.includes(' no ') || respuesta.includes(' no,') || respuesta.includes(' no.') || respuesta === 'no' || respuesta === 'n')) {
             // Ofrecer otras opciones
             const { records, selectedRecord, esMedicoEspecifico, specialty, doctorName } = currentSession;
             
@@ -1390,7 +1390,7 @@ Ejemplos:
           
           const respuestaLower = text.toLowerCase().trim();
           
-          if (respuestaLower.includes('no') && (respuestaLower.includes('otro') || respuestaLower.includes('otra') || respuestaLower.includes('diferente') || respuestaLower.includes('distinto') || respuestaLower.includes('profesional') || respuestaLower.includes('médico') || respuestaLower.includes('medico') || respuestaLower.includes('doctor'))) {
+          if ((respuestaLower.startsWith('no') || respuestaLower.includes(' no ') || respuestaLower.includes(' no,') || respuestaLower.includes(' no.') || respuestaLower === 'no') && (respuestaLower.includes('otro') || respuestaLower.includes('otra') || respuestaLower.includes('diferente') || respuestaLower.includes('distinto') || respuestaLower.includes('profesional') || respuestaLower.includes('médico') || respuestaLower.includes('medico') || respuestaLower.includes('doctor'))) {
             // Usuario dice "no, quiero otro profesional/médico/doctor" - mostrar otras opciones
             console.log("🔄 Usuario rechaza cita y pide otro profesional en awaiting-confirmation");
             const availableRecords = records || [];
@@ -1431,7 +1431,7 @@ Ejemplos:
               });
             }
           }
-          else if (respuestaLower.includes('no')) {
+          else if (respuestaLower.startsWith('no') || respuestaLower.includes(' no ') || respuestaLower.includes(' no,') || respuestaLower.includes(' no.') || respuestaLower === 'no') {
             const nextAttempt = attempts + 1;
             const availableRecords = records || [];
             
