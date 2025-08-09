@@ -398,12 +398,20 @@ const AgendarSobrecuposPage = () => {
 
                     {/* Card Footer */}
                     <div className="card-footer">
-                      <button
-                        onClick={() => handleReservarClick(sobrecupo)}
-                        className="reserve-button"
-                      >
-                        Reservar Sobrecupo
-                      </button>
+                      <div className="footer-actions">
+                        <button
+                          onClick={() => router.push(`/medico-info/${sobrecupo.fields.Médico?.replace(/\s+/g, '-').toLowerCase()}`)}
+                          className="info-button"
+                        >
+                          Más información
+                        </button>
+                        <button
+                          onClick={() => handleReservarClick(sobrecupo)}
+                          className="reserve-button"
+                        >
+                          Reservar Sobrecupo
+                        </button>
+                      </div>
                     </div>
                   </article>
                 ))}
@@ -973,21 +981,48 @@ const AgendarSobrecuposPage = () => {
           border-top: 1px solid #f5f5f5;
         }
 
-        .reserve-button {
-          width: 100%;
+        .footer-actions {
+          display: flex;
+          gap: 0.75rem;
+        }
+
+        .info-button {
+          flex: 1;
           padding: 0.75rem;
-          background: #6b7280;
+          background: none;
+          color: #ff9500;
+          border: 1px solid #ff9500;
+          border-radius: 16px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .info-button:hover {
+          background: #ff9500;
+          color: white;
+          transform: translateY(-1px);
+        }
+
+        .reserve-button {
+          flex: 2;
+          padding: 0.75rem;
+          background: #ff9500;
           color: white;
           border: none;
           border-radius: 16px;
           font-size: 0.875rem;
           font-weight: 500;
           cursor: pointer;
-          transition: background 0.2s ease;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
         }
 
         .reserve-button:hover {
-          background: #4b5563;
+          background: #e6850a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
         }
 
         /* Modal */
@@ -1407,6 +1442,16 @@ const AgendarSobrecuposPage = () => {
           .additional-info {
             flex-direction: column;
             gap: 0.75rem;
+          }
+
+          .footer-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+
+          .info-button,
+          .reserve-button {
+            flex: none;
           }
 
           .modal-header {

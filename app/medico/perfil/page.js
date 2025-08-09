@@ -52,6 +52,9 @@ export default function PerfilMedico() {
       const res = await fetch(`/api/doctors/${session.user.doctorId}`);
       if (res.ok) {
         const data = await res.json();
+        console.log('📄 Datos del médico recibidos:', data);
+        console.log('🖼️ PhotoURL encontrada:', data.fields?.PhotoURL);
+        
         setDoctorData({
           Name: data.fields?.Name || '',
           Email: data.fields?.Email || '',
@@ -333,6 +336,12 @@ export default function PerfilMedico() {
                       src={doctorData.PhotoURL} 
                       alt="Foto de perfil" 
                       className="profile-image"
+                      onLoad={() => console.log('✅ Imagen cargada:', doctorData.PhotoURL)}
+                      onError={(e) => {
+                        console.error('❌ Error cargando imagen:', doctorData.PhotoURL, e);
+                        // Fallback: Remover la URL si la imagen no carga
+                        setDoctorData(prev => ({ ...prev, PhotoURL: '' }));
+                      }}
                     />
                   ) : (
                     <div className="placeholder-image">

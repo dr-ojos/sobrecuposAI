@@ -179,7 +179,7 @@ export default function Home() {
                 onClick={goToSobrecupos}
                 className="explore-button"
               >
-                <span>Ver todos los sobrecupos disponibles</span>
+                <span>Ver Sobrecupos disponibles</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -672,21 +672,24 @@ export default function Home() {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          background: none;
-          border: 1px solid #999;
+          background: #ff9500;
+          border: 1px solid #ff9500;
           border-radius: 6px;
           padding: 0.75rem 1.5rem;
-          color: #333;
+          color: #fff;
           font-size: 0.875rem;
-          font-weight: 400;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
           font-family: inherit;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
         }
 
         .explore-button:hover {
-          border-color: #171717;
-          color: #171717;
+          background: #e6850a;
+          border-color: #e6850a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
         }
 
         .explore-button:active {
