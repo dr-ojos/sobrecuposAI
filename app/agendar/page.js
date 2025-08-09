@@ -400,7 +400,7 @@ const AgendarSobrecuposPage = () => {
                     <div className="card-footer">
                       <div className="footer-actions">
                         <button
-                          onClick={() => router.push(`/medico-info/${sobrecupo.fields.Médico?.replace(/\s+/g, '-').toLowerCase()}`)}
+                          onClick={() => router.push(`/medico-info/${encodeURIComponent(sobrecupo.fields.Médico)}`)}
                           className="info-button"
                         >
                           Más información

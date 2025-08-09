@@ -14,29 +14,43 @@ export default function MedicoInfoPage({ params }) {
       try {
         setLoading(true);
         
-        // Convertir slug de vuelta a nombre (reemplazar guiones por espacios)
-        const nombreMedico = slug.replace(/-/g, ' ');
+        // Decodificar el slug para obtener el nombre del médico
+        const nombreMedico = decodeURIComponent(slug);
+        console.log('🔍 Buscando médico:', nombreMedico);
         
-        // Buscar el médico por nombre
+        // Buscar el médico por nombre exacto en la base de datos
         const response = await fetch('/api/doctors');
         if (!response.ok) throw new Error('Error fetching doctors');
         
-        const data = await response.json();
-        const doctores = data.records || [];
+        const doctores = await response.json();
+        console.log('📋 Doctores obtenidos:', doctores.length);
         
-        // Buscar médico por nombre (insensible a mayúsculas/minúsculas)
-        const doctorEncontrado = doctores.find(doc => 
-          doc.fields?.Name?.toLowerCase().includes(nombreMedico.toLowerCase()) ||
-          nombreMedico.toLowerCase().includes(doc.fields?.Name?.toLowerCase())
-        );
+        // Buscar médico por nombre exacto o similar
+        const doctorEncontrado = doctores.find(doc => {
+          const docName = doc.fields?.Name;
+          if (!docName) return false;
+          
+          // Comparación exacta primero
+          if (docName === nombreMedico) return true;
+          
+          // Comparación insensible a mayúsculas
+          if (docName.toLowerCase() === nombreMedico.toLowerCase()) return true;
+          
+          // Comparación parcial si contiene el nombre
+          return docName.toLowerCase().includes(nombreMedico.toLowerCase()) ||
+                 nombreMedico.toLowerCase().includes(docName.toLowerCase());
+        });
         
         if (doctorEncontrado) {
+          console.log('✅ Médico encontrado:', doctorEncontrado.fields?.Name);
+          console.log('📄 Datos del médico:', doctorEncontrado.fields);
           setMedico(doctorEncontrado);
         } else {
+          console.log('❌ Médico no encontrado para:', nombreMedico);
           setError('Médico no encontrado');
         }
       } catch (err) {
-        console.error('Error cargando info del médico:', err);
+        console.error('❌ Error cargando info del médico:', err);
         setError('Error cargando información del médico');
       } finally {
         setLoading(false);
@@ -141,71 +155,92 @@ export default function MedicoInfoPage({ params }) {
               <div className="info-card">
                 <h4 className="info-title">Atiende a</h4>
                 <p className="info-content">
-                  {fields.Atiende === 'Ambos' ? 'Adultos y Niños' : 
-                   fields.Atiende === 'Niños' ? 'Solo Niños' :
-                   fields.Atiende === 'Adultos' ? 'Solo Adultos' : 
+                  {fields.Atiende === 'Ambos' ? '👥 Niños y Adultos' : 
+                   fields.Atiende === 'Niños' ? '👶 Solo Niños' :
+                   fields.Atiende === 'Adultos' ? '👨 Solo Adultos' : 
                    'Consultar'}
                 </p>
               </div>
               
-              {fields.Seguros && fields.Seguros.length > 0 && (
+              {fields.RSS && (
                 <div className="info-card">
-                  <h4 className="info-title">Seguros Aceptados</h4>
-                  <div className="seguros-list">
-                    {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
-                      <span key={index} className="seguro-badge">{seguro}</span>
-                    ))}
-                  </div>
+                  <h4 className="info-title">Registro Sanitario (RSS)</h4>
+                  <p className="info-content">{fields.RSS}</p>
                 </div>
               )}
             </div>
+
+            {/* Seguros Aceptados */}
+            {fields.Seguros && fields.Seguros.length > 0 && (
+              <div className="seguros-section">
+                <h4 className="subsection-title">💳 Seguros y Previsiones Aceptadas</h4>
+                <div className="seguros-grid">
+                  {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
+                    <div key={index} className="seguro-card">
+                      <span className="seguro-icon">
+                        {seguro === 'Fonasa' ? '🏥' : 
+                         seguro === 'Isapres' ? '🏥' : 
+                         seguro === 'Particular' ? '💰' : '🏥'}
+                      </span>
+                      <span className="seguro-name">{seguro}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Experiencia Profesional */}
-          {fields.Experiencia && (
+          {fields.Experiencia && fields.Experiencia.trim() && (
             <section className="experience-section">
-              <h3 className="section-title">Experiencia Profesional</h3>
+              <h3 className="section-title">📋 Experiencia Profesional</h3>
               <div className="experience-content">
                 <p>{fields.Experiencia}</p>
               </div>
             </section>
           )}
 
-          {/* Contacto */}
-          <section className="contact-section">
-            <h3 className="section-title">Información de Contacto</h3>
-            
-            <div className="contact-grid">
-              {fields.Email && (
-                <div className="contact-item">
-                  <div className="contact-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2"/>
-                      <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                  </div>
-                  <div className="contact-info">
-                    <span className="contact-label">Email</span>
-                    <span className="contact-value">{fields.Email}</span>
-                  </div>
-                </div>
-              )}
+          {/* Contacto - Solo si hay información disponible */}
+          {(fields.Email || fields.WhatsApp) && (
+            <section className="contact-section">
+              <h3 className="section-title">📞 Información de Contacto</h3>
               
-              {fields.WhatsApp && (
-                <div className="contact-item">
-                  <div className="contact-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .948.684l1.498 4.493a1 1 0 0 1-.502 1.21l-2.257 1.13a11.042 11.042 0 0 0 5.516 5.516l1.13-2.257a1 1 0 0 1 1.21-.502l4.493 1.498a1 1 0 0 1 .684.949V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+              <div className="contact-grid">
+                {fields.Email && (
+                  <div className="contact-item">
+                    <div className="contact-icon email-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2"/>
+                        <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                    </div>
+                    <div className="contact-info">
+                      <span className="contact-label">Email profesional</span>
+                      <span className="contact-value">{fields.Email}</span>
+                    </div>
                   </div>
-                  <div className="contact-info">
-                    <span className="contact-label">WhatsApp</span>
-                    <span className="contact-value">{fields.WhatsApp}</span>
+                )}
+                
+                {fields.WhatsApp && (
+                  <div className="contact-item">
+                    <div className="contact-icon whatsapp-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .948.684l1.498 4.493a1 1 0 0 1-.502 1.21l-2.257 1.13a11.042 11.042 0 0 0 5.516 5.516l1.13-2.257a1 1 0 0 1 1.21-.502l4.493 1.498a1 1 0 0 1 .684.949V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <div className="contact-info">
+                      <span className="contact-label">WhatsApp</span>
+                      <span className="contact-value">{fields.WhatsApp}</span>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </section>
+                )}
+              </div>
+              
+              <div className="contact-notice">
+                <p>💡 <strong>Importante:</strong> Para reservar sobrecupos, utiliza el botón "Reservar Sobrecupo" desde la lista principal.</p>
+              </div>
+            </section>
+          )}
 
           {/* Botón de acción */}
           <section className="action-section">
@@ -454,19 +489,51 @@ export default function MedicoInfoPage({ params }) {
           font-weight: 500;
         }
 
-        .seguros-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
+        /* Seguros Section */
+        .seguros-section {
+          margin-top: 2rem;
+          padding-top: 2rem;
+          border-top: 1px solid #e5e7eb;
         }
 
-        .seguro-badge {
+        .subsection-title {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #171717;
+          margin: 0 0 1rem 0;
+        }
+
+        .seguros-grid {
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+
+        .seguro-card {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 1rem;
+          background: #fff;
+          border: 2px solid #ff9500;
+          border-radius: 8px;
+          transition: all 0.2s ease;
+        }
+
+        .seguro-card:hover {
           background: #ff9500;
           color: white;
-          padding: 0.25rem 0.75rem;
-          border-radius: 20px;
-          font-size: 0.75rem;
-          font-weight: 500;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(255, 149, 0, 0.2);
+        }
+
+        .seguro-icon {
+          font-size: 1.25rem;
+        }
+
+        .seguro-name {
+          font-size: 0.875rem;
+          font-weight: 600;
         }
 
         /* Experience */
@@ -510,6 +577,29 @@ export default function MedicoInfoPage({ params }) {
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+        }
+
+        .contact-icon.email-icon {
+          background: #3b82f6;
+        }
+
+        .contact-icon.whatsapp-icon {
+          background: #10b981;
+        }
+
+        .contact-notice {
+          margin-top: 1.5rem;
+          padding: 1rem;
+          background: #fffbeb;
+          border: 1px solid #fed7aa;
+          border-radius: 8px;
+        }
+
+        .contact-notice p {
+          margin: 0;
+          font-size: 0.875rem;
+          color: #92400e;
+          line-height: 1.4;
         }
 
         .contact-info {
@@ -608,6 +698,18 @@ export default function MedicoInfoPage({ params }) {
 
           .main-layout {
             padding: 1.5rem 1rem;
+          }
+
+          .seguros-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .seguro-card {
+            padding: 0.75rem;
+          }
+
+          .contact-notice {
+            padding: 0.75rem;
           }
         }
 
