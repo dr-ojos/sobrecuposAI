@@ -1837,7 +1837,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             };
 
             return NextResponse.json({
-              text: `¡Perfecto! Encontré disponibilidad con ${medico.name} (${medico.especialidad}).\n\n📅 **Sobrecupo disponible:**\n• Fecha: ${fechaFormateada}\n• Hora: ${sobrecupo.fields?.Hora}\n• Clínica: ${sobrecupo.fields?.["Clínica"] || sobrecupo.fields?.["Clinica"]}\n\n¿Te interesa reservar esta cita? Responde **"sí"** para continuar.`,
+              text: `El sobrecupo más próximo con ${medico.name} es:\n\n📅 **${fechaFormateada} a las ${sobrecupo.fields?.Hora}**\n📍 ${sobrecupo.fields?.["Clínica"] || sobrecupo.fields?.["Clinica"]}\n\n¿Te interesa reservar esta cita? Responde **"sí"** para continuar.`,
               session: sessions[from]
             });
           } else {

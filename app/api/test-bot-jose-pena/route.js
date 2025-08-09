@@ -193,7 +193,7 @@ export async function GET() {
       })),
       totalSobrecupos: sobrecupos.length,
       respuestaBot: sobrecupos.length > 0 
-        ? `¡Perfecto! Encontré disponibilidad con ${medico.name} (${medico.especialidad}).`
+        ? `El sobrecupo más próximo con ${medico.name} es:`
         : `Encontré al Dr/a. ${medico.name} (${medico.especialidad}), pero lamentablemente no tiene sobrecupos disponibles en este momento.`
     });
 
