@@ -674,7 +674,7 @@ export default function Home() {
           gap: 0.5rem;
           background: #ff9500;
           border: 1px solid #ff9500;
-          border-radius: 6px;
+          border-radius: 16px;
           padding: 0.75rem 1.5rem;
           color: #fff;
           font-size: 0.875rem;
