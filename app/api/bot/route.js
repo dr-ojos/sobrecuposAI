@@ -811,7 +811,7 @@ Ejemplos:
             
             // 🆕 MANEJO ESPECIAL PARA MÉDICO ESPECÍFICO
             if (esMedicoEspecifico) {
-              const otrasOpciones = records.filter(r => r !== selectedRecord).slice(0, 2);
+              const otrasOpciones = records.filter(r => r.id !== selectedRecord.id).slice(0, 2);
               
               if (otrasOpciones.length > 0) {
                 let mensaje = `Entiendo que esa hora no te conviene. Te muestro otras opciones disponibles con **${doctorName}**:\n\n`;
@@ -835,13 +835,13 @@ Ejemplos:
                 });
               } else {
                 return NextResponse.json({
-                  text: `Lamentablemente **${doctorName}** solo tiene esa fecha disponible.\n\n¿Te gustaría que te ayude a buscar otros médicos de ${specialty} que tengan más horarios disponibles?`
+                  text: `Entiendo que esa hora no te acomoda. Lamentablemente **${doctorName}** solo tiene esa fecha disponible en este momento.\n\n¿Te gustaría que te ayude a buscar otros médicos de ${specialty} que tengan más horarios disponibles?`
                 });
               }
             }
             
             // MANEJO ORIGINAL PARA BÚSQUEDAS POR SÍNTOMAS
-            const otrasOpciones = records?.filter(r => r !== selectedRecord).slice(0, 2) || [];
+            const otrasOpciones = records?.filter(r => r.id !== selectedRecord?.id).slice(0, 2) || [];
             
             if (otrasOpciones.length > 0) {
               let mensaje = "Entiendo. Te muestro otras opciones disponibles:\n\n";
@@ -869,7 +869,7 @@ Ejemplos:
               });
             } else {
               return NextResponse.json({
-                text: "Entiendo. Lamentablemente no tengo más opciones disponibles en este momento.\n\n¿Te gustaría que te ayude con algún otro síntoma o consulta?"
+                text: "Entiendo perfectamente que esa fecha no te sirve. Lamentablemente no tengo más opciones disponibles en este momento para esa especialidad.\n\n¿Te gustaría que te ayude con algún otro síntoma o consulta médica?"
               });
             }
           } 
