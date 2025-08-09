@@ -834,8 +834,18 @@ Ejemplos:
                   session: sessions[from]
                 });
               } else {
+                // Cambiar a stage especial para manejar respuesta sobre buscar otros médicos
+                sessions[from] = {
+                  ...currentSession,
+                  stage: 'asking-for-other-doctors',
+                  doctorName,
+                  specialty,
+                  motivo: currentSession.motivo || text
+                };
+                
                 return NextResponse.json({
-                  text: `Entiendo que esa hora no te acomoda. Lamentablemente **${doctorName}** solo tiene esa fecha disponible en este momento.\n\n¿Te gustaría que te ayude a buscar otros médicos de ${specialty} que tengan más horarios disponibles?`
+                  text: `Entiendo que esa hora no te acomoda. Lamentablemente **${doctorName}** solo tiene esa fecha disponible en este momento.\n\n¿Te gustaría que te ayude a buscar otros médicos de ${specialty} que tengan más horarios disponibles?`,
+                  session: sessions[from]
                 });
               }
             }
@@ -1822,6 +1832,103 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           console.log("🏥 ======================");
 
           return NextResponse.json({ text: statusText });
+
+        case 'asking-for-other-doctors':
+          // Manejar respuesta sobre si quiere buscar otros médicos
+          const respuestaBusqueda = text.toLowerCase().trim();
+          const { specialty: specialtyBusqueda, doctorName: doctorNameBusqueda, motivo } = currentSession;
+          
+          if (respuestaBusqueda.includes('sí') || respuestaBusqueda.includes('si') || respuestaBusqueda === 's' || respuestaBusqueda === 'ok' || respuestaBusqueda === 'vale' || respuestaBusqueda.includes('bueno') || respuestaBusqueda.includes('perfecto')) {
+            // Usuario acepta buscar otros médicos - buscar médicos de la misma especialidad
+            try {
+              // Buscar todos los médicos de la especialidad
+              const response = await fetch(
+                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}?filterByFormula=AND({Especialidad}='${specialtyBusqueda}',{Name}!='${doctorNameBusqueda}')`,
+                { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+              );
+              
+              if (!response.ok) {
+                throw new Error(`Error en API de doctores: ${response.status}`);
+              }
+              
+              const doctorsData = await response.json();
+              const availableDoctors = doctorsData.records || [];
+              
+              if (availableDoctors.length === 0) {
+                // No hay más médicos de esta especialidad
+                delete sessions[from];
+                return NextResponse.json({
+                  text: `Lamentablemente no tengo más médicos de ${specialtyBusqueda} disponibles en este momento.\n\nSi quieres, puedo tomar tus datos para avisarte cuando tengamos nuevos sobrecupos de ${specialtyBusqueda}. ¿Te parece?`
+                });
+              }
+              
+              // Hay otros médicos disponibles - proceder con búsqueda normal por especialidad
+              delete sessions[from];
+              
+              // Generar respuesta empática usando el motivo original
+              let respuestaEmpatica = "Entiendo tu necesidad de atención médica.";
+              if (OPENAI_API_KEY && motivo) {
+                try {
+                  const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${OPENAI_API_KEY}`,
+                      "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                      model: "gpt-4o-mini",
+                      temperature: 0.7,
+                      max_tokens: 60,
+                      messages: [
+                        {
+                          role: "system",
+                          content: "Eres una secretaria médica chilena empática y profesional. Responde con comprensión al paciente que describe su problema médico. Máximo 2 líneas, tono cálido y humano."
+                        },
+                        { role: "user", content: `Paciente dice: "${motivo}"` }
+                      ]
+                    })
+                  });
+                  const empatJson = await empatRes.json();
+                  respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "Entiendo tu preocupación.";
+                } catch (err) {
+                  console.error("❌ Error OpenAI empático:", err);
+                }
+              }
+              
+              sessions[from] = {
+                stage: 'getting-age-for-filtering',
+                specialty: specialtyBusqueda,
+                respuestaEmpatica,
+                motivo: motivo,
+                attempts: 0
+              };
+              
+              return NextResponse.json({
+                text: `${respuestaEmpatica}\n\nPerfecto, te ayudo a buscar otros médicos de **${specialtyBusqueda}** con horarios disponibles.\n\n¿Me podrías decir tu edad? Esto me ayuda a encontrar médicos que atiendan pacientes de tu rango etario.\n\nEjemplo: 25`,
+                session: sessions[from]
+              });
+              
+            } catch (error) {
+              console.error("❌ Error buscando otros médicos:", error);
+              delete sessions[from];
+              return NextResponse.json({
+                text: "Disculpa, hay un problema técnico buscando otros médicos. Intenta más tarde o cuéntame tu síntoma nuevamente."
+              });
+            }
+          } 
+          else if (respuestaBusqueda.includes('no') || respuestaBusqueda === 'n') {
+            delete sessions[from];
+            return NextResponse.json({
+              text: "Entiendo. Si en algún momento necesitas ayuda médica o quieres buscar sobrecupos, no dudes en escribirme. ¿Hay algo más en lo que pueda ayudarte?"
+            });
+          }
+          else {
+            return NextResponse.json({
+              text: "Por favor responde **'sí'** si quieres que busque otros médicos disponibles, o **'no'** si prefieres dejarlo por ahora.",
+              session: sessions[from]
+            });
+          }
+          break;
 
         default:
           break;
