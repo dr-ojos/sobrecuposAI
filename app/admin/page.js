@@ -47,7 +47,11 @@ export default function AdminPanelPage() {
 
   const especialidades = [
     'Oftalmología', 'Medicina Familiar', 'Dermatología', 'Pediatría',
-    'Otorrinolaringología', 'Neurología', 'Cardiología', 'Ginecología'
+    'Otorrinolaringología', 'Neurología', 'Cardiología', 'Ginecología',
+    'Traumatología', 'Psiquiatría', 'Urología', 'Endocrinología',
+    'Gastroenterología', 'Neumología', 'Reumatología', 'Oncología',
+    'Hematología', 'Nefrología', 'Infectología', 'Geriatría',
+    'Medicina Interna', 'Anestesiología', 'Radiología', 'Patología'
   ];
 
   const opcionesAtiende = ['Adultos', 'Niños', 'Ambos'];

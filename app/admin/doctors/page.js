@@ -46,8 +46,12 @@ export default function DoctorsAdminPage() {
 
   // Especialidades predefinidas para mejor UX
   const especialidades = [
-    "Oftalmología", "Medicina Familiar", "Dermatología", 
-    "Pediatría", "Otorrinolaringología", "Neurología", "Cardiología"
+    "Oftalmología", "Medicina Familiar", "Dermatología", "Pediatría", 
+    "Otorrinolaringología", "Neurología", "Cardiología", "Ginecología",
+    "Traumatología", "Psiquiatría", "Urología", "Endocrinología",
+    "Gastroenterología", "Neumología", "Reumatología", "Oncología",
+    "Hematología", "Nefrología", "Infectología", "Geriatría",
+    "Medicina Interna", "Anestesiología", "Radiología", "Patología"
   ];
 
   // Opciones de atención

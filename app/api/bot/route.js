@@ -1830,6 +1830,36 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       }
     }
 
+    // 🔥 MANEJO ESPECIAL PARA CONSULTAS SOBRE ESPECIALIDADES
+    const consultaEspecialidades = text.toLowerCase().includes('especialidad') || 
+                                  text.toLowerCase().includes('especialidades') ||
+                                  text.toLowerCase().includes('qué médicos') ||
+                                  text.toLowerCase().includes('que medicos') ||
+                                  text.toLowerCase().includes('qué doctores') ||
+                                  text.toLowerCase().includes('que doctores');
+
+    if (consultaEspecialidades) {
+      try {
+        const especialidadesDisponibles = await getEspecialidadesDisponibles();
+        
+        if (especialidadesDisponibles.length > 0) {
+          const especialidadesText = especialidadesDisponibles
+            .map((esp, idx) => `• ${esp}`)
+            .join('\n');
+            
+          return NextResponse.json({
+            text: `¡Tengo disponibilidad de sobrecupos en estas especialidades médicas! 🩺\n\n${especialidadesText}\n\n¿En cuál de estas necesitas una cita? O cuéntame tus síntomas para recomendarte la especialidad más adecuada.`
+          });
+        } else {
+          return NextResponse.json({
+            text: `Por el momento no tengo sobrecupos disponibles, pero puedo ayudarte a reservar una cita regular.\n\n¿Qué tipo de especialista necesitas o qué síntomas tienes?`
+          });
+        }
+      } catch (error) {
+        console.error("Error obteniendo especialidades:", error);
+      }
+    }
+
     // Si llega aquí, usar OpenAI como evaluador inteligente
     if (OPENAI_API_KEY) {
       try {
@@ -1851,13 +1881,14 @@ Te contactaremos pronto para confirmar los detalles finales.`;
 1. MÉDICO: Síntomas, dolencias, necesidad de especialistas, problemas de salud
 2. NO_MÉDICO: Temas cotidianos (comida, transporte, entretenimiento, etc.)
 
-Si es NO_MÉDICO, responde de forma humana y redirige hacia salud.
+Si es NO_MÉDICO, responde de forma humana y redirige hacia salud (SIN incluir "NO_MÉDICO:" en la respuesta).
 Si es MÉDICO, responde solo "MÉDICO".
 
 Ejemplos:
-- "Quiero uber" → NO_MÉDICO: "¡Uber para moverse por la ciudad! 🚗 Mientras esperas, ¿cómo has estado de salud? ¿Algún malestar o consulta médica?"
+- "Quiero uber" → "¡Uber para moverse por la ciudad! 🚗 Mientras esperas, ¿cómo has estado de salud? ¿Algún malestar o consulta médica?"
 - "Me duele la cabeza" → MÉDICO
-- "Tengo hambre" → NO_MÉDICO: "¡El hambre es normal! 🍽️ Espero que comas algo rico y saludable. Hablando de salud, ¿cómo te has sentido últimamente?"`
+- "Tengo hambre" → "¡El hambre es normal! 🍽️ Espero que comas algo rico y saludable. Hablando de salud, ¿cómo te has sentido últimamente?"
+- "Qué especialidades tienes" → "¡Hay muchas especialidades médicas interesantes! 🩺 Pero antes de hablar de eso, ¿cómo te sientes de salud? ¿Tienes alguna consulta o malestar?"`
               },
               { role: "user", content: text }
             ]
