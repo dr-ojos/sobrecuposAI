@@ -257,9 +257,9 @@ export default function ClinicasMedico() {
       <style jsx>{`
         .clinicas-container {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #1a1a1a;
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+          color: #171717;
           padding-bottom: env(safe-area-inset-bottom);
         }
 
@@ -267,38 +267,44 @@ export default function ClinicasMedico() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 16px;
+          padding: 1rem 2rem;
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          -webkit-backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
           position: sticky;
           top: 0;
           z-index: 100;
-          height: 56px;
-          box-sizing: border-box;
         }
 
         .back-btn {
+          width: 36px;
+          height: 36px;
           background: none;
-          border: none;
-          color: #007aff;
-          font-size: 15px;
-          font-weight: 600;
-          padding: 8px 12px;
+          border: 1px solid #e5e5e5;
           border-radius: 8px;
           cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           transition: all 0.2s ease;
+          color: #666;
+          font-size: 0.875rem;
+          font-weight: 400;
         }
 
         .back-btn:hover {
-          background: rgba(0, 122, 255, 0.1);
+          border-color: #171717;
+          background: #f9fafb;
+          color: #171717;
         }
 
         .clinicas-header h1 {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1a1a1a;
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: #171717;
           margin: 0;
+          letter-spacing: -0.025em;
         }
 
         .header-spacer {
@@ -327,18 +333,24 @@ export default function ClinicasMedico() {
         }
 
         .content-container {
-          padding: 16px;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 3rem;
         }
 
         .section {
-          margin-bottom: 32px;
+          background: none;
         }
 
         .section h2 {
-          font-size: 16px;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 16px;
+          font-size: 2rem;
+          font-weight: 300;
+          color: #171717;
+          margin-bottom: 1.5rem;
+          letter-spacing: -0.5px;
         }
 
         .empty-state {
@@ -386,67 +398,77 @@ export default function ClinicasMedico() {
         .clinicas-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 12px;
+          gap: 1.5rem;
         }
 
         @media (min-width: 768px) {
           .clinicas-grid {
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+          }
+        }
+
+        @media (min-width: 1200px) {
+          .clinicas-grid {
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
           }
         }
 
         .clinica-card {
-          background: white;
-          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
           transition: all 0.2s ease;
-          border: 2px solid transparent;
         }
 
         .clinica-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          background: white;
+          border-color: rgba(0, 0, 0, 0.1);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .clinica-card.my-clinica {
-          border-color: #34c759;
+          border-left: 4px solid #16a34a;
         }
 
-        .clinica-card.available-clinica:hover {
-          border-color: #007aff;
+        .clinica-card.available-clinica {
+          border-left: 4px solid #2563eb;
         }
 
         .card-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 12px 16px 8px;
+          padding: 1.5rem 1.5rem 1rem;
         }
 
         .clinica-badge {
-          padding: 4px 8px;
-          border-radius: 20px;
-          font-size: 11px;
+          padding: 0.25rem 0.75rem;
+          border-radius: 12px;
+          font-size: 0.75rem;
           font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
 
         .clinica-badge:not(.available) {
-          background: #e6ffed;
-          color: #006400;
+          background: #dcfce7;
+          color: #166534;
         }
 
         .clinica-badge.available {
-          background: #e8f2ff;
-          color: #007aff;
+          background: #dbeafe;
+          color: #1d4ed8;
         }
 
         .remove-btn, .add-btn {
           border: none;
-          border-radius: 50%;
-          width: 24px;
-          height: 24px;
-          font-size: 14px;
+          border-radius: 8px;
+          width: 32px;
+          height: 32px;
+          font-size: 0.875rem;
           cursor: pointer;
           transition: all 0.2s ease;
           display: flex;
@@ -456,34 +478,39 @@ export default function ClinicasMedico() {
         }
 
         .remove-btn {
-          background: #ff3b30;
-          color: white;
+          background: #fef2f2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
         }
 
         .add-btn {
-          background: #007aff;
-          color: white;
+          background: #eff6ff;
+          color: #2563eb;
+          border: 1px solid #dbeafe;
         }
 
         .remove-btn:hover {
-          background: #d70015;
-          transform: scale(1.1);
+          background: #fee2e2;
+          border-color: #fca5a5;
+          transform: translateY(-1px);
         }
 
         .add-btn:hover {
-          background: #0056b3;
-          transform: scale(1.1);
+          background: #dbeafe;
+          border-color: #93c5fd;
+          transform: translateY(-1px);
         }
 
         .card-content {
-          padding: 8px 16px 16px;
+          padding: 0.5rem 1.5rem 1.5rem;
         }
 
         .clinica-name {
-          font-size: 16px;
+          font-size: 1.25rem;
           font-weight: 600;
-          color: #1a1a1a;
-          margin: 0 0 12px;
+          color: #171717;
+          margin: 0 0 1rem;
+          letter-spacing: -0.025em;
         }
 
         .clinica-details {
