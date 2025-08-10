@@ -301,10 +301,10 @@ export default function ClinicasMedico() {
 
         .clinicas-header h1 {
           font-size: 1.5rem;
-          font-weight: 800;
+          font-weight: 200;
           color: #171717;
           margin: 0;
-          letter-spacing: -0.025em;
+          letter-spacing: -0.5px;
         }
 
         .header-spacer {
@@ -346,8 +346,8 @@ export default function ClinicasMedico() {
         }
 
         .section h2 {
-          font-size: 2rem;
-          font-weight: 300;
+          font-size: 1.5rem;
+          font-weight: 200;
           color: #171717;
           margin-bottom: 1.5rem;
           letter-spacing: -0.5px;
@@ -369,14 +369,16 @@ export default function ClinicasMedico() {
 
         .empty-state h3 {
           font-size: 18px;
-          font-weight: 600;
-          color: #1a1a1a;
+          font-weight: 300;
+          color: #171717;
           margin: 0 0 8px;
+          letter-spacing: -0.25px;
         }
 
         .empty-state p {
-          color: #6b7280;
+          color: #666;
           margin: 0;
+          font-weight: 400;
         }
 
         .info-message {
@@ -386,8 +388,8 @@ export default function ClinicasMedico() {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #6b7280;
-          font-weight: 500;
+          color: #666;
+          font-weight: 400;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
@@ -448,7 +450,7 @@ export default function ClinicasMedico() {
           padding: 0.25rem 0.75rem;
           border-radius: 12px;
           font-size: 0.75rem;
-          font-weight: 600;
+          font-weight: 400;
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
@@ -474,7 +476,7 @@ export default function ClinicasMedico() {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: 600;
+          font-weight: 400;
         }
 
         .remove-btn {
@@ -507,10 +509,10 @@ export default function ClinicasMedico() {
 
         .clinica-name {
           font-size: 1.25rem;
-          font-weight: 600;
+          font-weight: 400;
           color: #171717;
           margin: 0 0 1rem;
-          letter-spacing: -0.025em;
+          letter-spacing: -0.25px;
         }
 
         .clinica-details {
@@ -533,8 +535,9 @@ export default function ClinicasMedico() {
 
         .detail-text {
           font-size: 13px;
-          color: #6b7280;
+          color: #666;
           line-height: 1.4;
+          font-weight: 400;
         }
 
         .loading-screen {
@@ -543,7 +546,8 @@ export default function ClinicasMedico() {
           align-items: center;
           justify-content: center;
           font-size: 18px;
-          color: #6b7280;
+          color: #666;
+          font-weight: 400;
         }
 
         @media (max-width: 768px) {
