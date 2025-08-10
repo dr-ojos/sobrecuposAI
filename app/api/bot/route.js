@@ -905,7 +905,7 @@ Ejemplos:
           console.log('🔍 CONFIRMING-APPOINTMENT - Texto recibido:', text);
           console.log('🔍 CONFIRMING-APPOINTMENT - Respuesta normalizada:', respuesta);
           
-          if (respuesta.includes('sí') || respuesta.includes('si') || respuesta === 's' || respuesta === 'yes' || respuesta === 'ok' || respuesta === 'vale') {
+          if (/\b(sí|si|s|yes|ok|vale)\b/i.test(respuesta)) {
             console.log('✅ CONFIRMING-APPOINTMENT - Detectado SÍ');
             // Confirmar cita y preguntar nombre completo primero
             sessions[from] = {
@@ -1390,7 +1390,7 @@ Ejemplos:
           });
 
         case 'awaiting-confirmation':
-          if (text.toLowerCase().includes('si') || text.toLowerCase().includes('sí') || text.toLowerCase().includes('ok')) {
+          if (/\b(sí|si|s|yes|ok|vale)\b/i.test(text)) {
             sessions[from] = { 
               ...currentSession, 
               stage: 'getting-name' 
@@ -2134,7 +2134,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           const respuestaContacto = text.toLowerCase().trim();
           const { specialty: specialtyContacto } = currentSession;
           
-          if (respuestaContacto.includes('sí') || respuestaContacto.includes('si') || respuestaContacto === 's' || respuestaContacto === 'ok' || respuestaContacto === 'vale') {
+          if (/\b(sí|si|s|yes|ok|vale)\b/i.test(respuestaContacto)) {
             // Usuario quiere que tomemos sus datos
             delete sessions[from];
             return NextResponse.json({
@@ -2153,7 +2153,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           const respuestaBusqueda = text.toLowerCase().trim();
           const { specialty: specialtyBusqueda, doctorName: doctorNameBusqueda, motivo } = currentSession;
           
-          if (respuestaBusqueda.includes('sí') || respuestaBusqueda.includes('si') || respuestaBusqueda === 's' || respuestaBusqueda === 'ok' || respuestaBusqueda === 'vale' || respuestaBusqueda.includes('bueno') || respuestaBusqueda.includes('perfecto')) {
+          if (/\b(sí|si|s|yes|ok|vale|bueno|perfecto)\b/i.test(respuestaBusqueda)) {
             // Usuario acepta buscar otros médicos - buscar médicos de la misma especialidad
             try {
               // Buscar todos los médicos de la especialidad
@@ -2283,7 +2283,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           }
           
           // Si responde afirmativamente para dejar datos
-          if (respuestaNoOptions.includes('sí') || respuestaNoOptions.includes('si') || respuestaNoOptions === 's' || respuestaNoOptions === 'ok' || respuestaNoOptions === 'vale' || respuestaNoOptions.includes('bueno')) {
+          if (/\b(sí|si|s|yes|ok|vale|bueno)\b/i.test(respuestaNoOptions)) {
             delete sessions[from];
             return NextResponse.json({
               text: `Perfecto. Para avisarte cuando haya sobrecupos de **${specialtyNoOptions}** disponibles, necesito tus datos:\n\n• **Nombre completo**\n• **Número de teléfono**\n• **Email** (opcional)\n\nPor favor compártelos en tu próximo mensaje.`
