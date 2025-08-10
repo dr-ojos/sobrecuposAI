@@ -464,6 +464,9 @@ export async function POST(req) {
           console.log("📧 Enviando email de confirmación al paciente...");
           
           const fechaFormateada = formatSpanishDate(sobrecupoFields.Fecha);
+          const primerNombre = patientData.name.split(' ')[0];
+          const nombreClinica = sobrecupoFields["Clínica"] || sobrecupoFields["Clinica"] || "Clínica";
+          const direccionClinica = sobrecupoFields["Dirección"] || sobrecupoFields["Direccion"] || "";
           const emailContent = `
 <!DOCTYPE html>
 <html lang="es">
@@ -488,11 +491,18 @@ export async function POST(req) {
     <!-- Content -->
     <div style="padding: 2rem;">
       
-      <!-- Greeting -->
+      <!-- Mensaje Personal del Médico -->
+      <div style="margin-bottom: 1.5rem; background: #f8fafc; border-left: 4px solid #3b82f6; padding: 1.5rem; border-radius: 8px;">
+        <p style="margin: 0; color: #1f2937; font-size: 1rem; line-height: 1.6; font-weight: 500;">
+          Hola ${primerNombre}, yo Dr. ${appointmentData.doctorName}, te autoricé Sobrecupo para el día ${fechaFormateada} a las ${sobrecupoFields.Hora} en ${nombreClinica} que queda ${direccionClinica}.
+        </p>
+        <p style="margin: 0.75rem 0 0 0; color: #1f2937; font-size: 1rem; line-height: 1.6; font-weight: 600;">
+          Recuerda mostrar esto en caja y pagar tu consulta.
+        </p>
+      </div>
+
+      <!-- Status de Confirmación -->
       <div style="margin-bottom: 1.5rem;">
-        <h2 style="margin: 0 0 0.5rem 0; color: #171717; font-size: 1.25rem; font-weight: 600;">
-          ¡Hola ${patientData.name}!
-        </h2>
         <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">
           Tu pago ha sido procesado exitosamente y tu cita está confirmada.
         </p>
