@@ -964,9 +964,16 @@ Ejemplos:
                 session: sessions[from]
               });
             } else {
-              // No hay más opciones disponibles
+              // No hay más opciones disponibles - establecer stage para manejar respuesta
+              sessions[from] = {
+                ...currentSession,
+                stage: 'asking-for-contact-data',
+                specialty: specialty
+              };
+              
               return NextResponse.json({
-                text: `Lamentablemente no tengo más profesionales de **${specialty}** disponibles en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`
+                text: `Lamentablemente no tengo más profesionales de **${specialty}** disponibles en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`,
+                session: sessions[from]
               });
             }
           }
@@ -1432,8 +1439,16 @@ Ejemplos:
                 session: sessions[from]
               });
             } else {
+              // No hay más opciones - establecer stage para manejar respuesta
+              sessions[from] = {
+                ...currentSession,
+                stage: 'asking-for-contact-data',
+                specialty: specialty
+              };
+              
               return NextResponse.json({
-                text: `Lamentablemente no tengo más profesionales de **${specialty}** disponibles en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`
+                text: `Lamentablemente no tengo más profesionales de **${specialty}** disponibles en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`,
+                session: sessions[from]
               });
             }
           }
@@ -2114,6 +2129,25 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             });
           }
 
+        case 'asking-for-contact-data':
+          // Manejar si quiere que tomemos sus datos para contacto futuro
+          const respuestaContacto = text.toLowerCase().trim();
+          const { specialty: specialtyContacto } = currentSession;
+          
+          if (respuestaContacto.includes('sí') || respuestaContacto.includes('si') || respuestaContacto === 's' || respuestaContacto === 'ok' || respuestaContacto === 'vale') {
+            // Usuario quiere que tomemos sus datos
+            delete sessions[from];
+            return NextResponse.json({
+              text: `Perfecto. Para avisarte cuando haya sobrecupos de **${specialtyContacto}** disponibles, necesito tus datos:\n\n• **Nombre completo**\n• **Número de teléfono**\n• **Email** (opcional)\n\nPor favor compártelos en tu próximo mensaje.`
+            });
+          } else {
+            // Usuario no quiere que tomemos sus datos - mensaje final conciso
+            delete sessions[from];
+            return NextResponse.json({
+              text: `Entendido. ¡Que te mejores pronto! Si necesitas ayuda médica en el futuro, no dudes en contactarme. 🏥`
+            });
+          }
+
         case 'asking-for-other-doctors':
           // Manejar respuesta sobre si quiere buscar otros médicos
           const respuestaBusqueda = text.toLowerCase().trim();
@@ -2662,8 +2696,16 @@ Ejemplos:
             const sobrecuposFuturos = filterFutureDates(sobrecuposDisponibles);
             
             if (sobrecuposFuturos.length === 0) {
+              // No hay sobrecupos - establecer stage para manejar respuesta
+              sessions[from] = {
+                stage: 'asking-for-contact-data',
+                specialty: specialty,
+                motivo: text
+              };
+              
               return NextResponse.json({
-                text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nLamentablemente no tengo sobrecupos disponibles de **${specialty}** en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`
+                text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nLamentablemente no tengo sobrecupos disponibles de **${specialty}** en este momento.\n\n¿Te gustaría que tome tus datos para avisarte cuando tengamos nuevas opciones disponibles?`,
+                session: sessions[from]
               });
             }
             
