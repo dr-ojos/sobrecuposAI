@@ -2671,6 +2671,18 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           OPENAI_API_KEY: !!OPENAI_API_KEY
         });
 
+        // 🚨 VERIFICAR VARIABLES DE ENTORNO CRÍTICAS
+        if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
+          console.error("❌ Variables de entorno críticas faltantes:", {
+            AIRTABLE_API_KEY: !!AIRTABLE_API_KEY,
+            AIRTABLE_BASE_ID: !!AIRTABLE_BASE_ID,
+            AIRTABLE_TABLE_ID: !!AIRTABLE_TABLE_ID
+          });
+          return NextResponse.json({
+            text: `Detecté que necesitas ver a un especialista en **${specialty}**.\n\nPero hay un problema de configuración del sistema. Por favor contacta al administrador para que revise las variables de entorno de Airtable.\n\n¿Te gustaría que anote tus datos para contactarte cuando esté solucionado?`
+          });
+        }
+
         const resp = await fetch(
           `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
           { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
