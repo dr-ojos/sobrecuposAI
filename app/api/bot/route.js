@@ -2360,19 +2360,35 @@ Te contactaremos pronto para confirmar los detalles finales.`;
                 alternativeRecords: otherOptions
               };
               
-              let mensaje = `Entiendo, ${nombre}. Te muestro otras fechas disponibles de **${currentSpecialty}**:\n\n`;
+              let mensaje = `Entiendo, ${nombre}. `;
               
-              for (let i = 0; i < Math.min(otherOptions.length, 2); i++) {
-                const record = otherOptions[i];
+              if (otherOptions.length === 1) {
+                // Solo una opción - mensaje más directo
+                const record = otherOptions[0];
                 const medicoId = extractMedicoId(record.fields);
                 const doctorInfo = await getDoctorInfoCached(medicoId);
                 const fechaFormateada = formatSpanishDate(record.fields?.Fecha);
                 const address = formatClinicAddress(record.fields);
                 
-                mensaje += `${i + 1}. 👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${address}\n\n`;
+                mensaje += `Solo me queda esta opción de **${currentSpecialty}** disponible:\n\n`;
+                mensaje += `1. 👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${address}\n\n`;
+                mensaje += `¿Te sirve? Responde **Sí** si la quieres o **No** si prefieres que busquemos para otra fecha. 🤔`;
+              } else {
+                // Múltiples opciones
+                mensaje += `Te muestro otras fechas disponibles de **${currentSpecialty}**:\n\n`;
+                
+                for (let i = 0; i < Math.min(otherOptions.length, 2); i++) {
+                  const record = otherOptions[i];
+                  const medicoId = extractMedicoId(record.fields);
+                  const doctorInfo = await getDoctorInfoCached(medicoId);
+                  const fechaFormateada = formatSpanishDate(record.fields?.Fecha);
+                  const address = formatClinicAddress(record.fields);
+                  
+                  mensaje += `${i + 1}. 👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${address}\n\n`;
+                }
+                
+                mensaje += `¿Cuál prefieres? Responde **1** o **2**, o si tienes algún **día específico** en mente, dímelo. 📅`;
               }
-              
-              mensaje += `¿Alguna de estas fechas te acomoda mejor? O si tienes algún **día específico** en mente, dímelo y busco opciones para esa fecha. 📅`;
               
               return NextResponse.json({
                 text: mensaje,
@@ -2424,7 +2440,31 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           const { alternativeRecords, specialty: altSpecialty, primerNombre: altNombre } = currentSession;
           const altIndex = altChoice === '1' ? 0 : altChoice === '2' ? 1 : -1;
           
-          if (altIndex !== -1 && alternativeRecords[altIndex]) {
+          // 🆕 DETECTAR RESPUESTAS AFIRMATIVAS CUANDO SOLO HAY UNA OPCIÓN
+          const esRespuestaAfirmativa = /\b(sí|si|s|yes|ok|vale|la.*quiero|me.*sirve|está.*bien|perfecto)\b/i.test(text);
+          
+          if (esRespuestaAfirmativa && alternativeRecords.length === 1) {
+            // Solo hay una opción y el usuario la acepta
+            const selectedRecord = alternativeRecords[0];
+            const medicoId = extractMedicoId(selectedRecord.fields);
+            const doctorInfo = await getDoctorInfoCached(medicoId);
+            
+            sessions[from] = {
+              ...currentSession,
+              selectedRecord: selectedRecord,
+              doctorInfo: doctorInfo,
+              stage: 'confirming-appointment',
+              attempts: 0
+            };
+            
+            const fechaFormateada = formatSpanishDate(selectedRecord.fields?.Fecha);
+            const address = formatClinicAddress(selectedRecord.fields);
+            
+            return NextResponse.json({
+              text: `¡Excelente, ${altNombre || 'usuario'}! Has elegido:\n\n👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${selectedRecord.fields?.Hora}\n📍 ${address}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
+              session: sessions[from]
+            });
+          } else if (altIndex !== -1 && alternativeRecords[altIndex]) {
             // Usuario eligió una fecha alternativa
             const selectedRecord = alternativeRecords[altIndex];
             const medicoId = extractMedicoId(selectedRecord.fields);
@@ -2446,15 +2486,30 @@ Te contactaremos pronto para confirmar los detalles finales.`;
               session: sessions[from]
             });
           } else {
-            // No eligió número válido - podría ser día específico
-            sessions[from] = {
-              ...currentSession,
-              stage: 'asking-specific-date'
-            };
+            // Verificar si es respuesta negativa cuando solo hay una opción
+            const esRespuestaNegativa = /\b(no|nop|nope|no.*me.*sirve|no.*quiero)\b/i.test(text);
             
-            return NextResponse.json({
-              text: `${altNombre || 'Usuario'}, ¿tienes algún **día específico** en mente para tu consulta de **${altSpecialty}**?\n\nPor ejemplo: "martes", "próxima semana", "en 10 días", etc. 📅`
-            });
+            if (esRespuestaNegativa && alternativeRecords.length === 1) {
+              // Usuario rechaza la única opción disponible
+              sessions[from] = {
+                ...currentSession,
+                stage: 'asking-specific-date'
+              };
+              
+              return NextResponse.json({
+                text: `Entiendo, ${altNombre || 'usuario'}. Esa fecha no te acomoda.\n\n¿Tienes algún **día específico** en mente para tu consulta de **${altSpecialty}**?\n\nPor ejemplo: "martes", "próxima semana", "en 10 días", etc. 📅`
+              });
+            } else {
+              // No eligió número válido - podría ser día específico
+              sessions[from] = {
+                ...currentSession,
+                stage: 'asking-specific-date'
+              };
+              
+              return NextResponse.json({
+                text: `${altNombre || 'Usuario'}, ¿tienes algún **día específico** en mente para tu consulta de **${altSpecialty}**?\n\nPor ejemplo: "martes", "próxima semana", "en 10 días", etc. 📅`
+              });
+            }
           }
           
           break;
