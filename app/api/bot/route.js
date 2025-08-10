@@ -2712,7 +2712,17 @@ Te contactaremos pronto para confirmar los detalles finales.`;
 
         if (available.length === 0) {
           console.log(`🔍 [DEBUG] No appointments available, generating empathic response`);
-          const respuestaEmpatica = await generateEmphaticResponse(text);
+          let respuestaEmpatica;
+          try {
+            const empathicPromise = generateEmphaticResponse(text);
+            respuestaEmpatica = await Promise.race([
+              empathicPromise,
+              new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 10000))
+            ]);
+          } catch (empathicError) {
+            console.error(`❌ [DEBUG] Error generating empathic response (no appointments):`, empathicError);
+            respuestaEmpatica = "Entiendo tu preocupación";
+          }
           return NextResponse.json({
             text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en ${specialty}, pero lamentablemente no tengo sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
           });
@@ -2720,8 +2730,18 @@ Te contactaremos pronto para confirmar los detalles finales.`;
 
         // 🆕 NUEVO FLUJO: Primero recopilar datos básicos, luego mostrar opciones
         console.log(`🔍 [DEBUG] Generating empathic response for new flow`);
-        const respuestaEmpatica = await generateEmphaticResponse(text);
-        console.log(`🔍 [DEBUG] Empathic response generated successfully`);
+        let respuestaEmpatica;
+        try {
+          const empathicPromise = generateEmphaticResponse(text);
+          respuestaEmpatica = await Promise.race([
+            empathicPromise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 10000))
+          ]);
+          console.log(`🔍 [DEBUG] Empathic response generated successfully`);
+        } catch (empathicError) {
+          console.error(`❌ [DEBUG] Error generating empathic response:`, empathicError);
+          respuestaEmpatica = "Entiendo tu preocupación";
+        }
         
         sessions[from] = {
           stage: 'collecting-basic-data',
