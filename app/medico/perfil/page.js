@@ -393,6 +393,25 @@ export default function PerfilMedico() {
                 </div>
                 
                 <div className="photo-actions">
+                  {/* Input temporal visible para debug */}
+                  <div style={{marginBottom: '10px', padding: '10px', border: '2px solid red', borderRadius: '8px'}}>
+                    <p style={{margin: '0 0 10px', color: 'red', fontSize: '12px'}}>🔴 MODO DEBUG - Input temporal visible</p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        console.log('🔥 onChange disparado!');
+                        console.log('📁 Files:', e.target.files);
+                        console.log('📁 Files length:', e.target.files.length);
+                        if (e.target.files.length > 0) {
+                          console.log('📁 Primer archivo:', e.target.files[0]);
+                        }
+                        handleImageUpload(e);
+                      }}
+                      style={{width: '100%'}}
+                    />
+                  </div>
+                  
                   <button 
                     type="button" 
                     onClick={() => {
