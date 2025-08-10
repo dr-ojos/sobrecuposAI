@@ -4,7 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
 export default function PerfilMedico() {
-  console.log('🎯 PerfilMedico component iniciado');
+  // Test básico de JavaScript
+  try {
+    console.log('🎯 PerfilMedico component iniciado');
+    window.testDebug = () => console.log('✅ JavaScript funcionando');
+  } catch (e) {
+    console.error('💥 Error en inicio del componente:', e);
+  }
+  
   const { data: session, status } = useSession();
   const router = useRouter();
   const fileInputRef = useRef(null);
@@ -393,22 +400,34 @@ export default function PerfilMedico() {
                 </div>
                 
                 <div className="photo-actions">
-                  {/* Input temporal visible para debug */}
+                  {/* Test super simple */}
                   <div style={{marginBottom: '10px', padding: '10px', border: '2px solid red', borderRadius: '8px'}}>
-                    <p style={{margin: '0 0 10px', color: 'red', fontSize: '12px'}}>🔴 MODO DEBUG - Input temporal visible</p>
+                    <p style={{margin: '0 0 10px', color: 'red', fontSize: '12px'}}>🔴 TEST SIMPLE</p>
+                    <button 
+                      onClick={() => {
+                        try {
+                          console.log('🔥 TEST BUTTON CLICKED');
+                          alert('Button clicked! Check console.');
+                        } catch (e) {
+                          console.error('Error in test button:', e);
+                        }
+                      }}
+                      style={{padding: '10px', background: 'red', color: 'white', border: 'none', borderRadius: '4px'}}
+                    >
+                      TEST CLICK
+                    </button>
+                    <br/>
                     <input
                       type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        console.log('🔥 onChange disparado!');
-                        console.log('📁 Files:', e.target.files);
-                        console.log('📁 Files length:', e.target.files.length);
-                        if (e.target.files.length > 0) {
-                          console.log('📁 Primer archivo:', e.target.files[0]);
+                      onChange={() => {
+                        try {
+                          console.log('🔥 SIMPLE FILE INPUT CHANGED');
+                          alert('File input changed! Check console.');
+                        } catch (e) {
+                          console.error('Error in file input:', e);
                         }
-                        handleImageUpload(e);
                       }}
-                      style={{width: '100%'}}
+                      style={{width: '100%', marginTop: '10px'}}
                     />
                   </div>
                   
