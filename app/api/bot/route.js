@@ -1829,10 +1829,35 @@ Ejemplos:
             });
           }
 
+          // 🚨 VALIDACIÓN CRÍTICA: Verificar que selectedRecord existe
+          if (!currentSession.selectedRecord) {
+            console.error('❌ CRÍTICO: selectedRecord no existe en la sesión');
+            console.error('📋 Session data:', {
+              hasSelectedRecord: !!currentSession.selectedRecord,
+              hasRecords: !!currentSession.records,
+              recordsLength: currentSession.records?.length,
+              sessionStage: currentSession.stage
+            });
+            
+            return NextResponse.json({
+              text: "❌ Error interno: No se pudo encontrar la cita seleccionada. Por favor, inicia el proceso nuevamente."
+            });
+          }
+          
           // Generar sesión de pago
           const paymentSessionId = `PAY_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-          const sobrecupoDataForPayment = currentSession.records[0]?.fields;
+          
+          // 🚨 FIX CRÍTICO: Usar selectedRecord en lugar de records[0]
+          const sobrecupoDataForPayment = currentSession.selectedRecord.fields;
           const paymentAmount = "2990"; // Precio actualizado: $2.990 CLP
+          
+          // 🐛 DEBUG: Verificar que estamos usando el record correcto
+          console.log('🔍 [PAYMENT DEBUG] Selected record for payment:', {
+            selectedRecordId: currentSession.selectedRecord?.id,
+            doctorInSelected: currentSession.selectedRecord?.fields?.['Médico'],
+            fechaInSelected: currentSession.selectedRecord?.fields?.Fecha,
+            horaInSelected: currentSession.selectedRecord?.fields?.Hora
+          });
           
           // Obtener nombre del doctor para la URL de pago
           const doctorNameForPayment = await getDoctorName(
@@ -1848,7 +1873,7 @@ Ejemplos:
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                sobrecupoId: currentSession.records[0].id,
+                sobrecupoId: currentSession.selectedRecord.id,
                 patientName: currentSession.patientName,
                 patientRut: currentSession.patientRut,
                 patientPhone: currentSession.patientPhone,
@@ -1873,7 +1898,7 @@ Ejemplos:
               console.log('✅ Enlace corto creado:', paymentUrl);
             } else {
               // Fallback al enlace largo si falla
-              paymentUrl = `/pago?sobrecupoId=${currentSession.records[0].id}&patientName=${encodeURIComponent(currentSession.patientName)}&patientRut=${encodeURIComponent(currentSession.patientRut)}&patientPhone=${encodeURIComponent(currentSession.patientPhone)}&patientEmail=${encodeURIComponent(text)}&patientAge=${encodeURIComponent(currentSession.patientAge)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
+              paymentUrl = `/pago?sobrecupoId=${currentSession.selectedRecord.id}&patientName=${encodeURIComponent(currentSession.patientName)}&patientRut=${encodeURIComponent(currentSession.patientRut)}&patientPhone=${encodeURIComponent(currentSession.patientPhone)}&patientEmail=${encodeURIComponent(text)}&patientAge=${encodeURIComponent(currentSession.patientAge)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
               console.log('⚠️ Fallback a enlace largo:', linkResult.error);
             }
 
@@ -1900,7 +1925,7 @@ Ejemplos:
             console.error('❌ Error creando enlace de pago:', linkError);
             
             // Fallback al enlace largo
-            const fallbackPaymentUrl = `/pago?sobrecupoId=${currentSession.records[0].id}&patientName=${encodeURIComponent(currentSession.patientName)}&patientRut=${encodeURIComponent(currentSession.patientRut)}&patientPhone=${encodeURIComponent(currentSession.patientPhone)}&patientEmail=${encodeURIComponent(text)}&patientAge=${encodeURIComponent(currentSession.patientAge)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
+            const fallbackPaymentUrl = `/pago?sobrecupoId=${currentSession.selectedRecord.id}&patientName=${encodeURIComponent(currentSession.patientName)}&patientRut=${encodeURIComponent(currentSession.patientRut)}&patientPhone=${encodeURIComponent(currentSession.patientPhone)}&patientEmail=${encodeURIComponent(text)}&patientAge=${encodeURIComponent(currentSession.patientAge)}&doctorName=${encodeURIComponent(doctorNameForPayment)}&specialty=${encodeURIComponent(currentSession.specialty)}&date=${encodeURIComponent(formatSpanishDate(sobrecupoDataForPayment.Fecha))}&time=${encodeURIComponent(sobrecupoDataForPayment.Hora)}&clinic=${encodeURIComponent(sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica')}&amount=${paymentAmount}&sessionId=${paymentSessionId}`;
             
             sessions[from] = { 
               ...currentSession, 
@@ -1956,15 +1981,16 @@ Ejemplos:
             specialty: !!specialty
           });
 
-          // 🔥 VALIDACIÓN CRÍTICA: Verificar que tenemos todos los datos
-          if (!patientAge || !patientName || !patientRut || !patientPhone || !records || !records[0]) {
+          // 🚨 VALIDACIÓN CRÍTICA: Verificar que tenemos selectedRecord
+          if (!patientAge || !patientName || !patientRut || !patientPhone || !currentSession.selectedRecord) {
             console.error("❌ DATOS DE SESIÓN INCOMPLETOS:", {
               patientAge: !!patientAge,
               patientName: !!patientName, 
               patientRut: !!patientRut,
               patientPhone: !!patientPhone,
-              records: !!records,
-              recordsLength: records?.length || 0
+              hasSelectedRecord: !!currentSession.selectedRecord,
+              selectedRecordId: currentSession.selectedRecord?.id,
+              sessionStage: currentSession.stage
             });
             
             delete sessions[from];
@@ -1973,14 +1999,23 @@ Ejemplos:
             });
           }
 
-          const sobrecupoData = records[0]?.fields;
-          const sobrecupoId = records[0]?.id;
+          // 🚨 FIX CRÍTICO: Usar selectedRecord en lugar de records[0]
+          const sobrecupoData = currentSession.selectedRecord.fields;
+          const sobrecupoId = currentSession.selectedRecord.id;
+          
+          console.log('🔍 [FINAL CONFIRMATION DEBUG] Using selected record:', {
+            sobrecupoId,
+            doctor: sobrecupoData?.['Médico'],
+            fecha: sobrecupoData?.Fecha,
+            hora: sobrecupoData?.Hora,
+            clinica: sobrecupoData?.['Clínica']
+          });
           
           if (!sobrecupoData || !sobrecupoId) {
             console.error("❌ DATOS DE SOBRECUPO INCOMPLETOS:", {
               sobrecupoData: !!sobrecupoData,
               sobrecupoId: !!sobrecupoId,
-              recordsStructure: records[0]
+              selectedRecordStructure: currentSession.selectedRecord
             });
             
             delete sessions[from];
