@@ -400,27 +400,34 @@ export default function ClinicasMedico() {
         .clinicas-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 1.5rem;
+          gap: 0.75rem;
+        }
+
+        @media (min-width: 480px) {
+          .clinicas-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          }
         }
 
         @media (min-width: 768px) {
           .clinicas-grid {
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           }
         }
 
-        @media (min-width: 1200px) {
+        @media (min-width: 1024px) {
           .clinicas-grid {
-            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
           }
         }
 
         .clinica-card {
           background: rgba(255, 255, 255, 0.8);
           border: 1px solid rgba(0, 0, 0, 0.05);
-          border-radius: 16px;
+          border-radius: 12px;
           overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
           transition: all 0.2s ease;
         }
 
@@ -443,16 +450,16 @@ export default function ClinicasMedico() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 1.5rem 1.5rem 1rem;
+          padding: 0.875rem 1rem 0.5rem;
         }
 
         .clinica-badge {
-          padding: 0.25rem 0.75rem;
-          border-radius: 12px;
-          font-size: 0.75rem;
+          padding: 0.125rem 0.5rem;
+          border-radius: 8px;
+          font-size: 0.625rem;
           font-weight: 400;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.25px;
         }
 
         .clinica-badge:not(.available) {
@@ -467,10 +474,10 @@ export default function ClinicasMedico() {
 
         .remove-btn, .add-btn {
           border: none;
-          border-radius: 8px;
-          width: 32px;
-          height: 32px;
-          font-size: 0.875rem;
+          border-radius: 6px;
+          width: 28px;
+          height: 28px;
+          font-size: 0.75rem;
           cursor: pointer;
           transition: all 0.2s ease;
           display: flex;
@@ -504,21 +511,22 @@ export default function ClinicasMedico() {
         }
 
         .card-content {
-          padding: 0.5rem 1.5rem 1.5rem;
+          padding: 0.25rem 1rem 1rem;
         }
 
         .clinica-name {
-          font-size: 1.25rem;
+          font-size: 1rem;
           font-weight: 400;
           color: #171717;
-          margin: 0 0 1rem;
-          letter-spacing: -0.25px;
+          margin: 0 0 0.75rem;
+          letter-spacing: -0.2px;
+          line-height: 1.3;
         }
 
         .clinica-details {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 4px;
         }
 
         .detail-item {
@@ -534,9 +542,9 @@ export default function ClinicasMedico() {
         }
 
         .detail-text {
-          font-size: 13px;
+          font-size: 0.75rem;
           color: #666;
-          line-height: 1.4;
+          line-height: 1.3;
           font-weight: 400;
         }
 
@@ -561,6 +569,55 @@ export default function ClinicasMedico() {
           
           .content-container {
             padding: 12px;
+            gap: 2rem;
+          }
+          
+          .section h2 {
+            font-size: 1.25rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .content-container {
+            padding: 8px;
+            gap: 1.5rem;
+          }
+          
+          .section h2 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+          }
+          
+          .clinicas-grid {
+            gap: 0.5rem;
+          }
+          
+          .card-header {
+            padding: 0.625rem 0.75rem 0.375rem;
+          }
+          
+          .card-content {
+            padding: 0.125rem 0.75rem 0.75rem;
+          }
+          
+          .clinica-name {
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+          }
+          
+          .detail-text {
+            font-size: 0.6875rem;
+          }
+          
+          .clinica-badge {
+            font-size: 0.5625rem;
+            padding: 0.0625rem 0.375rem;
+          }
+          
+          .remove-btn, .add-btn {
+            width: 24px;
+            height: 24px;
+            font-size: 0.6875rem;
           }
         }
 
