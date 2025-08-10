@@ -179,6 +179,16 @@ async function createOptionsPresentation(selectedOptions, specialty, doctorCache
   }
 
   // 2 opciones - generar presentación
+  console.log('🔍 [PRESENTATION DEBUG] Creating 2-option presentation:');
+  selectedOptions.forEach((opt, i) => {
+    console.log(`  Option ${i + 1}:`, {
+      id: opt.id,
+      doctor: opt.fields?.['Médico'],
+      fecha: opt.fields?.Fecha,
+      hora: opt.fields?.Hora
+    });
+  });
+  
   const optionsText = await Promise.all(selectedOptions.map(async (option, i) => {
     const doctorId = extractMedicoId(option.fields);
     const doctorInfo = await getDoctorInfoCached(doctorId, doctorCache);
@@ -2215,16 +2225,20 @@ Sistema Sobrecupos AI`;
                 console.log("📧 Enviando email de confirmación...");
                 
                 const fechaFormateada = formatSpanishDate(sobrecupoData.Fecha);
-                const emailContent = `¡Hola ${patientName}!
+                const primerNombre = patientName.split(' ')[0];
+                const nombreClinica = sobrecupoData["Clínica"] || sobrecupoData["Clinica"] || "Clínica";
+                const direccionClinica = sobrecupoData["Dirección"] || sobrecupoData["Direccion"] || "";
+                
+                const emailContent = `Hola ${primerNombre}, yo Dr. ${doctorInfo.name}, te autoricé Sobrecupo para el día ${fechaFormateada} a las ${sobrecupoData.Hora} en ${nombreClinica} que queda ${direccionClinica}. 
 
-Tu cita médica ha sido confirmada exitosamente.
+Recuerda mostrar esto en caja y pagar tu consulta.
 
 📅 DETALLES DE TU CITA:
 • Especialidad: ${specialty}
 • Fecha: ${fechaFormateada}
 • Hora: ${sobrecupoData.Hora}
-• Clínica: ${sobrecupoData["Clínica"] || sobrecupoData["Clinica"]}
-• Dirección: ${sobrecupoData["Dirección"] || sobrecupoData["Direccion"]}
+• Clínica: ${nombreClinica}
+• Dirección: ${direccionClinica}
 
 👤 TUS DATOS:
 • Nombre: ${patientName}
@@ -2384,6 +2398,20 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           const { selectedOptions: sessionOptions, specialty: currentSpecialty, primerNombre: userFirstName } = currentSession;
           const optionIndex = chosenOption === '1' ? 0 : chosenOption === '2' ? 1 : -1;
           
+          // 🐛 DEBUG: Log detallado de la selección
+          console.log('🔍 [OPTION SELECTION DEBUG]');
+          console.log('  User input:', text);
+          console.log('  Chosen option:', chosenOption);
+          console.log('  Option index:', optionIndex);
+          console.log('  Available options:', sessionOptions?.length);
+          console.log('  Options details:', sessionOptions?.map((opt, i) => ({
+            index: i,
+            id: opt.id,
+            doctor: opt.fields?.['Médico'],
+            fecha: opt.fields?.Fecha,
+            hora: opt.fields?.Hora
+          })));
+          
           // 🆕 DETECTAR RECHAZO DE OPCIONES CON INTELIGENCIA EMOCIONAL
           const rechazaOpciones = /\b(ninguna|no.*quiero|no.*me.*gusta|no.*me.*sirve|no.*me.*conviene|otro|otra|diferente|distinto)\b/i.test(text);
           
@@ -2458,10 +2486,27 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           }
 
           const chosenRecord = sessionOptions[optionIndex];
+          
+          // 🐛 DEBUG: Log del record seleccionado
+          console.log('  Selected record:', {
+            id: chosenRecord.id,
+            doctor: chosenRecord.fields?.['Médico'],
+            fecha: chosenRecord.fields?.Fecha,
+            hora: chosenRecord.fields?.Hora,
+            clinica: chosenRecord.fields?.['Clínica']
+          });
+          
           const chosenMedicoId = extractMedicoId(chosenRecord.fields);
           const chosenDoctorInfo = await getDoctorInfoCached(chosenMedicoId);
           const chosenFechaFormateada = formatSpanishDate(chosenRecord.fields?.Fecha);
           const chosenAddress = formatClinicAddress(chosenRecord.fields);
+          
+          console.log('  Selected doctor info:', {
+            medicoId: chosenMedicoId,
+            doctorName: chosenDoctorInfo.name,
+            fecha: chosenFechaFormateada,
+            hora: chosenRecord.fields?.Hora
+          });
           
           sessions[from] = {
             ...currentSession,
