@@ -47,66 +47,143 @@ function formatSpanishDate(dateStr) {
   }
 }
 
-// 🆕 Función para seleccionar inteligentemente 2 opciones de sobrecupos
-function selectSmartAppointmentOptions(availableRecords) {
-  if (!availableRecords || availableRecords.length === 0) {
-    return [];
-  }
+// 🔧 Funciones utilitarias optimizadas
+const extractMedicoId = (fields) => Array.isArray(fields["Médico"]) ? fields["Médico"][0] : fields["Médico"];
 
-  // Ordenar por fecha y hora
-  const sorted = [...availableRecords].sort((a, b) => {
-    const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
-    const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
-    return dateA - dateB;
-  });
+const getHour = (horaStr) => parseInt(horaStr?.split(':')[0] || '0');
 
-  // Si solo hay 1 sobrecupo, devolver solo ese
-  if (sorted.length === 1) {
-    return [sorted[0]];
-  }
+const formatClinicAddress = (fields) => {
+  const clinic = fields?.["Clínica"] || fields?.["Clinica"] || "Clínica";
+  const dir = fields?.["Dirección"] || fields?.["Direccion"] || "";
+  return dir ? `${clinic}, ${dir}` : clinic;
+};
 
-  // Si hay 2 o más, aplicar lógica inteligente
-  const firstOption = sorted[0];
-  const firstDate = firstOption.fields?.Fecha;
-  const firstHour = parseInt(firstOption.fields?.Hora?.split(':')[0] || '0');
+const generateAtiendeTxt = (atiende) => {
+  const atiendeTxtMap = {
+    "Niños": " (especialista en pediatría)",
+    "Adultos": " (atiende solo adultos)", 
+    "Ambos": " (atiende niños y adultos)",
+    "default": " (atiende pacientes de todas las edades)"
+  };
+  return atiendeTxtMap[atiende] || atiendeTxtMap.default;
+};
 
-  // Buscar otros sobrecupos del mismo día
-  const sameDayOptions = sorted.filter(record => 
-    record.fields?.Fecha === firstDate && record.id !== firstOption.id
-  );
-
-  if (sameDayOptions.length > 0) {
-    // Hay más opciones el mismo día - seleccionar mañana y tarde
-    const morningOptions = [firstOption, ...sameDayOptions].filter(record => {
-      const hour = parseInt(record.fields?.Hora?.split(':')[0] || '0');
-      return hour < 14; // Antes de las 2 PM es mañana
-    });
-    
-    const afternoonOptions = [firstOption, ...sameDayOptions].filter(record => {
-      const hour = parseInt(record.fields?.Hora?.split(':')[0] || '0');
-      return hour >= 14; // 2 PM o después es tarde
-    });
-
-    if (morningOptions.length > 0 && afternoonOptions.length > 0) {
-      // Seleccionar una de mañana y una de tarde
-      return [morningOptions[0], afternoonOptions[0]];
-    } else {
-      // Si no hay división mañana/tarde, tomar las 2 más próximas del mismo día
-      return [firstOption, sameDayOptions[0]];
-    }
-  } else {
-    // No hay más opciones el mismo día - tomar el más próximo + uno del día siguiente
-    const nextDayOptions = sorted.filter(record => 
-      record.fields?.Fecha !== firstDate
+async function getDoctorInfoCached(doctorId, cache = new Map()) {
+  if (cache.has(doctorId)) return cache.get(doctorId);
+  
+  try {
+    const response = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}/${doctorId}`,
+      { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
     );
     
-    if (nextDayOptions.length > 0) {
-      return [firstOption, nextDayOptions[0]];
-    } else {
-      // Solo hay opciones del mismo día (ya filtradas), devolver solo la primera
-      return [firstOption];
-    }
+    const data = response.ok ? await response.json() : null;
+    const info = {
+      name: data?.fields?.Name || data?.fields?.Nombre || 'Doctor',
+      atiende: data?.fields?.Atiende || 'Ambos'
+    };
+    
+    cache.set(doctorId, info);
+    return info;
+  } catch (err) {
+    console.error(`❌ Error obteniendo info del médico ${doctorId}:`, err);
+    return { name: 'Doctor', atiende: 'Ambos' };
   }
+}
+
+async function generateEmphaticResponse(text, fallback = "Entiendo tu preocupación.") {
+  if (!OPENAI_API_KEY) return fallback;
+  
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0.7,
+        max_tokens: 60,
+        messages: [
+          {
+            role: "system",
+            content: "Eres una secretaria médica chilena empática y profesional. Responde con comprensión al paciente que describe su problema médico. Máximo 2 líneas, tono cálido y humano."
+          },
+          { role: "user", content: `Paciente dice: "${text}"` }
+        ]
+      })
+    });
+    
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content?.trim() || fallback;
+  } catch (err) {
+    console.error("❌ Error OpenAI empático:", err);
+    return fallback;
+  }
+}
+
+// 🚀 Función optimizada para seleccionar opciones inteligentes
+function selectSmartAppointmentOptions(records) {
+  if (!records?.length) return [];
+  
+  const sorted = [...records].sort((a, b) => 
+    new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`) - 
+    new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`)
+  );
+
+  if (sorted.length === 1) return sorted;
+
+  const [first] = sorted;
+  const firstDate = first.fields?.Fecha;
+  const sameDayOptions = sorted.filter(r => r.fields?.Fecha === firstDate && r.id !== first.id);
+
+  if (sameDayOptions.length === 0) {
+    const nextDayOptions = sorted.filter(r => r.fields?.Fecha !== firstDate);
+    return nextDayOptions.length > 0 ? [first, nextDayOptions[0]] : [first];
+  }
+
+  const allSameDay = [first, ...sameDayOptions];
+  const morning = allSameDay.filter(r => getHour(r.fields?.Hora) < 14);
+  const afternoon = allSameDay.filter(r => getHour(r.fields?.Hora) >= 14);
+
+  return morning.length > 0 && afternoon.length > 0 
+    ? [morning[0], afternoon[0]] 
+    : [first, sameDayOptions[0]];
+}
+
+// 🎯 Función para crear presentación de opciones optimizada
+async function createOptionsPresentation(selectedOptions, specialty, doctorCache = new Map()) {
+  if (selectedOptions.length === 1) {
+    const option = selectedOptions[0];
+    const doctorId = extractMedicoId(option.fields);
+    const doctorInfo = await getDoctorInfoCached(doctorId, doctorCache);
+    const fechaFormateada = formatSpanishDate(option.fields?.Fecha);
+    const address = formatClinicAddress(option.fields);
+    const atiendeTxt = generateAtiendeTxt(doctorInfo.atiende);
+
+    return {
+      text: `👨‍⚕️ **Dr. ${doctorInfo.name}**${atiendeTxt}\n📅 ${fechaFormateada} a las ${option.fields?.Hora}\n📍 ${address}\n\n¿Te sirve esta cita?\n\nResponde **Sí** para confirmar o **No** si prefieres otra opción.`,
+      stage: 'confirming-appointment',
+      doctorInfo
+    };
+  }
+
+  // 2 opciones - generar presentación
+  const optionsText = await Promise.all(selectedOptions.map(async (option, i) => {
+    const doctorId = extractMedicoId(option.fields);
+    const doctorInfo = await getDoctorInfoCached(doctorId, doctorCache);
+    const fechaFormateada = formatSpanishDate(option.fields?.Fecha);
+    const address = formatClinicAddress(option.fields);
+    const atiendeTxt = generateAtiendeTxt(doctorInfo.atiende);
+
+    return `**${i + 1}.** 👨‍⚕️ **Dr. ${doctorInfo.name}**${atiendeTxt}\n📅 ${fechaFormateada} a las ${option.fields?.Hora}\n📍 ${address}`;
+  }));
+
+  return {
+    text: `Te muestro las mejores opciones disponibles de **${specialty}**:\n\n${optionsText.join('\n\n')}\n\n¿Cuál opción prefieres? Responde con el número (**1** o **2**).`,
+    stage: 'choosing-from-options'
+  };
 }
 
 // Función para detectar saludo simple
@@ -1421,62 +1498,25 @@ Ejemplos:
             });
           }
 
-          // 🆕 SELECCIÓN INTELIGENTE DE OPCIONES
+          // 🚀 OPTIMIZADO: Selección y presentación inteligente  
           const selectedOptions = selectSmartAppointmentOptions(available);
-          const first = selectedOptions[0].fields;
-
-          // 🆕 PRESENTAR OPCIONES INTELIGENTEMENTE
-          let responseText = `✅ Encontré sobrecupo${selectedOptions.length > 1 ? 's' : ''} de ${specialty} para pacientes de ${edadIngresada} años:\n\n`;
+          const presentation = await createOptionsPresentation(selectedOptions, specialty);
           
-          if (selectedOptions.length === 1) {
-            // Solo 1 opción disponible
-            const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
-            const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
-            const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
-            const medicoNombre = await getDoctorName(medicoId);
-            const fechaFormateada = formatSpanishDate(first.Fecha);
+          const baseSession = {
+            specialty,
+            records: available,
+            attempts: 0,
+            patientAge: edadIngresada,
+            respuestaEmpatica,
+            selectedOptions
+          };
 
-            responseText += `👨‍⚕️ Dr. ${medicoNombre}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n📍 ${clin}\n📍 ${dir}\n\n¿Te sirve? Confirma con "sí".`;
-            
-            sessions[from] = {
-              stage: 'awaiting-confirmation',
-              specialty: specialty,
-              records: available,
-              attempts: 0,
-              patientAge: edadIngresada,
-              respuestaEmpatica: respuestaEmpatica,
-              selectedRecord: selectedOptions[0],
-              selectedOptions: selectedOptions
-            };
-          } else {
-            // 2 opciones disponibles - presentar para elegir
-            for (let i = 0; i < selectedOptions.length; i++) {
-              const option = selectedOptions[i];
-              const optionClin = option.fields?.["Clínica"] || option.fields?.["Clinica"] || "Clínica";
-              const optionDir = option.fields?.["Dirección"] || option.fields?.["Direccion"] || "";
-              const optionMedicoId = Array.isArray(option.fields["Médico"]) ? 
-                option.fields["Médico"][0] : option.fields["Médico"];
-              const optionMedicoNombre = await getDoctorName(optionMedicoId);
-              const optionFechaFormateada = formatSpanishDate(option.fields?.Fecha);
-
-              responseText += `**${i + 1}.** 👨‍⚕️ Dr. ${optionMedicoNombre}\n📅 ${optionFechaFormateada} a las ${option.fields?.Hora}\n📍 ${optionClin}${optionDir ? `, ${optionDir}` : ''}\n\n`;
-            }
-            
-            responseText += `¿Cuál opción prefieres? Responde con el número (**1** o **2**).`;
-            
-            sessions[from] = {
-              stage: 'choosing-from-options',
-              specialty: specialty,
-              records: available,
-              attempts: 0,
-              patientAge: edadIngresada,
-              respuestaEmpatica: respuestaEmpatica,
-              selectedOptions: selectedOptions
-            };
-          }
+          sessions[from] = presentation.stage === 'confirming-appointment'
+            ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+            : { ...baseSession, stage: 'choosing-from-options' };
 
           return NextResponse.json({
-            text: responseText,
+            text: `✅ Encontré sobrecupo${selectedOptions.length > 1 ? 's' : ''} de ${specialty} para pacientes de ${edadIngresada} años:\n\n${presentation.text}`,
             session: sessions[from]
           });
 
@@ -2220,96 +2260,35 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           }
 
         case 'choosing-from-options':
-          // 🆕 MANEJAR SELECCIÓN ENTRE OPCIONES PRINCIPALES  
+          // 🚀 OPTIMIZADO: Manejar selección de opciones
           const chosenOption = text.toLowerCase().trim();
           const { selectedOptions: sessionOptions } = currentSession;
+          const optionIndex = chosenOption === '1' ? 0 : chosenOption === '2' ? 1 : -1;
           
-          if (chosenOption === '1' && sessionOptions[0]) {
-            const chosenRecord = sessionOptions[0];
-            const chosenMedicoId = Array.isArray(chosenRecord.fields["Médico"]) ? 
-              chosenRecord.fields["Médico"][0] : chosenRecord.fields["Médico"];
-            
-            // Obtener info del médico seleccionado
-            let chosenDoctorInfo = { name: 'Doctor', atiende: 'Ambos' };
-            try {
-              const chosenDoctorResponse = await fetch(
-                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}/${chosenMedicoId}`,
-                { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-              );
-              
-              if (chosenDoctorResponse.ok) {
-                const chosenDoctorData = await chosenDoctorResponse.json();
-                chosenDoctorInfo = {
-                  name: chosenDoctorData.fields?.Name || chosenDoctorData.fields?.Nombre || 'Doctor',
-                  atiende: chosenDoctorData.fields?.Atiende || 'Ambos'
-                };
-              }
-            } catch (err) {
-              console.error(`❌ Error obteniendo info del médico elegido:`, err);
-            }
-            
-            sessions[from] = {
-              ...currentSession,
-              selectedRecord: chosenRecord,
-              doctorInfo: chosenDoctorInfo,
-              stage: 'confirming-appointment',
-              attempts: 0
-            };
-            
-            const chosenFechaFormateada = formatSpanishDate(chosenRecord.fields?.Fecha);
-            const chosenClin = chosenRecord.fields?.["Clínica"] || chosenRecord.fields?.["Clinica"];
-            const chosenDir = chosenRecord.fields?.["Dirección"] || chosenRecord.fields?.["Direccion"] || "";
-            
-            return NextResponse.json({
-              text: `Perfecto. Has seleccionado:\n\n👨‍⚕️ **Dr. ${chosenDoctorInfo.name}**\n📅 ${chosenFechaFormateada} a las ${chosenRecord.fields?.Hora}\n📍 ${chosenClin}${chosenDir ? `, ${chosenDir}` : ''}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
-              session: sessions[from]
-            });
-          }
-          else if (chosenOption === '2' && sessionOptions[1]) {
-            const chosenRecord = sessionOptions[1];
-            const chosenMedicoId = Array.isArray(chosenRecord.fields["Médico"]) ? 
-              chosenRecord.fields["Médico"][0] : chosenRecord.fields["Médico"];
-            
-            // Obtener info del médico seleccionado
-            let chosenDoctorInfo = { name: 'Doctor', atiende: 'Ambos' };
-            try {
-              const chosenDoctorResponse = await fetch(
-                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}/${chosenMedicoId}`,
-                { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-              );
-              
-              if (chosenDoctorResponse.ok) {
-                const chosenDoctorData = await chosenDoctorResponse.json();
-                chosenDoctorInfo = {
-                  name: chosenDoctorData.fields?.Name || chosenDoctorData.fields?.Nombre || 'Doctor',
-                  atiende: chosenDoctorData.fields?.Atiende || 'Ambos'
-                };
-              }
-            } catch (err) {
-              console.error(`❌ Error obteniendo info del médico elegido:`, err);
-            }
-            
-            sessions[from] = {
-              ...currentSession,
-              selectedRecord: chosenRecord,
-              doctorInfo: chosenDoctorInfo,
-              stage: 'confirming-appointment',
-              attempts: 0
-            };
-            
-            const chosenFechaFormateada = formatSpanishDate(chosenRecord.fields?.Fecha);
-            const chosenClin = chosenRecord.fields?.["Clínica"] || chosenRecord.fields?.["Clinica"];
-            const chosenDir = chosenRecord.fields?.["Dirección"] || chosenRecord.fields?.["Direccion"] || "";
-            
-            return NextResponse.json({
-              text: `Perfecto. Has seleccionado:\n\n👨‍⚕️ **Dr. ${chosenDoctorInfo.name}**\n📅 ${chosenFechaFormateada} a las ${chosenRecord.fields?.Hora}\n📍 ${chosenClin}${chosenDir ? `, ${chosenDir}` : ''}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
-              session: sessions[from]
-            });
-          } else {
+          if (optionIndex === -1 || !sessionOptions[optionIndex]) {
             return NextResponse.json({
               text: `Por favor elige una opción válida: responde **1** o **2** para seleccionar tu cita preferida.`
             });
           }
+
+          const chosenRecord = sessionOptions[optionIndex];
+          const chosenMedicoId = extractMedicoId(chosenRecord.fields);
+          const chosenDoctorInfo = await getDoctorInfoCached(chosenMedicoId);
+          const chosenFechaFormateada = formatSpanishDate(chosenRecord.fields?.Fecha);
+          const chosenAddress = formatClinicAddress(chosenRecord.fields);
+          
+          sessions[from] = {
+            ...currentSession,
+            selectedRecord: chosenRecord,
+            doctorInfo: chosenDoctorInfo,
+            stage: 'confirming-appointment',
+            attempts: 0
+          };
+          
+          return NextResponse.json({
+            text: `Perfecto. Has seleccionado:\n\n👨‍⚕️ **Dr. ${chosenDoctorInfo.name}**\n📅 ${chosenFechaFormateada} a las ${chosenRecord.fields?.Hora}\n📍 ${chosenAddress}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
+            session: sessions[from]
+          });
 
           break;
 
@@ -2638,191 +2617,32 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         const available = filterFutureDates(availableFiltered);
 
         if (available.length === 0) {
-          let respuestaEmpatica = "Entiendo tu preocupación.";
-          if (OPENAI_API_KEY) {
-            try {
-              const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${OPENAI_API_KEY}`,
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  model: "gpt-4o-mini",
-                  temperature: 0.7,
-                  max_tokens: 50,
-                  messages: [
-                    {
-                      role: "system",
-                      content: "Eres Sobrecupos IA, asistente médico chileno empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al paciente que describe síntomas. Sé humano y cercano."
-                    },
-                    { role: "user", content: `Paciente dice: "${text}"` }
-                  ]
-                })
-              });
-              const empatJson = await empatRes.json();
-              respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "Entiendo tu preocupación.";
-            } catch (err) {
-              console.error("❌ Error OpenAI empático:", err);
-            }
-          }
-
+          const respuestaEmpatica = await generateEmphaticResponse(text);
           return NextResponse.json({
             text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en ${specialty}, pero lamentablemente no tengo sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
           });
         }
 
-        // 🆕 SELECCIÓN INTELIGENTE DE OPCIONES
+        // 🚀 OPTIMIZADO: Selección y presentación inteligente
         const selectedOptions = selectSmartAppointmentOptions(available);
-        const first = selectedOptions[0].fields;
-        const medicoId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+        const respuestaEmpatica = await generateEmphaticResponse(text);
+        const presentation = await createOptionsPresentation(selectedOptions, specialty);
         
-        // 🆕 OBTENER INFO COMPLETA DEL MÉDICO
-        let doctorInfo = { name: 'Doctor', atiende: 'Ambos' };
-        try {
-          const doctorResponse = await fetch(
-            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}/${medicoId}`,
-            { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-          );
-          
-          if (doctorResponse.ok) {
-            const doctorData = await doctorResponse.json();
-            doctorInfo = {
-              name: doctorData.fields?.Name || doctorData.fields?.Nombre || 'Doctor',
-              atiende: doctorData.fields?.Atiende || 'Ambos'
-            };
-          }
-        } catch (err) {
-          console.error("❌ Error obteniendo info del médico:", err);
-        }
+        const baseSession = {
+          specialty,
+          respuestaEmpatica,
+          motivo: text,
+          records: available,
+          attempts: 0,
+          selectedOptions
+        };
 
-        // Generar respuesta empática
-        let respuestaEmpatica = "Entiendo tu preocupación.";
-        if (OPENAI_API_KEY) {
-          try {
-            const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${OPENAI_API_KEY}`,
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                model: "gpt-4o-mini",
-                temperature: 0.7,
-                max_tokens: 60,
-                messages: [
-                  {
-                    role: "system",
-                    content: "Eres una secretaria médica chilena empática y profesional. Responde con comprensión al paciente que describe su problema médico. Máximo 2 líneas, tono cálido y humano."
-                  },
-                  { role: "user", content: `Paciente dice: "${text}"` }
-                ]
-              })
-            });
-            const empatJson = await empatRes.json();
-            respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "Entiendo tu preocupación.";
-          } catch (err) {
-            console.error("❌ Error OpenAI empático:", err);
-          }
-        }
-
-        // Formatear fecha en español
-        const fechaFormateada = formatSpanishDate(first.Fecha);
-        const clin = first["Clínica"] || first["Clinica"] || "nuestra clínica";
-        const dir = first["Dirección"] || first["Direccion"] || "la dirección indicada";
-
-        // 🆕 TEXTO SOBRE QUÉ PACIENTES ATIENDE
-        let atiendeTxt = "";
-        switch(doctorInfo.atiende) {
-          case "Niños":
-            atiendeTxt = " (especialista en pediatría)";
-            break;
-          case "Adultos":
-            atiendeTxt = " (atiende solo adultos)";
-            break;
-          case "Ambos":
-            atiendeTxt = " (atiende niños y adultos)";
-            break;
-          default:
-            atiendeTxt = " (atiende pacientes de todas las edades)";
-        }
-
-        // 🆕 PRESENTAR OPCIONES INTELIGENTEMENTE
-        let responseText = `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n`;
-        
-        if (selectedOptions.length === 1) {
-          // Solo 1 opción disponible
-          responseText += `👨‍⚕️ Tengo disponible al **Dr. ${doctorInfo.name}**${atiendeTxt}\n📅 ${fechaFormateada} a las ${first.Hora}\n📍 ${clin}, ${dir}\n\n¿Te sirve esta cita?\n\nResponde **Sí** para confirmar o **No** si prefieres otra opción.`;
-          
-          sessions[from] = {
-            stage: 'confirming-appointment',
-            specialty: specialty,
-            respuestaEmpatica,
-            motivo: text,
-            records: available,
-            attempts: 0,
-            doctorInfo,
-            selectedRecord: selectedOptions[0],
-            selectedOptions: selectedOptions
-          };
-        } else {
-          // 2 opciones disponibles - presentar para elegir
-          responseText += `Te muestro las mejores opciones disponibles de **${specialty}**:\n\n`;
-          
-          for (let i = 0; i < selectedOptions.length; i++) {
-            const option = selectedOptions[i];
-            const optionMedicoId = Array.isArray(option.fields["Médico"]) ? 
-              option.fields["Médico"][0] : option.fields["Médico"];
-            
-            // Obtener info del médico para cada opción
-            let optionDoctorInfo = { name: 'Doctor', atiende: 'Ambos' };
-            try {
-              const optionDoctorResponse = await fetch(
-                `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}/${optionMedicoId}`,
-                { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-              );
-              
-              if (optionDoctorResponse.ok) {
-                const optionDoctorData = await optionDoctorResponse.json();
-                optionDoctorInfo = {
-                  name: optionDoctorData.fields?.Name || optionDoctorData.fields?.Nombre || 'Doctor',
-                  atiende: optionDoctorData.fields?.Atiende || 'Ambos'
-                };
-              }
-            } catch (err) {
-              console.error(`❌ Error obteniendo info del médico ${optionMedicoId}:`, err);
-            }
-
-            const optionFechaFormateada = formatSpanishDate(option.fields?.Fecha);
-            const optionClin = option.fields?.["Clínica"] || option.fields?.["Clinica"] || "Clínica";
-            const optionDir = option.fields?.["Dirección"] || option.fields?.["Direccion"] || "";
-
-            let optionAtiendeTxt = "";
-            switch(optionDoctorInfo.atiende) {
-              case "Niños": optionAtiendeTxt = " (especialista en pediatría)"; break;
-              case "Adultos": optionAtiendeTxt = " (atiende solo adultos)"; break;
-              case "Ambos": optionAtiendeTxt = " (atiende niños y adultos)"; break;
-              default: optionAtiendeTxt = " (atiende pacientes de todas las edades)";
-            }
-
-            responseText += `**${i + 1}.** 👨‍⚕️ **Dr. ${optionDoctorInfo.name}**${optionAtiendeTxt}\n📅 ${optionFechaFormateada} a las ${option.fields?.Hora}\n📍 ${optionClin}${optionDir ? `, ${optionDir}` : ''}\n\n`;
-          }
-          
-          responseText += `¿Cuál opción prefieres? Responde con el número (**1** o **2**).`;
-          
-          sessions[from] = {
-            stage: 'choosing-from-options',
-            specialty: specialty,
-            respuestaEmpatica,
-            motivo: text,
-            records: available,
-            attempts: 0,
-            selectedOptions: selectedOptions
-          };
-        }
+        sessions[from] = presentation.stage === 'confirming-appointment' 
+          ? { ...baseSession, stage: 'confirming-appointment', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+          : { ...baseSession, stage: 'choosing-from-options' };
 
         return NextResponse.json({
-          text: responseText,
+          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n${presentation.text}`,
           session: sessions[from]
         });
 
@@ -2964,87 +2784,24 @@ Ejemplos:
             const clinica = first["Clínica"] || first["Clinica"] || "Clínica";
             const direccion = first["Dirección"] || first["Direccion"] || "";
             
-            // Información de rango etario
-            let atiendeTxt = "";
-            switch(doctorInfo.atiende) {
-              case "Niños":
-                atiendeTxt = " (especialista en pediatría)";
-                break;
-              case "Adultos":
-                atiendeTxt = " (atiende solo adultos)";
-                break;
-              case "Ambos":
-                atiendeTxt = " (atiende niños y adultos)";
-                break;
-              default:
-                atiendeTxt = " (atiende pacientes de todas las edades)";
-            }
+            // 🚀 OPTIMIZADO: Selección y presentación inteligente
+            const presentation = await createOptionsPresentation(selectedOptions, specialty);
             
-            // 🆕 PRESENTAR OPCIONES INTELIGENTEMENTE
-            let responseText = `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\n`;
-            
-            if (selectedOptions.length === 1) {
-              // Solo 1 opción disponible
-              responseText += `✅ Encontré un sobrecupo disponible:\n\n👨‍⚕️ **Dr. ${medicoNombre}**${atiendeTxt}\n🗓️ ${fechaFormateada} a las ${first.Hora}\n📍 ${clinica}\n📍 ${direccion}\n\n¿Te sirve esta opción? Confirma con **"sí"** para reservar.`;
-              
-              sessions[from] = {
-                stage: 'awaiting-confirmation',
-                specialty: specialty,
-                records: sobrecuposFuturos,
-                motivo: text,
-                respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
-                attempts: 0,
-                selectedRecord: selectedOptions[0],
-                selectedOptions: selectedOptions
-              };
-            } else {
-              // 2 opciones disponibles - presentar para elegir
-              responseText += `Te muestro las mejores opciones disponibles:\n\n`;
-              
-              for (let i = 0; i < selectedOptions.length; i++) {
-                const option = selectedOptions[i];
-                const optionMedicoId = Array.isArray(option.fields["Médico"]) ? 
-                  option.fields["Médico"][0] : option.fields["Médico"];
-                
-                // Obtener info del médico para cada opción
-                let optionDoctorInfo = { name: 'Doctor', atiende: 'Ambos' };
-                try {
-                  const optionDoctorData = await getDoctorInfo(optionMedicoId);
-                  optionDoctorInfo = optionDoctorData;
-                } catch (err) {
-                  console.error(`❌ Error obteniendo info del médico ${optionMedicoId}:`, err);
-                }
+            const baseSession = {
+              specialty,
+              records: sobrecuposFuturos,
+              motivo: text,
+              respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
+              attempts: 0,
+              selectedOptions
+            };
 
-                const optionFechaFormateada = formatSpanishDate(option.fields?.Fecha);
-                const optionClinica = option.fields?.["Clínica"] || option.fields?.["Clinica"] || "Clínica";
-                const optionDireccion = option.fields?.["Dirección"] || option.fields?.["Direccion"] || "";
-
-                let optionAtiendeTxt = "";
-                switch(optionDoctorInfo.atiende) {
-                  case "Niños": optionAtiendeTxt = " (especialista en pediatría)"; break;
-                  case "Adultos": optionAtiendeTxt = " (atiende solo adultos)"; break;
-                  case "Ambos": optionAtiendeTxt = " (atiende niños y adultos)"; break;
-                  default: optionAtiendeTxt = " (atiende pacientes de todas las edades)";
-                }
-
-                responseText += `**${i + 1}.** 👨‍⚕️ **Dr. ${optionDoctorInfo.name}**${optionAtiendeTxt}\n📅 ${optionFechaFormateada} a las ${option.fields?.Hora}\n📍 ${optionClinica}${optionDireccion ? `, ${optionDireccion}` : ''}\n\n`;
-              }
-              
-              responseText += `¿Cuál opción prefieres? Responde con el número (**1** o **2**).`;
-              
-              sessions[from] = {
-                stage: 'choosing-from-options',
-                specialty: specialty,
-                records: sobrecuposFuturos,
-                motivo: text,
-                respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
-                attempts: 0,
-                selectedOptions: selectedOptions
-              };
-            }
+            sessions[from] = presentation.stage === 'confirming-appointment'
+              ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+              : { ...baseSession, stage: 'choosing-from-options' };
 
             return NextResponse.json({
-              text: responseText,
+              text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\n${presentation.text}`,
               session: sessions[from]
             });
             
