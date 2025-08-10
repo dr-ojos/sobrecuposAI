@@ -94,9 +94,11 @@ export default function PerfilMedico() {
     setMessage('');
 
     try {
+      // Mostrar preview temporal mientras sube
       const reader = new FileReader();
       reader.onload = (e) => {
-        setDoctorData(prev => ({ ...prev, PhotoURL: e.target.result }));
+        console.log('📷 Mostrando preview temporal');
+        // NO actualizar PhotoURL con data URL, mantener la URL de S3 si existe
       };
       reader.readAsDataURL(file);
 
@@ -114,10 +116,17 @@ export default function PerfilMedico() {
       });
 
       const uploadData = await uploadRes.json();
+      console.log('📤 Respuesta del servidor:', uploadData);
 
       if (uploadData.success) {
+        console.log('✅ Upload exitoso, nueva URL:', uploadData.url);
         setDoctorData(prev => ({ ...prev, PhotoURL: uploadData.url }));
         setMessage('Foto subida correctamente');
+        
+        // Forzar actualización desde Airtable para confirmar
+        setTimeout(() => {
+          fetchDoctorData();
+        }, 1000);
       } else {
         throw new Error(uploadData.error || 'Error desconocido');
       }
@@ -336,11 +345,15 @@ export default function PerfilMedico() {
                       src={doctorData.PhotoURL} 
                       alt="Foto de perfil" 
                       className="profile-image"
-                      onLoad={() => console.log('✅ Imagen cargada:', doctorData.PhotoURL)}
+                      onLoad={() => console.log('✅ Imagen cargada exitosamente:', doctorData.PhotoURL)}
                       onError={(e) => {
-                        console.error('❌ Error cargando imagen:', doctorData.PhotoURL, e);
-                        // Fallback: Remover la URL si la imagen no carga
-                        setDoctorData(prev => ({ ...prev, PhotoURL: '' }));
+                        console.error('❌ Error cargando imagen:', doctorData.PhotoURL);
+                        console.error('❌ Error details:', e);
+                        // Solo remover la URL después de un timeout para evitar bucles
+                        setTimeout(() => {
+                          console.log('⚠️ Removiendo URL problemática:', doctorData.PhotoURL);
+                          setDoctorData(prev => ({ ...prev, PhotoURL: '' }));
+                        }, 2000);
                       }}
                     />
                   ) : (

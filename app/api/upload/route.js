@@ -63,7 +63,9 @@ export async function POST(request) {
     }
 
     // Actualizar perfil médico en Airtable con la nueva URL
+    let airtableUpdated = false;
     try {
+      console.log(`🔄 Actualizando perfil médico ${doctorId} con nueva URL: ${uploadResult.url}`);
       const updateRes = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/doctors`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -74,9 +76,12 @@ export async function POST(request) {
       });
 
       if (updateRes.ok) {
-        console.log('✅ Perfil médico actualizado en Airtable');
+        const updateData = await updateRes.json();
+        console.log('✅ Perfil médico actualizado en Airtable:', updateData);
+        airtableUpdated = true;
       } else {
-        console.error('⚠️ Error actualizando perfil en Airtable');
+        const errorData = await updateRes.text();
+        console.error('⚠️ Error actualizando perfil en Airtable:', errorData);
       }
     } catch (updateError) {
       console.error('⚠️ Error actualizando Airtable:', updateError);
@@ -87,6 +92,7 @@ export async function POST(request) {
       success: true, 
       url: uploadResult.url,
       message: "Imagen subida correctamente a AWS S3",
+      airtableUpdated,
       metadata: {
         bucket: uploadResult.bucket,
         key: uploadResult.key,
