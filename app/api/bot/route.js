@@ -2663,12 +2663,28 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       
       // 🆕 BUSCAR MÉDICOS DISPONIBLES INMEDIATAMENTE
       try {
+        console.log(`🔍 [DEBUG] Buscando sobrecupos para especialidad: ${specialty}`);
+        console.log(`🔍 [DEBUG] Variables env:`, {
+          AIRTABLE_API_KEY: !!AIRTABLE_API_KEY,
+          AIRTABLE_BASE_ID: !!AIRTABLE_BASE_ID,
+          AIRTABLE_TABLE_ID: !!AIRTABLE_TABLE_ID,
+          OPENAI_API_KEY: !!OPENAI_API_KEY
+        });
+
         const resp = await fetch(
           `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
           { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
         );
+        
+        console.log(`🔍 [DEBUG] Airtable response status: ${resp.status}`);
+        
+        if (!resp.ok) {
+          throw new Error(`Airtable API error: ${resp.status} ${resp.statusText}`);
+        }
+
         const data = await resp.json();
         const sobrecuposRecords = data.records || [];
+        console.log(`🔍 [DEBUG] Total records from Airtable: ${sobrecuposRecords.length}`);
 
         // Filtrar por especialidad y disponibilidad
         const availableFiltered = sobrecuposRecords.filter(record => {
@@ -2676,11 +2692,14 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           return fields.Especialidad === specialty && 
                  (fields.Disponible === "Si" || fields.Disponible === true);
         });
+        console.log(`🔍 [DEBUG] Filtered by specialty "${specialty}": ${availableFiltered.length} records`);
 
         // Filtrar solo fechas futuras
         const available = filterFutureDates(availableFiltered);
+        console.log(`🔍 [DEBUG] Future dates available: ${available.length} records`);
 
         if (available.length === 0) {
+          console.log(`🔍 [DEBUG] No appointments available, generating empathic response`);
           const respuestaEmpatica = await generateEmphaticResponse(text);
           return NextResponse.json({
             text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en ${specialty}, pero lamentablemente no tengo sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
@@ -2688,7 +2707,9 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         }
 
         // 🆕 NUEVO FLUJO: Primero recopilar datos básicos, luego mostrar opciones
+        console.log(`🔍 [DEBUG] Generating empathic response for new flow`);
         const respuestaEmpatica = await generateEmphaticResponse(text);
+        console.log(`🔍 [DEBUG] Empathic response generated successfully`);
         
         sessions[from] = {
           stage: 'collecting-basic-data',
@@ -2700,6 +2721,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           dataStep: 'name' // Empezar por el nombre
         };
 
+        console.log(`🔍 [DEBUG] Session created successfully, returning response`);
         return NextResponse.json({
           text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\nPara mostrarte las opciones disponibles, necesito algunos datos básicos primero.\n\n¿Cuál es tu **nombre completo**?`,
           session: sessions[from]
