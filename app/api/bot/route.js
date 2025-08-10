@@ -2490,15 +2490,30 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             const esRespuestaNegativa = /\b(no|nop|nope|no.*me.*sirve|no.*quiero)\b/i.test(text);
             
             if (esRespuestaNegativa && alternativeRecords.length === 1) {
-              // Usuario rechaza la única opción disponible
-              sessions[from] = {
-                ...currentSession,
-                stage: 'asking-specific-date'
-              };
+              // Usuario rechaza la única opción alternativa disponible
+              // Verificar si es realmente la última opción del sistema
+              const { records: allRecords } = currentSession;
+              const totalAvailable = allRecords?.length || 0;
+              const totalPossibleShown = 4; // 2 iniciales + 2 alternativas máximo
               
-              return NextResponse.json({
-                text: `Entiendo, ${altNombre || 'usuario'}. Esa fecha no te acomoda.\n\n¿Tienes algún **día específico** en mente para tu consulta de **${altSpecialty}**?\n\nPor ejemplo: "martes", "próxima semana", "en 10 días", etc. 📅`
-              });
+              if (totalAvailable <= totalPossibleShown) {
+                // Es realmente la última opción - terminar conversación empáticamente
+                delete sessions[from];
+                
+                return NextResponse.json({
+                  text: `Entiendo perfectamente, ${altNombre || 'usuario'}. Esa fecha no te acomoda y lamentablemente esas fueron todas las opciones de **${altSpecialty}** que tengo disponibles en este momento. 😔\n\n✨ **Te sugiero regresar mañana o más tarde**, ya que los médicos suben nuevos sobrecupos constantemente.\n\n¡Que tengas un buen día y espero poder ayudarte pronto! 🏥`
+                });
+              } else {
+                // Aún hay más opciones - preguntar por día específico
+                sessions[from] = {
+                  ...currentSession,
+                  stage: 'asking-specific-date'
+                };
+                
+                return NextResponse.json({
+                  text: `Entiendo, ${altNombre || 'usuario'}. Esa fecha no te acomoda.\n\n¿Tienes algún **día específico** en mente para tu consulta de **${altSpecialty}**?\n\nPor ejemplo: "martes", "próxima semana", "en 10 días", etc. 📅`
+                });
+              }
             } else {
               // No eligió número válido - podría ser día específico
               sessions[from] = {
@@ -2624,13 +2639,10 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             });
           } else if (esNegativaFinal) {
             // Usuario rechaza todas las opciones finales - YA NO HAY MÁS
-            sessions[from] = {
-              ...currentSession,
-              stage: 'asking-for-contact-data'
-            };
+            delete sessions[from];
             
             return NextResponse.json({
-              text: `Entiendo, ${finalNombre}. Esas fueron todas las opciones de **${finalSpecialty}** que tengo disponibles en este momento.\n\nDéjame tus datos de contacto y te avisaré cuando tengamos nuevos sobrecupos que te puedan servir mejor. ¿Te parece? 📱`
+              text: `Entiendo perfectamente, ${finalNombre}. Esas fueron todas las opciones de **${finalSpecialty}** que tengo disponibles en este momento. 😔\n\n✨ **Te sugiero regresar mañana o más tarde**, ya que los médicos suben nuevos sobrecupos constantemente.\n\n¡Espero poder ayudarte pronto con la cita que necesitas! 🏥`
             });
           } else {
             // Respuesta no válida
