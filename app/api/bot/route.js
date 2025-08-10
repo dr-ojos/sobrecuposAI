@@ -2516,19 +2516,134 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         
         case 'asking-specific-date':
           const dateRequest = text.toLowerCase().trim();
-          const { specialty: dateSpecialty, primerNombre: dateNombre } = currentSession;
+          const { specialty: dateSpecialty, primerNombre: dateNombre, records: allRecords } = currentSession;
           
-          // Aquí podrías implementar lógica para parsear fechas naturales
-          // Por ahora, redirigir a contacto para seguimiento manual
-          sessions[from] = {
-            ...currentSession,
-            stage: 'asking-for-contact-data',
-            requestedDate: dateRequest
-          };
+          // Verificar cuántas opciones se han mostrado ya vs total disponibles
+          const totalAvailable = allRecords?.length || 0;
+          const showedInInitial = 2; // Primeras 2 opciones
+          const showedInAlternative = Math.min(totalAvailable - showedInInitial, 2); // Hasta 2 más
+          const totalShown = showedInInitial + showedInAlternative;
           
-          return NextResponse.json({
-            text: `Perfecto, ${dateNombre || 'usuario'}! Entiendo que buscas una cita de **${dateSpecialty}** para "${dateRequest}".\n\nDéjame tus datos de contacto y te buscaré opciones específicas para esa fecha. ¿Te parece? 📱`
-          });
+          if (totalAvailable > totalShown) {
+            // Aún hay más opciones que no se han mostrado
+            const remainingOptions = allRecords.slice(totalShown, totalShown + 2);
+            
+            sessions[from] = {
+              ...currentSession,
+              stage: 'choosing-final-options',
+              finalOptions: remainingOptions
+            };
+            
+            let mensaje = `Entiendo que buscas algo para "${dateRequest}", ${dateNombre}. Aunque no puedo buscar por día específico, aún tengo ${totalAvailable - totalShown} opción${totalAvailable - totalShown > 1 ? 'es más' : ' más'} de **${dateSpecialty}**:\n\n`;
+            
+            for (let i = 0; i < remainingOptions.length; i++) {
+              const record = remainingOptions[i];
+              const medicoId = extractMedicoId(record.fields);
+              const doctorInfo = await getDoctorInfoCached(medicoId);
+              const fechaFormateada = formatSpanishDate(record.fields?.Fecha);
+              const address = formatClinicAddress(record.fields);
+              
+              mensaje += `${i + 1}. 👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${address}\n\n`;
+            }
+            
+            if (remainingOptions.length === 1) {
+              mensaje += `¿Te sirve esta última opción? Responde **Sí** o **No**.`;
+            } else {
+              mensaje += `¿Alguna te sirve? Responde **1** o **2**, o **No** si ninguna te conviene.`;
+            }
+            
+            return NextResponse.json({
+              text: mensaje,
+              session: sessions[from]
+            });
+          } else {
+            // Ya se mostraron todas las opciones disponibles
+            sessions[from] = {
+              ...currentSession,
+              stage: 'asking-for-contact-data',
+              requestedDate: dateRequest
+            };
+            
+            return NextResponse.json({
+              text: `Perfecto, ${dateNombre}! Entiendo que buscas una cita de **${dateSpecialty}** para "${dateRequest}".\n\nLamentablemente ya te mostré todas las opciones disponibles en este momento. Déjame tus datos de contacto y te buscaré opciones específicas para esa fecha cuando tengamos nuevos sobrecupos. ¿Te parece? 📱`
+            });
+          }
+          
+          break;
+        
+        case 'choosing-final-options':
+          const finalChoice = text.toLowerCase().trim();
+          const { finalOptions, specialty: finalSpecialty, primerNombre: finalNombre } = currentSession;
+          const finalIndex = finalChoice === '1' ? 0 : finalChoice === '2' ? 1 : -1;
+          
+          // Detectar respuestas afirmativas para una sola opción
+          const esAfirmativaFinal = /\b(sí|si|s|yes|ok|vale|la.*quiero|me.*sirve|está.*bien|perfecto)\b/i.test(text);
+          const esNegativaFinal = /\b(no|nop|nope|no.*me.*sirve|no.*quiero|ninguna)\b/i.test(text);
+          
+          if (esAfirmativaFinal && finalOptions.length === 1) {
+            // Usuario acepta la única opción final
+            const selectedRecord = finalOptions[0];
+            const medicoId = extractMedicoId(selectedRecord.fields);
+            const doctorInfo = await getDoctorInfoCached(medicoId);
+            
+            sessions[from] = {
+              ...currentSession,
+              selectedRecord: selectedRecord,
+              doctorInfo: doctorInfo,
+              stage: 'confirming-appointment',
+              attempts: 0
+            };
+            
+            const fechaFormateada = formatSpanishDate(selectedRecord.fields?.Fecha);
+            const address = formatClinicAddress(selectedRecord.fields);
+            
+            return NextResponse.json({
+              text: `¡Genial, ${finalNombre}! Has elegido:\n\n👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${selectedRecord.fields?.Hora}\n📍 ${address}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
+              session: sessions[from]
+            });
+          } else if (finalIndex !== -1 && finalOptions[finalIndex]) {
+            // Usuario eligió por número
+            const selectedRecord = finalOptions[finalIndex];
+            const medicoId = extractMedicoId(selectedRecord.fields);
+            const doctorInfo = await getDoctorInfoCached(medicoId);
+            
+            sessions[from] = {
+              ...currentSession,
+              selectedRecord: selectedRecord,
+              doctorInfo: doctorInfo,
+              stage: 'confirming-appointment',
+              attempts: 0
+            };
+            
+            const fechaFormateada = formatSpanishDate(selectedRecord.fields?.Fecha);
+            const address = formatClinicAddress(selectedRecord.fields);
+            
+            return NextResponse.json({
+              text: `¡Perfecto, ${finalNombre}! Has elegido:\n\n👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${selectedRecord.fields?.Hora}\n📍 ${address}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
+              session: sessions[from]
+            });
+          } else if (esNegativaFinal) {
+            // Usuario rechaza todas las opciones finales - YA NO HAY MÁS
+            sessions[from] = {
+              ...currentSession,
+              stage: 'asking-for-contact-data'
+            };
+            
+            return NextResponse.json({
+              text: `Entiendo, ${finalNombre}. Esas fueron todas las opciones de **${finalSpecialty}** que tengo disponibles en este momento.\n\nDéjame tus datos de contacto y te avisaré cuando tengamos nuevos sobrecupos que te puedan servir mejor. ¿Te parece? 📱`
+            });
+          } else {
+            // Respuesta no válida
+            if (finalOptions.length === 1) {
+              return NextResponse.json({
+                text: `${finalNombre}, por favor responde **Sí** si quieres esta cita o **No** si no te sirve.`
+              });
+            } else {
+              return NextResponse.json({
+                text: `${finalNombre}, por favor responde **1** o **2** para elegir, o **No** si ninguna te conviene.`
+              });
+            }
+          }
           
           break;
 
