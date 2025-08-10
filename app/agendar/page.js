@@ -1361,41 +1361,41 @@ const AgendarSobrecuposPage = () => {
         /* Responsive - Desktop */
         @media (min-width: 1024px) {
           .content-container {
-            gap: 3rem;
+            gap: 2rem;
           }
 
           .hero-section {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
           }
 
           .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 2.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
             justify-items: center;
             max-width: 1200px;
             margin: 0 auto;
           }
 
           .sobrecupo-card {
-            max-width: 650px;
+            max-width: 500px;
             width: 100%;
           }
 
           .card-header {
-            padding: 2rem;
+            padding: 1.25rem 1.5rem;
           }
 
           .card-body {
-            padding: 1.5rem 2rem;
+            padding: 1rem 1.5rem;
           }
 
           .card-footer {
-            padding: 1.5rem 2rem;
+            padding: 1rem 1.5rem;
           }
 
           .additional-info {
-            gap: 2rem;
+            gap: 1.5rem;
           }
         }
 

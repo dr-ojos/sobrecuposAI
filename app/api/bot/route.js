@@ -1060,15 +1060,15 @@ Ejemplos:
             const yaTimeDatosBasicos = currentSession.patientName && currentSession.patientRut;
             
             if (yaTimeDatosBasicos) {
-              // Ya tengo nombre y RUT, pedir solo teléfono
+              // Ya tengo nombre y RUT, pedir edad primero
               sessions[from] = {
                 ...currentSession,
-                stage: 'getting-phone'
+                stage: 'getting-age'
               };
               
               const primerNombre = currentSession.primerNombre || currentSession.patientName?.split(' ')[0] || 'usuario';
               return NextResponse.json({
-                text: `¡Perfecto, ${primerNombre}! Ya tengo tus datos básicos.\n\nSolo necesito tu número de teléfono para completar la reserva.\nEjemplo: +56912345678`,
+                text: `¡Perfecto, ${primerNombre}! Ya tengo tus datos básicos.\n\nPara completar tu perfil, ¿cuál es tu edad?`,
                 session: sessions[from]
               });
             } else {
@@ -1758,6 +1758,26 @@ Ejemplos:
             session: sessions[from]
           });
 
+        case 'getting-age':
+          const age = parseInt(text);
+          if (isNaN(age) || age < 1 || age > 120) {
+            return NextResponse.json({
+              text: "Por favor ingresa tu edad en números (ejemplo: 30)."
+            });
+          }
+          
+          // Edad válida, pasar a pedir teléfono
+          sessions[from] = {
+            ...currentSession,
+            stage: 'getting-phone',
+            patientAge: age
+          };
+          
+          return NextResponse.json({
+            text: "Excelente! 📞\n\nAhora necesito tu número de teléfono para completar la reserva.\nEjemplo: +56912345678",
+            session: sessions[from]
+          });
+
         case 'getting-phone':
           if (!validarTelefono(text)) {
             const mensajeError = analizarConfusion(text, 'telefono');
@@ -1831,7 +1851,7 @@ Ejemplos:
                 clinic: sobrecupoDataForPayment.Clínica || sobrecupoDataForPayment.Clinica || 'Clínica',
                 amount: paymentAmount,
                 sessionId: paymentSessionId,
-                motivo: currentSession.motivo || null // 🆕 AGREGAR MOTIVO DE CONSULTA
+                motivo: currentSession.motivo || null // AGREGAR MOTIVO DE CONSULTA
               })
             });
 

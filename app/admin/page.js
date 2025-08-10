@@ -579,29 +579,119 @@ export default function AdminPanelPage() {
               </button>
             </div>
 
+            <div className="search-controls">
+              <input
+                type="text"
+                placeholder="Buscar por médico o clínica..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <select 
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="todos">Todos</option>
+                <option value="disponibles">Disponibles</option>
+                <option value="reservados">Reservados</option>
+                <option value="antiguos">Antiguos</option>
+              </select>
+              <select 
+                className="filter-select"
+                onChange={(e) => setSearchTerm(e.target.value)}
+              >
+                <option value="">Por médico</option>
+                {doctors.map(doc => {
+                  const fields = doc.fields || doc;
+                  return (
+                    <option key={doc.id} value={fields.Name}>
+                      Dr. {fields.Name}
+                    </option>
+                  );
+                })}
+              </select>
+              <select 
+                className="filter-select"
+                onChange={(e) => setSearchTerm(e.target.value)}
+              >
+                <option value="">Por especialidad</option>
+                {especialidades.map(esp => (
+                  <option key={esp} value={esp}>{esp}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="sobrecupos-list">
-              {sobrecupos.map(sobrecupo => {
-                const fields = sobrecupo.fields || sobrecupo;
-                return (
-                  <div key={sobrecupo.id} className="sobrecupo-card">
-                    <div className="sobrecupo-info">
-                      <h3 className="sobrecupo-doctor">{fields.MedicoNombre || 'Dr. Desconocido'}</h3>
-                      <p className="sobrecupo-specialty">{fields.Especialidad}</p>
-                      <div className="sobrecupo-details">
-                        <span className="detail-item">📅 {fields.Fecha}</span>
-                        <span className="detail-item">🕐 {fields.Hora}</span>
-                        <span className="detail-item">📍 {fields.Clínica}</span>
+              {sobrecupos
+                .filter(sobrecupo => {
+                  const fields = sobrecupo.fields || sobrecupo;
+                  const fechaSobrecupo = new Date(fields.Fecha);
+                  const hoy = new Date();
+                  hoy.setHours(0, 0, 0, 0);
+                  
+                  // Filtro por búsqueda
+                  const matchesSearch = !searchTerm || 
+                    (fields.MedicoNombre && fields.MedicoNombre.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (fields.Clínica && fields.Clínica.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (fields.Especialidad && fields.Especialidad.toLowerCase().includes(searchTerm.toLowerCase()));
+                  
+                  // Filtro por estado
+                  let matchesFilter = true;
+                  if (selectedFilter === 'disponibles') {
+                    matchesFilter = fechaSobrecupo >= hoy && !fields.PacienteNombre;
+                  } else if (selectedFilter === 'reservados') {
+                    matchesFilter = fechaSobrecupo >= hoy && fields.PacienteNombre;
+                  } else if (selectedFilter === 'antiguos') {
+                    matchesFilter = fechaSobrecupo < hoy;
+                  }
+                  
+                  return matchesSearch && matchesFilter;
+                })
+                .map(sobrecupo => {
+                  const fields = sobrecupo.fields || sobrecupo;
+                  const fechaSobrecupo = new Date(fields.Fecha);
+                  const hoy = new Date();
+                  hoy.setHours(0, 0, 0, 0);
+                  
+                  let statusClass = 'disponible';
+                  let statusText = 'Disponible';
+                  
+                  if (fechaSobrecupo < hoy) {
+                    statusClass = 'antiguo';
+                    statusText = 'Antiguo';
+                  } else if (fields.PacienteNombre) {
+                    statusClass = 'reservado';
+                    statusText = 'Reservado';
+                  }
+                  
+                  return (
+                    <div key={sobrecupo.id} className={`sobrecupo-card ${statusClass}`}>
+                      <div className="sobrecupo-info">
+                        <div className="sobrecupo-header">
+                          <h3 className="sobrecupo-doctor">{fields.MedicoNombre || 'Dr. Desconocido'}</h3>
+                          <span className={`status-badge ${statusClass}`}>{statusText}</span>
+                        </div>
+                        <p className="sobrecupo-specialty">{fields.Especialidad}</p>
+                        <div className="sobrecupo-details">
+                          <span className="detail-item">📅 {fields.Fecha}</span>
+                          <span className="detail-item">🕐 {fields.Hora}</span>
+                          <span className="detail-item">📍 {fields.Clínica}</span>
+                          {fields.PacienteNombre && (
+                            <span className="detail-item">👤 {fields.PacienteNombre}</span>
+                          )}
+                        </div>
                       </div>
+                      <button
+                        className="action-btn delete"
+                        onClick={() => handleDelete('sobrecupo', sobrecupo.id)}
+                      >
+                        🗑️
+                      </button>
                     </div>
-                    <button
-                      className="action-btn delete"
-                      onClick={() => handleDelete('sobrecupo', sobrecupo.id)}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                );
-              })}
+                  );
+                })
+              }
             </div>
           </div>
         )}
@@ -1495,15 +1585,59 @@ export default function AdminPanelPage() {
           border-color: rgba(0, 0, 0, 0.1);
         }
 
+        .sobrecupo-card.disponible {
+          border-left: 4px solid #16a34a;
+        }
+
+        .sobrecupo-card.reservado {
+          border-left: 4px solid #2563eb;
+        }
+
+        .sobrecupo-card.antiguo {
+          border-left: 4px solid #94a3b8;
+          opacity: 0.7;
+        }
+
         .sobrecupo-info {
           flex: 1;
+        }
+
+        .sobrecupo-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.25rem;
         }
 
         .sobrecupo-doctor {
           font-size: 1rem;
           font-weight: 400;
           color: #171717;
-          margin: 0 0 0.25rem 0;
+          margin: 0;
+        }
+
+        .status-badge {
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .status-badge.disponible {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        .status-badge.reservado {
+          background: #dbeafe;
+          color: #1d4ed8;
+        }
+
+        .status-badge.antiguo {
+          background: #f1f5f9;
+          color: #64748b;
         }
 
         .sobrecupo-specialty {

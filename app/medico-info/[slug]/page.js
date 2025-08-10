@@ -203,7 +203,8 @@ export default function MedicoInfoPage({ params }) {
           {/* Información importante para pacientes */}
           <section className="patient-info">
             <div className="info-notice">
-              <h3 className="notice-title">💡 Información Importante</h3>
+              <h3 className="notice-title">⚠️ Importante</h3>
+              <p><strong>La autorización de Sobrecupos no reemplaza al pago de la consulta</strong>, la cual debe ser cancelada en la consulta después de mostrar la autorización de sobrecupo que te envía tu médico.</p>
               <p><strong>Para reservar sobrecupos:</strong> Utiliza el botón "Reservar Sobrecupo" desde la lista principal de citas disponibles.</p>
               <p><strong>Contacto directo:</strong> Todas las consultas y reservas se manejan a través de nuestra plataforma para tu seguridad y la del profesional.</p>
             </div>

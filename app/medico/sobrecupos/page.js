@@ -100,6 +100,18 @@ export default function SobrecuposMedico() {
         });
         break;
 
+      case 'disponibles':
+        filtered = sobrecupos.filter(sobrecupo => {
+          const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
+          const isAvailable = sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true;
+          return sobrecupoDate >= today && isAvailable;
+        }).sort((a, b) => {
+          const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
+          const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
+          return dateA - dateB;
+        });
+        break;
+
       case 'antiguos':
         filtered = sobrecupos.filter(sobrecupo => {
           const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
@@ -234,6 +246,12 @@ export default function SobrecuposMedico() {
       return sobrecupoDate >= today;
     }).length;
 
+    const disponibles = sobrecupos.filter(s => {
+      const sobrecupoDate = new Date(s.fields?.Fecha);
+      const isAvailable = s.fields?.Disponible === 'Si' || s.fields?.Disponible === true;
+      return sobrecupoDate >= today && isAvailable;
+    }).length;
+
     const reservados = sobrecupos.filter(s => {
       const sobrecupoDate = new Date(s.fields?.Fecha);
       const isReserved = s.fields?.Disponible !== 'Si' && s.fields?.Disponible !== true;
@@ -245,7 +263,7 @@ export default function SobrecuposMedico() {
       return sobrecupoDate < today;
     }).length;
 
-    return { proximos, reservados, antiguos };
+    return { proximos, disponibles, reservados, antiguos };
   };
 
   const counts = getFilterCounts();
@@ -460,7 +478,7 @@ export default function SobrecuposMedico() {
         {/* Filtros */}
         <section className="filters-section">
           <div className="filters-container">
-            {['proximos', 'reservados', 'antiguos'].map((filter) => (
+            {['proximos', 'disponibles', 'reservados', 'antiguos'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -469,6 +487,7 @@ export default function SobrecuposMedico() {
                 <div className="filter-content">
                   <span className="filter-label">
                     {filter === 'proximos' ? 'Próximos' : 
+                     filter === 'disponibles' ? 'Disponibles' :
                      filter === 'reservados' ? 'Reservados' : 'Antiguos'}
                   </span>
                   <span className="filter-count">{counts[filter]}</span>
