@@ -400,36 +400,101 @@ export default function PerfilMedico() {
                 </div>
                 
                 <div className="photo-actions">
-                  {/* Test super simple */}
+                  {/* Evento directo sin React */}
                   <div style={{marginBottom: '10px', padding: '10px', border: '2px solid red', borderRadius: '8px'}}>
-                    <p style={{margin: '0 0 10px', color: 'red', fontSize: '12px'}}>🔴 TEST SIMPLE</p>
-                    <button 
-                      onClick={() => {
-                        try {
-                          console.log('🔥 TEST BUTTON CLICKED');
-                          alert('Button clicked! Check console.');
-                        } catch (e) {
-                          console.error('Error in test button:', e);
-                        }
-                      }}
-                      style={{padding: '10px', background: 'red', color: 'white', border: 'none', borderRadius: '4px'}}
-                    >
-                      TEST CLICK
-                    </button>
-                    <br/>
+                    <p style={{margin: '0 0 10px', color: 'red', fontSize: '12px'}}>🔴 TEST CON EVENTOS DIRECTOS</p>
                     <input
-                      type="file"
-                      onChange={() => {
-                        try {
-                          console.log('🔥 SIMPLE FILE INPUT CHANGED');
-                          alert('File input changed! Check console.');
-                        } catch (e) {
-                          console.error('Error in file input:', e);
-                        }
-                      }}
-                      style={{width: '100%', marginTop: '10px'}}
+                      type="file" 
+                      id="test-file-input"
+                      style={{width: '100%', padding: '10px'}}
                     />
+                    <button 
+                      id="test-upload-btn"
+                      style={{padding: '10px', background: 'blue', color: 'white', border: 'none', borderRadius: '4px', marginTop: '10px'}}
+                    >
+                      SUBIR ARCHIVO (Test Directo)
+                    </button>
                   </div>
+                  
+                  <script dangerouslySetInnerHTML={{
+                    __html: `
+                      console.log('📜 Script directo ejecutándose');
+                      
+                      function setupDirectEvents() {
+                        const fileInput = document.getElementById('test-file-input');
+                        const uploadBtn = document.getElementById('test-upload-btn');
+                        
+                        if (fileInput) {
+                          fileInput.addEventListener('change', function(e) {
+                            console.log('🔥 EVENTO DIRECTO - File input changed!');
+                            console.log('📁 Files:', e.target.files);
+                            if (e.target.files.length > 0) {
+                              console.log('📁 File name:', e.target.files[0].name);
+                              alert('Archivo seleccionado: ' + e.target.files[0].name);
+                            }
+                          });
+                          console.log('✅ Event listener agregado al file input');
+                        } else {
+                          console.log('❌ No se encontró file input');
+                        }
+                        
+                        if (uploadBtn) {
+                          uploadBtn.addEventListener('click', function() {
+                            console.log('🔥 EVENTO DIRECTO - Upload button clicked!');
+                            const file = fileInput && fileInput.files[0];
+                            if (file) {
+                              console.log('📤 Iniciando upload directo de:', file.name);
+                              testDirectUpload(file);
+                            } else {
+                              alert('Primero selecciona un archivo');
+                            }
+                          });
+                          console.log('✅ Event listener agregado al upload button');
+                        } else {
+                          console.log('❌ No se encontró upload button');
+                        }
+                      }
+                      
+                      async function testDirectUpload(file) {
+                        console.log('🚀 testDirectUpload iniciado con archivo:', file.name);
+                        
+                        const formData = new FormData();
+                        formData.append('photo', file);
+                        formData.append('doctorId', 'test-doctor-id'); // Temporal
+                        
+                        try {
+                          console.log('📤 Enviando request directo...');
+                          const response = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: formData
+                          });
+                          
+                          console.log('📥 Response status:', response.status);
+                          const data = await response.json();
+                          console.log('📄 Response data:', data);
+                          
+                          if (data.success) {
+                            alert('✅ Upload exitoso! URL: ' + data.url);
+                          } else {
+                            alert('❌ Upload falló: ' + data.error);
+                          }
+                        } catch (error) {
+                          console.error('💥 Error en upload directo:', error);
+                          alert('❌ Error: ' + error.message);
+                        }
+                      }
+                      
+                      // Esperar a que el DOM esté listo
+                      if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', setupDirectEvents);
+                      } else {
+                        setupDirectEvents();
+                      }
+                      
+                      // También intentar después de un delay
+                      setTimeout(setupDirectEvents, 1000);
+                    `
+                  }} />
                   
                   <button 
                     type="button" 
