@@ -2264,7 +2264,35 @@ Sistema Sobrecupos AI`;
                 const nombreClinica = sobrecupoData["Clínica"] || sobrecupoData["Clinica"] || "Clínica";
                 const direccionClinica = sobrecupoData["Dirección"] || sobrecupoData["Direccion"] || "";
                 
-                const emailContent = `Hola ${primerNombre}, yo Dr. ${doctorInfo.name}, te autoricé Sobrecupo para el día ${fechaFormateada} a las ${sobrecupoData.Hora} en ${nombreClinica} que queda ${direccionClinica}. 
+                // 🏥 FUNCIÓN PARA MANEJAR TÍTULO DEL MÉDICO (evitar duplicidad Dr./Dra.)
+                function procesarNombreMedico(nombreCompleto) {
+                  if (!nombreCompleto) return { titulo: 'Dr.', nombre: 'Médico' };
+                  
+                  // Remover títulos existentes y limpiar
+                  const nombreLimpio = nombreCompleto
+                    .replace(/^(Dr\.|Dra\.|Doctor|Doctora)\s*/i, '')
+                    .trim();
+                  
+                  // Detectar género por nombres comunes femeninos
+                  const nombresFemeninos = [
+                    'María', 'Carmen', 'Ana', 'Isabel', 'Pilar', 'Dolores', 'Josefa', 'Rosa', 'Antonia', 'Francisca',
+                    'Laura', 'Cristina', 'Marta', 'Elena', 'Teresa', 'Patricia', 'Sandra', 'Monica', 'Andrea', 'Claudia',
+                    'Valentina', 'Camila', 'Fernanda', 'Alejandra', 'Daniela', 'Carolina', 'Javiera', 'Constanza'
+                  ];
+                  
+                  const primerNombreMedico = nombreLimpio.split(' ')[0];
+                  const esFemenino = nombresFemeninos.some(nombre => 
+                    primerNombreMedico.toLowerCase().includes(nombre.toLowerCase())
+                  );
+                  
+                  return {
+                    titulo: esFemenino ? 'Dra.' : 'Dr.',
+                    nombre: nombreLimpio
+                  };
+                }
+                
+                const { titulo, nombre } = procesarNombreMedico(doctorInfo.name);
+                const emailContent = `Hola ${primerNombre}, yo ${titulo} ${nombre}, te autoricé Sobrecupo para el día ${fechaFormateada} a las ${sobrecupoData.Hora} en ${nombreClinica} que queda ${direccionClinica}. 
 
 Recuerda mostrar esto en caja y pagar tu consulta.
 

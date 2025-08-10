@@ -467,6 +467,36 @@ export async function POST(req) {
           const primerNombre = patientData.name.split(' ')[0];
           const nombreClinica = sobrecupoFields["Clínica"] || sobrecupoFields["Clinica"] || "Clínica";
           const direccionClinica = sobrecupoFields["Dirección"] || sobrecupoFields["Direccion"] || "";
+          
+          // 🏥 FUNCIÓN PARA MANEJAR TÍTULO DEL MÉDICO
+          function procesarNombreMedico(nombreCompleto) {
+            if (!nombreCompleto) return { titulo: 'Dr.', nombre: 'Médico' };
+            
+            // Remover títulos existentes y limpiar
+            const nombreLimpio = nombreCompleto
+              .replace(/^(Dr\.|Dra\.|Doctor|Doctora)\s*/i, '')
+              .trim();
+            
+            // Detectar género por nombres comunes femeninos
+            const nombresFemeninos = [
+              'María', 'Carmen', 'Ana', 'Isabel', 'Pilar', 'Dolores', 'Josefa', 'Rosa', 'Antonia', 'Francisca',
+              'Laura', 'Cristina', 'Marta', 'Elena', 'Teresa', 'Patricia', 'Sandra', 'Monica', 'Andrea', 'Claudia',
+              'Valentina', 'Camila', 'Fernanda', 'Alejandra', 'Daniela', 'Carolina', 'Javiera', 'Constanza',
+              'Esperanza', 'Soledad', 'Amparo', 'Concepción', 'Remedios', 'Encarnación', 'Asunción'
+            ];
+            
+            const primerNombreMedico = nombreLimpio.split(' ')[0];
+            const esFemenino = nombresFemeninos.some(nombre => 
+              primerNombreMedico.toLowerCase().includes(nombre.toLowerCase())
+            );
+            
+            return {
+              titulo: esFemenino ? 'Dra.' : 'Dr.',
+              nombre: nombreLimpio
+            };
+          }
+          
+          const { titulo, nombre } = procesarNombreMedico(appointmentData.doctorName);
           const emailContent = `
 <!DOCTYPE html>
 <html lang="es">
@@ -494,7 +524,7 @@ export async function POST(req) {
       <!-- Mensaje Personal del Médico -->
       <div style="margin-bottom: 1.5rem; background: #f8fafc; border-left: 4px solid #3b82f6; padding: 1.5rem; border-radius: 8px;">
         <p style="margin: 0; color: #1f2937; font-size: 1rem; line-height: 1.6; font-weight: 500;">
-          Hola ${primerNombre}, yo Dr. ${appointmentData.doctorName}, te autoricé Sobrecupo para el día ${fechaFormateada} a las ${sobrecupoFields.Hora} en ${nombreClinica} que queda ${direccionClinica}.
+          Hola ${primerNombre}, yo ${titulo} ${nombre}, te autoricé Sobrecupo para el día ${fechaFormateada} a las ${sobrecupoFields.Hora} en ${nombreClinica} que queda ${direccionClinica}.
         </p>
         <p style="margin: 0.75rem 0 0 0; color: #1f2937; font-size: 1rem; line-height: 1.6; font-weight: 600;">
           Recuerda mostrar esto en caja y pagar tu consulta.
@@ -605,11 +635,14 @@ export async function POST(req) {
 
     <!-- Footer -->
     <div style="background: #f9fafb; border-top: 1px solid #e5e5e5; padding: 1.5rem; text-align: center;">
-      <p style="margin: 0 0 0.5rem 0; color: #666; font-size: 0.85rem;">
-        Si tienes alguna consulta, responde a este email
+      <p style="margin: 0 0 0.5rem 0; color: #666; font-size: 0.9rem;">
+        Si tienes alguna consulta, escríbenos a
+      </p>
+      <p style="margin: 0 0 0.5rem 0; color: #0369a1; font-size: 0.9rem; font-weight: 600;">
+        contacto@sobrecupos.com
       </p>
       <p style="margin: 0; color: #171717; font-size: 0.9rem; font-weight: 600;">
-        Equipo SobrecuposIA
+        Equipo Sobrecupos
       </p>
     </div>
 
