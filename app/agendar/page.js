@@ -102,7 +102,7 @@ const AgendarSobrecuposPage = () => {
   };
 
   const handleReservationSubmit = async () => {
-    if (!reservationData.nombre || !reservationData.email || !reservationData.rut) {
+    if (!reservationData.nombre || !reservationData.email || !reservationData.rut || !reservationData.telefono) {
       setMessage('Por favor, completa todos los campos obligatorios.');
       setTimeout(() => setMessage(''), 3000);
       return;
@@ -117,25 +117,38 @@ const AgendarSobrecuposPage = () => {
     setReservationLoading(true);
 
     try {
-      console.log('🎯 Enviando reserva...');
-      const response = await fetch('/api/sobrecupos/reserve', {
+      console.log('🎯 Creando enlace de pago...');
+      
+      // Crear enlace de pago (mismo flujo que el chatbot)
+      const paymentResponse = await fetch('/api/payment/create-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           sobrecupoId: selectedSobrecupo.id,
-          pacienteData: {
-            ...reservationData,
-            nombreCompleto: `${reservationData.nombre} ${reservationData.apellidos || ''}`.trim()
-          }
+          patientName: `${reservationData.nombre} ${reservationData.apellidos || ''}`.trim(),
+          patientRut: reservationData.rut,
+          patientPhone: reservationData.telefono,
+          patientEmail: reservationData.email,
+          patientAge: reservationData.edad || 'No proporcionado',
+          doctorName: selectedSobrecupo.fields.Médico,
+          specialty: selectedSobrecupo.fields.Especialidad,
+          date: selectedSobrecupo.fields.Fecha,
+          time: selectedSobrecupo.fields.Hora,
+          clinic: selectedSobrecupo.fields.Clínica,
+          amount: "2990", // Precio estándar
+          motivo: "Reserva desde página principal", // Motivo de la consulta
+          sessionId: `direct-booking-${Date.now()}` // ID de sesión único
         })
       });
 
-      const result = await response.json();
+      const paymentResult = await paymentResponse.json();
 
-      if (response.ok && result.success) {
-        setMessage('¡Reserva confirmada! Te contactaremos pronto para confirmar tu cita.');
+      if (paymentResult.success) {
+        console.log('✅ Enlace de pago creado:', paymentResult.shortUrl);
+        
+        // Cerrar modal y redirigir a página de pago
         setShowReservationModal(false);
         setReservationData({
           nombre: '',
@@ -147,14 +160,10 @@ const AgendarSobrecuposPage = () => {
         });
         setAcceptTerms(false);
         
-        // Actualizar estado local
-        setSobrecupos(prev => prev.map(s => 
-          s.id === selectedSobrecupo.id 
-            ? { ...s, fields: { ...s.fields, Disponible: 'No' }}
-            : s
-        ));
+        // Redirigir a página de pago
+        window.location.href = paymentResult.shortUrl;
       } else {
-        setMessage(result.error || result.message || 'Error al procesar la reserva. Intenta nuevamente.');
+        setMessage(paymentResult.error || 'Error creando el enlace de pago. Intenta nuevamente.');
       }
       
     } catch (error) {
@@ -512,6 +521,34 @@ const AgendarSobrecuposPage = () => {
                   </div>
                 </div>
 
+                <div className="form-row">
+                  <div className="form-field">
+                    <label className="field-label">Teléfono *</label>
+                    <input
+                      type="tel"
+                      value={reservationData.telefono}
+                      onChange={(e) => setReservationData(prev => ({ ...prev, telefono: e.target.value }))}
+                      className="field-input"
+                      placeholder="+56912345678"
+                      disabled={reservationLoading}
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label className="field-label">Edad</label>
+                    <input
+                      type="number"
+                      value={reservationData.edad}
+                      onChange={(e) => setReservationData(prev => ({ ...prev, edad: e.target.value }))}
+                      className="field-input"
+                      placeholder="30"
+                      min="1"
+                      max="120"
+                      disabled={reservationLoading}
+                    />
+                  </div>
+                </div>
+
                 {/* Términos */}
                 <div className="terms-container">
                   <label className="terms-label">
@@ -530,10 +567,13 @@ const AgendarSobrecuposPage = () => {
 
                 {/* Aviso */}
                 <div className="warning-notice">
-                  <span className="warning-icon">!</span>
+                  <span className="warning-icon">💳</span>
                   <div>
-                    <div className="warning-title">Importante</div>
-                    <div className="warning-text">Debes pagar el valor de la consulta al llegar a la clínica</div>
+                    <div className="warning-title">Proceso de Pago</div>
+                    <div className="warning-text">
+                      Serás redirigido a pagar $2.990 para confirmar tu sobrecupo. 
+                      Este pago es independiente del valor de la consulta médica.
+                    </div>
                   </div>
                 </div>
 
@@ -546,10 +586,10 @@ const AgendarSobrecuposPage = () => {
                   {reservationLoading ? (
                     <span className="loading-content">
                       <span className="button-spinner"></span>
-                      Procesando...
+                      Creando enlace de pago...
                     </span>
                   ) : (
-                    'Confirmar reserva'
+                    'Proceder al Pago ($2.990)'
                   )}
                 </button>
               </div>
