@@ -1055,16 +1055,34 @@ Ejemplos:
           
           if (/\b(sí|si|s|yes|ok|vale)\b/i.test(respuesta)) {
             console.log('✅ CONFIRMING-APPOINTMENT - Detectado SÍ');
-            // Confirmar cita y preguntar nombre completo primero
-            sessions[from] = {
-              ...currentSession,
-              stage: 'getting-name-for-confirmed-appointment'
-            };
             
-            return NextResponse.json({
-              text: "¡Excelente! Para completar tu reserva, necesito tus datos.\n\nPor favor dime tu **nombre completo**:",
-              session: sessions[from]
-            });
+            // Verificar si ya tengo los datos básicos del nuevo flujo
+            const yaTimeDatosBasicos = currentSession.patientName && currentSession.patientRut;
+            
+            if (yaTimeDatosBasicos) {
+              // Ya tengo nombre y RUT, pedir solo teléfono
+              sessions[from] = {
+                ...currentSession,
+                stage: 'getting-phone'
+              };
+              
+              const primerNombre = currentSession.primerNombre || currentSession.patientName?.split(' ')[0] || 'usuario';
+              return NextResponse.json({
+                text: `¡Perfecto, ${primerNombre}! Ya tengo tus datos básicos.\n\nSolo necesito tu número de teléfono para completar la reserva.\nEjemplo: +56912345678`,
+                session: sessions[from]
+              });
+            } else {
+              // Flujo antiguo - pedir todos los datos
+              sessions[from] = {
+                ...currentSession,
+                stage: 'getting-name-for-confirmed-appointment'
+              };
+              
+              return NextResponse.json({
+                text: "¡Excelente! Para completar tu reserva, necesito tus datos.\n\nPor favor dime tu **nombre completo**:",
+                session: sessions[from]
+              });
+            }
           } 
           else if (/\bno\b/i.test(respuesta) && (respuesta.includes('otro') || respuesta.includes('otra') || respuesta.includes('diferente') || respuesta.includes('distinto') || respuesta.includes('profesional') || respuesta.includes('médico') || respuesta.includes('medico') || respuesta.includes('doctor'))) {
             // Usuario dice "no, quiero otro profesional/médico/doctor"
@@ -1968,6 +1986,7 @@ Ejemplos:
               try {
                 console.log("👤 Creando paciente en tabla Pacientes...");
                 
+                const motivo = currentSession.motivo || 'No especificado';
                 const pacienteData = {
                   fields: {
                     Nombre: patientName,
@@ -1975,6 +1994,7 @@ Ejemplos:
                     Telefono: patientPhone,
                     Email: text,
                     Edad: patientAge,
+                    "Motivo Consulta": motivo,
                     "Fecha Registro": new Date().toISOString().split('T')[0]
                   }
                 };
@@ -2077,8 +2097,10 @@ Ejemplos:
                 
                 // Obtener datos completos del médico incluyendo WhatsApp
                 const doctorInfo = await getDoctorInfo(medicoId);
+                console.log(`📱 [DEBUG] Doctor info obtenido:`, doctorInfo);
                 
                 if (doctorInfo.whatsapp) {
+                  console.log(`📱 [DEBUG] Enviando WhatsApp al médico: ${doctorInfo.whatsapp}`);
                   const fechaFormateada = formatSpanishDate(sobrecupoData.Fecha);
                   
                   await whatsAppService.notifyDoctorNewPatient(
