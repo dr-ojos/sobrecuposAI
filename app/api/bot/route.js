@@ -72,17 +72,26 @@ async function getDoctorInfoCached(doctorId, cache = new Map()) {
   if (cache.has(doctorId)) return cache.get(doctorId);
   
   try {
+    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
+    
     const response = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}/${doctorId}`,
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorId}`,
       { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
     );
     
+    console.log(`🔍 [DEBUG] Doctor API response status for ${doctorId}:`, response.status);
+    
     const data = response.ok ? await response.json() : null;
+    console.log(`🔍 [DEBUG] Doctor data for ${doctorId}:`, data?.fields);
+    
     const info = {
       name: data?.fields?.Name || data?.fields?.Nombre || 'Doctor',
       atiende: data?.fields?.Atiende || 'Ambos'
     };
     
+    console.log(`🔍 [DEBUG] Final doctor info for ${doctorId}:`, info);
     cache.set(doctorId, info);
     return info;
   } catch (err) {
