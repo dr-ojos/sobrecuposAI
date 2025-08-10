@@ -2119,7 +2119,8 @@ Ejemplos:
                       hora: sobrecupoData.Hora,
                       clinica: sobrecupoData["Clínica"] || sobrecupoData["Clinica"] || "Clínica",
                       direccion: sobrecupoData["Dirección"] || sobrecupoData["Direccion"] || ""
-                    }
+                    },
+                    motivo // Pasar el motivo como 4to parámetro
                   );
                   
                   console.log("✅ WhatsApp enviado al médico exitosamente");
