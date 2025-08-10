@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
 export default function PerfilMedico() {
+  console.log('🎯 PerfilMedico component iniciado');
   const { data: session, status } = useSession();
   const router = useRouter();
   const fileInputRef = useRef(null);
@@ -48,14 +49,18 @@ export default function PerfilMedico() {
   }, [session, status, router]);
 
   const fetchDoctorData = async () => {
+    console.log('🔄 fetchDoctorData iniciado');
     try {
+      console.log('📡 Fetching datos del doctor:', session.user.doctorId);
       const res = await fetch(`/api/doctors/${session.user.doctorId}`);
+      console.log('📥 Response status fetchDoctorData:', res.status);
+      
       if (res.ok) {
         const data = await res.json();
         console.log('📄 Datos del médico recibidos:', data);
         console.log('🖼️ PhotoURL encontrada:', data.fields?.PhotoURL);
         
-        setDoctorData({
+        const newDoctorData = {
           Name: data.fields?.Name || '',
           Email: data.fields?.Email || '',
           WhatsApp: data.fields?.WhatsApp || '',
@@ -66,77 +71,94 @@ export default function PerfilMedico() {
           PhotoURL: data.fields?.PhotoURL || '',
           RSS: data.fields?.RSS || '',
           Experiencia: data.fields?.Experiencia || '',
-        });
+        };
+        
+        console.log('🔄 Actualizando estado con nuevos datos:', newDoctorData);
+        setDoctorData(newDoctorData);
+      } else {
+        console.error('❌ Error response fetchDoctorData:', res.status, res.statusText);
       }
     } catch (error) {
-      console.error('Error cargando datos:', error);
+      console.error('💥 Error cargando datos:', error);
       setMessage('Error cargando datos del perfil');
     } finally {
+      console.log('✅ fetchDoctorData finalizado, setLoading(false)');
       setLoading(false);
     }
   };
 
   const handleImageUpload = async (event) => {
+    console.log('🚀 handleImageUpload iniciado');
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+      console.log('❌ No se seleccionó archivo');
+      return;
+    }
+
+    console.log('📁 Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'Tipo:', file.type);
 
     if (!file.type.startsWith('image/')) {
+      console.log('❌ Tipo de archivo inválido:', file.type);
       setMessage('Por favor selecciona una imagen válida');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
+      console.log('❌ Archivo muy grande:', file.size);
       setMessage('La imagen no debe superar los 5MB');
       return;
     }
 
+    console.log('🔄 Iniciando subida...');
     setUploadingImage(true);
-    setMessage('');
+    setMessage('Subiendo imagen...');
 
     try {
-      // Mostrar preview temporal mientras sube
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        console.log('📷 Mostrando preview temporal');
-        // NO actualizar PhotoURL con data URL, mantener la URL de S3 si existe
-      };
-      reader.readAsDataURL(file);
-
       const formData = new FormData();
       formData.append('photo', file);
       formData.append('doctorId', session.user.doctorId);
       
+      console.log('👤 Doctor ID:', session.user.doctorId);
+      
       if (doctorData.PhotoURL && doctorData.PhotoURL.includes('s3.') && doctorData.PhotoURL.includes('amazonaws.com')) {
         formData.append('oldImageUrl', doctorData.PhotoURL);
+        console.log('🗑️ URL anterior para eliminar:', doctorData.PhotoURL);
       }
 
+      console.log('📤 Enviando request a /api/upload...');
       const uploadRes = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       });
 
+      console.log('📥 Response status:', uploadRes.status);
       const uploadData = await uploadRes.json();
-      console.log('📤 Respuesta del servidor:', uploadData);
+      console.log('📄 Respuesta completa del servidor:', uploadData);
 
       if (uploadData.success) {
         console.log('✅ Upload exitoso, nueva URL:', uploadData.url);
+        console.log('🔄 Actualizando estado local...');
         setDoctorData(prev => ({ ...prev, PhotoURL: uploadData.url }));
         setMessage('Foto subida correctamente');
         
-        // Forzar actualización desde Airtable para confirmar
+        console.log('🔄 Refrescando datos desde Airtable en 2 segundos...');
         setTimeout(() => {
+          console.log('🔄 Ejecutando fetchDoctorData...');
           fetchDoctorData();
-        }, 1000);
+        }, 2000);
       } else {
+        console.error('❌ Upload falló:', uploadData.error);
         throw new Error(uploadData.error || 'Error desconocido');
       }
       
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(''), 5000);
     } catch (error) {
-      console.error('Error subiendo imagen:', error);
+      console.error('💥 Error en handleImageUpload:', error);
       setMessage(`Error subiendo la imagen: ${error.message}`);
+      console.log('🔄 Refrescando datos por error...');
       fetchDoctorData();
     } finally {
+      console.log('✅ Finalizando upload, uploadingImage = false');
       setUploadingImage(false);
     }
   };
@@ -373,7 +395,10 @@ export default function PerfilMedico() {
                 <div className="photo-actions">
                   <button 
                     type="button" 
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => {
+                      console.log('🖱️ Botón click, abriendo selector de archivos...');
+                      fileInputRef.current?.click();
+                    }}
                     disabled={uploadingImage}
                     className="upload-button"
                   >
@@ -385,6 +410,7 @@ export default function PerfilMedico() {
                     accept="image/*"
                     onChange={handleImageUpload}
                     style={{ display: 'none' }}
+                    onClick={() => console.log('📁 File input clicked')}
                   />
                   <p className="upload-help">
                     Tamaño máximo: 5MB. Formatos: JPG, PNG, WebP
