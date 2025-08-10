@@ -1621,6 +1621,70 @@ Ejemplos:
             text: "No entendí tu respuesta. ¿Te sirve esta cita? Responde \"sí\" para confirmar o \"no\" para ver otras opciones."
           });
 
+        case 'collecting-basic-data':
+          const { dataStep = 'name' } = currentSession;
+          
+          if (dataStep === 'name') {
+            if (text.length < 2) {
+              return NextResponse.json({
+                text: "Por favor ingresa tu nombre completo para continuar."
+              });
+            }
+            
+            sessions[from] = { 
+              ...currentSession, 
+              dataStep: 'rut',
+              patientName: text 
+            };
+            return NextResponse.json({
+              text: `Gracias ${text}! 👤\n\nAhora necesito tu RUT (con guión y dígito verificador).\nEjemplos: 12.345.678-9 o 12345678-9`,
+              session: sessions[from]
+            });
+          }
+          
+          if (dataStep === 'rut') {
+            if (!validarRUT(text)) {
+              const mensajeError = analizarConfusion(text, 'rut');
+              sessions[from] = {
+                ...currentSession,
+                attempts: (currentSession.attempts || 0) + 1
+              };
+              
+              if (currentSession.attempts >= 2) {
+                return NextResponse.json({
+                  text: "He notado que tienes dificultades con el RUT. ¿Te gustaría que un ejecutivo se contacte contigo para ayudarte?\n\nResponde **sí** si prefieres que te contactemos."
+                });
+              }
+              
+              return NextResponse.json({
+                text: mensajeError
+              });
+            }
+            
+            // RUT válido - mostrar opciones de citas
+            const { records, specialty } = currentSession;
+            const selectedOptions = selectSmartAppointmentOptions(records);
+            const presentation = await createOptionsPresentation(selectedOptions, specialty);
+            
+            sessions[from] = {
+              ...currentSession,
+              stage: presentation.stage === 'confirming-appointment' ? 'awaiting-confirmation' : 'choosing-from-options',
+              patientRut: text,
+              selectedOptions,
+              ...(presentation.stage === 'confirming-appointment' && { 
+                doctorInfo: presentation.doctorInfo, 
+                selectedRecord: selectedOptions[0] 
+              })
+            };
+            
+            return NextResponse.json({
+              text: `✅ Perfecto ${currentSession.patientName}!\n\nAquí tienes las opciones disponibles de **${specialty}**:\n\n${presentation.text}`,
+              session: sessions[from]
+            });
+          }
+          
+          break;
+
         case 'getting-name':
           if (text.length < 2) {
             return NextResponse.json({
@@ -2623,26 +2687,21 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           });
         }
 
-        // 🚀 OPTIMIZADO: Selección y presentación inteligente
-        const selectedOptions = selectSmartAppointmentOptions(available);
+        // 🆕 NUEVO FLUJO: Primero recopilar datos básicos, luego mostrar opciones
         const respuestaEmpatica = await generateEmphaticResponse(text);
-        const presentation = await createOptionsPresentation(selectedOptions, specialty);
         
-        const baseSession = {
+        sessions[from] = {
+          stage: 'collecting-basic-data',
           specialty,
           respuestaEmpatica,
           motivo: text,
           records: available,
           attempts: 0,
-          selectedOptions
+          dataStep: 'name' // Empezar por el nombre
         };
 
-        sessions[from] = presentation.stage === 'confirming-appointment' 
-          ? { ...baseSession, stage: 'confirming-appointment', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
-          : { ...baseSession, stage: 'choosing-from-options' };
-
         return NextResponse.json({
-          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n${presentation.text}`,
+          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\nPara mostrarte las opciones disponibles, necesito algunos datos básicos primero.\n\n¿Cuál es tu **nombre completo**?`,
           session: sessions[from]
         });
 
