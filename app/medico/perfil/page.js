@@ -54,6 +54,24 @@ export default function PerfilMedico() {
         const data = await res.json();
         console.log('📄 Doctor data refreshed, PhotoURL:', data.fields?.PhotoURL);
         
+        let finalPhotoURL = data.fields?.PhotoURL || '';
+        
+        // Si hay una foto de S3, generar URL firmada
+        if (finalPhotoURL && finalPhotoURL.includes('s3.') && finalPhotoURL.includes('amazonaws.com')) {
+          try {
+            const photoRes = await fetch(`/api/doctors/${session.user.doctorId}/photo`);
+            if (photoRes.ok) {
+              const photoData = await photoRes.json();
+              if (photoData.signedUrl) {
+                finalPhotoURL = photoData.signedUrl;
+                console.log('✅ Using signed URL for existing photo');
+              }
+            }
+          } catch (photoError) {
+            console.warn('Warning: Could not generate signed URL, using original:', photoError);
+          }
+        }
+        
         setDoctorData({
           Name: data.fields?.Name || '',
           Email: data.fields?.Email || '',
@@ -62,7 +80,7 @@ export default function PerfilMedico() {
           Atiende: data.fields?.Atiende || '',
           Seguros: data.fields?.Seguros || [],
           Password: '',
-          PhotoURL: data.fields?.PhotoURL || '',
+          PhotoURL: finalPhotoURL,
           RSS: data.fields?.RSS || '',
           Experiencia: data.fields?.Experiencia || '',
         });
