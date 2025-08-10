@@ -1640,13 +1640,15 @@ Ejemplos:
               });
             }
             
+            const primerNombre = text.trim().split(' ')[0];
             sessions[from] = { 
               ...currentSession, 
               dataStep: 'rut',
-              patientName: text 
+              patientName: text,
+              primerNombre: primerNombre
             };
             return NextResponse.json({
-              text: `Gracias ${text}! 👤\n\nAhora necesito tu RUT (con guión y dígito verificador).\nEjemplos: 12.345.678-9 o 12345678-9`,
+              text: `¡Perfecto, ${primerNombre}! 👤\n\nAhora necesito tu RUT (con guión y dígito verificador).\nEjemplos: 12.345.678-9 o 12345678-9`,
               session: sessions[from]
             });
           }
@@ -1686,8 +1688,9 @@ Ejemplos:
               })
             };
             
+            const primerNombre = currentSession.primerNombre || currentSession.patientName?.split(' ')[0] || 'usuario';
             return NextResponse.json({
-              text: `✅ Perfecto ${currentSession.patientName}!\n\nAquí tienes las opciones disponibles de **${specialty}**:\n\n${presentation.text}`,
+              text: `✅ ¡Excelente, ${primerNombre}! Encontré estas opciones perfectas de **${specialty}** para ti:\n\n${presentation.text}`,
               session: sessions[from]
             });
           }
@@ -2335,12 +2338,63 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         case 'choosing-from-options':
           // 🚀 OPTIMIZADO: Manejar selección de opciones
           const chosenOption = text.toLowerCase().trim();
-          const { selectedOptions: sessionOptions } = currentSession;
+          const { selectedOptions: sessionOptions, specialty: currentSpecialty, primerNombre } = currentSession;
           const optionIndex = chosenOption === '1' ? 0 : chosenOption === '2' ? 1 : -1;
           
+          // 🆕 DETECTAR RECHAZO DE OPCIONES CON INTELIGENCIA EMOCIONAL
+          const rechazaOpciones = /\b(ninguna|no.*quiero|no.*me.*gusta|no.*me.*sirve|no.*me.*conviene|otro|otra|diferente|distinto)\b/i.test(text);
+          
+          if (rechazaOpciones) {
+            const nombre = primerNombre || 'usuario';
+            
+            // Buscar más opciones del mismo médico o fechas diferentes
+            const allRecords = currentSession.records || [];
+            const otherOptions = allRecords.filter(record => 
+              !sessionOptions.some(selected => selected.id === record.id)
+            ).slice(0, 3);
+            
+            if (otherOptions.length > 0) {
+              sessions[from] = {
+                ...currentSession,
+                stage: 'choosing-alternative-dates',
+                alternativeRecords: otherOptions
+              };
+              
+              let mensaje = `Entiendo, ${nombre}. Te muestro otras fechas disponibles de **${currentSpecialty}**:\n\n`;
+              
+              for (let i = 0; i < Math.min(otherOptions.length, 2); i++) {
+                const record = otherOptions[i];
+                const medicoId = extractMedicoId(record.fields);
+                const doctorInfo = await getDoctorInfoCached(medicoId);
+                const fechaFormateada = formatSpanishDate(record.fields?.Fecha);
+                const address = formatClinicAddress(record.fields);
+                
+                mensaje += `${i + 1}. 👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${address}\n\n`;
+              }
+              
+              mensaje += `¿Alguna de estas fechas te acomoda mejor? O si tienes algún **día específico** en mente, dímelo y busco opciones para esa fecha. 📅`;
+              
+              return NextResponse.json({
+                text: mensaje,
+                session: sessions[from]
+              });
+            } else {
+              // No hay más opciones - preguntar por fecha específica
+              sessions[from] = {
+                ...currentSession,
+                stage: 'asking-specific-date'
+              };
+              
+              return NextResponse.json({
+                text: `Te entiendo perfectamente, ${nombre}. Esas fechas no te acomodan. 🤔\n\n¿Tienes algún **día específico** en mente para tu consulta?\n\nPor ejemplo:\n• "El próximo martes"\n• "La próxima semana"\n• "En 15 días"\n\nO si prefieres, puedo tomar tus datos para avisarte cuando tengamos nuevas opciones de **${currentSpecialty}**. ✨`
+              });
+            }
+          }
+          
           if (optionIndex === -1 || !sessionOptions[optionIndex]) {
+            const nombre = primerNombre || 'usuario';
             return NextResponse.json({
-              text: `Por favor elige una opción válida: responde **1** o **2** para seleccionar tu cita preferida.`
+              text: `${nombre}, por favor elige **1** o **2** para seleccionar tu cita preferida, o escribe **"ninguna"** si prefieres otras opciones. 😊`
             });
           }
 
@@ -2363,6 +2417,64 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             session: sessions[from]
           });
 
+          break;
+
+        case 'choosing-alternative-dates':
+          const altChoice = text.toLowerCase().trim();
+          const { alternativeRecords, specialty: altSpecialty, primerNombre: altNombre } = currentSession;
+          const altIndex = altChoice === '1' ? 0 : altChoice === '2' ? 1 : -1;
+          
+          if (altIndex !== -1 && alternativeRecords[altIndex]) {
+            // Usuario eligió una fecha alternativa
+            const selectedRecord = alternativeRecords[altIndex];
+            const medicoId = extractMedicoId(selectedRecord.fields);
+            const doctorInfo = await getDoctorInfoCached(medicoId);
+            
+            sessions[from] = {
+              ...currentSession,
+              selectedRecord: selectedRecord,
+              doctorInfo: doctorInfo,
+              stage: 'confirming-appointment',
+              attempts: 0
+            };
+            
+            const fechaFormateada = formatSpanishDate(selectedRecord.fields?.Fecha);
+            const address = formatClinicAddress(selectedRecord.fields);
+            
+            return NextResponse.json({
+              text: `¡Perfecto, ${altNombre || 'usuario'}! Has elegido:\n\n👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${selectedRecord.fields?.Hora}\n📍 ${address}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
+              session: sessions[from]
+            });
+          } else {
+            // No eligió número válido - podría ser día específico
+            sessions[from] = {
+              ...currentSession,
+              stage: 'asking-specific-date'
+            };
+            
+            return NextResponse.json({
+              text: `${altNombre || 'Usuario'}, ¿tienes algún **día específico** en mente para tu consulta de **${altSpecialty}**?\n\nPor ejemplo: "martes", "próxima semana", "en 10 días", etc. 📅`
+            });
+          }
+          
+          break;
+        
+        case 'asking-specific-date':
+          const dateRequest = text.toLowerCase().trim();
+          const { specialty: dateSpecialty, primerNombre: dateNombre } = currentSession;
+          
+          // Aquí podrías implementar lógica para parsear fechas naturales
+          // Por ahora, redirigir a contacto para seguimiento manual
+          sessions[from] = {
+            ...currentSession,
+            stage: 'asking-for-contact-data',
+            requestedDate: dateRequest
+          };
+          
+          return NextResponse.json({
+            text: `Perfecto, ${dateNombre || 'usuario'}! Entiendo que buscas una cita de **${dateSpecialty}** para "${dateRequest}".\n\nDéjame tus datos de contacto y te buscaré opciones específicas para esa fecha. ¿Te parece? 📱`
+          });
+          
           break;
 
         case 'asking-for-contact-data':
@@ -2764,7 +2876,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
 
         console.log(`🔍 [DEBUG] Session created successfully, returning response`);
         return NextResponse.json({
-          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\nPara mostrarte las opciones disponibles, necesito algunos datos básicos primero.\n\n¿Cuál es tu **nombre completo**?`,
+          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n🤝 Para brindarte la mejor experiencia y encontrar el médico perfecto para ti, ayúdame con algunos datos.\n\n¿Cuál es tu **nombre completo**?`,
           session: sessions[from]
         });
 
