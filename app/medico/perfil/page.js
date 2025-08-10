@@ -4,14 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
 export default function PerfilMedico() {
-  // Test básico de JavaScript
-  try {
-    console.log('🎯 PerfilMedico component iniciado');
-    window.testDebug = () => console.log('✅ JavaScript funcionando');
-  } catch (e) {
-    console.error('💥 Error en inicio del componente:', e);
-  }
-  
   const { data: session, status } = useSession();
   const router = useRouter();
   const fileInputRef = useRef(null);
@@ -56,18 +48,13 @@ export default function PerfilMedico() {
   }, [session, status, router]);
 
   const fetchDoctorData = async () => {
-    console.log('🔄 fetchDoctorData iniciado');
     try {
-      console.log('📡 Fetching datos del doctor:', session.user.doctorId);
       const res = await fetch(`/api/doctors/${session.user.doctorId}`);
-      console.log('📥 Response status fetchDoctorData:', res.status);
-      
       if (res.ok) {
         const data = await res.json();
-        console.log('📄 Datos del médico recibidos:', data);
-        console.log('🖼️ PhotoURL encontrada:', data.fields?.PhotoURL);
+        console.log('📄 Doctor data refreshed, PhotoURL:', data.fields?.PhotoURL);
         
-        const newDoctorData = {
+        setDoctorData({
           Name: data.fields?.Name || '',
           Email: data.fields?.Email || '',
           WhatsApp: data.fields?.WhatsApp || '',
@@ -78,45 +65,30 @@ export default function PerfilMedico() {
           PhotoURL: data.fields?.PhotoURL || '',
           RSS: data.fields?.RSS || '',
           Experiencia: data.fields?.Experiencia || '',
-        };
-        
-        console.log('🔄 Actualizando estado con nuevos datos:', newDoctorData);
-        setDoctorData(newDoctorData);
-      } else {
-        console.error('❌ Error response fetchDoctorData:', res.status, res.statusText);
+        });
       }
     } catch (error) {
-      console.error('💥 Error cargando datos:', error);
+      console.error('Error cargando datos:', error);
       setMessage('Error cargando datos del perfil');
     } finally {
-      console.log('✅ fetchDoctorData finalizado, setLoading(false)');
       setLoading(false);
     }
   };
 
   const handleImageUpload = async (event) => {
-    console.log('🚀 handleImageUpload iniciado');
     const file = event.target.files[0];
-    if (!file) {
-      console.log('❌ No se seleccionó archivo');
-      return;
-    }
-
-    console.log('📁 Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'Tipo:', file.type);
+    if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      console.log('❌ Tipo de archivo inválido:', file.type);
       setMessage('Por favor selecciona una imagen válida');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      console.log('❌ Archivo muy grande:', file.size);
       setMessage('La imagen no debe superar los 5MB');
       return;
     }
 
-    console.log('🔄 Iniciando subida...');
     setUploadingImage(true);
     setMessage('Subiendo imagen...');
 
@@ -125,47 +97,36 @@ export default function PerfilMedico() {
       formData.append('photo', file);
       formData.append('doctorId', session.user.doctorId);
       
-      console.log('👤 Doctor ID:', session.user.doctorId);
-      
       if (doctorData.PhotoURL && doctorData.PhotoURL.includes('s3.') && doctorData.PhotoURL.includes('amazonaws.com')) {
         formData.append('oldImageUrl', doctorData.PhotoURL);
-        console.log('🗑️ URL anterior para eliminar:', doctorData.PhotoURL);
       }
 
-      console.log('📤 Enviando request a /api/upload...');
       const uploadRes = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       });
 
-      console.log('📥 Response status:', uploadRes.status);
       const uploadData = await uploadRes.json();
-      console.log('📄 Respuesta completa del servidor:', uploadData);
+      console.log('✅ Upload response:', uploadData);
 
       if (uploadData.success) {
-        console.log('✅ Upload exitoso, nueva URL:', uploadData.url);
-        console.log('🔄 Actualizando estado local...');
         setDoctorData(prev => ({ ...prev, PhotoURL: uploadData.url }));
         setMessage('Foto subida correctamente');
         
-        console.log('🔄 Refrescando datos desde Airtable en 2 segundos...');
+        // Refresh data from Airtable to confirm
         setTimeout(() => {
-          console.log('🔄 Ejecutando fetchDoctorData...');
           fetchDoctorData();
-        }, 2000);
+        }, 1500);
       } else {
-        console.error('❌ Upload falló:', uploadData.error);
         throw new Error(uploadData.error || 'Error desconocido');
       }
       
-      setTimeout(() => setMessage(''), 5000);
+      setTimeout(() => setMessage(''), 4000);
     } catch (error) {
-      console.error('💥 Error en handleImageUpload:', error);
-      setMessage(`Error subiendo la imagen: ${error.message}`);
-      console.log('🔄 Refrescando datos por error...');
+      console.error('Error subiendo imagen:', error);
+      setMessage(`Error: ${error.message}`);
       fetchDoctorData();
     } finally {
-      console.log('✅ Finalizando upload, uploadingImage = false');
       setUploadingImage(false);
     }
   };
@@ -374,13 +335,10 @@ export default function PerfilMedico() {
                       src={doctorData.PhotoURL} 
                       alt="Foto de perfil" 
                       className="profile-image"
-                      onLoad={() => console.log('✅ Imagen cargada exitosamente:', doctorData.PhotoURL)}
                       onError={(e) => {
-                        console.error('❌ Error cargando imagen:', doctorData.PhotoURL);
-                        console.error('❌ Error details:', e);
-                        // Solo remover la URL después de un timeout para evitar bucles
+                        console.error('Error cargando imagen:', doctorData.PhotoURL);
+                        // Remove problematic URL after delay to avoid loops
                         setTimeout(() => {
-                          console.log('⚠️ Removiendo URL problemática:', doctorData.PhotoURL);
                           setDoctorData(prev => ({ ...prev, PhotoURL: '' }));
                         }, 2000);
                       }}
@@ -400,108 +358,10 @@ export default function PerfilMedico() {
                 </div>
                 
                 <div className="photo-actions">
-                  {/* Evento directo sin React */}
-                  <div style={{marginBottom: '10px', padding: '10px', border: '2px solid red', borderRadius: '8px'}}>
-                    <p style={{margin: '0 0 10px', color: 'red', fontSize: '12px'}}>🔴 TEST CON EVENTOS DIRECTOS</p>
-                    <input
-                      type="file" 
-                      id="test-file-input"
-                      style={{width: '100%', padding: '10px'}}
-                    />
-                    <button 
-                      id="test-upload-btn"
-                      style={{padding: '10px', background: 'blue', color: 'white', border: 'none', borderRadius: '4px', marginTop: '10px'}}
-                    >
-                      SUBIR ARCHIVO (Test Directo)
-                    </button>
-                  </div>
-                  
-                  <script dangerouslySetInnerHTML={{
-                    __html: `
-                      console.log('📜 Script directo ejecutándose');
-                      
-                      function setupDirectEvents() {
-                        const fileInput = document.getElementById('test-file-input');
-                        const uploadBtn = document.getElementById('test-upload-btn');
-                        
-                        if (fileInput) {
-                          fileInput.addEventListener('change', function(e) {
-                            console.log('🔥 EVENTO DIRECTO - File input changed!');
-                            console.log('📁 Files:', e.target.files);
-                            if (e.target.files.length > 0) {
-                              console.log('📁 File name:', e.target.files[0].name);
-                              alert('Archivo seleccionado: ' + e.target.files[0].name);
-                            }
-                          });
-                          console.log('✅ Event listener agregado al file input');
-                        } else {
-                          console.log('❌ No se encontró file input');
-                        }
-                        
-                        if (uploadBtn) {
-                          uploadBtn.addEventListener('click', function() {
-                            console.log('🔥 EVENTO DIRECTO - Upload button clicked!');
-                            const file = fileInput && fileInput.files[0];
-                            if (file) {
-                              console.log('📤 Iniciando upload directo de:', file.name);
-                              testDirectUpload(file);
-                            } else {
-                              alert('Primero selecciona un archivo');
-                            }
-                          });
-                          console.log('✅ Event listener agregado al upload button');
-                        } else {
-                          console.log('❌ No se encontró upload button');
-                        }
-                      }
-                      
-                      async function testDirectUpload(file) {
-                        console.log('🚀 testDirectUpload iniciado con archivo:', file.name);
-                        
-                        const formData = new FormData();
-                        formData.append('photo', file);
-                        formData.append('doctorId', 'test-doctor-id'); // Temporal
-                        
-                        try {
-                          console.log('📤 Enviando request directo...');
-                          const response = await fetch('/api/upload', {
-                            method: 'POST',
-                            body: formData
-                          });
-                          
-                          console.log('📥 Response status:', response.status);
-                          const data = await response.json();
-                          console.log('📄 Response data:', data);
-                          
-                          if (data.success) {
-                            alert('✅ Upload exitoso! URL: ' + data.url);
-                          } else {
-                            alert('❌ Upload falló: ' + data.error);
-                          }
-                        } catch (error) {
-                          console.error('💥 Error en upload directo:', error);
-                          alert('❌ Error: ' + error.message);
-                        }
-                      }
-                      
-                      // Esperar a que el DOM esté listo
-                      if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', setupDirectEvents);
-                      } else {
-                        setupDirectEvents();
-                      }
-                      
-                      // También intentar después de un delay
-                      setTimeout(setupDirectEvents, 1000);
-                    `
-                  }} />
                   
                   <button 
                     type="button" 
-                    onClick={() => {
-                      console.log('🖱️ Botón click, abriendo selector de archivos...');
-                      fileInputRef.current?.click();
-                    }}
+                    onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingImage}
                     className="upload-button"
                   >
@@ -513,7 +373,6 @@ export default function PerfilMedico() {
                     accept="image/*"
                     onChange={handleImageUpload}
                     style={{ display: 'none' }}
-                    onClick={() => console.log('📁 File input clicked')}
                   />
                   <p className="upload-help">
                     Tamaño máximo: 5MB. Formatos: JPG, PNG, WebP
