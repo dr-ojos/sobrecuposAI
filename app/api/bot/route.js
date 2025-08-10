@@ -1688,9 +1688,9 @@ Ejemplos:
               })
             };
             
-            const primerNombre = currentSession.primerNombre || currentSession.patientName?.split(' ')[0] || 'usuario';
+            const userName = currentSession.primerNombre || currentSession.patientName?.split(' ')[0] || 'usuario';
             return NextResponse.json({
-              text: `✅ ¡Excelente, ${primerNombre}! Encontré estas opciones perfectas de **${specialty}** para ti:\n\n${presentation.text}`,
+              text: `✅ ¡Excelente, ${userName}! Encontré estas opciones perfectas de **${specialty}** para ti:\n\n${presentation.text}`,
               session: sessions[from]
             });
           }
@@ -2338,14 +2338,14 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         case 'choosing-from-options':
           // 🚀 OPTIMIZADO: Manejar selección de opciones
           const chosenOption = text.toLowerCase().trim();
-          const { selectedOptions: sessionOptions, specialty: currentSpecialty, primerNombre } = currentSession;
+          const { selectedOptions: sessionOptions, specialty: currentSpecialty, primerNombre: userFirstName } = currentSession;
           const optionIndex = chosenOption === '1' ? 0 : chosenOption === '2' ? 1 : -1;
           
           // 🆕 DETECTAR RECHAZO DE OPCIONES CON INTELIGENCIA EMOCIONAL
           const rechazaOpciones = /\b(ninguna|no.*quiero|no.*me.*gusta|no.*me.*sirve|no.*me.*conviene|otro|otra|diferente|distinto)\b/i.test(text);
           
           if (rechazaOpciones) {
-            const nombre = primerNombre || 'usuario';
+            const nombre = userFirstName || 'usuario';
             
             // Buscar más opciones del mismo médico o fechas diferentes
             const allRecords = currentSession.records || [];
@@ -2392,7 +2392,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           }
           
           if (optionIndex === -1 || !sessionOptions[optionIndex]) {
-            const nombre = primerNombre || 'usuario';
+            const nombre = userFirstName || 'usuario';
             return NextResponse.json({
               text: `${nombre}, por favor elige **1** o **2** para seleccionar tu cita preferida, o escribe **"ninguna"** si prefieres otras opciones. 😊`
             });
