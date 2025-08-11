@@ -979,13 +979,127 @@ export async function POST(req) {
     console.log(`🔍 Sesión actual:`, currentSession ? 'EXISTE' : 'NO EXISTE');
     console.log(`🔍 Stage actual:`, currentSession?.stage);
 
-    // 🚨 CRÍTICO: Si hay sesión activa, procesar DENTRO del flujo de sesión primero
-    if (currentSession && currentSession.stage && currentSession.stage !== 'welcome') {
-      console.log(`🔄 Usuario en sesión activa (stage: ${currentSession.stage}), procesando en switch...`);
-      // Continuar al switch para procesar según el stage
-    } 
+    // 🔥 MANEJO DE SESIONES EXISTENTES - PRIORIDAD MÁXIMA
+    // Priorizar la sesión del request sobre la sesión interna del servidor
+    const activeSession = currentSession || sessions[from];
+    
+    // Si viene sesión en el request, actualizarla en la memoria del servidor
+    if (currentSession?.stage) {
+      sessions[from] = currentSession;
+    }
+    
+    // 🚨 CRÍTICO: Si hay sesión activa, procesar DIRECTAMENTE en switch
+    if (activeSession?.stage && activeSession.stage !== 'welcome') {
+      console.log(`🔄 Usuario en sesión activa (stage: ${activeSession.stage}), procesando directamente...`);
+      const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = activeSession;
+
+      switch (stage) {
+        case 'choosing-from-options':
+          // 🚀 OPTIMIZADO: Manejar selección de opciones
+          const chosenOption = text.toLowerCase().trim();
+          const { selectedOptions: sessionOptions, specialty: currentSpecialty, primerNombre: userFirstName } = activeSession;
+          const optionIndex = chosenOption === '1' ? 0 : chosenOption === '2' ? 1 : -1;
+          
+          // 🐛 DEBUG: Log detallado de la selección
+          console.log('🔍 [OPTION SELECTION DEBUG - ACTIVE SESSION]');
+          console.log('  User input:', text);
+          console.log('  Chosen option:', chosenOption);
+          console.log('  Option index:', optionIndex);
+          console.log('  Current stage:', activeSession?.stage);
+          console.log('  Available options:', sessionOptions?.length);
+          
+          // 🆕 DETECTAR RECHAZO DE OPCIONES CON INTELIGENCIA EMOCIONAL
+          const rechazaOpciones = /\b(ninguna|otras|otros|no.*quiero|no.*me.*gusta|no.*me.*sirve|no.*me.*conviene|diferente|distinto)\b/i.test(text);
+          
+          console.log('🔍 [REJECTION DEBUG - ACTIVE SESSION] rechazaOpciones:', rechazaOpciones, 'for text:', text);
+          
+          if (rechazaOpciones) {
+            console.log('🚨 [REJECTION FLOW - ACTIVE SESSION] Usuario rechaza opciones, buscando alternativas...');
+            const nombre = userFirstName || 'usuario';
+            
+            // Buscar más opciones del mismo médico o fechas diferentes
+            const allRecords = activeSession.records || [];
+            const otherOptions = allRecords.filter(record => 
+              !sessionOptions.some(selected => selected.id === record.id)
+            ).slice(0, 3);
+            
+            if (otherOptions.length > 0) {
+              sessions[from] = {
+                ...activeSession,
+                stage: 'choosing-alternative-dates',
+                alternativeRecords: otherOptions
+              };
+              
+              let mensaje = `Entiendo, ${nombre}. Te muestro otras fechas disponibles de **${currentSpecialty}**:\n\n`;
+              
+              for (let i = 0; i < Math.min(otherOptions.length, 2); i++) {
+                const record = otherOptions[i];
+                const medicoId = extractMedicoId(record.fields);
+                const doctorInfo = await getDoctorInfoCached(medicoId);
+                const fechaFormateada = formatSpanishDate(record.fields?.Fecha);
+                const address = formatClinicAddress(record.fields);
+                
+                mensaje += `${i + 1}. 👨‍⚕️ **Dr. ${doctorInfo.name}**\n📅 ${fechaFormateada} a las ${record.fields?.Hora}\n📍 ${address}\n\n`;
+              }
+              
+              mensaje += `¿Cuál prefieres? Responde **1** o **2**, o si tienes algún **día específico** en mente, dímelo. 📅`;
+              
+              return NextResponse.json({
+                text: mensaje,
+                session: sessions[from]
+              });
+            } else {
+              // No hay más opciones - preguntar por fecha específica
+              sessions[from] = {
+                ...activeSession,
+                stage: 'asking-specific-date'
+              };
+              
+              return NextResponse.json({
+                text: `Te entiendo perfectamente, ${nombre}. Esas fechas no te acomodan. 🤔\n\n¿Tienes algún **día específico** en mente para tu consulta?\n\nPor ejemplo:\n• "El próximo martes"\n• "La próxima semana"\n• "En 15 días"\n\nO si prefieres, puedo tomar tus datos para avisarte cuando tengamos nuevas opciones de **${currentSpecialty}**. ✨`
+              });
+            }
+          }
+          
+          if (optionIndex === -1 || !sessionOptions[optionIndex]) {
+            const nombre = userFirstName || 'usuario';
+            return NextResponse.json({
+              text: `${nombre}, por favor elige **1** o **2** para seleccionar tu cita preferida, o escribe **"ninguna"** si prefieres otras opciones. 😊`
+            });
+          }
+
+          const chosenRecord = sessionOptions[optionIndex];
+          const chosenMedicoId = extractMedicoId(chosenRecord.fields);
+          const chosenDoctorInfo = await getDoctorInfoCached(chosenMedicoId);
+          const chosenFechaFormateada = formatSpanishDate(chosenRecord.fields?.Fecha);
+          const chosenAddress = formatClinicAddress(chosenRecord.fields);
+          
+          sessions[from] = {
+            ...activeSession,
+            selectedRecord: chosenRecord,
+            doctorInfo: chosenDoctorInfo,
+            stage: 'confirming-appointment',
+            attempts: 0
+          };
+          
+          return NextResponse.json({
+            text: `Perfecto. Has seleccionado:\n\n👨‍⚕️ **Dr. ${chosenDoctorInfo.name}**\n📅 ${chosenFechaFormateada} a las ${chosenRecord.fields?.Hora}\n📍 ${chosenAddress}\n\n¿Confirmas esta cita? Responde **Sí** para proceder con la reserva.`,
+            session: sessions[from]
+          });
+          
+          break;
+          
+        // Aquí irían los otros cases del switch original...
+        default:
+          console.log(`⚠️ Stage no manejado en sesión activa: ${stage}`);
+          break;
+      }
+      
+      // Si llegamos aquí, es que no manejamos el stage - continuar con la lógica normal
+    }
+    
     // 🔥 Solo si NO hay sesión activa, detectar consultas médicas o no médicas
-    else {
+    if (!activeSession?.stage || activeSession.stage === 'welcome') {
       const especialidadDetectada = detectarEspecialidadPorSintomas(text);
       if (especialidadDetectada) {
         console.log(`🎯 Especialidad detectada directamente: ${especialidadDetectada} para texto: "${text}"`);
