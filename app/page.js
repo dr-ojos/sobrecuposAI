@@ -11,6 +11,8 @@ export default function Home() {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [chatExpanding, setChatExpanding] = useState(false);
+  const [especialidades, setEspecialidades] = useState([]);
+  const [currentEspecialidad, setCurrentEspecialidad] = useState(0);
 
   // Función para manejar el envío del chat con efecto de expansión
   const handleChatSubmit = (e) => {
@@ -40,6 +42,34 @@ export default function Home() {
   const goToSobrecupos = () => {
     router.push('/agendar');
   };
+
+  // Cargar especialidades disponibles
+  useEffect(() => {
+    const fetchEspecialidades = async () => {
+      try {
+        const response = await fetch('/api/especialidades-disponibles');
+        const data = await response.json();
+        if (data.success && data.especialidades.length > 0) {
+          setEspecialidades(data.especialidades);
+        }
+      } catch (error) {
+        console.error('Error cargando especialidades:', error);
+      }
+    };
+    
+    fetchEspecialidades();
+  }, []);
+
+  // Rotación automática de especialidades
+  useEffect(() => {
+    if (especialidades.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentEspecialidad((prev) => (prev + 1) % especialidades.length);
+      }, 3000); // Cambia cada 3 segundos
+      
+      return () => clearInterval(interval);
+    }
+  }, [especialidades.length]);
 
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 300);
@@ -90,6 +120,34 @@ export default function Home() {
               <strong>Más tiempo sano, </strong>  menos tiempo enfermo.
             </p>
           </div>
+
+          {/* Indicador de Especialidades Disponibles */}
+          {especialidades.length > 0 && (
+            <div className={`especialidades-indicator ${isVisible ? 'visible' : ''}`}>
+              <div className="especialidades-content">
+                <span className="especialidades-label">Especialidades con sobrecupos:</span>
+                <div className="especialidades-display">
+                  {especialidades.length === 1 ? (
+                    <span className="especialidad-single">{especialidades[0]}</span>
+                  ) : (
+                    <span className="especialidad-rotating" key={currentEspecialidad}>
+                      {especialidades[currentEspecialidad]}
+                    </span>
+                  )}
+                  {especialidades.length > 1 && (
+                    <span className="especialidades-dots">
+                      {especialidades.map((_, index) => (
+                        <span
+                          key={index}
+                          className={`dot ${index === currentEspecialidad ? 'active' : ''}`}
+                        />
+                      ))}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Chat section - Minimalista */}
           <div className={`chat-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
@@ -398,10 +456,93 @@ export default function Home() {
           letter-spacing: -0.5px;
         }
 
+        /* Especialidades Disponibles */
+        .especialidades-indicator {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
+          margin-bottom: 2rem;
+          text-align: center;
+        }
+
+        .especialidades-indicator.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .especialidades-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .especialidades-label {
+          font-size: 0.875rem;
+          color: #666;
+          font-weight: 400;
+          letter-spacing: 0.3px;
+        }
+
+        .especialidades-display {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .especialidad-single,
+        .especialidad-rotating {
+          font-size: 1.1rem;
+          font-weight: 500;
+          color: #ff9500;
+          background: linear-gradient(135deg, #ff9500, #e6850a);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          min-height: 1.5rem;
+          display: flex;
+          align-items: center;
+        }
+
+        .especialidad-rotating {
+          animation: fadeInSpecialty 0.5s ease-in-out;
+        }
+
+        @keyframes fadeInSpecialty {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .especialidades-dots {
+          display: flex;
+          gap: 0.5rem;
+          margin-top: 0.25rem;
+        }
+
+        .dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #e5e5e5;
+          transition: all 0.3s ease;
+        }
+
+        .dot.active {
+          background: #ff9500;
+          transform: scale(1.2);
+        }
+
         .chat-container {
           opacity: 0;
           transform: translateY(20px);
-          transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s;
+          transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
           margin-bottom: 3rem;
         }
 
@@ -902,6 +1043,19 @@ export default function Home() {
           
           .subtitle {
             font-size: 1.25rem;
+          }
+          
+          .especialidades-label {
+            font-size: 0.8rem;
+          }
+
+          .especialidad-single,
+          .especialidad-rotating {
+            font-size: 1rem;
+          }
+
+          .especialidades-content {
+            gap: 0.5rem;
           }
           
           .chat-title {
