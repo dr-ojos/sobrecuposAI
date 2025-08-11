@@ -11,8 +11,11 @@ const AgendarSobrecuposPage = () => {
   const [showReservationModal, setShowReservationModal] = useState(false);
   const [filters, setFilters] = useState({
     especialidad: '',
-    medico: ''
+    medico: '',
+    fecha: ''
   });
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [availableDates, setAvailableDates] = useState([]);
   const [reservationData, setReservationData] = useState({
     nombre: '',
     apellidos: '',
@@ -56,6 +59,10 @@ const AgendarSobrecuposPage = () => {
           console.log(`📅 Sobrecupos futuros: ${futureSobrecupos.length}`);
           setSobrecupos(futureSobrecupos);
           setFilteredSobrecupos(futureSobrecupos);
+          
+          // Extraer fechas únicas para el calendario
+          const uniqueDates = [...new Set(futureSobrecupos.map(s => s.fields?.Fecha).filter(Boolean))].sort();
+          setAvailableDates(uniqueDates);
         } else {
           throw new Error(data.error || 'Error obteniendo datos');
         }
@@ -84,6 +91,10 @@ const AgendarSobrecuposPage = () => {
       filtered = filtered.filter(s => 
         s.fields.Médico && s.fields.Médico.toLowerCase().includes(filters.medico.toLowerCase())
       );
+    }
+
+    if (filters.fecha) {
+      filtered = filtered.filter(s => s.fields.Fecha === filters.fecha);
     }
 
     // Ordenar por fecha y hora
@@ -204,8 +215,43 @@ const AgendarSobrecuposPage = () => {
   };
 
   const clearFilters = () => {
-    setFilters({ especialidad: '', medico: '' });
+    setFilters({ especialidad: '', medico: '', fecha: '' });
   };
+
+  const formatCalendarDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-CL', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const handleDateSelect = (date) => {
+    setFilters(prev => ({ ...prev, fecha: date }));
+    setShowCalendar(false);
+  };
+
+  const clearDateFilter = () => {
+    setFilters(prev => ({ ...prev, fecha: '' }));
+  };
+
+  // Cerrar calendario al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showCalendar && !event.target.closest('.date-filter-container')) {
+        setShowCalendar(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showCalendar]);
 
   const handleBackClick = () => {
     router.back();
@@ -321,7 +367,64 @@ const AgendarSobrecuposPage = () => {
                 </select>
               </div>
 
-              {(filters.especialidad || filters.medico) && (
+              <div className="filter-group">
+                <div className="date-filter-container">
+                  <button
+                    onClick={() => setShowCalendar(!showCalendar)}
+                    className={`date-filter-button ${filters.fecha ? 'active' : ''}`}
+                  >
+                    <svg className="calendar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                      <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="1.5"/>
+                      <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="1.5"/>
+                      <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                    <span>{filters.fecha ? formatCalendarDate(filters.fecha) : 'Fecha'}</span>
+                    {filters.fecha && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearDateFilter();
+                        }}
+                        className="clear-date-button"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2"/>
+                        </svg>
+                      </button>
+                    )}
+                  </button>
+
+                  {showCalendar && (
+                    <div className="calendar-dropdown">
+                      <div className="calendar-header">
+                        <h4>Fechas disponibles</h4>
+                        <button
+                          onClick={() => setShowCalendar(false)}
+                          className="calendar-close"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="1.5"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="calendar-dates">
+                        {availableDates.map(date => (
+                          <button
+                            key={date}
+                            onClick={() => handleDateSelect(date)}
+                            className={`calendar-date-option ${filters.fecha === date ? 'selected' : ''}`}
+                          >
+                            {formatCalendarDate(date)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {(filters.especialidad || filters.medico || filters.fecha) && (
                 <button onClick={clearFilters} className="clear-filters">
                   Limpiar
                 </button>
@@ -776,6 +879,147 @@ const AgendarSobrecuposPage = () => {
         .clear-filters:hover {
           border-color: #171717;
           color: #171717;
+        }
+
+        /* Date Filter */
+        .date-filter-container {
+          position: relative;
+        }
+
+        .date-filter-button {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          background: white;
+          font-size: 0.875rem;
+          color: #171717;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          justify-content: space-between;
+          min-height: 46px;
+        }
+
+        .date-filter-button:hover,
+        .date-filter-button.active {
+          border-color: #171717;
+        }
+
+        .date-filter-button.active {
+          background: #f9fafb;
+        }
+
+        .calendar-icon {
+          color: #666;
+          flex-shrink: 0;
+        }
+
+        .date-filter-button span {
+          flex: 1;
+          text-align: left;
+        }
+
+        .clear-date-button {
+          padding: 2px;
+          background: none;
+          border: none;
+          color: #999;
+          cursor: pointer;
+          border-radius: 4px;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .clear-date-button:hover {
+          color: #171717;
+          background: #f5f5f5;
+        }
+
+        .calendar-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          z-index: 100;
+          margin-top: 4px;
+          overflow: hidden;
+        }
+
+        .calendar-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem;
+          background: #f9fafb;
+          border-bottom: 1px solid #e5e5e5;
+        }
+
+        .calendar-header h4 {
+          margin: 0;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #171717;
+        }
+
+        .calendar-close {
+          padding: 4px;
+          background: none;
+          border: none;
+          color: #666;
+          cursor: pointer;
+          border-radius: 4px;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .calendar-close:hover {
+          background: #e5e5e5;
+          color: #171717;
+        }
+
+        .calendar-dates {
+          max-height: 200px;
+          overflow-y: auto;
+          padding: 0.5rem;
+        }
+
+        .calendar-date-option {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          background: none;
+          border: none;
+          color: #171717;
+          cursor: pointer;
+          font-size: 0.875rem;
+          text-align: left;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+          margin-bottom: 2px;
+        }
+
+        .calendar-date-option:hover {
+          background: #f5f5f5;
+        }
+
+        .calendar-date-option.selected {
+          background: #171717;
+          color: white;
+        }
+
+        .calendar-date-option:last-child {
+          margin-bottom: 0;
         }
 
         /* Mensaje */
@@ -1453,6 +1697,7 @@ const AgendarSobrecuposPage = () => {
           .filters-container {
             flex-direction: column;
             width: 100%;
+            gap: 0.75rem;
           }
 
           .filter-group {
@@ -1464,31 +1709,115 @@ const AgendarSobrecuposPage = () => {
             justify-self: stretch;
           }
 
+          /* Tarjetas más compactas para iPhone */
+          .sobrecupo-card {
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          }
+
           .card-header {
-            padding: 1rem;
+            padding: 0.875rem;
+            border-bottom: 1px solid #f0f0f0;
+          }
+
+          .doctor-avatar {
+            width: 36px;
+            height: 36px;
+            font-size: 0.8rem;
+          }
+
+          .doctor-name {
+            font-size: 1rem;
+            line-height: 1.3;
+          }
+
+          .doctor-specialty {
+            font-size: 0.8rem;
+            margin-bottom: 0;
+          }
+
+          .appointment-time {
+            text-align: right;
+          }
+
+          .date-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #ff9500;
+          }
+
+          .time-text {
+            font-size: 0.75rem;
+            color: #666;
           }
 
           .card-body {
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 0.875rem;
           }
 
-          .card-footer {
-            padding: 1rem;
+          .location-info {
+            margin-bottom: 0.75rem;
+          }
+
+          .clinic-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 0.125rem;
+          }
+
+          .clinic-address {
+            font-size: 0.75rem;
+            color: #888;
           }
 
           .additional-info {
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 0.75rem;
           }
 
+          .info-item {
+            gap: 0.125rem;
+          }
+
+          .info-label {
+            font-size: 0.7rem;
+            color: #aaa;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+          }
+
+          .info-value {
+            font-size: 0.75rem;
+            color: #555;
+            line-height: 1.2;
+          }
+
+          .card-footer {
+            padding: 0.75rem 0.875rem;
+            border-top: 1px solid #f0f0f0;
+          }
+
           .footer-actions {
-            flex-direction: column;
+            display: flex;
             gap: 0.5rem;
           }
 
-          .info-button,
+          .info-button {
+            flex: 1;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 12px;
+            font-weight: 500;
+          }
+
           .reserve-button {
-            flex: none;
+            flex: 2;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 1px 4px rgba(255, 149, 0, 0.25);
           }
 
           .modal-header {
@@ -1502,11 +1831,28 @@ const AgendarSobrecuposPage = () => {
           .appointment-summary {
             padding: 0.75rem;
             margin-bottom: 1.5rem;
+            border-radius: 10px;
           }
 
           .summary-avatar {
             width: 40px;
             height: 40px;
+          }
+
+          /* Calendario móvil */
+          .calendar-dropdown {
+            left: -10px;
+            right: -10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+          }
+
+          .calendar-dates {
+            max-height: 180px;
+          }
+
+          .calendar-date-option {
+            padding: 0.875rem 1rem;
+            font-size: 0.85rem;
           }
         }
 
