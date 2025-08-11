@@ -16,6 +16,8 @@ const AgendarSobrecuposPage = () => {
   });
   const [showCalendar, setShowCalendar] = useState(false);
   const [availableDates, setAvailableDates] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [calendarDates, setCalendarDates] = useState(new Map());
   const [reservationData, setReservationData] = useState({
     nombre: '',
     apellidos: '',
@@ -63,6 +65,17 @@ const AgendarSobrecuposPage = () => {
           // Extraer fechas únicas para el calendario
           const uniqueDates = [...new Set(futureSobrecupos.map(s => s.fields?.Fecha).filter(Boolean))].sort();
           setAvailableDates(uniqueDates);
+          
+          // Crear mapa de fechas con conteo de sobrecupos
+          const dateMap = new Map();
+          futureSobrecupos.forEach(sobrecupo => {
+            const date = sobrecupo.fields?.Fecha;
+            if (date) {
+              const count = dateMap.get(date) || 0;
+              dateMap.set(date, count + 1);
+            }
+          });
+          setCalendarDates(dateMap);
         } else {
           throw new Error(data.error || 'Error obteniendo datos');
         }
@@ -241,6 +254,83 @@ const AgendarSobrecuposPage = () => {
     setFilters(prev => ({ ...prev, fecha: '' }));
   };
 
+  // Funciones del calendario
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date) => {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    return firstDay === 0 ? 6 : firstDay - 1; // Lunes = 0, Domingo = 6
+  };
+
+  const formatDateForComparison = (year, month, day) => {
+    const date = new Date(year, month, day);
+    return date.toISOString().split('T')[0];
+  };
+
+  const isDateAvailable = (dateString) => {
+    return calendarDates.has(dateString);
+  };
+
+  const getSobrecuposCount = (dateString) => {
+    return calendarDates.get(dateString) || 0;
+  };
+
+  const isDateSelected = (dateString) => {
+    return filters.fecha === dateString;
+  };
+
+  const navigateMonth = (direction) => {
+    setCurrentMonth(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + direction);
+      return newDate;
+    });
+  };
+
+  const handleCalendarDateClick = (dateString) => {
+    if (isDateAvailable(dateString)) {
+      setFilters(prev => ({ ...prev, fecha: dateString }));
+      setShowCalendar(false);
+    }
+  };
+
+  const generateCalendarGrid = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = getDaysInMonth(currentMonth);
+    const firstDayOfWeek = getFirstDayOfMonth(currentMonth);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const grid = [];
+    
+    // Días de la semana anteriores (espacios vacíos)
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      grid.push(null);
+    }
+    
+    // Días del mes actual
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, month, day);
+      const dateString = formatDateForComparison(year, month, day);
+      
+      grid.push({
+        day,
+        dateString,
+        isToday: currentDate.toDateString() === today.toDateString(),
+        isPast: currentDate < today,
+        isAvailable: isDateAvailable(dateString),
+        isSelected: isDateSelected(dateString),
+        count: getSobrecuposCount(dateString)
+      });
+    }
+    
+    return grid;
+  };
+
   // Cerrar calendario al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -398,7 +488,25 @@ const AgendarSobrecuposPage = () => {
                   {showCalendar && (
                     <div className="calendar-dropdown">
                       <div className="calendar-header">
-                        <h4>Fechas disponibles</h4>
+                        <button
+                          onClick={() => navigateMonth(-1)}
+                          className="calendar-nav"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                        <h4 className="calendar-month">
+                          {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
+                        </h4>
+                        <button
+                          onClick={() => navigateMonth(1)}
+                          className="calendar-nav"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
                         <button
                           onClick={() => setShowCalendar(false)}
                           className="calendar-close"
@@ -408,16 +516,39 @@ const AgendarSobrecuposPage = () => {
                           </svg>
                         </button>
                       </div>
-                      <div className="calendar-dates">
-                        {availableDates.map(date => (
-                          <button
-                            key={date}
-                            onClick={() => handleDateSelect(date)}
-                            className={`calendar-date-option ${filters.fecha === date ? 'selected' : ''}`}
-                          >
-                            {formatCalendarDate(date)}
-                          </button>
-                        ))}
+                      
+                      <div className="calendar-body">
+                        <div className="calendar-weekdays">
+                          {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
+                            <div key={day} className="calendar-weekday">{day}</div>
+                          ))}
+                        </div>
+                        
+                        <div className="calendar-grid">
+                          {generateCalendarGrid().map((dateInfo, index) => (
+                            <button
+                              key={index}
+                              onClick={() => dateInfo && handleCalendarDateClick(dateInfo.dateString)}
+                              className={`calendar-day ${
+                                !dateInfo ? 'empty' : 
+                                dateInfo.isPast ? 'past' :
+                                dateInfo.isSelected ? 'selected' :
+                                dateInfo.isAvailable ? 'available' :
+                                dateInfo.isToday ? 'today' : ''
+                              }`}
+                              disabled={!dateInfo || dateInfo.isPast || !dateInfo.isAvailable}
+                            >
+                              {dateInfo && (
+                                <>
+                                  <span className="day-number">{dateInfo.day}</span>
+                                  {dateInfo.isAvailable && dateInfo.count > 0 && (
+                                    <span className="sobrecupos-count">{dateInfo.count}</span>
+                                  )}
+                                </>
+                              )}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -948,11 +1079,13 @@ const AgendarSobrecuposPage = () => {
           right: 0;
           background: white;
           border: 1px solid #e5e5e5;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          border-radius: 12px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
           z-index: 100;
           margin-top: 4px;
           overflow: hidden;
+          width: 280px;
+          max-width: calc(100vw - 2rem);
         }
 
         .calendar-header {
@@ -964,11 +1097,32 @@ const AgendarSobrecuposPage = () => {
           border-bottom: 1px solid #e5e5e5;
         }
 
-        .calendar-header h4 {
+        .calendar-nav {
+          padding: 6px;
+          background: none;
+          border: none;
+          color: #666;
+          cursor: pointer;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .calendar-nav:hover {
+          background: #e5e5e5;
+          color: #171717;
+        }
+
+        .calendar-month {
           margin: 0;
           font-size: 0.875rem;
           font-weight: 600;
           color: #171717;
+          flex: 1;
+          text-align: center;
+          text-transform: capitalize;
         }
 
         .calendar-close {
@@ -989,37 +1143,107 @@ const AgendarSobrecuposPage = () => {
           color: #171717;
         }
 
-        .calendar-dates {
-          max-height: 200px;
-          overflow-y: auto;
-          padding: 0.5rem;
+        .calendar-body {
+          padding: 1rem;
         }
 
-        .calendar-date-option {
-          width: 100%;
-          padding: 0.75rem 1rem;
+        .calendar-weekdays {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 2px;
+          margin-bottom: 0.5rem;
+        }
+
+        .calendar-weekday {
+          padding: 0.5rem 0;
+          text-align: center;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #666;
+        }
+
+        .calendar-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 2px;
+        }
+
+        .calendar-day {
+          position: relative;
+          aspect-ratio: 1;
           background: none;
           border: none;
-          color: #171717;
-          cursor: pointer;
-          font-size: 0.875rem;
-          text-align: left;
           border-radius: 6px;
+          font-size: 0.8rem;
+          cursor: pointer;
           transition: all 0.2s ease;
-          margin-bottom: 2px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 32px;
+          color: #666;
         }
 
-        .calendar-date-option:hover {
-          background: #f5f5f5;
+        .calendar-day.empty {
+          cursor: default;
         }
 
-        .calendar-date-option.selected {
-          background: #171717;
+        .calendar-day.past {
+          color: #ccc;
+          cursor: not-allowed;
+        }
+
+        .calendar-day.today {
+          background: #f0f9ff;
+          color: #0369a1;
+          font-weight: 600;
+        }
+
+        .calendar-day.available {
+          background: #fef3e2;
+          color: #ea580c;
+          font-weight: 600;
+          border: 1px solid #fed7aa;
+        }
+
+        .calendar-day.available:hover {
+          background: #fed7aa;
+          color: #c2410c;
+          transform: translateY(-1px);
+        }
+
+        .calendar-day.selected {
+          background: #ff9500;
           color: white;
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
         }
 
-        .calendar-date-option:last-child {
-          margin-bottom: 0;
+        .day-number {
+          line-height: 1;
+        }
+
+        .sobrecupos-count {
+          position: absolute;
+          top: 2px;
+          right: 2px;
+          background: #ff9500;
+          color: white;
+          font-size: 0.6rem;
+          font-weight: 600;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+        }
+
+        .calendar-day.selected .sobrecupos-count {
+          background: rgba(255, 255, 255, 0.3);
+          color: white;
         }
 
         /* Mensaje */
@@ -1688,25 +1912,159 @@ const AgendarSobrecuposPage = () => {
 
           .main-title {
             font-size: 1.75rem;
+            margin-bottom: 0.25rem;
           }
 
           .main-subtitle {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            margin-bottom: 0;
+          }
+
+          /* Hero section más compacto */
+          .hero-section {
+            margin-bottom: 1.25rem;
+            padding: 0 0.5rem;
+          }
+
+          /* Filtros más compactos para iPhone */
+          .filters-section {
+            margin-bottom: 1.25rem;
+            padding: 0 0.25rem;
           }
 
           .filters-container {
             flex-direction: column;
             width: 100%;
-            gap: 0.75rem;
+            gap: 0.5rem;
+            max-width: none;
           }
 
           .filter-group {
             min-width: auto;
+            flex: none;
+          }
+
+          .filter-select {
+            padding: 0.625rem 0.875rem;
+            padding-right: 2.25rem;
+            font-size: 0.8rem;
+            border-radius: 10px;
+            background-size: 0.875rem;
+            background-position: right 0.625rem center;
+            min-height: 44px;
+            -webkit-appearance: none;
+            appearance: none;
+            /* iOS specific optimizations */
+            -webkit-tap-highlight-color: rgba(255, 149, 0, 0.1);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+          }
+
+          /* Filtro de fecha más compacto */
+          .date-filter-button {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8rem;
+            border-radius: 10px;
+            min-height: 44px;
+            gap: 0.375rem;
+            /* iOS touch optimizations */
+            -webkit-tap-highlight-color: rgba(255, 149, 0, 0.1);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            cursor: pointer;
+          }
+
+          .calendar-icon {
+            width: 14px;
+            height: 14px;
+          }
+
+          .clear-date-button {
+            padding: 3px;
+          }
+
+          .clear-date-button svg {
+            width: 10px;
+            height: 10px;
+          }
+
+          /* Calendario desplegable optimizado para iPhone */
+          .calendar-dropdown {
+            left: -10px;
+            right: -10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            margin-top: 2px;
+            width: auto;
+            max-width: none;
+          }
+
+          .calendar-header {
+            padding: 0.75rem;
+            border-radius: 12px 12px 0 0;
+          }
+
+          .calendar-month {
+            font-size: 0.8rem;
+          }
+
+          .calendar-nav {
+            padding: 4px;
+          }
+
+          .calendar-nav svg {
+            width: 14px;
+            height: 14px;
+          }
+
+          .calendar-close {
+            padding: 2px;
+          }
+
+          .calendar-close svg {
+            width: 14px;
+            height: 14px;
+          }
+
+          .calendar-body {
+            padding: 0.75rem;
+          }
+
+          .calendar-weekday {
+            padding: 0.375rem 0;
+            font-size: 0.7rem;
+          }
+
+          .calendar-day {
+            min-height: 28px;
+            font-size: 0.75rem;
+          }
+
+          .sobrecupos-count {
+            width: 12px;
+            height: 12px;
+            font-size: 0.55rem;
+            top: 1px;
+            right: 1px;
           }
 
           .clear-filters {
             width: 100%;
-            justify-self: stretch;
+            padding: 0.625rem;
+            font-size: 0.8rem;
+            border-radius: 10px;
+            margin-top: 0.25rem;
+            min-height: 44px;
+            /* iOS touch optimizations */
+            -webkit-tap-highlight-color: rgba(23, 23, 23, 0.1);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           /* Tarjetas más compactas para iPhone */
@@ -1858,6 +2216,10 @@ const AgendarSobrecuposPage = () => {
 
         /* iPhone SE and very small devices */
         @media (max-width: 375px) {
+          .main-layout {
+            padding: 1rem 0.5rem;
+          }
+
           .main-title {
             font-size: 1.5rem;
           }
@@ -1875,12 +2237,137 @@ const AgendarSobrecuposPage = () => {
             font-size: 1.25rem;
           }
 
+          /* Filtros extra compactos para pantallas pequeñas */
+          .filters-container {
+            gap: 0.375rem;
+          }
+
+          .filter-select,
+          .date-filter-button {
+            padding: 0.5rem 0.75rem;
+            padding-right: 2rem;
+            font-size: 0.75rem;
+            min-height: 42px;
+            border-radius: 8px;
+          }
+
+          .date-filter-button {
+            gap: 0.25rem;
+            padding-right: 0.75rem;
+          }
+
+          .calendar-icon {
+            width: 12px;
+            height: 12px;
+          }
+
+          .clear-date-button svg {
+            width: 8px;
+            height: 8px;
+          }
+
+          .clear-filters {
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            margin-top: 0.125rem;
+          }
+
+          /* Calendario compacto para iPhone SE */
+          .calendar-dropdown {
+            left: -5px;
+            right: -5px;
+            margin-top: 1px;
+            width: auto;
+            max-width: none;
+          }
+
+          .calendar-header {
+            padding: 0.5rem;
+          }
+
+          .calendar-month {
+            font-size: 0.75rem;
+          }
+
+          .calendar-nav {
+            padding: 3px;
+          }
+
+          .calendar-nav svg {
+            width: 12px;
+            height: 12px;
+          }
+
+          .calendar-close svg {
+            width: 12px;
+            height: 12px;
+          }
+
+          .calendar-body {
+            padding: 0.5rem;
+          }
+
+          .calendar-weekday {
+            padding: 0.25rem 0;
+            font-size: 0.65rem;
+          }
+
+          .calendar-day {
+            min-height: 24px;
+            font-size: 0.7rem;
+          }
+
+          .sobrecupos-count {
+            width: 10px;
+            height: 10px;
+            font-size: 0.5rem;
+          }
+
           .doctor-name {
             font-size: 1rem;
           }
 
           .doctor-specialty {
             font-size: 0.8rem;
+          }
+        }
+
+        /* Landscape mode for small iPhones */
+        @media (max-width: 667px) and (orientation: landscape) {
+          .filters-container {
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+          }
+
+          .filter-group {
+            flex: 1;
+            min-width: 120px;
+          }
+
+          .clear-filters {
+            flex: 0 0 auto;
+            width: auto;
+            min-width: 80px;
+            margin-top: 0;
+          }
+
+          .calendar-dropdown {
+            position: fixed;
+            left: 10px;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            max-height: 70vh;
+            z-index: 1000;
+            width: auto;
+            max-width: 320px;
+            margin: 0 auto;
+          }
+
+          .calendar-body {
+            max-height: calc(70vh - 80px);
+            overflow-y: auto;
           }
         }
 
