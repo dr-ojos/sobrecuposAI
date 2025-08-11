@@ -1,8 +1,8 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const AgendarSobrecuposPage = () => {
+const AgendarSobrecuposContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [sobrecupos, setSobrecupos] = useState([]);
@@ -617,7 +617,6 @@ const AgendarSobrecuposPage = () => {
                           </div>
                         )}
                       </div>
-                    </div>
                     </>
                   )}
                 </div>
@@ -2524,6 +2523,35 @@ const AgendarSobrecuposPage = () => {
         }
       `}</style>
     </main>
+  );
+};
+
+const AgendarSobrecuposPage = () => {
+  return (
+    <Suspense fallback={
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontFamily: 'Helvetica Neue, -apple-system, BlinkMacSystemFont, sans-serif'
+      }}>
+        <div>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            border: '2px solid #f3f4f6',
+            borderTop: '2px solid #171717',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem auto'
+          }}></div>
+          <p>Cargando sobrecupos...</p>
+        </div>
+      </div>
+    }>
+      <AgendarSobrecuposContent />
+    </Suspense>
   );
 };
 
