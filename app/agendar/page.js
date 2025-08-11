@@ -1,9 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const AgendarSobrecuposPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [sobrecupos, setSobrecupos] = useState([]);
   const [filteredSobrecupos, setFilteredSobrecupos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,21 @@ const AgendarSobrecuposPage = () => {
   const [message, setMessage] = useState('');
   const [reservationLoading, setReservationLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+
+  // Cargar filtros desde URL params
+  useEffect(() => {
+    const medico = searchParams.get('medico');
+    const especialidad = searchParams.get('especialidad');
+    const fecha = searchParams.get('fecha');
+    
+    if (medico || especialidad || fecha) {
+      setFilters({
+        medico: medico || '',
+        especialidad: especialidad || '',
+        fecha: fecha || ''
+      });
+    }
+  }, [searchParams]);
 
   // Cargar sobrecupos desde la API real
   useEffect(() => {
@@ -2096,15 +2112,14 @@ const AgendarSobrecuposPage = () => {
           /* Calendario desplegable optimizado para iPhone */
           .calendar-dropdown {
             position: fixed;
-            left: 0.5rem;
-            right: 0.5rem;
+            left: 50%;
             top: 50%;
-            transform: translateY(-50%);
-            width: calc(100vw - 1rem);
-            max-width: none;
+            transform: translate(-50%, -50%);
+            width: calc(100vw - 2rem);
+            max-width: 350px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
             border-radius: 16px;
-            margin-top: 0;
+            margin: 0;
             z-index: 100;
           }
 
@@ -2390,13 +2405,12 @@ const AgendarSobrecuposPage = () => {
           /* Calendario compacto para iPhone SE */
           .calendar-dropdown {
             position: fixed;
-            left: 0.25rem;
-            right: 0.25rem;
+            left: 50%;
             top: 50%;
-            transform: translateY(-50%);
-            width: calc(100vw - 0.5rem);
-            max-width: none;
-            margin-top: 0;
+            transform: translate(-50%, -50%);
+            width: calc(100vw - 1rem);
+            max-width: 320px;
+            margin: 0;
           }
 
           .calendar-header {
@@ -2481,15 +2495,14 @@ const AgendarSobrecuposPage = () => {
 
           .calendar-dropdown {
             position: fixed;
-            left: 10px;
-            right: 10px;
+            left: 50%;
             top: 50%;
-            transform: translateY(-50%);
+            transform: translate(-50%, -50%);
             max-height: 70vh;
             z-index: 1000;
-            width: auto;
-            max-width: 320px;
-            margin: 0 auto;
+            width: calc(100vw - 2rem);
+            max-width: 350px;
+            margin: 0;
           }
 
           .calendar-body {

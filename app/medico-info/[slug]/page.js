@@ -7,7 +7,123 @@ export default function MedicoInfoPage({ params }) {
   const [medico, setMedico] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [sobrecupos, setSobrecupos] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [calendarDates, setCalendarDates] = useState(new Map());
   const { slug } = params;
+
+  // Función para cargar sobrecupos del médico
+  const fetchSobrecuposMedico = async (nombreMedico) => {
+    try {
+      const response = await fetch('/api/sobrecupos/available');
+      if (!response.ok) throw new Error('Error fetching sobrecupos');
+      
+      const data = await response.json();
+      if (data.success) {
+        // Filtrar solo sobrecupos de este médico y futuros
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const sobrecuposMedico = data.records.filter(sobrecupo => {
+          const fechaSobrecupo = new Date(sobrecupo.fields?.Fecha);
+          fechaSobrecupo.setHours(0, 0, 0, 0);
+          
+          return sobrecupo.fields?.Médico === nombreMedico &&
+                 sobrecupo.fields?.Disponible === 'Si' &&
+                 fechaSobrecupo >= today;
+        });
+        
+        setSobrecupos(sobrecuposMedico);
+        
+        // Crear mapa de fechas con conteo
+        const dateMap = new Map();
+        sobrecuposMedico.forEach(sobrecupo => {
+          const date = sobrecupo.fields?.Fecha;
+          if (date) {
+            const count = dateMap.get(date) || 0;
+            dateMap.set(date, count + 1);
+          }
+        });
+        setCalendarDates(dateMap);
+        
+        console.log(`📅 Sobrecupos encontrados para ${nombreMedico}:`, sobrecuposMedico.length);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando sobrecupos del médico:', error);
+    }
+  };
+
+  // Funciones del calendario
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date) => {
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    return firstDay === 0 ? 6 : firstDay - 1;
+  };
+
+  const formatDateForComparison = (year, month, day) => {
+    const date = new Date(year, month, day);
+    return date.toISOString().split('T')[0];
+  };
+
+  const isDateAvailable = (dateString) => {
+    return calendarDates.has(dateString);
+  };
+
+  const getSobrecuposCount = (dateString) => {
+    return calendarDates.get(dateString) || 0;
+  };
+
+  const navigateMonth = (direction) => {
+    setCurrentMonth(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + direction);
+      return newDate;
+    });
+  };
+
+  const generateCalendarGrid = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const daysInMonth = getDaysInMonth(currentMonth);
+    const firstDayOfWeek = getFirstDayOfMonth(currentMonth);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const grid = [];
+    
+    // Días de la semana anteriores (espacios vacíos)
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      grid.push(null);
+    }
+    
+    // Días del mes actual
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, month, day);
+      const dateString = formatDateForComparison(year, month, day);
+      
+      grid.push({
+        day,
+        dateString,
+        isToday: currentDate.toDateString() === today.toDateString(),
+        isPast: currentDate < today,
+        isAvailable: isDateAvailable(dateString),
+        count: getSobrecuposCount(dateString)
+      });
+    }
+    
+    return grid;
+  };
+
+  const handleDateClick = (dateInfo) => {
+    if (dateInfo && dateInfo.isAvailable) {
+      // Navegar a la página principal con filtros aplicados
+      router.push(`/agendar?medico=${encodeURIComponent(medico.fields.Name)}&fecha=${dateInfo.dateString}`);
+    }
+  };
 
   useEffect(() => {
     const fetchMedicoInfo = async () => {
@@ -45,6 +161,9 @@ export default function MedicoInfoPage({ params }) {
           console.log('✅ Médico encontrado:', doctorEncontrado.fields?.Name);
           console.log('📄 Datos del médico:', doctorEncontrado.fields);
           setMedico(doctorEncontrado);
+          
+          // Cargar sobrecupos del médico
+          await fetchSobrecuposMedico(doctorEncontrado.fields?.Name);
         } else {
           console.log('❌ Médico no encontrado para:', nombreMedico);
           setError('Médico no encontrado');
@@ -188,6 +307,83 @@ export default function MedicoInfoPage({ params }) {
                 </div>
               </div>
             )}
+          </section>
+
+          {/* Calendar de Sobrecupos */}
+          <section className="calendar-section">
+            <h3 className="section-title">📅 Sobrecupos Disponibles</h3>
+            <div className="calendar-container">
+              <div className="calendar-header">
+                <button onClick={() => navigateMonth(-1)} className="calendar-nav">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                <div className="calendar-month-container">
+                  <h4 className="calendar-month">
+                    {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
+                  </h4>
+                  <div className="calendar-doctor-indicator">
+                    {fields.Name}
+                  </div>
+                </div>
+                <button onClick={() => navigateMonth(1)} className="calendar-nav">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="calendar-body">
+                <div className="calendar-weekdays">
+                  {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
+                    <div key={day} className="calendar-weekday">{day}</div>
+                  ))}
+                </div>
+                
+                <div className="calendar-grid">
+                  {generateCalendarGrid().map((dateInfo, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleDateClick(dateInfo)}
+                      className={`calendar-day ${
+                        !dateInfo ? 'empty' : 
+                        dateInfo.isPast ? 'past' :
+                        dateInfo.isAvailable ? 'available' :
+                        dateInfo.isToday ? 'today' : ''
+                      }`}
+                      disabled={!dateInfo || dateInfo.isPast || !dateInfo.isAvailable}
+                    >
+                      {dateInfo && (
+                        <>
+                          <span className="day-number">{dateInfo.day}</span>
+                          {dateInfo.isAvailable && dateInfo.count > 0 && (
+                            <span className="sobrecupos-count">{dateInfo.count}</span>
+                          )}
+                        </>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                
+                {sobrecupos.length === 0 && (
+                  <div className="calendar-no-dates">
+                    <div className="no-dates-icon">📅</div>
+                    <p className="no-dates-text">
+                      Este médico no tiene sobrecupos disponibles actualmente
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {sobrecupos.length > 0 && (
+                <div className="calendar-footer">
+                  <p className="calendar-help">
+                    💡 Toca un día destacado para reservar un sobrecupo
+                  </p>
+                </div>
+              )}
+            </div>
           </section>
 
           {/* Experiencia Profesional */}
@@ -544,6 +740,202 @@ export default function MedicoInfoPage({ params }) {
           margin-bottom: 0;
         }
 
+        /* Calendar Section */
+        .calendar-section {
+          background: white;
+          border-radius: 16px;
+          padding: 2rem;
+          border: 1px solid #e5e5e5;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .calendar-container {
+          background: #f9fafb;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+          overflow: hidden;
+        }
+
+        .calendar-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem;
+          background: white;
+          border-bottom: 1px solid #e5e5e5;
+        }
+
+        .calendar-nav {
+          padding: 6px;
+          background: none;
+          border: none;
+          color: #666;
+          cursor: pointer;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .calendar-nav:hover {
+          background: #f5f5f5;
+          color: #171717;
+        }
+
+        .calendar-month-container {
+          flex: 1;
+          text-align: center;
+        }
+
+        .calendar-month {
+          margin: 0;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #171717;
+          text-transform: capitalize;
+        }
+
+        .calendar-doctor-indicator {
+          font-size: 0.7rem;
+          color: #ff9500;
+          font-weight: 500;
+          margin-top: 0.125rem;
+          background: rgba(255, 149, 0, 0.1);
+          padding: 0.125rem 0.375rem;
+          border-radius: 8px;
+          display: inline-block;
+        }
+
+        .calendar-body {
+          padding: 1rem;
+        }
+
+        .calendar-weekdays {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 2px;
+          margin-bottom: 0.5rem;
+        }
+
+        .calendar-weekday {
+          padding: 0.5rem 0;
+          text-align: center;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #666;
+        }
+
+        .calendar-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 2px;
+        }
+
+        .calendar-day {
+          position: relative;
+          aspect-ratio: 1;
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          font-size: 0.8rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 36px;
+          color: #666;
+        }
+
+        .calendar-day.empty {
+          border: none;
+          cursor: default;
+        }
+
+        .calendar-day.past {
+          color: #ccc;
+          background: #f9f9f9;
+          cursor: not-allowed;
+        }
+
+        .calendar-day.today {
+          background: #f0f9ff;
+          color: #0369a1;
+          font-weight: 600;
+          border-color: #38bdf8;
+        }
+
+        .calendar-day.available {
+          background: #fef3e2;
+          color: #ea580c;
+          font-weight: 600;
+          border-color: #fed7aa;
+        }
+
+        .calendar-day.available:hover {
+          background: #fed7aa;
+          color: #c2410c;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+        }
+
+        .day-number {
+          line-height: 1;
+        }
+
+        .sobrecupos-count {
+          position: absolute;
+          bottom: 2px;
+          right: 2px;
+          background: #ff9500;
+          color: white;
+          font-size: 0.55rem;
+          font-weight: 700;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          border: 1px solid white;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-no-dates {
+          text-align: center;
+          padding: 2rem 1rem;
+          color: #666;
+        }
+
+        .no-dates-icon {
+          font-size: 2.5rem;
+          margin-bottom: 0.5rem;
+          opacity: 0.3;
+        }
+
+        .no-dates-text {
+          font-size: 0.875rem;
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        .calendar-footer {
+          padding: 1rem;
+          background: white;
+          border-top: 1px solid #e5e5e5;
+          text-align: center;
+        }
+
+        .calendar-help {
+          font-size: 0.8rem;
+          color: #666;
+          margin: 0;
+          font-style: italic;
+        }
+
         /* Action Section */
         .action-section {
           display: flex;
@@ -609,8 +1001,22 @@ export default function MedicoInfoPage({ params }) {
           .professional-info,
           .experience-section,
           .patient-info,
-          .doctor-profile {
+          .doctor-profile,
+          .calendar-section {
             padding: 1.5rem;
+          }
+
+          .calendar-header {
+            padding: 0.75rem;
+          }
+
+          .calendar-body {
+            padding: 0.75rem;
+          }
+
+          .calendar-day {
+            min-height: 32px;
+            font-size: 0.75rem;
           }
 
           .main-layout {
@@ -641,8 +1047,31 @@ export default function MedicoInfoPage({ params }) {
           .professional-info,
           .experience-section,
           .patient-info,
-          .doctor-profile {
+          .doctor-profile,
+          .calendar-section {
             padding: 1rem;
+          }
+
+          .calendar-header {
+            padding: 0.5rem;
+          }
+
+          .calendar-body {
+            padding: 0.5rem;
+          }
+
+          .calendar-day {
+            min-height: 28px;
+            font-size: 0.7rem;
+          }
+
+          .calendar-month {
+            font-size: 0.8rem;
+          }
+
+          .calendar-doctor-indicator {
+            font-size: 0.65rem;
+            padding: 0.075rem 0.25rem;
           }
 
           .info-card {
