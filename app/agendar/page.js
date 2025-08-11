@@ -617,6 +617,7 @@ const AgendarSobrecuposContent = () => {
                           </div>
                         )}
                       </div>
+                    </div>
                     </>
                   )}
                 </div>
