@@ -521,9 +521,11 @@ export async function POST(req) {
           
           console.log('🔍 [EMAIL DEBUG] appointmentData completo:', appointmentData);
           console.log('🔍 [EMAIL DEBUG] appointmentData.doctorName:', appointmentData.doctorName);
-          console.log('🔍 [EMAIL DEBUG] typeof appointmentData.doctorName:', typeof appointmentData.doctorName);
+          console.log('🔍 [EMAIL DEBUG] appointmentData.doctor:', appointmentData.doctor);
+          console.log('🔍 [EMAIL DEBUG] Using doctor name:', appointmentData.doctorName || appointmentData.doctor);
           
-          const { titulo, nombre } = procesarNombreMedico(appointmentData.doctorName);
+          const doctorNameForEmail = appointmentData.doctorName || appointmentData.doctor;
+          const { titulo, nombre } = procesarNombreMedico(doctorNameForEmail);
           const emailContent = `
 <!DOCTYPE html>
 <html lang="es">
