@@ -1167,15 +1167,7 @@ Ejemplos:
     }
     } // 🔚 Cierre del bloque else (consultas sin sesión activa)
 
-    // 🔥 MANEJO DE SESIONES EXISTENTES
-    // Priorizar la sesión del request sobre la sesión interna del servidor
-    const activeSession = currentSession || sessions[from];
-    
-    // Si viene sesión en el request, actualizarla en la memoria del servidor
-    if (currentSession?.stage) {
-      sessions[from] = currentSession;
-    }
-    
+    // 🔄 CONTINUAR CON EL SWITCH DEL SISTEMA ORIGINAL (para stages no manejados arriba)
     if (activeSession?.stage) {
       const { stage, specialty, records, attempts = 0, patientName, patientRut, patientPhone, patientEmail, respuestaEmpatica } = activeSession;
 
