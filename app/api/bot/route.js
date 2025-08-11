@@ -976,15 +976,23 @@ export async function POST(req) {
     const from = currentSession?.from || "user";
 
     console.log(`📱 Mensaje recibido: "${text}"`);
+    console.log(`🔍 Sesión actual:`, currentSession ? 'EXISTE' : 'NO EXISTE');
+    console.log(`🔍 Stage actual:`, currentSession?.stage);
 
-    // 🔥 PRIMERO: Detectar si es consulta médica específica
-    const especialidadDetectada = detectarEspecialidadPorSintomas(text);
-    if (especialidadDetectada) {
-      console.log(`🎯 Especialidad detectada directamente: ${especialidadDetectada} para texto: "${text}"`);
-      // Saltamos toda la lógica de consulta no médica y vamos directo al procesamiento médico
-      // Esto significa que ejecutaremos el código que está en la línea ~1275
-      // No hacemos nada aquí, solo evitamos que se ejecute esConsultaNoMedica
-    } else if (esConsultaNoMedica(text)) {
+    // 🚨 CRÍTICO: Si hay sesión activa, procesar DENTRO del flujo de sesión primero
+    if (currentSession && currentSession.stage && currentSession.stage !== 'welcome') {
+      console.log(`🔄 Usuario en sesión activa (stage: ${currentSession.stage}), procesando en switch...`);
+      // Continuar al switch para procesar según el stage
+    } 
+    // 🔥 Solo si NO hay sesión activa, detectar consultas médicas o no médicas
+    else {
+      const especialidadDetectada = detectarEspecialidadPorSintomas(text);
+      if (especialidadDetectada) {
+        console.log(`🎯 Especialidad detectada directamente: ${especialidadDetectada} para texto: "${text}"`);
+        // Saltamos toda la lógica de consulta no médica y vamos directo al procesamiento médico
+        // Esto significa que ejecutaremos el código que está en la línea ~1275
+        // No hacemos nada aquí, solo evitamos que se ejecute esConsultaNoMedica
+      } else if (esConsultaNoMedica(text)) {
       // Si tenemos OpenAI, generar respuesta inteligente y humana
       if (OPENAI_API_KEY) {
         try {
@@ -1043,6 +1051,7 @@ Ejemplos:
       const respuestaAleatoria = respuestasNoMedicas[Math.floor(Math.random() * respuestasNoMedicas.length)];
       return NextResponse.json({ text: respuestaAleatoria });
     }
+    } // 🔚 Cierre del bloque else (consultas sin sesión activa)
 
     // 🔥 MANEJO DE SESIONES EXISTENTES
     // Priorizar la sesión del request sobre la sesión interna del servidor
@@ -2489,7 +2498,9 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           console.log('  User input:', text);
           console.log('  Chosen option:', chosenOption);
           console.log('  Option index:', optionIndex);
+          console.log('  Current stage:', currentSession?.stage);
           console.log('  Available options:', sessionOptions?.length);
+          console.log('  Session keys:', Object.keys(currentSession || {}));
           console.log('  Options details:', sessionOptions?.map((opt, i) => ({
             index: i,
             id: opt.id,
@@ -2501,7 +2512,10 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           // 🆕 DETECTAR RECHAZO DE OPCIONES CON INTELIGENCIA EMOCIONAL
           const rechazaOpciones = /\b(ninguna|no.*quiero|no.*me.*gusta|no.*me.*sirve|no.*me.*conviene|otro|otra|diferente|distinto)\b/i.test(text);
           
+          console.log('🔍 [REJECTION DEBUG] rechazaOpciones:', rechazaOpciones, 'for text:', text);
+          
           if (rechazaOpciones) {
+            console.log('🚨 [REJECTION FLOW] Usuario rechaza opciones, buscando alternativas...');
             const nombre = userFirstName || 'usuario';
             
             // Buscar más opciones del mismo médico o fechas diferentes
