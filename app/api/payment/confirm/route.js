@@ -519,7 +519,10 @@ export async function POST(req) {
             return resultado;
           }
           
+          console.log('🔍 [EMAIL DEBUG] appointmentData completo:', appointmentData);
           console.log('🔍 [EMAIL DEBUG] appointmentData.doctorName:', appointmentData.doctorName);
+          console.log('🔍 [EMAIL DEBUG] typeof appointmentData.doctorName:', typeof appointmentData.doctorName);
+          
           const { titulo, nombre } = procesarNombreMedico(appointmentData.doctorName);
           const emailContent = `
 <!DOCTYPE html>

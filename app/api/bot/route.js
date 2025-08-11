@@ -848,27 +848,38 @@ async function getEspecialidadesDisponibles() {
 // Función para obtener nombre del doctor
 async function getDoctorName(doctorId) {
   try {
+    console.log('🔍 [getDoctorName DEBUG] Input doctorId:', doctorId, typeof doctorId);
+    
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
     const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
 
-    const response = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-        },
-      }
-    );
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorId}`;
+    console.log('🔍 [getDoctorName DEBUG] Fetching URL:', url);
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+      },
+    });
+
+    console.log('🔍 [getDoctorName DEBUG] Response status:', response.status);
 
     if (!response.ok) {
+      console.log('🔍 [getDoctorName DEBUG] Response not ok, returning doctorId as fallback:', doctorId);
       return doctorId; // Fallback al ID si no se puede obtener el nombre
     }
 
     const data = await response.json();
-    return data.fields?.Name || doctorId;
+    console.log('🔍 [getDoctorName DEBUG] Airtable response data:', data);
+    console.log('🔍 [getDoctorName DEBUG] data.fields?.Name:', data.fields?.Name);
+    
+    const result = data.fields?.Name || doctorId;
+    console.log('🔍 [getDoctorName DEBUG] Final result:', result);
+    
+    return result;
   } catch (error) {
-    console.error(`Error obteniendo nombre del médico ${doctorId}:`, error);
+    console.error(`🔍 [getDoctorName ERROR] Error obteniendo nombre del médico ${doctorId}:`, error);
     return doctorId; // Fallback al ID en caso de error
   }
 }
@@ -1975,10 +1986,12 @@ Ejemplos:
           });
           
           // Obtener nombre del doctor para la URL de pago
-          const doctorNameForPayment = await getDoctorName(
-            Array.isArray(sobrecupoDataForPayment["Médico"]) ? 
-              sobrecupoDataForPayment["Médico"][0] : sobrecupoDataForPayment["Médico"]
-          );
+          const medicoIdForPayment = Array.isArray(sobrecupoDataForPayment["Médico"]) ? 
+            sobrecupoDataForPayment["Médico"][0] : sobrecupoDataForPayment["Médico"];
+          console.log('🔍 [PAYMENT DEBUG] medicoIdForPayment:', medicoIdForPayment);
+          
+          const doctorNameForPayment = await getDoctorName(medicoIdForPayment);
+          console.log('🔍 [PAYMENT DEBUG] doctorNameForPayment:', doctorNameForPayment);
           
           try {
             // Crear enlace corto de pago
