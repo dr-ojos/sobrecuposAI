@@ -470,12 +470,32 @@ export async function POST(req) {
           
           // 🏥 FUNCIÓN PARA MANEJAR TÍTULO DEL MÉDICO
           function procesarNombreMedico(nombreCompleto) {
-            if (!nombreCompleto) return { titulo: 'Dr.', nombre: 'Médico' };
+            console.log('🔍 [EMAIL DEBUG] Procesando nombre médico:', {
+              input: nombreCompleto,
+              type: typeof nombreCompleto,
+              length: nombreCompleto?.length
+            });
+            
+            if (!nombreCompleto || nombreCompleto.trim() === '') {
+              console.log('⚠️ [EMAIL DEBUG] Nombre médico vacío, usando fallback');
+              return { titulo: 'Dr.', nombre: 'Médico' };
+            }
+            
+            // Convertir a string y limpiar
+            const nombreStr = String(nombreCompleto).trim();
             
             // Remover títulos existentes y limpiar
-            const nombreLimpio = nombreCompleto
+            const nombreLimpio = nombreStr
               .replace(/^(Dr\.|Dra\.|Doctor|Doctora)\s*/i, '')
               .trim();
+            
+            console.log('🔍 [EMAIL DEBUG] Nombre procesado:', {
+              original: nombreStr,
+              limpio: nombreLimpio
+            });
+            
+            // Si después de limpiar no queda nada, usar el nombre original
+            const nombreFinal = nombreLimpio || nombreStr;
             
             // Detectar género por nombres comunes femeninos
             const nombresFemeninos = [
@@ -485,17 +505,21 @@ export async function POST(req) {
               'Esperanza', 'Soledad', 'Amparo', 'Concepción', 'Remedios', 'Encarnación', 'Asunción'
             ];
             
-            const primerNombreMedico = nombreLimpio.split(' ')[0];
+            const primerNombreMedico = nombreFinal.split(' ')[0];
             const esFemenino = nombresFemeninos.some(nombre => 
               primerNombreMedico.toLowerCase().includes(nombre.toLowerCase())
             );
             
-            return {
+            const resultado = {
               titulo: esFemenino ? 'Dra.' : 'Dr.',
-              nombre: nombreLimpio
+              nombre: nombreFinal
             };
+            
+            console.log('✅ [EMAIL DEBUG] Resultado final:', resultado);
+            return resultado;
           }
           
+          console.log('🔍 [EMAIL DEBUG] appointmentData.doctorName:', appointmentData.doctorName);
           const { titulo, nombre } = procesarNombreMedico(appointmentData.doctorName);
           const emailContent = `
 <!DOCTYPE html>

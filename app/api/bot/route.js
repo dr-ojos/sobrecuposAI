@@ -2266,12 +2266,31 @@ Sistema Sobrecupos AI`;
                 
                 // 🏥 FUNCIÓN PARA MANEJAR TÍTULO DEL MÉDICO (evitar duplicidad Dr./Dra.)
                 function procesarNombreMedico(nombreCompleto) {
-                  if (!nombreCompleto) return { titulo: 'Dr.', nombre: 'Médico' };
+                  console.log('🔍 [BOT EMAIL DEBUG] Procesando nombre médico:', {
+                    input: nombreCompleto,
+                    type: typeof nombreCompleto
+                  });
+                  
+                  if (!nombreCompleto || nombreCompleto.trim() === '') {
+                    console.log('⚠️ [BOT EMAIL DEBUG] Nombre médico vacío, usando fallback');
+                    return { titulo: 'Dr.', nombre: 'Médico' };
+                  }
+                  
+                  // Convertir a string y limpiar
+                  const nombreStr = String(nombreCompleto).trim();
                   
                   // Remover títulos existentes y limpiar
-                  const nombreLimpio = nombreCompleto
+                  const nombreLimpio = nombreStr
                     .replace(/^(Dr\.|Dra\.|Doctor|Doctora)\s*/i, '')
                     .trim();
+                  
+                  // Si después de limpiar no queda nada, usar el nombre original
+                  const nombreFinal = nombreLimpio || nombreStr;
+                  
+                  console.log('🔍 [BOT EMAIL DEBUG] Nombre procesado:', {
+                    original: nombreStr,
+                    final: nombreFinal
+                  });
                   
                   // Detectar género por nombres comunes femeninos
                   const nombresFemeninos = [
@@ -2280,17 +2299,21 @@ Sistema Sobrecupos AI`;
                     'Valentina', 'Camila', 'Fernanda', 'Alejandra', 'Daniela', 'Carolina', 'Javiera', 'Constanza'
                   ];
                   
-                  const primerNombreMedico = nombreLimpio.split(' ')[0];
+                  const primerNombreMedico = nombreFinal.split(' ')[0];
                   const esFemenino = nombresFemeninos.some(nombre => 
                     primerNombreMedico.toLowerCase().includes(nombre.toLowerCase())
                   );
                   
-                  return {
+                  const resultado = {
                     titulo: esFemenino ? 'Dra.' : 'Dr.',
-                    nombre: nombreLimpio
+                    nombre: nombreFinal
                   };
+                  
+                  console.log('✅ [BOT EMAIL DEBUG] Resultado final:', resultado);
+                  return resultado;
                 }
                 
+                console.log('🔍 [BOT EMAIL DEBUG] doctorInfo.name:', doctorInfo.name);
                 const { titulo, nombre } = procesarNombreMedico(doctorInfo.name);
                 const emailContent = `Hola ${primerNombre}, yo ${titulo} ${nombre}, te autoricé Sobrecupo para el día ${fechaFormateada} a las ${sobrecupoData.Hora} en ${nombreClinica} que queda ${direccionClinica}. 
 
