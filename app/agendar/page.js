@@ -120,6 +120,39 @@ const AgendarSobrecuposPage = () => {
     setFilteredSobrecupos(filtered);
   }, [sobrecupos, filters]);
 
+  // Actualizar calendario cuando cambien los filtros
+  useEffect(() => {
+    let sobrecuposParaCalendario = sobrecupos.filter(s => s.fields.Disponible === 'Si');
+
+    // Aplicar filtros de especialidad y médico al calendario (pero NO fecha)
+    if (filters.especialidad) {
+      sobrecuposParaCalendario = sobrecuposParaCalendario.filter(s => 
+        s.fields.Especialidad && s.fields.Especialidad.toLowerCase().includes(filters.especialidad.toLowerCase())
+      );
+    }
+
+    if (filters.medico) {
+      sobrecuposParaCalendario = sobrecuposParaCalendario.filter(s => 
+        s.fields.Médico && s.fields.Médico.toLowerCase().includes(filters.medico.toLowerCase())
+      );
+    }
+
+    // Actualizar mapa de fechas del calendario con los sobrecupos filtrados
+    const dateMap = new Map();
+    sobrecuposParaCalendario.forEach(sobrecupo => {
+      const date = sobrecupo.fields?.Fecha;
+      if (date) {
+        const count = dateMap.get(date) || 0;
+        dateMap.set(date, count + 1);
+      }
+    });
+    setCalendarDates(dateMap);
+
+    // Actualizar fechas disponibles para el calendario
+    const uniqueDates = [...new Set(sobrecuposParaCalendario.map(s => s.fields?.Fecha).filter(Boolean))].sort();
+    setAvailableDates(uniqueDates);
+  }, [sobrecupos, filters.especialidad, filters.medico]);
+
   const handleReservarClick = (sobrecupo) => {
     setSelectedSobrecupo(sobrecupo);
     setShowReservationModal(true);
@@ -486,7 +519,9 @@ const AgendarSobrecuposPage = () => {
                   </button>
 
                   {showCalendar && (
-                    <div className="calendar-dropdown">
+                    <>
+                      <div className="calendar-overlay" onClick={() => setShowCalendar(false)} />
+                      <div className="calendar-dropdown">
                       <div className="calendar-header">
                         <button
                           onClick={() => navigateMonth(-1)}
@@ -496,9 +531,16 @@ const AgendarSobrecuposPage = () => {
                             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         </button>
-                        <h4 className="calendar-month">
-                          {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
-                        </h4>
+                        <div className="calendar-month-container">
+                          <h4 className="calendar-month">
+                            {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
+                          </h4>
+                          {(filters.especialidad || filters.medico) && (
+                            <div className="calendar-filter-indicator">
+                              {filters.medico ? `Dr. ${filters.medico}` : filters.especialidad}
+                            </div>
+                          )}
+                        </div>
                         <button
                           onClick={() => navigateMonth(1)}
                           className="calendar-nav"
@@ -549,8 +591,18 @@ const AgendarSobrecuposPage = () => {
                             </button>
                           ))}
                         </div>
+                        
+                        {(filters.especialidad || filters.medico) && availableDates.length === 0 && (
+                          <div className="calendar-no-dates">
+                            <div className="no-dates-icon">📅</div>
+                            <p className="no-dates-text">
+                              No hay sobrecupos disponibles para {filters.medico ? `Dr. ${filters.medico}` : filters.especialidad}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -1084,7 +1136,7 @@ const AgendarSobrecuposPage = () => {
           z-index: 100;
           margin-top: 4px;
           overflow: hidden;
-          width: 280px;
+          width: 300px;
           max-width: calc(100vw - 2rem);
         }
 
@@ -1115,14 +1167,28 @@ const AgendarSobrecuposPage = () => {
           color: #171717;
         }
 
+        .calendar-month-container {
+          flex: 1;
+          text-align: center;
+        }
+
         .calendar-month {
           margin: 0;
           font-size: 0.875rem;
           font-weight: 600;
           color: #171717;
-          flex: 1;
-          text-align: center;
           text-transform: capitalize;
+        }
+
+        .calendar-filter-indicator {
+          font-size: 0.7rem;
+          color: #ff9500;
+          font-weight: 500;
+          margin-top: 0.125rem;
+          background: rgba(255, 149, 0, 0.1);
+          padding: 0.125rem 0.375rem;
+          border-radius: 8px;
+          display: inline-block;
         }
 
         .calendar-close {
@@ -1226,24 +1292,56 @@ const AgendarSobrecuposPage = () => {
 
         .sobrecupos-count {
           position: absolute;
-          top: 2px;
+          bottom: 2px;
           right: 2px;
           background: #ff9500;
           color: white;
-          font-size: 0.6rem;
-          font-weight: 600;
-          width: 14px;
-          height: 14px;
+          font-size: 0.55rem;
+          font-weight: 700;
+          width: 12px;
+          height: 12px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           line-height: 1;
+          border: 1px solid white;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .calendar-day.selected .sobrecupos-count {
           background: rgba(255, 255, 255, 0.3);
           color: white;
+          border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .calendar-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.3);
+          z-index: 99;
+          display: none;
+        }
+
+        .calendar-no-dates {
+          text-align: center;
+          padding: 1rem;
+          color: #666;
+        }
+
+        .no-dates-icon {
+          font-size: 2rem;
+          margin-bottom: 0.5rem;
+          opacity: 0.5;
+        }
+
+        .no-dates-text {
+          font-size: 0.8rem;
+          margin: 0;
+          line-height: 1.4;
         }
 
         /* Mensaje */
@@ -1990,15 +2088,24 @@ const AgendarSobrecuposPage = () => {
             height: 10px;
           }
 
+          /* Overlay para calendario en móvil */
+          .calendar-overlay {
+            display: block;
+          }
+
           /* Calendario desplegable optimizado para iPhone */
           .calendar-dropdown {
-            left: -10px;
-            right: -10px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            margin-top: 2px;
-            width: auto;
+            position: fixed;
+            left: 0.5rem;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: calc(100vw - 1rem);
             max-width: none;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            margin-top: 0;
+            z-index: 100;
           }
 
           .calendar-header {
@@ -2008,6 +2115,12 @@ const AgendarSobrecuposPage = () => {
 
           .calendar-month {
             font-size: 0.8rem;
+          }
+
+          .calendar-filter-indicator {
+            font-size: 0.65rem;
+            padding: 0.075rem 0.25rem;
+            margin-top: 0.075rem;
           }
 
           .calendar-nav {
@@ -2038,16 +2151,18 @@ const AgendarSobrecuposPage = () => {
           }
 
           .calendar-day {
-            min-height: 28px;
-            font-size: 0.75rem;
+            min-height: 36px;
+            font-size: 0.85rem;
+            padding: 0.25rem;
           }
 
           .sobrecupos-count {
-            width: 12px;
-            height: 12px;
-            font-size: 0.55rem;
-            top: 1px;
+            width: 14px;
+            height: 14px;
+            font-size: 0.6rem;
+            bottom: 1px;
             right: 1px;
+            border: 1px solid white;
           }
 
           .clear-filters {
@@ -2274,11 +2389,14 @@ const AgendarSobrecuposPage = () => {
 
           /* Calendario compacto para iPhone SE */
           .calendar-dropdown {
-            left: -5px;
-            right: -5px;
-            margin-top: 1px;
-            width: auto;
+            position: fixed;
+            left: 0.25rem;
+            right: 0.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: calc(100vw - 0.5rem);
             max-width: none;
+            margin-top: 0;
           }
 
           .calendar-header {
@@ -2287,6 +2405,12 @@ const AgendarSobrecuposPage = () => {
 
           .calendar-month {
             font-size: 0.75rem;
+          }
+
+          .calendar-filter-indicator {
+            font-size: 0.6rem;
+            padding: 0.05rem 0.2rem;
+            margin-top: 0.05rem;
           }
 
           .calendar-nav {
@@ -2313,14 +2437,17 @@ const AgendarSobrecuposPage = () => {
           }
 
           .calendar-day {
-            min-height: 24px;
-            font-size: 0.7rem;
+            min-height: 32px;
+            font-size: 0.8rem;
+            padding: 0.125rem;
           }
 
           .sobrecupos-count {
-            width: 10px;
-            height: 10px;
-            font-size: 0.5rem;
+            width: 12px;
+            height: 12px;
+            font-size: 0.55rem;
+            bottom: 1px;
+            right: 1px;
           }
 
           .doctor-name {
