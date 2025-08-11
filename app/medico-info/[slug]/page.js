@@ -10,6 +10,7 @@ export default function MedicoInfoPage({ params }) {
   const [sobrecupos, setSobrecupos] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [calendarDates, setCalendarDates] = useState(new Map());
+  const [showCalendar, setShowCalendar] = useState(false);
   const { slug } = params;
 
   // Función para cargar sobrecupos del médico
@@ -979,6 +980,86 @@ export default function MedicoInfoPage({ params }) {
             grid-template-columns: repeat(2, 1fr);
           }
 
+        }
+
+        /* Desktop Calendar Optimization */
+        @media (min-width: 1024px) {
+          .calendar-section {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 1.5rem;
+          }
+
+          .calendar-container {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          }
+
+          .calendar-header {
+            padding: 0.75rem 1rem;
+            border-radius: 8px 8px 0 0;
+          }
+
+          .calendar-month {
+            font-size: 0.8rem;
+            font-weight: 700;
+          }
+
+          .calendar-doctor-indicator {
+            font-size: 0.65rem;
+            padding: 0.1rem 0.3rem;
+            margin-top: 0.1rem;
+          }
+
+          .calendar-body {
+            padding: 0.75rem;
+          }
+
+          .calendar-weekday {
+            padding: 0.4rem 0;
+            font-size: 0.7rem;
+            font-weight: 700;
+          }
+
+          .calendar-day {
+            min-height: 28px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+          }
+
+          .calendar-day:not(.empty):not(.past):hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(255, 149, 0, 0.15);
+          }
+
+          .sobrecupos-count {
+            width: 14px;
+            height: 14px;
+            font-size: 0.6rem;
+            bottom: 1px;
+            right: 1px;
+          }
+
+          .calendar-footer {
+            padding: 0.75rem;
+          }
+
+          .calendar-help {
+            font-size: 0.75rem;
+          }
+
+          .calendar-no-dates {
+            padding: 1.5rem 1rem;
+          }
+
+          .no-dates-icon {
+            font-size: 2rem;
+          }
+
+          .no-dates-text {
+            font-size: 0.8rem;
+          }
         }
 
         /* Responsive - Mobile */
