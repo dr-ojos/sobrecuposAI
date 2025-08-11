@@ -102,22 +102,20 @@ const AgendarSobrecuposPage = () => {
   };
 
   const handleReservationSubmit = async () => {
-    if (!reservationData.nombre || !reservationData.email || !reservationData.rut || !reservationData.telefono) {
-      setMessage('Por favor, completa todos los campos obligatorios.');
-      setTimeout(() => setMessage(''), 3000);
-      return;
-    }
-
-    if (!acceptTerms) {
-      setMessage('Debes aceptar los términos y condiciones para continuar.');
-      setTimeout(() => setMessage(''), 3000);
-      return;
-    }
-
     setReservationLoading(true);
 
     try {
-      console.log('🎯 Creando enlace de pago...');
+      console.log('🎯 Creando enlace de pago simulado...');
+      
+      // Usar datos demo si no se proporcionan datos reales
+      const demoData = {
+        nombre: reservationData.nombre || 'Usuario Demo',
+        apellidos: reservationData.apellidos || 'Prueba',
+        rut: reservationData.rut || '12.345.678-9',
+        telefono: reservationData.telefono || '+56912345678',
+        email: reservationData.email || 'demo@sobrecupos.com',
+        edad: reservationData.edad || '35'
+      };
       
       // Crear enlace de pago (mismo flujo que el chatbot)
       const paymentResponse = await fetch('/api/payment/create-link', {
@@ -127,19 +125,19 @@ const AgendarSobrecuposPage = () => {
         },
         body: JSON.stringify({
           sobrecupoId: selectedSobrecupo.id,
-          patientName: `${reservationData.nombre} ${reservationData.apellidos || ''}`.trim(),
-          patientRut: reservationData.rut,
-          patientPhone: reservationData.telefono,
-          patientEmail: reservationData.email,
-          patientAge: reservationData.edad || 'No proporcionado',
+          patientName: `${demoData.nombre} ${demoData.apellidos}`.trim(),
+          patientRut: demoData.rut,
+          patientPhone: demoData.telefono,
+          patientEmail: demoData.email,
+          patientAge: demoData.edad,
           doctorName: selectedSobrecupo.fields.Médico,
           specialty: selectedSobrecupo.fields.Especialidad,
           date: selectedSobrecupo.fields.Fecha,
           time: selectedSobrecupo.fields.Hora,
           clinic: selectedSobrecupo.fields.Clínica,
           amount: "2990", // Precio estándar
-          motivo: "Reserva desde página principal", // Motivo de la consulta
-          sessionId: `direct-booking-${Date.now()}` // ID de sesión único
+          motivo: "Reserva desde página principal (DEMO)", // Motivo de la consulta
+          sessionId: `direct-booking-demo-${Date.now()}` // ID de sesión único
         })
       });
 
@@ -565,14 +563,13 @@ const AgendarSobrecuposPage = () => {
                   </label>
                 </div>
 
-                {/* Aviso */}
+                {/* Aviso Demo */}
                 <div className="warning-notice">
-                  <span className="warning-icon">💳</span>
+                  <span className="warning-icon">🔬</span>
                   <div>
-                    <div className="warning-title">Proceso de Pago</div>
+                    <div className="warning-title">Modo Demo</div>
                     <div className="warning-text">
-                      Serás redirigido a pagar $2.990 para confirmar tu sobrecupo. 
-                      Este pago es independiente del valor de la consulta médica.
+                      Puedes proceder sin llenar datos reales. Se usarán datos de prueba para mostrar la simulación de pago de $2.990.
                     </div>
                   </div>
                 </div>
@@ -580,8 +577,8 @@ const AgendarSobrecuposPage = () => {
                 {/* Botón de envío */}
                 <button
                   onClick={handleReservationSubmit}
-                  disabled={reservationLoading || !acceptTerms}
-                  className={`submit-button ${(!acceptTerms || reservationLoading) ? 'disabled' : ''}`}
+                  disabled={reservationLoading}
+                  className={`submit-button ${reservationLoading ? 'disabled' : ''}`}
                 >
                   {reservationLoading ? (
                     <span className="loading-content">
@@ -589,7 +586,7 @@ const AgendarSobrecuposPage = () => {
                       Creando enlace de pago...
                     </span>
                   ) : (
-                    'Proceder al Pago ($2.990)'
+                    'Ver Simulación de Pago ($2.990)'
                   )}
                 </button>
               </div>
