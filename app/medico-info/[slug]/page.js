@@ -296,14 +296,14 @@ export default function MedicoInfoPage({ params }) {
                   <div className="info-header">
                     <h4 className="info-title">Especialidad</h4>
                   </div>
-                  <p className="info-content">{fields.Especialidad || 'No especificada'}</p>
+                  <p className="info-content bold-text">{fields.Especialidad || 'No especificada'}</p>
                 </div>
                 
                 <div className="info-card">
                   <div className="info-header">
                     <h4 className="info-title">Atiende a</h4>
                   </div>
-                  <p className="info-content">
+                  <p className="info-content normal-text">
                     {fields.Atiende === 'Ambos' ? 'Niños y Adultos' : 
                      fields.Atiende === 'Niños' ? 'Solo Niños' :
                      fields.Atiende === 'Adultos' ? 'Solo Adultos' : 
@@ -316,7 +316,7 @@ export default function MedicoInfoPage({ params }) {
                     <div className="info-header">
                       <h4 className="info-title">Registro Sanitario</h4>
                     </div>
-                    <p className="info-content">{fields.RSS}</p>
+                    <p className="info-content thin-text">{fields.RSS}</p>
                   </div>
                 )}
               </div>
@@ -585,7 +585,14 @@ export default function MedicoInfoPage({ params }) {
             display: grid;
             grid-template-columns: 1fr 400px;
             gap: 3rem;
-            align-items: start;
+            align-items: stretch;
+          }
+          
+          .professional-info,
+          .calendar-section {
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
           }
         }
 
@@ -1221,6 +1228,18 @@ export default function MedicoInfoPage({ params }) {
           margin: 0;
           font-weight: 500;
         }
+        
+        .info-content.bold-text {
+          font-weight: 700;
+        }
+        
+        .info-content.normal-text {
+          font-weight: 500;
+        }
+        
+        .info-content.thin-text {
+          font-weight: 300;
+        }
 
         /* Seguros Section */
         .seguros-section {
@@ -1451,19 +1470,20 @@ export default function MedicoInfoPage({ params }) {
           position: absolute;
           bottom: 2px;
           right: 2px;
-          background: #ff9500;
+          background: rgba(255, 149, 0, 0.85);
           color: white;
-          font-size: 0.55rem;
-          font-weight: 700;
-          width: 12px;
-          height: 12px;
+          font-size: 0.5rem;
+          font-weight: 600;
+          width: 10px;
+          height: 10px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           line-height: 1;
-          border: 1px solid white;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 0.5px solid rgba(255, 255, 255, 0.7);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+          backdrop-filter: blur(2px);
         }
 
         .calendar-no-dates {
@@ -1546,8 +1566,7 @@ export default function MedicoInfoPage({ params }) {
         /* Desktop Calendar Optimization */
         @media (min-width: 1024px) {
           .calendar-section {
-            max-width: 500px;
-            margin: 0 auto;
+            max-width: 400px;
             padding: 1.5rem;
           }
 
@@ -1595,11 +1614,13 @@ export default function MedicoInfoPage({ params }) {
           }
 
           .sobrecupos-count {
-            width: 14px;
-            height: 14px;
-            font-size: 0.6rem;
+            width: 12px;
+            height: 12px;
+            font-size: 0.55rem;
             bottom: 1px;
             right: 1px;
+            background: rgba(255, 149, 0, 0.8);
+            border: 0.5px solid rgba(255, 255, 255, 0.8);
           }
 
           .calendar-footer {
