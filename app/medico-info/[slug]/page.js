@@ -221,129 +221,125 @@ export default function MedicoInfoPage({ params }) {
 
   return (
     <main className="page-container">
-      {/* Modern Floating Header */}
-      <header className="floating-header">
-        <div className="header-content">
-          <button onClick={handleBackClick} className="back-button">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <div className="breadcrumb">
-            <span className="breadcrumb-text">Perfil Médico</span>
+      {/* Header consistente con el proyecto */}
+      <header className="header">
+        <div className="header-container">
+          <div className="header-content">
+            <div className="header-left">
+              <button onClick={handleBackClick} className="back-button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <div className="header-text">
+                <h1 className="header-title">Información del Médico</h1>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="main-wrapper">
-        
-        {/* Hero Section - Doctor Profile */}
-        <section className="hero-section">
-          <div className="hero-background"></div>
-          <div className="hero-content">
-            <div className="doctor-avatar-container">
-              <div className="doctor-avatar">
-                {fields.PhotoURL ? (
-                  <img 
-                    src={fields.PhotoURL} 
-                    alt={`Dr. ${fields.Name}`}
-                    className="avatar-image"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div className="avatar-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+      <div className="main-layout">
+        <div className="content-container">
+          
+          {/* Perfil del Médico - Mejorado pero consistente */}
+          <section className="doctor-profile-card">
+            <div className="profile-header">
+              <div className="doctor-photo-container">
+                <div className="doctor-photo">
+                  {fields.PhotoURL ? (
+                    <img 
+                      src={fields.PhotoURL} 
+                      alt={`Foto del ${fields.Name}`}
+                      className="profile-image"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className="photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                 </div>
-                <div className="avatar-status">
+                <div className="status-indicator">
                   <div className="status-dot"></div>
+                  <span className="status-text">Disponible</span>
                 </div>
               </div>
-            </div>
-            
-            <div className="hero-info">
-              <div className="doctor-title">
-                <h1 className="doctor-name">Dr. {fields.Name}</h1>
-                <div className="specialty-badge">
+              
+              <div className="doctor-info">
+                <h2 className="doctor-name">Dr. {fields.Name}</h2>
+                <div className="specialty-tag">
                   <span className="specialty-icon">🩺</span>
                   <span className="specialty-text">{fields.Especialidad}</span>
                 </div>
-              </div>
-              
-              {fields.RSS && (
-                <div className="credentials">
-                  <div className="credential-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2"/>
-                      <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                    <span>RSS: {fields.RSS}</span>
+                {fields.RSS && (
+                  <div className="credentials">
+                    <span className="credential-label">RSS:</span>
+                    <span className="credential-value">{fields.RSS}</span>
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <div className="content-sections">{/* Información Profesional Moderna */}
-          <section className="professional-card">
-            <div className="card-header">
-              <div className="header-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" stroke="currentColor" strokeWidth="2"/>
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" stroke="currentColor" strokeWidth="2"/>
-                </svg>
+                )}
               </div>
-              <h2 className="card-title">Información Profesional</h2>
             </div>
+          </section>
+
+          {/* Información Profesional */}
+          <section className="professional-info">
+            <h3 className="section-title">📋 Información Profesional</h3>
             
-            <div className="info-metrics">
-              <div className="metric-card specialty-metric">
-                <div className="metric-header">
-                  <div className="metric-icon">🏥</div>
-                  <span className="metric-label">Especialidad</span>
+            <div className="info-grid">
+              <div className="info-card">
+                <div className="info-header">
+                  <div className="info-icon">🏥</div>
+                  <h4 className="info-title">Especialidad</h4>
                 </div>
-                <div className="metric-value">{fields.Especialidad || 'No especificada'}</div>
+                <p className="info-content">{fields.Especialidad || 'No especificada'}</p>
               </div>
               
-              <div className="metric-card patients-metric">
-                <div className="metric-header">
-                  <div className="metric-icon">
+              <div className="info-card">
+                <div className="info-header">
+                  <div className="info-icon">
                     {fields.Atiende === 'Ambos' ? '👥' : 
                      fields.Atiende === 'Niños' ? '👶' : 
                      fields.Atiende === 'Adultos' ? '👨' : '🩺'}
                   </div>
-                  <span className="metric-label">Atiende a</span>
+                  <h4 className="info-title">Atiende a</h4>
                 </div>
-                <div className="metric-value">
+                <p className="info-content">
                   {fields.Atiende === 'Ambos' ? 'Niños y Adultos' : 
                    fields.Atiende === 'Niños' ? 'Solo Niños' :
                    fields.Atiende === 'Adultos' ? 'Solo Adultos' : 
                    'Consultar'}
-                </div>
+                </p>
               </div>
-            </div>
-            
-            {/* Seguros y Previsiones */}
-            {fields.Seguros && fields.Seguros.length > 0 && (
-              <div className="insurance-section">
-                <div className="insurance-header">
-                  <div className="insurance-icon">💳</div>
-                  <h3 className="insurance-title">Seguros Aceptados</h3>
+              
+              {fields.RSS && (
+                <div className="info-card">
+                  <div className="info-header">
+                    <div className="info-icon">📄</div>
+                    <h4 className="info-title">Registro Sanitario</h4>
+                  </div>
+                  <p className="info-content">{fields.RSS}</p>
                 </div>
-                <div className="insurance-grid">
+              )}
+            </div>
+
+            {/* Seguros Aceptados */}
+            {fields.Seguros && fields.Seguros.length > 0 && (
+              <div className="seguros-section">
+                <h4 className="subsection-title">💳 Seguros y Previsiones Aceptadas</h4>
+                <div className="seguros-grid">
                   {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
-                    <div key={index} className="insurance-chip">
-                      <div className="chip-icon">
+                    <div key={index} className="seguro-card">
+                      <span className="seguro-icon">
                         {seguro === 'Fonasa' ? '🏥' : 
                          seguro === 'Isapres' ? '🏛️' : 
                          seguro === 'Particular' ? '💼' : '🏥'}
-                      </div>
-                      <span className="chip-text">{seguro}</span>
+                      </span>
+                      <span className="seguro-name">{seguro}</span>
                     </div>
                   ))}
                 </div>
@@ -351,28 +347,15 @@ export default function MedicoInfoPage({ params }) {
             )}
           </section>
 
-          {/* Calendar de Sobrecupos Moderno */}
-          <section className="calendar-card">
-            <div className="card-header">
-              <div className="header-icon calendar-header-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2"/>
-                  <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2"/>
-                  <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2"/>
-                </svg>
+          {/* Calendar de Sobrecupos */}
+          <section className="calendar-section">
+            <h3 className="section-title">📅 Sobrecupos Disponibles</h3>
+            {sobrecupos.length > 0 && (
+              <div className="availability-indicator">
+                <div className="availability-dot"></div>
+                <span className="availability-text">{sobrecupos.length} citas disponibles</span>
               </div>
-              <div className="calendar-title-section">
-                <h2 className="card-title">Agenda Disponible</h2>
-                <p className="card-subtitle">Selecciona una fecha para agendar</p>
-              </div>
-              {sobrecupos.length > 0 && (
-                <div className="availability-badge">
-                  <div className="badge-dot"></div>
-                  <span>{sobrecupos.length} citas</span>
-                </div>
-              )}
-            </div>
+            )}
             <div className="calendar-container">
               <div className="calendar-header">
                 <button onClick={() => navigateMonth(-1)} className="calendar-nav">
@@ -539,182 +522,170 @@ export default function MedicoInfoPage({ params }) {
       <style jsx>{`
         .page-container {
           min-height: 100vh;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
           position: relative;
         }
 
-        /* Modern Floating Header */
-        .floating-header {
-          position: fixed;
-          top: 1.5rem;
-          left: 1.5rem;
-          right: 1.5rem;
-          z-index: 100;
+        /* Header */
+        .header {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          border-bottom: 1px solid #e5e5e5;
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+
+        .header-container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 0 1rem;
         }
 
         .header-content {
           display: flex;
           align-items: center;
           gap: 1rem;
-          padding: 1rem 1.5rem;
+          padding: 1rem 0;
+        }
+
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
         }
 
         .back-button {
           width: 40px;
           height: 40px;
-          background: rgba(103, 126, 234, 0.1);
-          border: none;
-          border-radius: 12px;
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          color: #667eea;
+          transition: all 0.2s ease;
         }
 
         .back-button:hover {
-          background: rgba(103, 126, 234, 0.2);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(103, 126, 234, 0.3);
+          background: #f5f5f5;
+          border-color: #d4d4d8;
         }
 
-        .breadcrumb {
+        .header-text {
           flex: 1;
         }
 
-        .breadcrumb-text {
-          font-size: 1rem;
+        .header-title {
+          font-size: 1.25rem;
           font-weight: 600;
-          color: #1f2937;
-          letter-spacing: -0.025em;
+          color: #171717;
+          margin: 0;
         }
 
-        /* Main Wrapper */
-        .main-wrapper {
-          padding-top: 6rem;
-          min-height: 100vh;
-        }
-
-        /* Hero Section */
-        .hero-section {
-          position: relative;
-          padding: 2rem 1.5rem 3rem;
-          margin-bottom: 2rem;
-        }
-
-        .hero-background {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(20px);
-          border-radius: 0 0 2rem 2rem;
-        }
-
-        .hero-content {
-          position: relative;
+        /* Layout */
+        .main-layout {
           max-width: 800px;
           margin: 0 auto;
+          padding: 2rem 1rem;
+        }
+
+        .content-container {
           display: flex;
           flex-direction: column;
+          gap: 2rem;
+        }
+
+        /* Doctor Profile Card */
+        .doctor-profile-card {
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 16px;
+          padding: 2rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .profile-header {
+          display: flex;
           align-items: center;
-          text-align: center;
-          gap: 1.5rem;
+          gap: 2rem;
         }
 
-        .doctor-avatar-container {
+        .doctor-photo-container {
           position: relative;
+          flex-shrink: 0;
         }
 
-        .doctor-avatar {
+        .doctor-photo {
           position: relative;
           width: 120px;
           height: 120px;
-          border-radius: 50%;
-          background: white;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+          border-radius: 12px;
           overflow: hidden;
-          border: 4px solid rgba(255, 255, 255, 0.3);
+          background: #f5f5f5;
         }
 
-        .avatar-image {
+        .profile-image {
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
 
-        .avatar-placeholder {
+        .photo-placeholder {
           width: 100%;
           height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #9ca3af;
-          background: #f9fafb;
+          color: #999;
+          background: #f5f5f5;
         }
 
-        .avatar-status {
+        .status-indicator {
           position: absolute;
-          bottom: 8px;
-          right: 8px;
-          width: 24px;
-          height: 24px;
-          background: white;
-          border-radius: 50%;
+          bottom: -8px;
+          right: -8px;
           display: flex;
           align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          gap: 0.5rem;
+          background: white;
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          border: 1px solid #e5e5e5;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .status-dot {
-          width: 12px;
-          height: 12px;
+          width: 8px;
+          height: 8px;
           background: #10b981;
           border-radius: 50%;
         }
 
-        .hero-info {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 1rem;
+        .status-text {
+          font-size: 0.75rem;
+          color: #10b981;
+          font-weight: 500;
         }
 
-        .doctor-title {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.75rem;
+        .doctor-info {
+          flex: 1;
         }
 
         .doctor-name {
           font-size: 2rem;
-          font-weight: 700;
-          color: white;
-          margin: 0;
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          letter-spacing: -0.025em;
+          font-weight: 600;
+          color: #171717;
+          margin: 0 0 0.5rem 0;
         }
 
-        .specialty-badge {
+        .specialty-tag {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
-          padding: 0.5rem 1rem;
-          border-radius: 2rem;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          margin-bottom: 0.75rem;
         }
 
         .specialty-icon {
@@ -722,257 +693,215 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .specialty-text {
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #1f2937;
+          font-size: 1.1rem;
+          color: #ff9500;
+          font-weight: 500;
         }
 
         .credentials {
           display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .credential-item {
-          display: flex;
           align-items: center;
           gap: 0.5rem;
-          font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.9);
         }
 
-        .credential-item svg {
-          color: rgba(255, 255, 255, 0.7);
-        }
-
-        /* Content Sections */
-        .content-sections {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 0 1.5rem 2rem;
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        /* Modern Card Base */
-        .professional-card,
-        .calendar-card,
-        .experience-card,
-        .important-info-card {
-          background: white;
-          border-radius: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-          backdrop-filter: blur(20px);
-          overflow: hidden;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .professional-card:hover,
-        .calendar-card:hover,
-        .experience-card:hover,
-        .important-info-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Card Headers */
-        .card-header {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 1.5rem;
-          border-bottom: 1px solid #f1f5f9;
-        }
-
-        .header-icon {
-          width: 44px;
-          height: 44px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          box-shadow: 0 4px 12px rgba(103, 126, 234, 0.3);
-        }
-
-        .calendar-header-icon {
-          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-          box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
-        }
-
-        .card-title {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #1f2937;
-          margin: 0;
-          letter-spacing: -0.025em;
-        }
-
-        .card-subtitle {
+        .credential-label {
           font-size: 0.875rem;
-          color: #6b7280;
-          margin: 0.25rem 0 0 0;
+          color: #666;
+          font-weight: 500;
         }
 
-        .calendar-title-section {
-          flex: 1;
-        }
-
-        .availability-badge {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: rgba(16, 185, 129, 0.1);
-          color: #059669;
-          padding: 0.5rem 1rem;
-          border-radius: 2rem;
-          font-size: 0.8rem;
+        .credential-value {
+          font-size: 0.875rem;
+          color: #171717;
           font-weight: 600;
         }
 
-        .badge-dot {
+        /* Sections */
+        .section-title {
+          font-size: 1.5rem;
+          font-weight: 500;
+          color: #171717;
+          margin: 0 0 1.5rem 0;
+        }
+
+        .professional-info,
+        .experience-card,
+        .important-info-card,
+        .calendar-section {
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 16px;
+          padding: 2rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Availability Indicator */
+        .availability-indicator {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+        }
+
+        .availability-dot {
           width: 8px;
           height: 8px;
           background: #10b981;
           border-radius: 50%;
         }
 
-        /* Info Metrics */
-        .info-metrics {
+        .availability-text {
+          font-size: 0.875rem;
+          color: #10b981;
+          font-weight: 500;
+        }
+
+        /* Info Grid */
+        .info-grid {
           display: grid;
+          gap: 1.5rem;
           grid-template-columns: 1fr;
-          gap: 1rem;
+        }
+
+        .info-card {
           padding: 1.5rem;
-        }
-
-        .metric-card {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
+          background: #f9fafb;
           border-radius: 12px;
-          padding: 1.25rem;
-          transition: all 0.2s ease;
+          border: 1px solid #e5e7eb;
         }
 
-        .metric-card:hover {
-          background: #f1f5f9;
-          border-color: #cbd5e1;
-          transform: translateY(-1px);
-        }
-
-        .metric-header {
+        .info-header {
           display: flex;
           align-items: center;
           gap: 0.75rem;
           margin-bottom: 0.75rem;
         }
 
-        .metric-icon {
+        .info-icon {
           font-size: 1.25rem;
         }
 
-        .metric-label {
-          font-size: 0.8rem;
-          color: #64748b;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .metric-value {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #1e293b;
-          line-height: 1.2;
-        }
-
-        /* Insurance Section */
-        .insurance-section {
-          padding: 1.5rem;
-          border-top: 1px solid #f1f5f9;
-        }
-
-        .insurance-header {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-          margin-bottom: 1rem;
-        }
-
-        .insurance-icon {
-          font-size: 1.25rem;
-        }
-
-        .insurance-title {
-          font-size: 1rem;
+        .info-title {
+          font-size: 0.875rem;
           font-weight: 600;
           color: #374151;
           margin: 0;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
 
-        .insurance-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.75rem;
+        .info-content {
+          font-size: 1rem;
+          color: #171717;
+          margin: 0;
+          font-weight: 500;
         }
 
-        .insurance-chip {
+        /* Seguros Section */
+        .seguros-section {
+          margin-top: 2rem;
+          padding-top: 2rem;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .subsection-title {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #171717;
+          margin: 0 0 1rem 0;
+        }
+
+        .seguros-grid {
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+
+        .seguro-card {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 0.5rem 1rem;
-          border-radius: 2rem;
-          font-size: 0.8rem;
-          font-weight: 600;
-          box-shadow: 0 2px 8px rgba(103, 126, 234, 0.3);
+          gap: 0.75rem;
+          padding: 1rem;
+          background: #fff;
+          border: 2px solid #ff9500;
+          border-radius: 8px;
           transition: all 0.2s ease;
         }
 
-        .insurance-chip:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(103, 126, 234, 0.4);
+        .seguro-card:hover {
+          background: #ff9500;
+          color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(255, 149, 0, 0.2);
         }
 
-        .chip-icon {
-          font-size: 1rem;
+        .seguro-icon {
+          font-size: 1.25rem;
         }
 
-        /* Experience Card */
-        .experience-content {
-          padding: 1.5rem;
+        .seguro-name {
+          font-size: 0.875rem;
+          font-weight: 600;
         }
 
-        .experience-text {
-          font-size: 0.95rem;
-          line-height: 1.6;
-          color: #4b5563;
-          margin: 0;
-        }
-
-        /* Important Info Card */
-        .info-header {
+        /* Card Header */
+        .card-header {
           display: flex;
           align-items: center;
           gap: 1rem;
-          padding: 1.5rem;
-          background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
-          border-bottom: 1px solid #f3e8ff;
+          margin-bottom: 1.5rem;
         }
 
-        .info-icon-container {
-          width: 48px;
-          height: 48px;
-          background: #f59e0b;
+        .header-icon {
+          width: 44px;
+          height: 44px;
+          background: #ff9500;
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .card-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #171717;
+          margin: 0;
+        }
+
+        /* Experience Content */
+        .experience-content {
+          background: #f9fafb;
+          padding: 1.5rem;
+          border-radius: 12px;
+          border: 1px solid #e5e7eb;
+        }
+
+        .experience-text {
+          font-size: 0.95rem;
+          line-height: 1.6;
+          color: #374151;
+          margin: 0;
+        }
+
+        /* Important Info Header */
+        .info-header {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .info-icon-container {
+          width: 48px;
+          height: 48px;
+          background: #ff9500;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
         }
 
         .info-title-section {
@@ -981,14 +910,14 @@ export default function MedicoInfoPage({ params }) {
 
         .info-title {
           font-size: 1.25rem;
-          font-weight: 700;
-          color: #92400e;
+          font-weight: 600;
+          color: #171717;
           margin: 0;
         }
 
         .info-subtitle {
           font-size: 0.875rem;
-          color: #b45309;
+          color: #666;
           margin: 0.25rem 0 0 0;
         }
 
@@ -996,7 +925,6 @@ export default function MedicoInfoPage({ params }) {
           display: flex;
           flex-direction: column;
           gap: 1.5rem;
-          padding: 1.5rem;
         }
 
         .info-point {
@@ -1033,13 +961,15 @@ export default function MedicoInfoPage({ params }) {
 
         /* Action Section */
         .action-section {
-          padding: 0 1.5rem 1rem;
+          display: flex;
+          justify-content: center;
         }
 
         .action-buttons {
           display: flex;
           gap: 1rem;
           flex-direction: column;
+          width: 100%;
         }
 
         .primary-button,
@@ -1049,37 +979,37 @@ export default function MedicoInfoPage({ params }) {
           justify-content: center;
           gap: 0.75rem;
           padding: 1rem 1.5rem;
-          border-radius: 14px;
-          font-size: 0.9rem;
-          font-weight: 600;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          transition: all 0.2s ease;
           cursor: pointer;
           text-decoration: none;
           border: none;
         }
 
         .primary-button {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: #ff9500;
           color: white;
-          box-shadow: 0 4px 12px rgba(103, 126, 234, 0.3);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
         }
 
         .primary-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(103, 126, 234, 0.4);
+          background: #e6850a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
         }
 
         .secondary-button {
           background: white;
-          color: #6b7280;
-          border: 2px solid #e5e7eb;
+          color: #666;
+          border: 1px solid #e5e5e5;
         }
 
         .secondary-button:hover {
-          background: #f9fafb;
-          border-color: #d1d5db;
-          color: #374151;
-          transform: translateY(-1px);
+          background: #f5f5f5;
+          border-color: #d4d4d8;
+          color: #171717;
         }
 
         /* Responsive Design */
@@ -1221,99 +1151,61 @@ export default function MedicoInfoPage({ params }) {
           background: #e6850a;
         }
 
-        /* Layout */
-        .main-layout {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 2rem 1rem;
-        }
-
-        .content-container {
+        /* Loading */
+        .loading-container {
           display: flex;
           flex-direction: column;
-          gap: 2rem;
-        }
-
-        /* Doctor Profile */
-        .doctor-profile {
-          background: white;
-          border-radius: 16px;
-          padding: 2rem;
-          border: 1px solid #e5e5e5;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .profile-header {
-          display: flex;
-          align-items: center;
-          gap: 2rem;
-        }
-
-        .doctor-photo {
-          position: relative;
-          width: 120px;
-          height: 120px;
-          border-radius: 12px;
-          overflow: hidden;
-          flex-shrink: 0;
-        }
-
-        .profile-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .photo-placeholder {
-          width: 100%;
-          height: 100%;
-          background: #f5f5f5;
-          display: flex;
           align-items: center;
           justify-content: center;
-          color: #999;
+          min-height: 50vh;
+          text-align: center;
         }
 
-        .doctor-info {
-          flex: 1;
+        .loading-spinner {
+          width: 32px;
+          height: 32px;
+          border: 2px solid #f3f4f6;
+          border-top: 2px solid #ff9500;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 1rem;
         }
 
-        .doctor-name {
-          font-size: 2rem;
-          font-weight: 600;
-          color: #171717;
-          margin: 0 0 0.5rem 0;
-        }
-
-        .doctor-specialty {
-          font-size: 1.1rem;
-          color: #ff9500;
-          margin: 0 0 0.5rem 0;
-          font-weight: 500;
-        }
-
-        .doctor-rss {
-          font-size: 0.875rem;
+        .loading-text {
           color: #666;
+          font-size: 0.875rem;
           margin: 0;
         }
 
-        /* Sections */
-        .section-title {
-          font-size: 1.5rem;
-          font-weight: 500;
-          color: #171717;
-          margin: 0 0 1.5rem 0;
+        /* Error */
+        .error-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 50vh;
+          text-align: center;
+          padding: 2rem;
         }
 
-        .professional-info,
-        .experience-section,
-        .patient-info {
-          background: white;
-          border-radius: 16px;
-          padding: 2rem;
-          border: 1px solid #e5e5e5;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        .back-to-list {
+          margin-top: 1rem;
+          padding: 0.75rem 1.5rem;
+          background: #ff9500;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .back-to-list:hover {
+          background: #e6850a;
+        }
+
+        /* Animations */
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
 
         /* Info Grid */
@@ -1818,9 +1710,9 @@ export default function MedicoInfoPage({ params }) {
           }
 
           .professional-info,
-          .experience-section,
-          .patient-info,
-          .doctor-profile,
+          .experience-card,
+          .important-info-card,
+          .doctor-profile-card,
           .calendar-section {
             padding: 1rem;
           }
