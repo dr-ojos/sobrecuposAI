@@ -14,6 +14,35 @@ function ChatComponent() {
   ]);
   const [input, setInput] = useState("");
   const [session, setSession] = useState({});
+  const [sessionId, setSessionId] = useState(null);
+
+  // Generar o recuperar sessionId único
+  useEffect(() => {
+    let id = localStorage.getItem('chatSessionId');
+    if (!id) {
+      id = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('chatSessionId', id);
+    }
+    setSessionId(id);
+
+    // Recuperar sesión desde localStorage
+    const savedSession = localStorage.getItem(`chatSession_${id}`);
+    if (savedSession) {
+      try {
+        setSession(JSON.parse(savedSession));
+      } catch (error) {
+        console.error('Error recuperando sesión:', error);
+        setSession({});
+      }
+    }
+  }, []);
+
+  // Guardar sesión cuando cambie
+  useEffect(() => {
+    if (sessionId && Object.keys(session).length > 0) {
+      localStorage.setItem(`chatSession_${sessionId}`, JSON.stringify(session));
+    }
+  }, [session, sessionId]);
   const [loading, setLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [hasProcessedInitial, setHasProcessedInitial] = useState(false);
@@ -112,7 +141,8 @@ function ChatComponent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: message,
-          session: {}
+          session: session,
+          sessionId: sessionId
         }),
       });
       
@@ -311,13 +341,50 @@ function ChatComponent() {
     }
   }, [messages.length]);
 
+  // Validación robusta de inputs
+  const validateInput = (text) => {
+    if (!text || typeof text !== 'string') return { valid: false, error: 'Mensaje vacío' };
+    
+    const trimmed = text.trim();
+    if (trimmed.length === 0) return { valid: false, error: 'Mensaje vacío' };
+    if (trimmed.length > 2000) return { valid: false, error: 'Mensaje demasiado largo (máximo 2000 caracteres)' };
+    
+    // Detectar posible spam o caracteres maliciosos
+    const suspiciousPatterns = [
+      /(.)\1{20,}/, // Más de 20 caracteres repetidos
+      /<script|javascript:|data:/i, // Posible XSS
+      /http[s]?:\/\/[^\s]*[a-z0-9]{32,}/i // URLs sospechosas con tokens largos
+    ];
+    
+    for (const pattern of suspiciousPatterns) {
+      if (pattern.test(trimmed)) {
+        return { valid: false, error: 'Formato de mensaje no válido' };
+      }
+    }
+    
+    return { valid: true, message: trimmed };
+  };
+
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    
+    const validation = validateInput(input);
+    if (!validation.valid || loading) {
+      if (!validation.valid) {
+        setMessages(msgs => [...msgs, {
+          from: "bot",
+          text: `❌ ${validation.error}. Por favor, intenta con un mensaje válido.`,
+          timestamp: new Date()
+        }]);
+      }
+      return;
+    }
+
+    const validMessage = validation.message;
     
     const userMsg = { 
       from: "user", 
-      text: input,
+      text: validMessage,
       timestamp: new Date()
     };
     
@@ -333,11 +400,21 @@ function ChatComponent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: input, 
-          session 
+          message: validMessage, 
+          session,
+          sessionId
         }),
       });
+      
+      if (!res.ok) {
+        throw new Error(`Error del servidor: ${res.status} ${res.statusText}`);
+      }
+      
       const data = await res.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
       
       setIsTyping(false);
       
@@ -371,12 +448,24 @@ function ChatComponent() {
         }]);
       }
       setSession(data.session || {});
-    } catch {
+    } catch (error) {
+      console.error('❌ Error en sendMessage:', error);
       setIsTyping(false);
+      
+      // Mensajes de error más específicos
+      let errorMessage = "Error de conexión. Intenta nuevamente.";
+      if (error.message.includes('Failed to fetch')) {
+        errorMessage = "Sin conexión a internet. Verifica tu conexión.";
+      } else if (error.message.includes('500')) {
+        errorMessage = "Error del servidor. Nuestro equipo está trabajando en solucionarlo.";
+      } else if (error.message.includes('timeout')) {
+        errorMessage = "La respuesta está tardando más de lo usual. Intenta nuevamente.";
+      }
+      
       setMessages((msgs) =>
         [...msgs, { 
           from: "bot", 
-          text: "Error de conexión. Intenta nuevamente.",
+          text: errorMessage,
           timestamp: new Date()
         }]
       );

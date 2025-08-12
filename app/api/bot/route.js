@@ -2,8 +2,44 @@
 import { NextResponse } from 'next/server';
 import whatsAppService from '../../../lib/whatsapp-service';
 
-// Estado de sesiones en memoria
+// Estado de sesiones en memoria mejorado con timeout
 const sessions = {};
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos
+
+// Limpiar sesiones expiradas cada 10 minutos
+setInterval(() => {
+  const now = Date.now();
+  Object.keys(sessions).forEach(sessionId => {
+    if (sessions[sessionId] && (now - sessions[sessionId].lastActivity) > SESSION_TIMEOUT) {
+      console.log(`🧹 Limpiando sesión expirada: ${sessionId}`);
+      delete sessions[sessionId];
+    }
+  });
+}, 10 * 60 * 1000);
+
+// Función para obtener o crear sesión
+function getOrCreateSession(sessionId, sessionData = {}) {
+  if (!sessionId) {
+    sessionId = `server_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  if (!sessions[sessionId]) {
+    sessions[sessionId] = {
+      ...sessionData,
+      id: sessionId,
+      createdAt: Date.now(),
+      lastActivity: Date.now(),
+      messageHistory: []
+    };
+  } else {
+    // Actualizar actividad
+    sessions[sessionId].lastActivity = Date.now();
+    // Merge con datos nuevos
+    sessions[sessionId] = { ...sessions[sessionId], ...sessionData };
+  }
+  
+  return sessions[sessionId];
+}
 
 // Saludos simples para detección
 const saludosSimples = [
@@ -11,22 +47,44 @@ const saludosSimples = [
   "hey","ey","qué tal","que tal","holi","holis","hello","saludos"
 ];
 
-// 🆕 FUNCIÓN PARA FILTRAR SOLO FECHAS FUTURAS
+// 🆕 FUNCIÓN PARA FILTRAR SOLO FECHAS FUTURAS - MEJORADA
 function filterFutureDates(records) {
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  // Crear fecha de hoy en zona horaria de Chile
+  const chileTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Santiago"}));
+  const today = new Date(chileTime.getFullYear(), chileTime.getMonth(), chileTime.getDate());
   
   return records.filter(record => {
     const fields = record.fields || {};
     const fechaStr = fields.Fecha;
+    const horaStr = fields.Hora;
     
     if (!fechaStr) return false;
     
-    // Convertir fecha del registro a objeto Date
-    const recordDate = new Date(fechaStr);
-    
-    // Solo incluir si la fecha es hoy o futura
-    return recordDate >= today;
+    try {
+      // Convertir fecha del registro a objeto Date
+      const recordDate = new Date(fechaStr);
+      
+      // Si la fecha es futura, incluirla
+      if (recordDate > today) return true;
+      
+      // Si es hoy, verificar que la hora no haya pasado
+      if (recordDate.getTime() === today.getTime() && horaStr) {
+        const [hours, minutes] = horaStr.split(':').map(Number);
+        const recordDateTime = new Date(recordDate);
+        recordDateTime.setHours(hours, minutes, 0, 0);
+        
+        // Comparar con hora actual en Chile
+        const currentChileTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Santiago"}));
+        return recordDateTime > currentChileTime;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error procesando fecha:', fechaStr, error);
+      return false;
+    }
   });
 }
 
@@ -100,8 +158,158 @@ async function getDoctorInfoCached(doctorId, cache = new Map()) {
   }
 }
 
-async function generateEmphaticResponse(text, fallback = "Entiendo tu preocupación.") {
-  if (!OPENAI_API_KEY) return fallback;
+// Respuestas de fallback inteligentes sin OpenAI
+const symptomFallbacks = {
+  ojos: "Entiendo tu molestia ocular. Te ayudo a encontrar un oftalmólogo.",
+  vista: "Los problemas de visión requieren atención especializada. Busquemos un oftalmólogo.",
+  cabeza: "El dolor de cabeza puede tener varias causas. Te conecto con un neurólogo.",
+  corazón: "Los síntomas cardíacos necesitan evaluación médica. Busquemos un cardiólogo.",
+  estómago: "Los problemas digestivos pueden ser molestos. Te ayudo a encontrar un gastroenterólogo.",
+  default: "Entiendo tu preocupación. Te ayudo a encontrar el especialista adecuado."
+};
+
+function getSymptomFallback(text) {
+  const lowerText = text.toLowerCase();
+  for (const [keyword, response] of Object.entries(symptomFallbacks)) {
+    if (keyword !== 'default' && lowerText.includes(keyword)) {
+      return response;
+    }
+  }
+  return symptomFallbacks.default;
+}
+
+// 🧠 Análisis inteligente del paciente
+function analyzePatientMessage(message, existingProfile = {}) {
+  const lowerMsg = message.toLowerCase();
+  
+  // Análisis emocional
+  const emotionalIndicators = {
+    anxiety: ['preocupado', 'nervioso', 'ansioso', 'miedo', 'asustado', 'inquieto'],
+    pain: ['duele', 'dolor', 'molesta', 'incomoda', 'sufro', 'lastima'],
+    urgency: ['urgente', 'rapido', 'pronto', 'necesito ya', 'no aguanto', 'grave'],
+    frustration: ['cansado', 'harto', 'frustrado', 'desesperado', 'no puedo más'],
+    hope: ['espero', 'ojala', 'quizas', 'confio', 'mejore', 'alivio']
+  };
+  
+  // Detectar urgencia
+  const urgencyKeywords = ['sangre', 'desmayo', 'no puedo respirar', 'pecho apretado', 'visión borrosa súbita', 'dolor intenso'];
+  const urgency = urgencyKeywords.some(keyword => lowerMsg.includes(keyword)) ? 'high' : 'normal';
+  
+  // Detectar estado emocional dominante
+  let emotion = 'neutral';
+  let maxMatches = 0;
+  
+  for (const [emotionType, keywords] of Object.entries(emotionalIndicators)) {
+    const matches = keywords.filter(keyword => lowerMsg.includes(keyword)).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      emotion = emotionType;
+    }
+  }
+  
+  // Extraer información demográfica
+  const profileUpdates = {};
+  
+  // Detectar género (para personalizar respuestas)
+  if (lowerMsg.includes('embarazada') || lowerMsg.includes('menstruación') || lowerMsg.includes('regla')) {
+    profileUpdates.gender = 'female';
+  }
+  
+  // Detectar edad aproximada
+  if (lowerMsg.includes('niño') || lowerMsg.includes('hijo') || lowerMsg.includes('hija')) {
+    profileUpdates.hasChildren = true;
+  }
+  
+  if (lowerMsg.includes('adulto mayor') || lowerMsg.includes('abuelo') || lowerMsg.includes('tercera edad')) {
+    profileUpdates.ageGroup = 'senior';
+  }
+  
+  // Detectar condiciones crónicas
+  const chronicConditions = ['diabetes', 'hipertensión', 'presión alta', 'artritis', 'asma'];
+  chronicConditions.forEach(condition => {
+    if (lowerMsg.includes(condition)) {
+      profileUpdates.chronicConditions = [...(existingProfile.chronicConditions || []), condition];
+    }
+  });
+  
+  // Extraer síntomas clave
+  const medicalKeywords = extractMedicalKeywords(message);
+  
+  return {
+    emotion,
+    urgency,
+    keywords: medicalKeywords,
+    profile: profileUpdates,
+    sentiment: emotion !== 'neutral' ? 'emotional' : 'neutral'
+  };
+}
+
+// Extractor de palabras clave médicas
+function extractMedicalKeywords(text) {
+  const medicalTerms = {
+    symptoms: ['dolor', 'molestia', 'picazón', 'hinchazón', 'fiebre', 'tos', 'mareo'],
+    bodyParts: ['cabeza', 'ojos', 'oído', 'garganta', 'pecho', 'estómago', 'espalda'],
+    duration: ['desde ayer', 'hace días', 'semanas', 'crónico', 'constante', 'intermitente'],
+    intensity: ['leve', 'moderado', 'intenso', 'insoportable', 'suave', 'fuerte']
+  };
+  
+  const keywords = [];
+  const lowerText = text.toLowerCase();
+  
+  Object.values(medicalTerms).flat().forEach(term => {
+    if (lowerText.includes(term)) {
+      keywords.push(term);
+    }
+  });
+  
+  return keywords;
+}
+
+async function generateEmphaticResponse(text, fallback = "Entiendo tu preocupación.", patientContext = {}) {
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  
+  // Si no hay OpenAI, usar fallback inteligente
+  if (!OPENAI_API_KEY) {
+    return getSymptomFallback(text);
+  }
+
+  // Construir contexto del paciente para OpenAI
+  let contextualPrompt = `Eres Carmen, una secretaria médica chilena con 15 años de experiencia en atención de pacientes. Tu misión es brindar contención emocional y apoyo humano a personas que están pasando por momentos difíciles de salud.
+
+PERSONALIDAD:
+- Cálida, empática y genuinamente preocupada por el bienestar del paciente
+- Usa lenguaje chileno natural pero profesional ("te entiendo", "qué molesto debe ser")
+- Reconoces que detrás de cada síntoma hay una persona con sentimientos y preocupaciones
+- Validas las emociones del paciente antes de ofrecer soluciones`;
+
+  // Agregar contexto específico del paciente
+  if (patientContext.emotionalState && patientContext.emotionalState !== 'neutral') {
+    contextualPrompt += `\n\nCONTEXTO EMOCIONAL: El paciente muestra signos de ${patientContext.emotionalState}. Responde con especial sensibilidad a este estado.`;
+  }
+
+  if (patientContext.urgency === 'high') {
+    contextualPrompt += `\n\nURGENCIA: El paciente describe síntomas que requieren atención prioritaria. Mantén la calma pero transmite que entiendes la urgencia.`;
+  }
+
+  if (patientContext.patientProfile?.hasChildren) {
+    contextualPrompt += `\n\nCONTEXTO FAMILIAR: El paciente tiene hijos. Considera el impacto familiar en tu respuesta.`;
+  }
+
+  if (patientContext.patientProfile?.chronicConditions?.length > 0) {
+    contextualPrompt += `\n\nHISTORIAL: El paciente ha mencionado condiciones como ${patientContext.patientProfile.chronicConditions.join(', ')}. Sé especialmente empático.`;
+  }
+
+  contextualPrompt += `\n\nRESPONDE CON:
+- Validación emocional genuina
+- Reconocimiento del impacto del síntoma en su vida diaria
+- Esperanza realista sobre encontrar ayuda médica
+- Máximo 2-3 líneas, pero cada palabra cuenta
+
+EVITA:
+- Diagnósticos médicos
+- Minimizar sus síntomas
+- Respuestas robóticas o genéricas
+- Exceso de emojis (máximo 1-2 apropiados)`;
   
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -117,18 +325,21 @@ async function generateEmphaticResponse(text, fallback = "Entiendo tu preocupaci
         messages: [
           {
             role: "system",
-            content: "Eres una secretaria médica chilena empática y profesional. Responde con comprensión al paciente que describe su problema médico. Máximo 2 líneas, tono cálido y humano."
+            content: contextualPrompt
           },
-          { role: "user", content: `Paciente dice: "${text}"` }
+          { 
+            role: "user", 
+            content: `Un paciente me dice con preocupación: "${text}". Como Carmen, respóndele con empatía y comprensión genuina.` 
+          }
         ]
       })
     });
     
     const data = await response.json();
-    return data.choices?.[0]?.message?.content?.trim() || fallback;
+    return data.choices?.[0]?.message?.content?.trim() || getSymptomFallback(text);
   } catch (err) {
     console.error("❌ Error OpenAI empático:", err);
-    return fallback;
+    return getSymptomFallback(text);
   }
 }
 
@@ -966,10 +1177,42 @@ async function getDoctorInfo(doctorId) {
 // Handler principal POST
 export async function POST(req) {
   try {
-    const { message, session: currentSession } = await req.json();
+    const { message, session: currentSession, sessionId } = await req.json();
     
     if (!message) {
       return NextResponse.json({ text: "No se recibió mensaje" }, { status: 400 });
+    }
+    
+    // Obtener o crear sesión con contexto
+    const session = getOrCreateSession(sessionId, currentSession);
+    
+    // Sistema de memoria conversacional avanzado
+    session.messageHistory = session.messageHistory || [];
+    session.patientProfile = session.patientProfile || {};
+    session.emotionalState = session.emotionalState || 'neutral';
+    session.conversationStage = session.conversationStage || 'initial';
+    
+    // Analizar y extraer información del paciente
+    const patientInsights = analyzePatientMessage(message, session.patientProfile);
+    session.patientProfile = { ...session.patientProfile, ...patientInsights.profile };
+    session.emotionalState = patientInsights.emotion;
+    
+    session.messageHistory.push({ 
+      type: 'user', 
+      content: message, 
+      timestamp: Date.now(),
+      emotion: patientInsights.emotion,
+      urgency: patientInsights.urgency,
+      keywords: patientInsights.keywords
+    });
+    
+    // Mantener historial más inteligente (priorizar mensajes importantes)
+    if (session.messageHistory.length > 15) {
+      const importantMessages = session.messageHistory.filter(msg => 
+        msg.urgency === 'high' || msg.type === 'bot_appointment'
+      ).slice(-5);
+      const recentMessages = session.messageHistory.slice(-10);
+      session.messageHistory = [...importantMessages, ...recentMessages].slice(-15);
     }
 
     // Variables de entorno
@@ -1303,9 +1546,16 @@ Ejemplos:
                   alternativeOptions: otrasOpciones
                 };
                 
+                // Guardar respuesta en historial
+                session.messageHistory.push({ 
+                  type: 'bot', 
+                  content: mensaje, 
+                  timestamp: Date.now() 
+                });
+                
                 return NextResponse.json({
                   text: mensaje,
-                  session: sessions[from]
+                  session: session
                 });
               } else {
                 // Cambiar a stage especial para manejar respuesta sobre buscar otros médicos
@@ -1464,7 +1714,7 @@ Ejemplos:
           }
 
           // Extraer primer nombre para saludo personalizado
-          const primerNombre = nombreCompleto.split(' ')[0];
+          const primerNombreComplete = nombreCompleto.split(' ')[0];
           
           // Guardar nombre y pasar a solicitar edad
           sessions[from] = {
@@ -1474,7 +1724,7 @@ Ejemplos:
           };
 
           return NextResponse.json({
-            text: `¡Perfecto, ${primerNombre}! Ahora necesito conocer tu edad para completar la reserva.\n\nPor favor dime tu edad:\nEjemplo: 25`,
+            text: `¡Perfecto, ${primerNombreComplete}! Ahora necesito conocer tu edad para completar la reserva.\n\nPor favor dime tu edad:\nEjemplo: 25`,
             session: sessions[from]
           });
 
@@ -1589,6 +1839,49 @@ Ejemplos:
 
           return NextResponse.json({
             text: `¡Perfecto, ${nombrePaciente}! La cita te queda ideal.\n\nAhora necesito tu RUT para completar la reserva.\n\nPor favor, ingresa tu RUT:\nEjemplo: 12.345.678-9 o 12345678-9`,
+            session: sessions[from]
+          });
+
+        case 'getting-name-for-specialty':
+          if (!validarNombre(text)) {
+            return NextResponse.json({
+              text: "Por favor, ingresa tu nombre completo. Solo letras y espacios.\n\nEjemplo: Juan Pérez"
+            });
+          }
+          
+          const nombreCompletoSpecialty = text.trim();
+          const primerNombreSpecialty = nombreCompletoSpecialty.split(' ')[0];
+          
+          sessions[from] = {
+            ...currentSession,
+            patientName: nombreCompletoSpecialty,
+            primerNombre: primerNombreSpecialty,
+            stage: 'getting-rut-for-specialty'
+          };
+          
+          return NextResponse.json({
+            text: `¡Perfecto, ${primerNombreSpecialty}! Ahora necesito tu RUT para la reserva.\n\nPor favor ingresa tu RUT:\nEjemplo: 12345678-9`,
+            session: sessions[from]
+          });
+          
+        case 'getting-rut-for-specialty':
+          if (!validarRUT(text)) {
+            return NextResponse.json({
+              text: "Por favor, ingresa un RUT válido en formato chileno.\n\nEjemplos:\n• 12345678-9\n• 12.345.678-9\n• 12345678-K"
+            });
+          }
+          
+          const rutFormateado = formatearRUT(text);
+          const primerNombreDos = currentSession.primerNombre || currentSession.patientName?.split(' ')[0] || 'usuario';
+          
+          sessions[from] = {
+            ...currentSession,
+            patientRUT: rutFormateado,
+            stage: 'getting-age-for-filtering'
+          };
+          
+          return NextResponse.json({
+            text: `¡Excelente, ${primerNombreDos}! Ya tengo tus datos básicos.\n\nPara encontrar el médico de **${currentSession.specialty}** más adecuado para ti, ¿me podrías decir tu edad?\n\nEjemplo: 25`,
             session: sessions[from]
           });
 
@@ -1794,15 +2087,15 @@ Ejemplos:
               });
             }
             
-            const primerNombre = text.trim().split(' ')[0];
+            const primerNombreContact = text.trim().split(' ')[0];
             sessions[from] = { 
               ...currentSession, 
               dataStep: 'rut',
               patientName: text,
-              primerNombre: primerNombre
+              primerNombre: primerNombreContact
             };
             return NextResponse.json({
-              text: `¡Perfecto, ${primerNombre}! 👤\n\nAhora necesito tu RUT (con guión y dígito verificador).\nEjemplos: 12.345.678-9 o 12345678-9`,
+              text: `¡Perfecto, ${primerNombreContact}! 👤\n\nAhora necesito tu RUT (con guión y dígito verificador).\nEjemplos: 12.345.678-9 o 12345678-9`,
               session: sessions[from]
             });
           }
@@ -3198,14 +3491,14 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       }
 
       sessions[from] = {
-        stage: 'getting-age-for-filtering',
+        stage: 'getting-name-for-specialty',
         specialty: specialty,
         respuestaEmpatica,
         attempts: 0
       };
 
       return NextResponse.json({
-        text: `${respuestaEmpatica}\n\nPara encontrar el médico más adecuado para ti, ¿me podrías decir tu edad?\nEjemplo: 25`,
+        text: `${respuestaEmpatica}\n\nPara ayudarte con la reserva de **${specialty}**, necesito algunos datos básicos.\n\nPrimero, ¿cuál es tu nombre completo?`,
         session: sessions[from]
       });
     }
@@ -3324,10 +3617,14 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           console.log(`🔍 [DEBUG] No appointments available, generating empathic response`);
           let respuestaEmpatica;
           try {
-            const empathicPromise = generateEmphaticResponse(text);
+            const empathicPromise = generateEmphaticResponse(text, "Entiendo tu preocupación.", {
+              emotionalState: session.emotionalState,
+              urgency: patientInsights.urgency,
+              patientProfile: session.patientProfile
+            });
             respuestaEmpatica = await Promise.race([
               empathicPromise,
-              new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 10000))
+              new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 8000))
             ]);
           } catch (empathicError) {
             console.error(`❌ [DEBUG] Error generating empathic response (no appointments):`, empathicError);
@@ -3342,10 +3639,14 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         console.log(`🔍 [DEBUG] Generating empathic response for new flow`);
         let respuestaEmpatica;
         try {
-          const empathicPromise = generateEmphaticResponse(text);
+          const empathicPromise = generateEmphaticResponse(text, "Entiendo tu preocupación.", {
+            emotionalState: session.emotionalState,
+            urgency: patientInsights.urgency,
+            patientProfile: session.patientProfile
+          });
           respuestaEmpatica = await Promise.race([
             empathicPromise,
-            new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 10000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 8000))
           ]);
           console.log(`🔍 [DEBUG] Empathic response generated successfully`);
         } catch (empathicError) {
