@@ -2018,6 +2018,36 @@ const AgendarSobrecuposContent = () => {
           }
         }
 
+        /* Mobile Calendar Fix - All Mobile Devices */
+        @media (max-width: 768px) {
+          .calendar-dropdown {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: calc(100vw - 2rem) !important;
+            max-width: 340px !important;
+            height: auto !important;
+            max-height: 80vh !important;
+            z-index: 1000 !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+          }
+          
+          .calendar-overlay {
+            display: block !important;
+            z-index: 999 !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+          }
+          
+          .calendar-body {
+            max-height: 50vh !important;
+            overflow-y: auto !important;
+          }
+        }
+
         /* iPhone Specific Optimizations */
         @media (max-width: 480px) {
           .main-layout {
@@ -2404,13 +2434,8 @@ const AgendarSobrecuposContent = () => {
 
           /* Calendario compacto para iPhone SE */
           .calendar-dropdown {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: calc(100vw - 1rem);
-            max-width: 320px;
-            margin: 0;
+            max-width: 300px !important;
+            width: calc(100vw - 1.5rem) !important;
           }
 
           .calendar-header {
@@ -2494,10 +2519,6 @@ const AgendarSobrecuposContent = () => {
           }
 
           .calendar-dropdown {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
             max-height: 70vh;
             z-index: 1000;
             width: calc(100vw - 2rem);
