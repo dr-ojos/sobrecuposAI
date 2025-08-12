@@ -221,19 +221,33 @@ export default function MedicoInfoPage({ params }) {
 
   return (
     <main className="page-container">
-      {/* Header consistente con el proyecto */}
+      <div className="bg-gradient" />
+      
+      {/* Elementos geométricos floating como en la home */}
+      <div className="floating-elements">
+        <div className="element element-1">
+          <div className="geometric-circle"></div>
+        </div>
+        <div className="element element-2">
+          <div className="geometric-square"></div>
+        </div>
+        <div className="element element-3">
+          <div className="geometric-triangle"></div>
+        </div>
+      </div>
+
+      {/* Header minimalista como en el perfil */}
       <header className="header">
-        <div className="header-container">
-          <div className="header-content">
-            <div className="header-left">
-              <button onClick={handleBackClick} className="back-button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              <div className="header-text">
-                <h1 className="header-title">Información del Médico</h1>
-              </div>
+        <div className="header-content">
+          <div className="header-left">
+            <button onClick={handleBackClick} className="back-button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <div className="header-text">
+              <h1 className="header-title">Dr. {fields.Name}</h1>
+              <span className="header-subtitle">{fields.Especialidad}</span>
             </div>
           </div>
         </div>
@@ -498,31 +512,106 @@ export default function MedicoInfoPage({ params }) {
         .page-container {
           min-height: 100vh;
           background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
           position: relative;
+          color: #171717;
         }
 
-        /* Header */
+        /* Background gradient matching home */
+        .bg-gradient {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
+          z-index: -2;
+        }
+
+        /* Floating elements from home */
+        .floating-elements {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: -1;
+          overflow: hidden;
+        }
+
+        .element {
+          position: absolute;
+          opacity: 0.4;
+          animation: float 20s ease-in-out infinite;
+        }
+
+        .element-1 {
+          top: 15%;
+          left: 85%;
+          animation-delay: 0s;
+        }
+
+        .element-2 {
+          top: 70%;
+          left: 15%;
+          animation-delay: -7s;
+        }
+
+        .element-3 {
+          top: 40%;
+          right: 10%;
+          animation-delay: -14s;
+        }
+
+        .geometric-circle {
+          width: 60px;
+          height: 60px;
+          border: 2px solid #ff9500;
+          border-radius: 50%;
+          background: rgba(255, 149, 0, 0.05);
+        }
+
+        .geometric-square {
+          width: 40px;
+          height: 40px;
+          border: 2px solid #666;
+          background: rgba(102, 102, 102, 0.05);
+          transform: rotate(45deg);
+        }
+
+        .geometric-triangle {
+          width: 0;
+          height: 0;
+          border-left: 25px solid transparent;
+          border-right: 25px solid transparent;
+          border-bottom: 50px solid rgba(255, 149, 0, 0.3);
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          33% { transform: translateY(-30px) rotate(120deg); }
+          66% { transform: translateY(15px) rotate(240deg); }
+        }
+
+        /* Header minimalista consistente */
         .header {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid #e5e5e5;
           position: sticky;
           top: 0;
           z-index: 100;
-        }
-
-        .header-container {
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 0 1rem;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          background: rgba(250, 250, 250, 0.95);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          padding: 1rem 2rem;
         }
 
         .header-content {
           display: flex;
           align-items: center;
-          gap: 1rem;
-          padding: 1rem 0;
+          justify-content: space-between;
+          max-width: 1200px;
+          margin: 0 auto;
         }
 
         .header-left {
@@ -532,9 +621,9 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .back-button {
-          width: 40px;
-          height: 40px;
-          background: white;
+          width: 36px;
+          height: 36px;
+          background: none;
           border: 1px solid #e5e5e5;
           border-radius: 8px;
           cursor: pointer;
@@ -545,19 +634,27 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .back-button:hover {
-          background: #f5f5f5;
-          border-color: #d4d4d8;
+          border-color: #171717;
+          background: #f9fafb;
         }
 
         .header-text {
-          flex: 1;
+          display: flex;
+          align-items: baseline;
+          gap: 0.5rem;
         }
 
         .header-title {
-          font-size: 1.25rem;
-          font-weight: 600;
+          font-size: 1.5rem;
+          font-weight: 800;
           color: #171717;
           margin: 0;
+        }
+
+        .header-subtitle {
+          font-size: 1rem;
+          font-weight: 300;
+          color: #666;
         }
 
         /* Layout */
@@ -596,13 +693,29 @@ export default function MedicoInfoPage({ params }) {
           }
         }
 
-        /* Doctor Profile Card */
+        /* Doctor Profile Card con gradiente y sombra moderna */
         .doctor-profile-card {
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 16px;
-          padding: 2rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          border-radius: 20px;
+          padding: 2.5rem;
+          box-shadow: 
+            0 10px 25px rgba(0, 0, 0, 0.08),
+            0 4px 10px rgba(0, 0, 0, 0.03),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .doctor-profile-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.3), transparent);
         }
 
         .profile-header {
@@ -673,10 +786,11 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .doctor-name {
-          font-size: 2rem;
-          font-weight: 600;
+          font-size: 2.5rem;
+          font-weight: 300;
           color: #171717;
           margin: 0 0 0.5rem 0;
+          letter-spacing: -1px;
         }
 
         .specialty-tag {
@@ -684,6 +798,11 @@ export default function MedicoInfoPage({ params }) {
           align-items: center;
           gap: 0.5rem;
           margin-bottom: 0.75rem;
+          padding: 0.5rem 1rem;
+          background: linear-gradient(135deg, rgba(255, 149, 0, 0.1) 0%, rgba(255, 149, 0, 0.05) 100%);
+          border-radius: 20px;
+          border: 1px solid rgba(255, 149, 0, 0.2);
+          display: inline-flex;
         }
 
         .specialty-icon {
@@ -691,9 +810,10 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .specialty-text {
-          font-size: 1.1rem;
+          font-size: 1rem;
           color: #ff9500;
-          font-weight: 500;
+          font-weight: 600;
+          letter-spacing: 0.5px;
         }
 
         .credentials {
@@ -714,23 +834,43 @@ export default function MedicoInfoPage({ params }) {
           font-weight: 600;
         }
 
-        /* Sections */
+        /* Sections con tipografía consistente */
         .section-title {
-          font-size: 1.5rem;
-          font-weight: 500;
+          font-size: 1.75rem;
+          font-weight: 300;
           color: #171717;
           margin: 0 0 1.5rem 0;
+          letter-spacing: -0.5px;
         }
 
         .professional-info,
         .experience-card,
         .important-info-card,
         .calendar-section {
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 16px;
-          padding: 2rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          border-radius: 20px;
+          padding: 2.5rem;
+          box-shadow: 
+            0 10px 25px rgba(0, 0, 0, 0.08),
+            0 4px 10px rgba(0, 0, 0, 0.03),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .professional-info::before,
+        .experience-card::before,
+        .important-info-card::before,
+        .calendar-section::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.3), transparent);
         }
 
         /* Availability Indicator */
@@ -763,9 +903,21 @@ export default function MedicoInfoPage({ params }) {
 
         .info-card {
           padding: 1.5rem;
-          background: #f9fafb;
-          border-radius: 12px;
-          border: 1px solid #e5e7eb;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.8) 100%);
+          border-radius: 16px;
+          border: 1px solid rgba(229, 231, 235, 0.5);
+          box-shadow: 
+            0 4px 12px rgba(0, 0, 0, 0.03),
+            0 2px 4px rgba(0, 0, 0, 0.02);
+          backdrop-filter: blur(5px);
+          transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 
+            0 8px 20px rgba(0, 0, 0, 0.06),
+            0 4px 8px rgba(0, 0, 0, 0.04);
         }
 
         .info-header {
@@ -969,26 +1121,49 @@ export default function MedicoInfoPage({ params }) {
           align-items: center;
           justify-content: center;
           gap: 0.75rem;
-          padding: 1rem 1.5rem;
-          border-radius: 8px;
+          padding: 1rem 2rem;
+          border-radius: 12px;
           font-size: 0.875rem;
-          font-weight: 500;
-          transition: all 0.2s ease;
+          font-weight: 600;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
           text-decoration: none;
           border: none;
+          position: relative;
+          overflow: hidden;
         }
 
         .primary-button {
-          background: #ff9500;
+          background: linear-gradient(135deg, #ff9500 0%, #ff8800 100%);
           color: white;
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+          box-shadow: 
+            0 8px 20px rgba(255, 149, 0, 0.25),
+            0 4px 8px rgba(255, 149, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .primary-button::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+          transition: left 0.6s ease;
         }
 
         .primary-button:hover {
-          background: #e6850a;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+          background: linear-gradient(135deg, #ff8800 0%, #ff7700 100%);
+          transform: translateY(-2px);
+          box-shadow: 
+            0 12px 28px rgba(255, 149, 0, 0.3),
+            0 6px 12px rgba(255, 149, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .primary-button:hover::before {
+          left: 100%;
         }
 
         .secondary-button {
@@ -1208,9 +1383,21 @@ export default function MedicoInfoPage({ params }) {
 
         .info-card {
           padding: 1.5rem;
-          background: #f9fafb;
-          border-radius: 12px;
-          border: 1px solid #e5e7eb;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.8) 100%);
+          border-radius: 16px;
+          border: 1px solid rgba(229, 231, 235, 0.5);
+          box-shadow: 
+            0 4px 12px rgba(0, 0, 0, 0.03),
+            0 2px 4px rgba(0, 0, 0, 0.02);
+          backdrop-filter: blur(5px);
+          transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 
+            0 8px 20px rgba(0, 0, 0, 0.06),
+            0 4px 8px rgba(0, 0, 0, 0.04);
         }
 
         .info-title {
