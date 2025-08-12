@@ -440,6 +440,7 @@ export default function Home() {
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
+          margin-top: 3rem;
           margin-bottom: 3rem;
           text-align: center;
         }
