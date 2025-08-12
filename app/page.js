@@ -61,29 +61,6 @@ export default function Home() {
     fetchEspecialidades();
   }, []);
 
-  // Rotación automática de especialidades (grupos de 3)
-  useEffect(() => {
-    if (especialidades.length > 3) {
-      const interval = setInterval(() => {
-        setCurrentIndex(prev => {
-          const maxIndex = Math.ceil(especialidades.length / 3) - 1;
-          return (prev + 1) % (maxIndex + 1);
-        });
-      }, 3000); // Cambia cada 3 segundos
-      
-      return () => clearInterval(interval);
-    }
-  }, [especialidades.length]);
-
-  // Obtener especialidades actuales a mostrar (máximo 3)
-  const getCurrentSpecialties = () => {
-    if (especialidades.length <= 3) {
-      return especialidades;
-    }
-    
-    const startIndex = currentIndex * 3;
-    return especialidades.slice(startIndex, startIndex + 3);
-  };
 
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 300);
@@ -135,39 +112,17 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Indicador de Especialidades Disponibles */}
+          {/* Especialidades Disponibles Mejoradas */}
           {especialidades.length > 0 && (
-            <div className={`especialidades-indicator ${isVisible ? 'visible' : ''}`}>
+            <div className={`especialidades-section ${isVisible ? 'visible' : ''}`}>
               <div className="especialidades-content">
-                <span className="especialidades-label">Especialidades con sobrecupos:</span>
-                <div className="especialidades-display">
-                  {especialidades.length <= 3 ? (
-                    <div className="especialidades-static">
-                      {especialidades.map((specialty, index) => (
-                        <span key={specialty} className="especialidad-item">
-                          {specialty}{index < especialidades.length - 1 ? ', ' : ''}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="especialidades-rotating" key={currentIndex}>
-                      {getCurrentSpecialties().map((specialty, index) => (
-                        <span key={specialty} className="especialidad-item">
-                          {specialty}{index < getCurrentSpecialties().length - 1 ? ', ' : ''}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {especialidades.length > 3 && (
-                    <div className="especialidades-dots">
-                      {Array.from({ length: Math.ceil(especialidades.length / 3) }).map((_, index) => (
-                        <span
-                          key={index}
-                          className={`dot ${index === currentIndex ? 'active' : ''}`}
-                        />
-                      ))}
-                    </div>
-                  )}
+                <span className="especialidades-label">Especialidades con sobrecupos disponibles</span>
+                <div className="especialidades-grid">
+                  {especialidades.map((specialty, index) => (
+                    <span key={specialty} className="especialidad-tag">
+                      {specialty}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -480,94 +435,62 @@ export default function Home() {
           letter-spacing: -0.5px;
         }
 
-        /* Especialidades Disponibles */
-        .especialidades-indicator {
+        /* Especialidades Disponibles Mejoradas */
+        .especialidades-section {
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
-          margin-bottom: 2rem;
+          margin-bottom: 3rem;
           text-align: center;
         }
 
-        .especialidades-indicator.visible {
+        .especialidades-section.visible {
           opacity: 1;
           transform: translateY(0);
         }
 
         .especialidades-content {
+          max-width: 640px;
+          margin: 0 auto;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 0.75rem;
+          gap: 1.5rem;
         }
 
         .especialidades-label {
-          font-size: 0.875rem;
+          font-size: 1rem;
           color: #666;
           font-weight: 400;
           letter-spacing: 0.3px;
         }
 
-        .especialidades-display {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.5rem;
-          min-height: 2rem;
-        }
-
-        .especialidades-static,
-        .especialidades-rotating {
-          font-size: 1.1rem;
-          font-weight: 500;
-          color: #ff9500;
-          background: linear-gradient(135deg, #ff9500, #e6850a);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+        .especialidades-grid {
           display: flex;
           flex-wrap: wrap;
           justify-content: center;
-          text-align: center;
-          line-height: 1.4;
+          gap: 0.75rem;
+          max-width: 100%;
         }
 
-        .especialidades-rotating {
-          animation: fadeInSpecialty 0.5s ease-in-out;
-        }
-
-        .especialidad-item {
+        .especialidad-tag {
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 20px;
+          padding: 0.5rem 1rem;
+          font-size: 0.875rem;
+          color: #171717;
+          font-weight: 500;
           white-space: nowrap;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
-        @keyframes fadeInSpecialty {
-          0% {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .especialidades-dots {
-          display: flex;
-          gap: 0.5rem;
-          margin-top: 0.25rem;
-        }
-
-        .dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #e5e5e5;
-          transition: all 0.3s ease;
-        }
-
-        .dot.active {
-          background: #ff9500;
-          transform: scale(1.2);
+        .especialidad-tag:hover {
+          border-color: #ff9500;
+          color: #ff9500;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.15);
         }
 
         .chat-container {
@@ -1077,16 +1000,20 @@ export default function Home() {
           }
           
           .especialidades-label {
-            font-size: 0.8rem;
+            font-size: 0.875rem;
           }
 
-          .especialidades-static,
-          .especialidades-rotating {
-            font-size: 1rem;
+          .especialidades-grid {
+            gap: 0.5rem;
+          }
+
+          .especialidad-tag {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
           }
 
           .especialidades-content {
-            gap: 0.5rem;
+            gap: 1rem;
           }
           
           .chat-title {

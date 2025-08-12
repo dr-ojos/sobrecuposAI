@@ -273,7 +273,6 @@ export default function MedicoInfoPage({ params }) {
               <div className="doctor-info">
                 <h2 className="doctor-name">Dr. {fields.Name}</h2>
                 <div className="specialty-tag">
-                  <span className="specialty-icon">🩺</span>
                   <span className="specialty-text">{fields.Especialidad}</span>
                 </div>
                 {fields.RSS && (
@@ -286,159 +285,145 @@ export default function MedicoInfoPage({ params }) {
             </div>
           </section>
 
-          {/* Información Profesional */}
-          <section className="professional-info">
-            <h3 className="section-title">📋 Información Profesional</h3>
-            
-            <div className="info-grid">
-              <div className="info-card">
-                <div className="info-header">
-                  <div className="info-icon">🏥</div>
-                  <h4 className="info-title">Especialidad</h4>
-                </div>
-                <p className="info-content">{fields.Especialidad || 'No especificada'}</p>
-              </div>
+          {/* Layout Desktop: Información + Calendario */}
+          <div className="desktop-layout">
+            {/* Información Profesional */}
+            <section className="professional-info">
+              <h3 className="section-title">Información Profesional</h3>
               
-              <div className="info-card">
-                <div className="info-header">
-                  <div className="info-icon">
-                    {fields.Atiende === 'Ambos' ? '👥' : 
-                     fields.Atiende === 'Niños' ? '👶' : 
-                     fields.Atiende === 'Adultos' ? '👨' : '🩺'}
-                  </div>
-                  <h4 className="info-title">Atiende a</h4>
-                </div>
-                <p className="info-content">
-                  {fields.Atiende === 'Ambos' ? 'Niños y Adultos' : 
-                   fields.Atiende === 'Niños' ? 'Solo Niños' :
-                   fields.Atiende === 'Adultos' ? 'Solo Adultos' : 
-                   'Consultar'}
-                </p>
-              </div>
-              
-              {fields.RSS && (
+              <div className="info-grid">
                 <div className="info-card">
                   <div className="info-header">
-                    <div className="info-icon">📄</div>
-                    <h4 className="info-title">Registro Sanitario</h4>
+                    <h4 className="info-title">Especialidad</h4>
                   </div>
-                  <p className="info-content">{fields.RSS}</p>
+                  <p className="info-content">{fields.Especialidad || 'No especificada'}</p>
                 </div>
-              )}
-            </div>
-
-            {/* Seguros Aceptados */}
-            {fields.Seguros && fields.Seguros.length > 0 && (
-              <div className="seguros-section">
-                <h4 className="subsection-title">💳 Seguros y Previsiones Aceptadas</h4>
-                <div className="seguros-grid">
-                  {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
-                    <div key={index} className="seguro-card">
-                      <span className="seguro-icon">
-                        {seguro === 'Fonasa' ? '🏥' : 
-                         seguro === 'Isapres' ? '🏛️' : 
-                         seguro === 'Particular' ? '💼' : '🏥'}
-                      </span>
-                      <span className="seguro-name">{seguro}</span>
+                
+                <div className="info-card">
+                  <div className="info-header">
+                    <h4 className="info-title">Atiende a</h4>
+                  </div>
+                  <p className="info-content">
+                    {fields.Atiende === 'Ambos' ? 'Niños y Adultos' : 
+                     fields.Atiende === 'Niños' ? 'Solo Niños' :
+                     fields.Atiende === 'Adultos' ? 'Solo Adultos' : 
+                     'Consultar'}
+                  </p>
+                </div>
+                
+                {fields.RSS && (
+                  <div className="info-card">
+                    <div className="info-header">
+                      <h4 className="info-title">Registro Sanitario</h4>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* Calendar de Sobrecupos */}
-          <section className="calendar-section">
-            <h3 className="section-title">📅 Sobrecupos Disponibles</h3>
-            {sobrecupos.length > 0 && (
-              <div className="availability-indicator">
-                <div className="availability-dot"></div>
-                <span className="availability-text">{sobrecupos.length} citas disponibles</span>
-              </div>
-            )}
-            <div className="calendar-container">
-              <div className="calendar-header">
-                <button onClick={() => navigateMonth(-1)} className="calendar-nav">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                <div className="calendar-month-container">
-                  <h4 className="calendar-month">
-                    {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
-                  </h4>
-                  <div className="calendar-doctor-indicator">
-                    {fields.Name}
-                  </div>
-                </div>
-                <button onClick={() => navigateMonth(1)} className="calendar-nav">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-              
-              <div className="calendar-body">
-                <div className="calendar-weekdays">
-                  {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
-                    <div key={day} className="calendar-weekday">{day}</div>
-                  ))}
-                </div>
-                
-                <div className="calendar-grid">
-                  {generateCalendarGrid().map((dateInfo, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleDateClick(dateInfo)}
-                      className={`calendar-day ${
-                        !dateInfo ? 'empty' : 
-                        dateInfo.isPast ? 'past' :
-                        dateInfo.isAvailable ? 'available' :
-                        dateInfo.isToday ? 'today' : ''
-                      }`}
-                      disabled={!dateInfo || dateInfo.isPast || !dateInfo.isAvailable}
-                    >
-                      {dateInfo && (
-                        <>
-                          <span className="day-number">{dateInfo.day}</span>
-                          {dateInfo.isAvailable && dateInfo.count > 0 && (
-                            <span className="sobrecupos-count">{dateInfo.count}</span>
-                          )}
-                        </>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                
-                {sobrecupos.length === 0 && (
-                  <div className="calendar-no-dates">
-                    <div className="no-dates-icon">📅</div>
-                    <p className="no-dates-text">
-                      Este médico no tiene sobrecupos disponibles actualmente
-                    </p>
+                    <p className="info-content">{fields.RSS}</p>
                   </div>
                 )}
               </div>
 
-              {sobrecupos.length > 0 && (
-                <div className="calendar-footer">
-                  <p className="calendar-help">
-                    💡 Toca un día destacado para reservar un sobrecupo
-                  </p>
+              {/* Seguros Aceptados */}
+              {fields.Seguros && fields.Seguros.length > 0 && (
+                <div className="seguros-section">
+                  <h4 className="subsection-title">Seguros y Previsiones Aceptadas</h4>
+                  <div className="seguros-grid">
+                    {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
+                      <div key={index} className="seguro-card">
+                        <span className="seguro-name">{seguro}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
-          </section>
+            </section>
+
+            {/* Calendar de Sobrecupos */}
+            <section className="calendar-section">
+              <h3 className="section-title">Sobrecupos Disponibles</h3>
+              {sobrecupos.length > 0 && (
+                <div className="availability-indicator">
+                  <div className="availability-dot"></div>
+                  <span className="availability-text">{sobrecupos.length} citas disponibles</span>
+                </div>
+              )}
+              <div className="calendar-container">
+                <div className="calendar-header">
+                  <button onClick={() => navigateMonth(-1)} className="calendar-nav">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <div className="calendar-month-container">
+                    <h4 className="calendar-month">
+                      {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
+                    </h4>
+                    <div className="calendar-doctor-indicator">
+                      {fields.Name}
+                    </div>
+                  </div>
+                  <button onClick={() => navigateMonth(1)} className="calendar-nav">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="calendar-body">
+                  <div className="calendar-weekdays">
+                    {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
+                      <div key={day} className="calendar-weekday">{day}</div>
+                    ))}
+                  </div>
+                  
+                  <div className="calendar-grid">
+                    {generateCalendarGrid().map((dateInfo, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleDateClick(dateInfo)}
+                        className={`calendar-day ${
+                          !dateInfo ? 'empty' : 
+                          dateInfo.isPast ? 'past' :
+                          dateInfo.isAvailable ? 'available' :
+                          dateInfo.isToday ? 'today' : ''
+                        }`}
+                        disabled={!dateInfo || dateInfo.isPast || !dateInfo.isAvailable}
+                      >
+                        {dateInfo && (
+                          <>
+                            <span className="day-number">{dateInfo.day}</span>
+                            {dateInfo.isAvailable && dateInfo.count > 0 && (
+                              <span className="sobrecupos-count">{dateInfo.count}</span>
+                            )}
+                          </>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {sobrecupos.length === 0 && (
+                    <div className="calendar-no-dates">
+                      <div className="no-dates-icon">📅</div>
+                      <p className="no-dates-text">
+                        Este médico no tiene sobrecupos disponibles actualmente
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {sobrecupos.length > 0 && (
+                  <div className="calendar-footer">
+                    <p className="calendar-help">
+                      Toca un día destacado para reservar un sobrecupo
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
 
           {/* Experiencia Profesional */}
           {fields.Experiencia && fields.Experiencia.trim() && (
             <section className="experience-card">
               <div className="card-header">
-                <div className="header-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
-                </div>
                 <h2 className="card-title">Experiencia Profesional</h2>
               </div>
               <div className="experience-content">
@@ -489,19 +474,9 @@ export default function MedicoInfoPage({ params }) {
             </div>
           </section>
 
-          {/* Action Section moderna */}
+          {/* Action Section */}
           <section className="action-section">
             <div className="action-buttons">
-              <button 
-                onClick={handleBackClick}
-                className="secondary-button"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Volver a Sobrecupos
-              </button>
-              
               <button 
                 onClick={() => window.location.href = '/agendar'}
                 className="primary-button"
@@ -587,7 +562,7 @@ export default function MedicoInfoPage({ params }) {
 
         /* Layout */
         .main-layout {
-          max-width: 800px;
+          max-width: 1000px;
           margin: 0 auto;
           padding: 2rem 1rem;
         }
@@ -596,6 +571,22 @@ export default function MedicoInfoPage({ params }) {
           display: flex;
           flex-direction: column;
           gap: 2rem;
+        }
+
+        /* Desktop Layout para Info + Calendar */
+        .desktop-layout {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+          .desktop-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 3rem;
+            align-items: start;
+          }
         }
 
         /* Doctor Profile Card */
@@ -820,19 +811,12 @@ export default function MedicoInfoPage({ params }) {
         .seguro-card {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding: 1rem;
-          background: #fff;
-          border: 2px solid #ff9500;
+          justify-content: center;
+          padding: 0.75rem 1rem;
+          background: white;
+          border: 1px solid #e5e5e5;
           border-radius: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .seguro-card:hover {
-          background: #ff9500;
-          color: white;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(255, 149, 0, 0.2);
+          text-align: center;
         }
 
         .seguro-icon {
@@ -1261,19 +1245,12 @@ export default function MedicoInfoPage({ params }) {
         .seguro-card {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding: 1rem;
-          background: #fff;
-          border: 2px solid #ff9500;
+          justify-content: center;
+          padding: 0.75rem 1rem;
+          background: white;
+          border: 1px solid #e5e5e5;
           border-radius: 8px;
-          transition: all 0.2s ease;
-        }
-
-        .seguro-card:hover {
-          background: #ff9500;
-          color: white;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(255, 149, 0, 0.2);
+          text-align: center;
         }
 
         .seguro-icon {
