@@ -751,7 +751,8 @@ async function buscarSobrecuposDeMedico(medicoId) {
 
 // Función para detectar especialidad directa
 function detectarEspecialidadDirecta(text) {
-  const textoLimpio = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  // 🆕 Usar la función de normalización que ya maneja palabras incompletas
+  const textoNormalizado = normalizarTextoMedico(text);
   
   const especialidadesDirectas = {
     'reumatologo': 'Reumatología', 'reumatologia': 'Reumatología',
@@ -773,8 +774,12 @@ function detectarEspecialidadDirecta(text) {
     'endocrinologo': 'Endocrinología', 'endocrinologia': 'Endocrinología'
   };
   
+  // 🆕 Buscar en texto normalizado (que ya corrige palabras incompletas)
   for (const [key, value] of Object.entries(especialidadesDirectas)) {
-    if (textoLimpio.includes(key)) return value;
+    if (textoNormalizado.includes(key)) {
+      console.log(`🎯 Especialidad directa detectada: "${key}" -> ${value} (texto normalizado: "${textoNormalizado}")`);
+      return value;
+    }
   }
   return null;
 }
@@ -861,13 +866,21 @@ function normalizarTextoMedico(text) {
     'dolor de cabezo': 'dolor de cabeza',
     'duele el cabezo': 'duele la cabeza',
     
+    // 🆕 ESPECIALIDADES INCOMPLETAS - FIX CRÍTICO (sin acentos para match)
+    'cardiolog': 'cardiologo',
+    'neurolog': 'neurologo', 
+    'oftalmolog': 'oftalmologo',
+    'dermatolog': 'dermatologo',
+    'traumatolog': 'traumatologo',
+    'reumatolog': 'reumatologo',
+    'ginecolog': 'ginecologo',
+    'urologg': 'urologo',
+    'psiquiatr': 'psiquiatra',
+    'endocrinolog': 'endocrinologo',
+    'gastroenterolog': 'gastroenterologo',
+    
     // Otros errores comunes
     'porfesionales': 'profesionales',
-    'neurologo': 'neurólogo',
-    'oftamologo': 'oftalmólogo',
-    'oftalmologo': 'oftalmólogo',
-    'dermatologo': 'dermatólogo',
-    'cardiologo': 'cardiólogo',
     'picason': 'picazón',
     'comezon': 'comezón',
     'vision': 'visión',
