@@ -112,22 +112,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Especialidades Disponibles Mejoradas */}
-          {especialidades.length > 0 && (
-            <div className={`especialidades-section ${isVisible ? 'visible' : ''}`}>
-              <div className="especialidades-content">
-                <span className="especialidades-label">Especialidades con sobrecupos disponibles</span>
-                <div className="especialidades-grid">
-                  {especialidades.map((specialty, index) => (
-                    <span key={specialty} className="especialidad-tag">
-                      {specialty}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Chat section - Minimalista */}
           <div className={`chat-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
             <div className="chat-wrapper">
@@ -223,6 +207,22 @@ export default function Home() {
               </button>
             </div>
           </div>
+
+          {/* Especialidades Disponibles Mejoradas */}
+          {especialidades.length > 0 && (
+            <div className={`especialidades-section ${isVisible ? 'visible' : ''}`}>
+              <div className="especialidades-content">
+                <span className="especialidades-label">Especialidades con sobrecupos disponibles</span>
+                <div className="especialidades-grid">
+                  {especialidades.map((specialty, index) => (
+                    <span key={specialty} className="especialidad-tag">
+                      {specialty}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -482,16 +482,11 @@ export default function Home() {
           color: #171717;
           font-weight: 500;
           white-space: nowrap;
-          transition: all 0.2s ease;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          pointer-events: none;
+          user-select: none;
         }
 
-        .especialidad-tag:hover {
-          border-color: #ff9500;
-          color: #ff9500;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.15);
-        }
 
         .chat-container {
           opacity: 0;
