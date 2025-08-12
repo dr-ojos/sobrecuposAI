@@ -13,6 +13,8 @@ export default function Home() {
   const [chatExpanding, setChatExpanding] = useState(false);
   const [especialidades, setEspecialidades] = useState([]);
   const [currentEspecialidad, setCurrentEspecialidad] = useState(0);
+  const [showCarousel, setShowCarousel] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
 
   // Función para manejar el envío del chat con efecto de expansión
   const handleChatSubmit = (e) => {
@@ -43,6 +45,110 @@ export default function Home() {
     router.push('/agendar');
   };
 
+  // Función para obtener el icono SVG de cada especialidad
+  const getSpecialtyIcon = (specialty) => {
+    const specialty_lower = specialty.toLowerCase();
+    
+    if (specialty_lower.includes('oftalmol') || specialty_lower.includes('ojos') || specialty_lower.includes('ocular')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('cardio') || specialty_lower.includes('corazón') || specialty_lower.includes('cardiaco')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('dermato') || specialty_lower.includes('piel')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="6"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('neuro') || specialty_lower.includes('cerebro') || specialty_lower.includes('mental')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+          <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('ortop') || specialty_lower.includes('hueso') || specialty_lower.includes('traumato')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 3v10a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3V3"/>
+          <path d="M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"/>
+          <path d="M3 3h18"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('gastro') || specialty_lower.includes('digestivo') || specialty_lower.includes('estómago')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 12H6"/>
+          <path d="M6 12v7c0 1 1 2 2 2h8c1 0 2-1 2-2v-7"/>
+          <path d="M6 12V8c0-1 1-2 2-2h8c1 0 2 1 2 2v4"/>
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('pediatr') || specialty_lower.includes('niños') || specialty_lower.includes('infantil')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+          <path d="M12 14v7"/>
+          <path d="M8 18h8"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('ginec') || specialty_lower.includes('obstét') || specialty_lower.includes('mujer')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="7"/>
+          <path d="M12 15v6"/>
+          <path d="M9 18h6"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('urolog') || specialty_lower.includes('riñ') || specialty_lower.includes('urinario')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 2v20"/>
+          <path d="M14 2v20"/>
+          <path d="M8 7h8"/>
+          <path d="M8 17h8"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      );
+    }
+    if (specialty_lower.includes('psiq') || specialty_lower.includes('mental') || specialty_lower.includes('psicol')) {
+      return (
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/>
+          <path d="M8.5 8.5a4 4 0 0 0 0 7 4 4 0 0 0 7 0"/>
+          <path d="M12 2v20"/>
+        </svg>
+      );
+    }
+    // Icono por defecto para especialidades no categorizadas
+    return (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3"/>
+        <path d="M3 13h18"/>
+        <path d="M5 17h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/>
+      </svg>
+    );
+  };
+
   // Cargar especialidades disponibles
   useEffect(() => {
     const fetchEspecialidades = async () => {
@@ -51,6 +157,7 @@ export default function Home() {
         const data = await response.json();
         if (data.success && data.especialidades.length > 0) {
           setEspecialidades(data.especialidades);
+          setShowCarousel(data.especialidades.length > 4);
         }
       } catch (error) {
         console.error('Error cargando especialidades:', error);
@@ -60,16 +167,33 @@ export default function Home() {
     fetchEspecialidades();
   }, []);
 
-  // Rotación automática de especialidades
+  // Rotación automática para carrusel
   useEffect(() => {
-    if (especialidades.length > 1) {
+    if (showCarousel && especialidades.length > 4) {
       const interval = setInterval(() => {
-        setCurrentEspecialidad((prev) => (prev + 1) % especialidades.length);
-      }, 3000); // Cambia cada 3 segundos
+        setCarouselIndex(prev => (prev + 4) % especialidades.length);
+      }, 4000); // Cambia cada 4 segundos
       
       return () => clearInterval(interval);
     }
-  }, [especialidades.length]);
+  }, [especialidades.length, showCarousel]);
+
+  // Función para manejar click en especialidad
+  const handleSpecialtyClick = (specialty) => {
+    router.push(`/agendar?especialidad=${encodeURIComponent(specialty)}`);
+  };
+
+  // Función para navegación manual del carrusel
+  const goToPreviousSlide = () => {
+    setCarouselIndex(prev => {
+      const newIndex = prev - 4;
+      return newIndex < 0 ? Math.max(0, especialidades.length - 4) : newIndex;
+    });
+  };
+
+  const goToNextSlide = () => {
+    setCarouselIndex(prev => (prev + 4) % especialidades.length);
+  };
 
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 300);
@@ -121,30 +245,65 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Indicador de Especialidades Disponibles */}
+          {/* Especialidades con Iconos SVG */}
           {especialidades.length > 0 && (
-            <div className={`especialidades-indicator ${isVisible ? 'visible' : ''}`}>
-              <div className="especialidades-content">
-                <span className="especialidades-label">Especialidades con sobrecupos:</span>
-                <div className="especialidades-display">
-                  {especialidades.length === 1 ? (
-                    <span className="especialidad-single">{especialidades[0]}</span>
-                  ) : (
-                    <span className="especialidad-rotating" key={currentEspecialidad}>
-                      {especialidades[currentEspecialidad]}
-                    </span>
+            <div className={`especialidades-section ${isVisible ? 'visible' : ''}`}>
+              <div className="especialidades-container">
+                <h3 className="especialidades-title">Especialidades con sobrecupos disponibles</h3>
+                
+                <div className="especialidades-grid-wrapper">
+                  {showCarousel && (
+                    <button 
+                      onClick={goToPreviousSlide}
+                      className="carousel-nav carousel-prev"
+                      aria-label="Especialidades anteriores"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M15 18l-6-6 6-6"/>
+                      </svg>
+                    </button>
                   )}
-                  {especialidades.length > 1 && (
-                    <span className="especialidades-dots">
-                      {especialidades.map((_, index) => (
-                        <span
-                          key={index}
-                          className={`dot ${index === currentEspecialidad ? 'active' : ''}`}
-                        />
-                      ))}
-                    </span>
+                  
+                  <div className="especialidades-grid">
+                    {(showCarousel ? especialidades.slice(carouselIndex, carouselIndex + 4) : especialidades.slice(0, 4)).map((specialty, index) => (
+                      <div 
+                        key={`${specialty}-${carouselIndex}-${index}`}
+                        className="specialty-card"
+                        onClick={() => handleSpecialtyClick(specialty)}
+                      >
+                        <div className="specialty-icon">
+                          {getSpecialtyIcon(specialty)}
+                        </div>
+                        <span className="specialty-name">{specialty}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {showCarousel && (
+                    <button 
+                      onClick={goToNextSlide}
+                      className="carousel-nav carousel-next"
+                      aria-label="Más especialidades"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 18l6-6-6-6"/>
+                      </svg>
+                    </button>
                   )}
                 </div>
+
+                {showCarousel && (
+                  <div className="carousel-indicators">
+                    {Array.from({ length: Math.ceil(especialidades.length / 4) }).map((_, index) => (
+                      <button
+                        key={index}
+                        className={`carousel-dot ${Math.floor(carouselIndex / 4) === index ? 'active' : ''}`}
+                        onClick={() => setCarouselIndex(index * 4)}
+                        aria-label={`Ir a grupo ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -456,87 +615,146 @@ export default function Home() {
           letter-spacing: -0.5px;
         }
 
-        /* Especialidades Disponibles */
-        .especialidades-indicator {
+        /* Especialidades con Iconos */
+        .especialidades-section {
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
-          margin-bottom: 2rem;
-          text-align: center;
+          margin-bottom: 3rem;
         }
 
-        .especialidades-indicator.visible {
+        .especialidades-section.visible {
           opacity: 1;
           transform: translateY(0);
         }
 
-        .especialidades-content {
+        .especialidades-container {
+          max-width: 600px;
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .especialidades-title {
+          font-size: 1rem;
+          font-weight: 400;
+          color: #666;
+          margin-bottom: 2rem;
+          letter-spacing: 0.3px;
+        }
+
+        .especialidades-grid-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .especialidades-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1rem;
+          flex: 1;
+          max-width: 480px;
+          margin: 0 auto;
+        }
+
+        .specialty-card {
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 12px;
+          padding: 1.5rem 1rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
           display: flex;
           flex-direction: column;
           align-items: center;
           gap: 0.75rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          min-height: 100px;
+          justify-content: center;
         }
 
-        .especialidades-label {
-          font-size: 0.875rem;
-          color: #666;
-          font-weight: 400;
-          letter-spacing: 0.3px;
+        .specialty-card:hover {
+          border-color: #ff9500;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.15);
         }
 
-        .especialidades-display {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.5rem;
+        .specialty-card:active {
+          transform: translateY(-1px);
         }
 
-        .especialidad-single,
-        .especialidad-rotating {
-          font-size: 1.1rem;
-          font-weight: 500;
+        .specialty-icon {
           color: #ff9500;
-          background: linear-gradient(135deg, #ff9500, #e6850a);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          min-height: 1.5rem;
-          display: flex;
-          align-items: center;
-        }
-
-        .especialidad-rotating {
-          animation: fadeInSpecialty 0.5s ease-in-out;
-        }
-
-        @keyframes fadeInSpecialty {
-          0% {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .especialidades-dots {
-          display: flex;
-          gap: 0.5rem;
-          margin-top: 0.25rem;
-        }
-
-        .dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #e5e5e5;
           transition: all 0.3s ease;
         }
 
-        .dot.active {
+        .specialty-card:hover .specialty-icon {
+          color: #e6850a;
+          transform: scale(1.1);
+        }
+
+        .specialty-name {
+          font-size: 0.8rem;
+          color: #171717;
+          font-weight: 500;
+          text-align: center;
+          line-height: 1.2;
+          word-wrap: break-word;
+        }
+
+        .carousel-nav {
+          width: 40px;
+          height: 40px;
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          flex-shrink: 0;
+          color: #666;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .carousel-nav:hover {
+          border-color: #ff9500;
+          color: #ff9500;
+          transform: scale(1.05);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.15);
+        }
+
+        .carousel-nav:active {
+          transform: scale(0.95);
+        }
+
+        .carousel-indicators {
+          display: flex;
+          justify-content: center;
+          gap: 0.5rem;
+          margin-top: 1.5rem;
+        }
+
+        .carousel-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #e5e5e5;
+          border: none;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .carousel-dot.active {
           background: #ff9500;
           transform: scale(1.2);
+        }
+
+        .carousel-dot:hover {
+          background: #ff9500;
+          opacity: 0.7;
         }
 
         .chat-container {
@@ -1036,6 +1254,31 @@ export default function Home() {
           }
         }
 
+        @media (max-width: 768px) {
+          .especialidades-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+          }
+
+          .specialty-card {
+            padding: 1rem 0.75rem;
+            min-height: 80px;
+          }
+
+          .specialty-name {
+            font-size: 0.75rem;
+          }
+
+          .carousel-nav {
+            width: 36px;
+            height: 36px;
+          }
+
+          .especialidades-grid-wrapper {
+            gap: 0.75rem;
+          }
+        }
+
         @media (max-width: 480px) {
           .logo-text {
             font-size: 2.5rem;
@@ -1045,17 +1288,52 @@ export default function Home() {
             font-size: 1.25rem;
           }
           
-          .especialidades-label {
-            font-size: 0.8rem;
+          .especialidades-title {
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
           }
 
-          .especialidad-single,
-          .especialidad-rotating {
-            font-size: 1rem;
-          }
-
-          .especialidades-content {
+          .especialidades-grid {
+            grid-template-columns: repeat(2, 1fr);
             gap: 0.5rem;
+          }
+
+          .specialty-card {
+            padding: 0.75rem 0.5rem;
+            min-height: 70px;
+            gap: 0.5rem;
+          }
+
+          .specialty-icon svg {
+            width: 24px;
+            height: 24px;
+          }
+
+          .specialty-name {
+            font-size: 0.7rem;
+          }
+
+          .carousel-nav {
+            width: 32px;
+            height: 32px;
+          }
+
+          .carousel-nav svg {
+            width: 16px;
+            height: 16px;
+          }
+
+          .especialidades-grid-wrapper {
+            gap: 0.5rem;
+          }
+
+          .carousel-indicators {
+            margin-top: 1rem;
+          }
+
+          .carousel-dot {
+            width: 6px;
+            height: 6px;
           }
           
           .chat-title {
