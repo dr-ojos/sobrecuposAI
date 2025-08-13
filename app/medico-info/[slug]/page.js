@@ -260,7 +260,7 @@ export default function MedicoInfoPage({ params }) {
       <div className="main-layout">
         <div className="content-container">
           
-          {/* Perfil del Médico - Mejorado pero consistente */}
+          {/* Perfil del Médico - Optimizado para móvil */}
           <section className="doctor-profile-card">
             <div className="profile-header">
               <div className="doctor-photo-container">
@@ -293,26 +293,134 @@ export default function MedicoInfoPage({ params }) {
                 <div className="specialty-tag">
                   <span className="specialty-text">{fields.Especialidad}</span>
                 </div>
-                {fields.RSS && (
-                  <div className="credentials">
-                    <span className="credential-label">Reg. SIS:</span>
-                    <span className="credential-value">{fields.RSS}</span>
-                    <div className="info-tooltip-container">
-                      <div className="info-icon">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                      </div>
-                      <div className="tooltip">
-                        Registro Superintendencia de Salud
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </section>
+
+          {/* Layout móvil: Calendario + Sobrecupos primero, luego Info */}
+          <div className="mobile-layout">
+            {/* Calendar de Sobrecupos */}
+            <section className="calendar-section">
+              <h3 className="section-title">Sobrecupos Disponibles</h3>
+              {sobrecupos.length > 0 && (
+                <div className="availability-indicator">
+                  <div className="availability-dot"></div>
+                  <span className="availability-text">{sobrecupos.length} citas disponibles</span>
+                </div>
+              )}
+              <div className="calendar-container">
+                <div className="calendar-header">
+                  <button onClick={() => navigateMonth(-1)} className="calendar-nav">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <div className="calendar-month-container">
+                    <h4 className="calendar-month">
+                      {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
+                    </h4>
+                    <div className="calendar-doctor-indicator">
+                      {fields.Name}
+                    </div>
+                  </div>
+                  <button onClick={() => navigateMonth(1)} className="calendar-nav">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="calendar-body">
+                  <div className="calendar-weekdays">
+                    {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
+                      <div key={day} className="calendar-weekday">{day}</div>
+                    ))}
+                  </div>
+                  
+                  <div className="calendar-grid">
+                    {generateCalendarGrid().map((dateInfo, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleDateClick(dateInfo)}
+                        className={`calendar-day ${
+                          !dateInfo ? 'empty' : 
+                          dateInfo.isPast ? 'past' :
+                          dateInfo.isAvailable ? 'available' :
+                          dateInfo.isToday ? 'today' : ''
+                        }`}
+                        disabled={!dateInfo || dateInfo.isPast || !dateInfo.isAvailable}
+                      >
+                        {dateInfo && (
+                          <>
+                            <span className="day-number">{dateInfo.day}</span>
+                            {dateInfo.isAvailable && dateInfo.count > 0 && (
+                              <span className="sobrecupos-count">{dateInfo.count}</span>
+                            )}
+                          </>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {sobrecupos.length === 0 && (
+                    <div className="calendar-no-dates">
+                      <div className="no-dates-icon">📅</div>
+                      <p className="no-dates-text">
+                        Este médico no tiene sobrecupos disponibles actualmente
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {sobrecupos.length > 0 && (
+                  <div className="calendar-footer">
+                    <p className="calendar-help">
+                      Toca un día destacado para reservar un sobrecupo
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Lista de Sobrecupos Activos */}
+            <section className="active-sobrecupos">
+              <h3 className="section-title">Próximos Sobrecupos</h3>
+              <div className="sobrecupos-list">
+                {sobrecupos.length > 0 ? (
+                  sobrecupos.slice(0, 2).map((sobrecupo, index) => (
+                    <div key={index} className="sobrecupo-card">
+                      <div className="sobrecupo-date">
+                        <div className="date-day">
+                          {new Date(sobrecupo.fields?.Fecha).getDate()}
+                        </div>
+                        <div className="date-month">
+                          {new Date(sobrecupo.fields?.Fecha).toLocaleDateString('es-CL', { month: 'short' })}
+                        </div>
+                      </div>
+                      <div className="sobrecupo-details">
+                        <div className="sobrecupo-time">{sobrecupo.fields?.Hora}</div>
+                        <div className="sobrecupo-clinic">{sobrecupo.fields?.Clínica}</div>
+                      </div>
+                      <button 
+                        onClick={() => handleDateClick({
+                          dateString: sobrecupo.fields?.Fecha,
+                          isAvailable: true
+                        })}
+                        className="reserve-btn"
+                      >
+                        Reservar
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="no-sobrecupos">
+                    <div className="no-sobrecupos-icon">📅</div>
+                    <p className="no-sobrecupos-text">Sin sobrecupos</p>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
 
           {/* Layout Desktop: Info y Experiencia | Calendario y Sobrecupos */}
           <div className="desktop-layout">
@@ -345,7 +453,18 @@ export default function MedicoInfoPage({ params }) {
                   {fields.RSS && (
                     <div className="info-card">
                       <div className="info-header">
-                        <h4 className="info-title">Registro Sanitario</h4>
+                        <h4 className="info-title">Reg. SIS</h4>
+                        <div className="info-tooltip-container">
+                          <div className="info-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                              <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
+                            </svg>
+                          </div>
+                          <div className="tooltip">
+                            Registro Superintendencia de Salud
+                          </div>
+                        </div>
                       </div>
                       <p className="info-content thin-text">{fields.RSS}</p>
                     </div>
@@ -729,11 +848,16 @@ export default function MedicoInfoPage({ params }) {
           gap: 2rem;
         }
 
-        /* Desktop Layout para Info+Experiencia | Calendario+Sobrecupos */
-        .desktop-layout {
+        /* Mobile Layout: Calendario + Sobrecupos primero */
+        .mobile-layout {
           display: flex;
           flex-direction: column;
           gap: 2rem;
+        }
+
+        /* Desktop Layout: Info+Experiencia | Calendario+Sobrecupos */
+        .desktop-layout {
+          display: none;
         }
 
         .left-column,
@@ -744,6 +868,10 @@ export default function MedicoInfoPage({ params }) {
         }
 
         @media (min-width: 1024px) {
+          .mobile-layout {
+            display: none;
+          }
+
           .desktop-layout {
             display: grid;
             grid-template-columns: 1fr 400px;
@@ -1065,6 +1193,7 @@ export default function MedicoInfoPage({ params }) {
           align-items: center;
           gap: 0.75rem;
           margin-bottom: 0.75rem;
+          justify-content: space-between;
         }
 
         .info-icon {
@@ -1969,17 +2098,22 @@ export default function MedicoInfoPage({ params }) {
           }
         }
 
-        /* Responsive - Mobile */
+        /* Responsive - Mobile: foto izquierda, texto derecha */
         @media (max-width: 768px) {
           .profile-header {
-            flex-direction: column;
-            text-align: center;
+            flex-direction: row;
+            text-align: left;
             gap: 1.5rem;
+            align-items: center;
           }
 
           .doctor-photo {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
+          }
+
+          .doctor-info {
+            flex: 1;
           }
 
           .doctor-name {
