@@ -372,7 +372,7 @@ export default function Home() {
 
         .content-wrapper {
           text-align: center;
-          max-width: 640px;
+          max-width: 680px;
           width: 100%;
         }
 
@@ -979,13 +979,13 @@ export default function Home() {
           
           .chat-container {
             margin-bottom: 2rem;
-            padding: 0 0.5rem;
+            padding: 0 0.25rem;
           }
           
           .input-wrapper {
             padding: 0.875rem;
             min-height: 70px;
-            margin: 0 0.25rem;
+            margin: 0;
             border-radius: 12px;
           }
           
@@ -1069,13 +1069,13 @@ export default function Home() {
           }
           
           .chat-container {
-            padding: 0 0.5rem;
+            padding: 0 0.25rem;
           }
           
           .input-wrapper {
             padding: 0.75rem;
             min-height: 65px;
-            margin: 0 0.5rem;
+            margin: 0 0.25rem;
             border-radius: 10px;
           }
           
@@ -1178,7 +1178,7 @@ export default function Home() {
           .input-wrapper {
             padding: 0.75rem;
             min-height: 60px;
-            margin: 0;
+            margin: 0 0.125rem;
             border-radius: 8px;
           }
           
