@@ -988,7 +988,11 @@ function detectarEspecialidadPorSintomas(text) {
     // Removed "dolor general" - demasiado genérico, puede interceptar síntomas específicos
     'dolor muscular general', 'dolor corporal general', 'malestar general',
     'presion arterial', 'presión arterial', 'hipertension', 'hipertensión',
-    'diabetes', 'colesterol', 'examenes generales', 'exámenes generales'
+    'diabetes', 'colesterol', 'examenes generales', 'exámenes generales',
+    // 🆕 Síntomas generales que requieren medicina familiar
+    'me siento cansado', 'estoy cansado', 'mucho cansancio', 'fatiga', 'cansancio',
+    'me siento mal', 'no me siento bien', 'malestar', 'decaimiento',
+    'sin energia', 'sin energía', 'agotamiento', 'muy cansado', 'muy cansada'
   ];
   
   // 🔥 EVALUAR SÍNTOMAS EN ORDEN DE PRIORIDAD - OFTALMOLOGÍA PRIMERO
@@ -3844,8 +3848,35 @@ Ejemplos:
             
           } catch (error) {
             console.error('❌ Error buscando sobrecupos en flujo directo:', error);
+            
+            // Generar respuesta empática para el error y continuar con el flujo
+            let respuestaEmpatica = "Entiendo tu preocupación.";
+            try {
+              const empathicPromise = generateEmphaticResponse(text, "Entiendo tu preocupación.", {
+                emotionalState: session.emotionalState,
+                urgency: patientInsights.urgency,
+                patientProfile: session.patientProfile
+              });
+              respuestaEmpatica = await Promise.race([
+                empathicPromise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 5000))
+              ]);
+            } catch (empathicError) {
+              console.error('❌ Error generando respuesta empática (error sobrecupos):', empathicError);
+              respuestaEmpatica = "Entiendo tu preocupación.";
+            }
+
+            // Continuar con el flujo normal pidiendo datos del paciente
+            sessions[from] = {
+              stage: 'getting-name-for-specialty',
+              specialty: specialty,
+              respuestaEmpatica,
+              attempts: 0
+            };
+
             return NextResponse.json({
-              text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\nHubo un error al buscar sobrecupos. Por favor intenta nuevamente.`
+              text: `${respuestaEmpatica}\n\nPara ayudarte con la reserva de **${specialty}**, necesito algunos datos básicos.\n\nPrimero, ¿cuál es tu nombre completo?`,
+              session: sessions[from]
             });
           }
         } else {
