@@ -154,8 +154,8 @@ export default function PerfilMedico() {
     setSaving(true);
     setMessage('');
 
-    if (doctorData.RSS && !/^\d{6,8}$/.test(doctorData.RSS.replace(/\D/g, ''))) {
-      setMessage('Formato de RSS inválido. Debe contener 6-8 dígitos');
+    if (doctorData.RSS && !/^\d{4,8}$/.test(doctorData.RSS.replace(/\D/g, ''))) {
+      setMessage('Formato de RSS inválido. Debe contener 4-8 dígitos');
       setSaving(false);
       return;
     }
