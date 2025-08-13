@@ -2073,19 +2073,20 @@ const AgendarSobrecuposContent = () => {
           /* Filtros más compactos para iPhone */
           .filters-section {
             margin-bottom: 1.25rem;
-            padding: 0 0.25rem;
+            padding: 0 0.5rem;
           }
 
           .filters-container {
             flex-direction: column;
             width: 100%;
-            gap: 0.5rem;
+            gap: 0.75rem;
             max-width: none;
           }
 
           .filter-group {
             min-width: auto;
             flex: none;
+            width: 100%;
           }
 
           .filter-select {
@@ -2399,15 +2400,21 @@ const AgendarSobrecuposContent = () => {
 
           /* Filtros extra compactos para pantallas pequeñas */
           .filters-container {
-            gap: 0.375rem;
+            gap: 0.5rem;
+            padding: 0 0.25rem;
+          }
+
+          .filter-group {
+            width: 100%;
           }
 
           .filter-select,
           .date-filter-button {
-            padding: 0.5rem 0.75rem;
+            width: 100%;
+            padding: 0.625rem 0.75rem;
             padding-right: 2rem;
-            font-size: 0.75rem;
-            min-height: 42px;
+            font-size: 0.8rem;
+            min-height: 44px;
             border-radius: 8px;
           }
 
