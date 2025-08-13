@@ -618,7 +618,8 @@ function ChatComponent() {
               onChange={(e) => {
                 setInput(e.target.value);
                 e.target.style.height = 'auto';
-                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                const maxHeight = window.innerWidth <= 480 ? 80 : 120;
+                e.target.style.height = Math.min(e.target.scrollHeight, maxHeight) + 'px';
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1100,8 +1101,14 @@ function ChatComponent() {
 
         /* Responsive */
         @media (max-width: 768px) {
+          .chat-container {
+            height: 100vh;
+            height: 100dvh;
+          }
+          
           .header-content {
-            padding: 0.75rem;
+            padding: 1rem 0.75rem 0.75rem 0.75rem;
+            max-width: 100%;
           }
 
           .header-title {
@@ -1115,6 +1122,7 @@ function ChatComponent() {
 
           .messages-container {
             padding: 0 0.75rem;
+            max-width: 100%;
           }
 
           .message-content {
@@ -1122,31 +1130,61 @@ function ChatComponent() {
           }
 
           .chat-input-area {
-            padding: 1rem;
+            padding: 1rem 0.75rem;
             padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+          }
+
+          .input-container {
+            max-width: 100%;
+            padding: 0;
           }
 
           .input-wrapper-hero {
             min-height: 70px;
-            padding: 0.8rem;
+            padding: 0.875rem;
+            border-radius: 16px;
+            margin: 0;
           }
 
           .chat-input-hero {
             font-size: 16px;
             min-height: 40px;
+            max-height: 80px;
             padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -webkit-border-radius: 0;
           }
 
           .send-button-hero {
             width: 32px;
             height: 32px;
             border-radius: 16px;
-            bottom: 0.8rem;
-            right: 0.8rem;
+            bottom: 0.875rem;
+            right: 0.875rem;
+          }
+
+          .suggestions-section {
+            max-width: 100%;
+            margin: 0 auto 1rem auto;
+            padding: 0;
+          }
+
+          .suggestions-list {
+            padding: 0.5rem 0.25rem;
+            gap: 0.5rem;
           }
         }
 
         @media (max-width: 480px) {
+          .chat-container {
+            height: 100vh;
+            height: 100dvh;
+          }
+          
+          .header-content {
+            padding: 0.75rem 0.5rem 0.5rem 0.5rem;
+          }
+          
           .message-content {
             max-width: 90%;
           }
@@ -1163,54 +1201,102 @@ function ChatComponent() {
             font-size: 0.85rem;
           }
 
+          .messages-container {
+            padding: 0 0.5rem;
+          }
+
           .chat-input-area {
-            padding: 0.75rem;
+            padding: 0.75rem 0.5rem;
             padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+          }
+
+          .suggestions-section {
+            margin: 0 auto 0.875rem auto;
+            padding: 0;
           }
 
           .input-wrapper-hero {
             min-height: 65px;
-            padding: 0.7rem;
-            border-radius: 16px;
+            padding: 0.75rem;
+            border-radius: 12px;
+            margin: 0;
           }
 
           .chat-input-hero {
             font-size: 16px;
-            min-height: 35px;
+            min-height: 36px;
+            max-height: 70px;
             padding-right: 2.2rem;
+            -webkit-appearance: none;
+            -webkit-border-radius: 0;
           }
 
           .send-button-hero {
             width: 28px;
             height: 28px;
             border-radius: 14px;
-            bottom: 0.7rem;
-            right: 0.7rem;
+            bottom: 0.75rem;
+            right: 0.75rem;
           }
 
           .suggestion-pill {
             font-size: 0.8rem;
             padding: 0.4rem 0.8rem;
           }
+
+          .suggestions-list {
+            padding: 0.5rem 0;
+            gap: 0.5rem;
+          }
         }
 
         @media (max-width: 375px) {
+          .header-content {
+            padding: 0.5rem 0.25rem 0.5rem 0.25rem;
+          }
+          
           .header-title {
             font-size: 1.1rem;
           }
 
+          .messages-container {
+            padding: 0 0.25rem;
+          }
+
+          .chat-input-area {
+            padding: 0.5rem 0.25rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0));
+          }
+
           .input-wrapper-hero {
-            border-radius: 14px;
+            border-radius: 10px;
             min-height: 60px;
-            padding: 0.6rem;
+            padding: 0.625rem;
+            margin: 0;
+          }
+
+          .chat-input-hero {
+            font-size: 16px;
+            min-height: 32px;
+            max-height: 60px;
+            padding-right: 2rem;
           }
 
           .send-button-hero {
             width: 26px;
             height: 26px;
             border-radius: 13px;
-            bottom: 0.6rem;
-            right: 0.6rem;
+            bottom: 0.625rem;
+            right: 0.625rem;
+          }
+
+          .suggestion-pill {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.7rem;
+          }
+
+          .suggestions-section {
+            margin: 0 auto 0.75rem auto;
           }
         }
 
