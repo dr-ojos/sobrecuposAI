@@ -100,6 +100,7 @@ export default function Home() {
             className={`logo-container ${isVisible ? 'visible' : ''}`}
           >
             <div className="logo-text">
+              <img src="/heart-only.svg" alt="Heart" className="heart-icon" />
               <span className="logo-main">Sobrecupos</span>
               <span className="logo-ai">AI</span>
             </div>
@@ -392,8 +393,14 @@ export default function Home() {
           font-weight: 200;
           letter-spacing: -2px;
           display: inline-flex;
-          align-items: baseline;
+          align-items: center;
           gap: 0.5rem;
+        }
+
+        .heart-icon {
+          height: 1em;
+          width: auto;
+          filter: invert(0.1);
         }
 
         .logo-main {
@@ -950,6 +957,10 @@ export default function Home() {
             font-size: 3rem;
           }
           
+          .heart-icon {
+            height: 0.9em;
+          }
+          
           .subtitle {
             font-size: 1.5rem;
           }
@@ -987,6 +998,10 @@ export default function Home() {
         @media (max-width: 480px) {
           .logo-text {
             font-size: 2.5rem;
+          }
+          
+          .heart-icon {
+            height: 0.8em;
           }
           
           .subtitle {
