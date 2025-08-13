@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { slugToSearchTerms } from '../../utils/slug';
+import { slugToSearchTerms } from '../../../utils/slug';
 
 export default function MedicoInfoPage({ params }) {
   const router = useRouter();

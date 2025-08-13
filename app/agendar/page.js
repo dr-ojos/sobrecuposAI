@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createDoctorSlug } from '../utils/slug';
+import { createDoctorSlug } from '../../utils/slug';
 
 const AgendarSobrecuposContent = () => {
   const router = useRouter();
