@@ -398,7 +398,7 @@ export default function Home() {
         }
 
         .heart-icon {
-          height: 1em;
+          height: 1.5em;
           width: auto;
           filter: invert(0.1);
         }
@@ -958,7 +958,7 @@ export default function Home() {
           }
           
           .heart-icon {
-            height: 0.9em;
+            height: 1.3em;
           }
           
           .subtitle {
@@ -1001,7 +1001,7 @@ export default function Home() {
           }
           
           .heart-icon {
-            height: 0.8em;
+            height: 1.1em;
           }
           
           .subtitle {
