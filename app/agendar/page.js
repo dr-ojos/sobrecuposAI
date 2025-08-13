@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createDoctorSlug } from '../../utils/slug';
 
 const AgendarSobrecuposContent = () => {
   const router = useRouter();
@@ -710,7 +709,7 @@ const AgendarSobrecuposContent = () => {
                     <div className="card-footer">
                       <div className="footer-actions">
                         <button
-                          onClick={() => router.push(`/medico-info/${createDoctorSlug(sobrecupo.fields.Médico)}`)}
+                          onClick={() => router.push(`/medico-info/${encodeURIComponent(sobrecupo.fields.Médico)}`)}
                           className="info-button"
                         >
                           Más información

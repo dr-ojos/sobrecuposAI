@@ -1,7 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { slugToSearchTerms } from '../../../utils/slug';
 
 export default function MedicoInfoPage({ params }) {
   const router = useRouter();
@@ -142,34 +141,31 @@ export default function MedicoInfoPage({ params }) {
       try {
         setLoading(true);
         
-        // Generar términos de búsqueda desde el slug amigable
-        const searchTerms = slugToSearchTerms(slug);
-        console.log('🔍 Buscando médico con términos:', searchTerms);
+        // Decodificar el slug para obtener el nombre del médico
+        const nombreMedico = decodeURIComponent(slug);
+        console.log('🔍 Buscando médico:', nombreMedico);
         
-        // Buscar el médico por nombre en la base de datos
+        // Buscar el médico por nombre exacto en la base de datos
         const response = await fetch('/api/doctors');
         if (!response.ok) throw new Error('Error fetching doctors');
         
         const doctores = await response.json();
         console.log('📋 Doctores obtenidos:', doctores.length);
         
-        // Buscar médico usando los términos de búsqueda generados desde el slug
+        // Buscar médico por nombre exacto o similar
         const doctorEncontrado = doctores.find(doc => {
           const docName = doc.fields?.Name;
           if (!docName) return false;
           
-          // Probar con todos los términos de búsqueda
-          return searchTerms.some(term => {
-            // Comparación exacta
-            if (docName === term) return true;
-            
-            // Comparación insensible a mayúsculas
-            if (docName.toLowerCase() === term.toLowerCase()) return true;
-            
-            // Comparación parcial
-            return docName.toLowerCase().includes(term.toLowerCase()) ||
-                   term.toLowerCase().includes(docName.toLowerCase());
-          });
+          // Comparación exacta primero
+          if (docName === nombreMedico) return true;
+          
+          // Comparación insensible a mayúsculas
+          if (docName.toLowerCase() === nombreMedico.toLowerCase()) return true;
+          
+          // Comparación parcial si contiene el nombre
+          return docName.toLowerCase().includes(nombreMedico.toLowerCase()) ||
+                 nombreMedico.toLowerCase().includes(docName.toLowerCase());
         });
         
         if (doctorEncontrado) {
@@ -180,7 +176,7 @@ export default function MedicoInfoPage({ params }) {
           // Cargar sobrecupos del médico
           await fetchSobrecuposMedico(doctorEncontrado.fields?.Name);
         } else {
-          console.log('❌ Médico no encontrado para términos:', searchTerms);
+          console.log('❌ Médico no encontrado para:', nombreMedico);
           setError('Médico no encontrado');
         }
       } catch (err) {
