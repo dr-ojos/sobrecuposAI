@@ -411,7 +411,7 @@ export default function Home() {
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s;
-          margin-bottom: 4rem;
+          margin-bottom: 2rem;
         }
 
         .tagline.visible {
@@ -475,15 +475,13 @@ export default function Home() {
         }
 
         .especialidad-tag {
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 20px;
-          padding: 0.5rem 1rem;
+          background: transparent;
+          border: none;
+          padding: 0.25rem 0.5rem;
           font-size: 0.875rem;
-          color: #171717;
-          font-weight: 500;
+          color: #666;
+          font-weight: 400;
           white-space: nowrap;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
           pointer-events: none;
           user-select: none;
         }

@@ -512,14 +512,6 @@ export default function MedicoInfoPage({ params }) {
                 </div>
                 
                 <div className="info-point">
-                  <div className="point-icon">📅</div>
-                  <div className="point-content">
-                    <h4>Confirmación Requerida</h4>
-                    <p>Debes confirmar tu asistencia <strong>48 horas antes</strong> de la cita programada</p>
-                  </div>
-                </div>
-                
-                <div className="info-point">
                   <div className="point-icon">🏥</div>
                   <div className="point-content">
                     <h4>Ubicación</h4>
@@ -754,14 +746,6 @@ export default function MedicoInfoPage({ params }) {
                   </div>
                   
                   <div className="info-point">
-                    <div className="point-icon">📅</div>
-                    <div className="point-content">
-                      <h4>Confirmación Requerida</h4>
-                      <p>Debes confirmar tu asistencia <strong>48 horas antes</strong> de la cita programada</p>
-                    </div>
-                  </div>
-                  
-                  <div className="info-point">
                     <div className="point-icon">🏥</div>
                     <div className="point-content">
                       <h4>Ubicación</h4>
@@ -773,6 +757,41 @@ export default function MedicoInfoPage({ params }) {
             </div>
           </div>
 
+          {/* Información importante - Full Width Desktop */}
+          <div className="desktop-important-info">
+            <section className="important-info-card full-width">
+              <div className="info-header">
+                <div className="info-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                </div>
+                <div className="info-title-section">
+                  <h2 className="info-title">Información Importante</h2>
+                  <p className="info-subtitle">Antes de reservar tu cita</p>
+                </div>
+              </div>
+              
+              <div className="info-points">
+                <div className="info-point">
+                  <div className="point-icon">💳</div>
+                  <div className="point-content">
+                    <h4>Pago de Consulta</h4>
+                    <p>La autorización de sobrecupo <strong>no reemplaza</strong> el pago de la consulta médica</p>
+                  </div>
+                </div>
+                
+                <div className="info-point">
+                  <div className="point-icon">🏥</div>
+                  <div className="point-content">
+                    <h4>Ubicación</h4>
+                    <p>Consulta la dirección exacta de la clínica antes de tu visita</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
 
           {/* Action Section */}
           <section className="action-section">
@@ -968,6 +987,11 @@ export default function MedicoInfoPage({ params }) {
           display: none;
         }
 
+        /* Desktop Important Info - Full Width */
+        .desktop-important-info {
+          display: none;
+        }
+
         .left-column,
         .right-column {
           display: flex;
@@ -1006,6 +1030,29 @@ export default function MedicoInfoPage({ params }) {
           .active-sobrecupos {
             flex: 1;
             min-height: calc(50% - 0.5rem);
+          }
+
+          /* Ocultar información importante dentro de layouts en desktop */
+          .desktop-layout .important-info-card {
+            display: none;
+          }
+
+          /* Mostrar información importante full-width en desktop */
+          .desktop-important-info {
+            display: block;
+            max-width: 1000px;
+            margin: 2rem auto 0;
+            padding: 0 1rem;
+          }
+
+          .desktop-important-info .important-info-card.full-width {
+            padding: 2.5rem;
+          }
+
+          .desktop-important-info .info-points {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
           }
         }
 
