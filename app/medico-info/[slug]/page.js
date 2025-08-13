@@ -291,160 +291,215 @@ export default function MedicoInfoPage({ params }) {
                 </div>
                 {fields.RSS && (
                   <div className="credentials">
-                    <span className="credential-label">RSS:</span>
+                    <span className="credential-label">Reg. SIS:</span>
                     <span className="credential-value">{fields.RSS}</span>
+                    <div className="info-tooltip-container">
+                      <div className="info-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                          <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
+                        </svg>
+                      </div>
+                      <div className="tooltip">
+                        Registro Superintendencia de Salud
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </section>
 
-          {/* Layout Desktop: Información + Calendario */}
+          {/* Layout Desktop: Info y Experiencia | Calendario y Sobrecupos */}
           <div className="desktop-layout">
-            {/* Información Profesional */}
-            <section className="professional-info">
-              <h3 className="section-title">Información Profesional</h3>
-              
-              <div className="info-grid">
-                <div className="info-card">
-                  <div className="info-header">
-                    <h4 className="info-title">Especialidad</h4>
-                  </div>
-                  <p className="info-content bold-text">{fields.Especialidad || 'No especificada'}</p>
-                </div>
+            {/* Columna izquierda: Info + Experiencia */}
+            <div className="left-column">
+              {/* Información Profesional */}
+              <section className="professional-info">
+                <h3 className="section-title">Información Profesional</h3>
                 
-                <div className="info-card">
-                  <div className="info-header">
-                    <h4 className="info-title">Atiende a</h4>
-                  </div>
-                  <p className="info-content normal-text">
-                    {fields.Atiende === 'Ambos' ? 'Niños y Adultos' : 
-                     fields.Atiende === 'Niños' ? 'Solo Niños' :
-                     fields.Atiende === 'Adultos' ? 'Solo Adultos' : 
-                     'Consultar'}
-                  </p>
-                </div>
-                
-                {fields.RSS && (
+                <div className="info-grid">
                   <div className="info-card">
                     <div className="info-header">
-                      <h4 className="info-title">Registro Sanitario</h4>
+                      <h4 className="info-title">Especialidad</h4>
                     </div>
-                    <p className="info-content thin-text">{fields.RSS}</p>
+                    <p className="info-content bold-text">{fields.Especialidad || 'No especificada'}</p>
                   </div>
-                )}
-              </div>
-
-              {/* Seguros Aceptados */}
-              {fields.Seguros && fields.Seguros.length > 0 && (
-                <div className="seguros-section">
-                  <h4 className="subsection-title">Seguros y Previsiones Aceptadas</h4>
-                  <div className="seguros-grid">
-                    {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
-                      <div key={index} className="seguro-card">
-                        <span className="seguro-name">{seguro}</span>
+                  
+                  <div className="info-card">
+                    <div className="info-header">
+                      <h4 className="info-title">Atiende a</h4>
+                    </div>
+                    <p className="info-content normal-text">
+                      {fields.Atiende === 'Ambos' ? 'Niños y Adultos' : 
+                       fields.Atiende === 'Niños' ? 'Solo Niños' :
+                       fields.Atiende === 'Adultos' ? 'Solo Adultos' : 
+                       'Consultar'}
+                    </p>
+                  </div>
+                  
+                  {fields.RSS && (
+                    <div className="info-card">
+                      <div className="info-header">
+                        <h4 className="info-title">Registro Sanitario</h4>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </section>
-
-            {/* Calendar de Sobrecupos */}
-            <section className="calendar-section">
-              <h3 className="section-title">Sobrecupos Disponibles</h3>
-              {sobrecupos.length > 0 && (
-                <div className="availability-indicator">
-                  <div className="availability-dot"></div>
-                  <span className="availability-text">{sobrecupos.length} citas disponibles</span>
-                </div>
-              )}
-              <div className="calendar-container">
-                <div className="calendar-header">
-                  <button onClick={() => navigateMonth(-1)} className="calendar-nav">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                  <div className="calendar-month-container">
-                    <h4 className="calendar-month">
-                      {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
-                    </h4>
-                    <div className="calendar-doctor-indicator">
-                      {fields.Name}
-                    </div>
-                  </div>
-                  <button onClick={() => navigateMonth(1)} className="calendar-nav">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-                
-                <div className="calendar-body">
-                  <div className="calendar-weekdays">
-                    {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
-                      <div key={day} className="calendar-weekday">{day}</div>
-                    ))}
-                  </div>
-                  
-                  <div className="calendar-grid">
-                    {generateCalendarGrid().map((dateInfo, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleDateClick(dateInfo)}
-                        className={`calendar-day ${
-                          !dateInfo ? 'empty' : 
-                          dateInfo.isPast ? 'past' :
-                          dateInfo.isAvailable ? 'available' :
-                          dateInfo.isToday ? 'today' : ''
-                        }`}
-                        disabled={!dateInfo || dateInfo.isPast || !dateInfo.isAvailable}
-                      >
-                        {dateInfo && (
-                          <>
-                            <span className="day-number">{dateInfo.day}</span>
-                            {dateInfo.isAvailable && dateInfo.count > 0 && (
-                              <span className="sobrecupos-count">{dateInfo.count}</span>
-                            )}
-                          </>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {sobrecupos.length === 0 && (
-                    <div className="calendar-no-dates">
-                      <div className="no-dates-icon">📅</div>
-                      <p className="no-dates-text">
-                        Este médico no tiene sobrecupos disponibles actualmente
-                      </p>
+                      <p className="info-content thin-text">{fields.RSS}</p>
                     </div>
                   )}
                 </div>
 
-                {sobrecupos.length > 0 && (
-                  <div className="calendar-footer">
-                    <p className="calendar-help">
-                      Toca un día destacado para reservar un sobrecupo
-                    </p>
+                {/* Seguros Aceptados */}
+                {fields.Seguros && fields.Seguros.length > 0 && (
+                  <div className="seguros-section">
+                    <h4 className="subsection-title">Seguros y Previsiones Aceptadas</h4>
+                    <div className="seguros-grid">
+                      {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
+                        <div key={index} className="seguro-card">
+                          <span className="seguro-name">{seguro}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
-            </section>
+              </section>
+
+              {/* Experiencia Profesional */}
+              {fields.Experiencia && fields.Experiencia.trim() && (
+                <section className="experience-card">
+                  <h3 className="section-title">Experiencia Profesional</h3>
+                  <div className="experience-content">
+                    <p className="experience-text">{fields.Experiencia}</p>
+                  </div>
+                </section>
+              )}
+            </div>
+
+            {/* Columna derecha: Calendario + Sobrecupos */}
+            <div className="right-column">
+              {/* Calendar de Sobrecupos */}
+              <section className="calendar-section">
+                <h3 className="section-title">Sobrecupos Disponibles</h3>
+                {sobrecupos.length > 0 && (
+                  <div className="availability-indicator">
+                    <div className="availability-dot"></div>
+                    <span className="availability-text">{sobrecupos.length} citas disponibles</span>
+                  </div>
+                )}
+                <div className="calendar-container">
+                  <div className="calendar-header">
+                    <button onClick={() => navigateMonth(-1)} className="calendar-nav">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                    <div className="calendar-month-container">
+                      <h4 className="calendar-month">
+                        {currentMonth.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
+                      </h4>
+                      <div className="calendar-doctor-indicator">
+                        {fields.Name}
+                      </div>
+                    </div>
+                    <button onClick={() => navigateMonth(1)} className="calendar-nav">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <div className="calendar-body">
+                    <div className="calendar-weekdays">
+                      {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
+                        <div key={day} className="calendar-weekday">{day}</div>
+                      ))}
+                    </div>
+                    
+                    <div className="calendar-grid">
+                      {generateCalendarGrid().map((dateInfo, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleDateClick(dateInfo)}
+                          className={`calendar-day ${
+                            !dateInfo ? 'empty' : 
+                            dateInfo.isPast ? 'past' :
+                            dateInfo.isAvailable ? 'available' :
+                            dateInfo.isToday ? 'today' : ''
+                          }`}
+                          disabled={!dateInfo || dateInfo.isPast || !dateInfo.isAvailable}
+                        >
+                          {dateInfo && (
+                            <>
+                              <span className="day-number">{dateInfo.day}</span>
+                              {dateInfo.isAvailable && dateInfo.count > 0 && (
+                                <span className="sobrecupos-count">{dateInfo.count}</span>
+                              )}
+                            </>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {sobrecupos.length === 0 && (
+                      <div className="calendar-no-dates">
+                        <div className="no-dates-icon">📅</div>
+                        <p className="no-dates-text">
+                          Este médico no tiene sobrecupos disponibles actualmente
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {sobrecupos.length > 0 && (
+                    <div className="calendar-footer">
+                      <p className="calendar-help">
+                        Toca un día destacado para reservar un sobrecupo
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Lista de Sobrecupos Activos */}
+              <section className="active-sobrecupos">
+                <h3 className="section-title">Próximos Sobrecupos</h3>
+                <div className="sobrecupos-list">
+                  {sobrecupos.length > 0 ? (
+                    sobrecupos.slice(0, 2).map((sobrecupo, index) => (
+                      <div key={index} className="sobrecupo-card">
+                        <div className="sobrecupo-date">
+                          <div className="date-day">
+                            {new Date(sobrecupo.fields?.Fecha).getDate()}
+                          </div>
+                          <div className="date-month">
+                            {new Date(sobrecupo.fields?.Fecha).toLocaleDateString('es-CL', { month: 'short' })}
+                          </div>
+                        </div>
+                        <div className="sobrecupo-details">
+                          <div className="sobrecupo-time">{sobrecupo.fields?.Hora}</div>
+                          <div className="sobrecupo-clinic">{sobrecupo.fields?.Clínica}</div>
+                        </div>
+                        <button 
+                          onClick={() => handleDateClick({
+                            dateString: sobrecupo.fields?.Fecha,
+                            isAvailable: true
+                          })}
+                          className="reserve-btn"
+                        >
+                          Reservar
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-sobrecupos">
+                      <div className="no-sobrecupos-icon">📅</div>
+                      <p className="no-sobrecupos-text">Sin sobrecupos</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
           </div>
 
-          {/* Experiencia Profesional */}
-          {fields.Experiencia && fields.Experiencia.trim() && (
-            <section className="experience-card">
-              <div className="card-header">
-                <h2 className="card-title">Experiencia Profesional</h2>
-              </div>
-              <div className="experience-content">
-                <p className="experience-text">{fields.Experiencia}</p>
-              </div>
-            </section>
-          )}
 
           {/* Información importante moderna */}
           <section className="important-info-card">
@@ -670,8 +725,15 @@ export default function MedicoInfoPage({ params }) {
           gap: 2rem;
         }
 
-        /* Desktop Layout para Info + Calendar */
+        /* Desktop Layout para Info+Experiencia | Calendario+Sobrecupos */
         .desktop-layout {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+        }
+
+        .left-column,
+        .right-column {
           display: flex;
           flex-direction: column;
           gap: 2rem;
@@ -682,14 +744,28 @@ export default function MedicoInfoPage({ params }) {
             display: grid;
             grid-template-columns: 1fr 400px;
             gap: 3rem;
-            align-items: stretch;
+            align-items: start;
           }
           
-          .professional-info,
-          .calendar-section {
-            min-height: 500px;
+          .left-column {
             display: flex;
             flex-direction: column;
+            gap: 2rem;
+          }
+          
+          .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+          }
+
+          .calendar-section {
+            flex: 1;
+          }
+
+          .active-sobrecupos {
+            flex: 1;
+            min-height: calc(50% - 0.5rem);
           }
         }
 
@@ -820,6 +896,7 @@ export default function MedicoInfoPage({ params }) {
           display: flex;
           align-items: center;
           gap: 0.5rem;
+          position: relative;
         }
 
         .credential-label {
@@ -832,6 +909,63 @@ export default function MedicoInfoPage({ params }) {
           font-size: 0.875rem;
           color: #171717;
           font-weight: 600;
+        }
+
+        /* Tooltip para RSS */
+        .info-tooltip-container {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .info-icon {
+          width: 18px;
+          height: 18px;
+          color: #666;
+          cursor: help;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          transition: all 0.2s ease;
+        }
+
+        .info-icon:hover {
+          color: #ff9500;
+          background: rgba(255, 149, 0, 0.1);
+        }
+
+        .tooltip {
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #171717;
+          color: white;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          white-space: nowrap;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.2s ease;
+          z-index: 1000;
+          margin-bottom: 5px;
+        }
+
+        .tooltip::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 4px solid transparent;
+          border-top-color: #171717;
+        }
+
+        .info-tooltip-container:hover .tooltip {
+          opacity: 1;
+          visibility: visible;
         }
 
         /* Sections con tipografía consistente */
@@ -1928,6 +2062,147 @@ export default function MedicoInfoPage({ params }) {
             padding: 1rem;
           }
 
+        }
+
+        /* Sección de Sobrecupos Activos */
+        .active-sobrecupos {
+          background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          border-radius: 20px;
+          padding: 1.5rem;
+          box-shadow: 
+            0 10px 25px rgba(0, 0, 0, 0.08),
+            0 4px 10px rgba(0, 0, 0, 0.03),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .active-sobrecupos::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.3), transparent);
+        }
+
+        .sobrecupos-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          height: 100%;
+        }
+
+        .sobrecupo-card {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.8) 100%);
+          border-radius: 12px;
+          border: 1px solid rgba(229, 231, 235, 0.5);
+          box-shadow: 
+            0 4px 12px rgba(0, 0, 0, 0.03),
+            0 2px 4px rgba(0, 0, 0, 0.02);
+          transition: all 0.3s ease;
+        }
+
+        .sobrecupo-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 
+            0 8px 20px rgba(0, 0, 0, 0.06),
+            0 4px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .sobrecupo-date {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 50px;
+          height: 50px;
+          background: linear-gradient(135deg, #ff9500 0%, #ff8800 100%);
+          border-radius: 12px;
+          color: white;
+          flex-shrink: 0;
+        }
+
+        .date-day {
+          font-size: 1.25rem;
+          font-weight: 700;
+          line-height: 1;
+        }
+
+        .date-month {
+          font-size: 0.65rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          line-height: 1;
+          opacity: 0.9;
+        }
+
+        .sobrecupo-details {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .sobrecupo-time {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #171717;
+        }
+
+        .sobrecupo-clinic {
+          font-size: 0.75rem;
+          color: #666;
+          font-weight: 400;
+        }
+
+        .reserve-btn {
+          padding: 0.5rem 1rem;
+          background: linear-gradient(135deg, #ff9500 0%, #ff8800 100%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+        }
+
+        .reserve-btn:hover {
+          background: linear-gradient(135deg, #ff8800 0%, #ff7700 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+        }
+
+        .no-sobrecupos {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          min-height: 120px;
+          text-align: center;
+          color: #666;
+        }
+
+        .no-sobrecupos-icon {
+          font-size: 2rem;
+          margin-bottom: 0.5rem;
+          opacity: 0.3;
+        }
+
+        .no-sobrecupos-text {
+          font-size: 0.875rem;
+          margin: 0;
+          font-weight: 500;
         }
 
         /* Safe area for iPhones */
