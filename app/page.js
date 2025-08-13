@@ -411,7 +411,7 @@ export default function Home() {
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s;
-          margin-bottom: 2rem;
+          margin-bottom: 5rem;
         }
 
         .tagline.visible {
@@ -516,7 +516,7 @@ export default function Home() {
           font-weight: 400;
           color: #666;
           text-align: center;
-          margin-bottom: 2rem;
+          margin-bottom: 1rem;
           line-height: 1.4;
           letter-spacing: 0.2px;
         }
