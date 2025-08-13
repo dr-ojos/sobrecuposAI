@@ -347,21 +347,21 @@ export default function MedicoInfoPage({ params }) {
                     </div>
                   )}
                 </div>
-
-                {/* Seguros Aceptados */}
-                {fields.Seguros && fields.Seguros.length > 0 && (
-                  <div className="seguros-section">
-                    <h4 className="subsection-title">Seguros y Previsiones Aceptadas</h4>
-                    <div className="seguros-grid">
-                      {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
-                        <div key={index} className="seguro-card">
-                          <span className="seguro-name">{seguro}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </section>
+
+              {/* Seguros y Previsiones - Sección separada */}
+              {fields.Seguros && fields.Seguros.length > 0 && (
+                <section className="seguros-card">
+                  <h3 className="section-title">Seguros y Previsiones Aceptadas</h3>
+                  <div className="seguros-grid">
+                    {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
+                      <div key={index} className="seguro-card">
+                        <span className="seguro-name">{seguro}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {/* Experiencia Profesional */}
               {fields.Experiencia && fields.Experiencia.trim() && (
@@ -980,7 +980,8 @@ export default function MedicoInfoPage({ params }) {
         .professional-info,
         .experience-card,
         .important-info-card,
-        .calendar-section {
+        .calendar-section,
+        .seguros-card {
           background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
           border: 1px solid rgba(255, 255, 255, 0.5);
           border-radius: 20px;
@@ -997,7 +998,8 @@ export default function MedicoInfoPage({ params }) {
         .professional-info::before,
         .experience-card::before,
         .important-info-card::before,
-        .calendar-section::before {
+        .calendar-section::before,
+        .seguros-card::before {
           content: '';
           position: absolute;
           top: 0;
@@ -1081,44 +1083,53 @@ export default function MedicoInfoPage({ params }) {
           font-weight: 500;
         }
 
-        /* Seguros Section */
-        .seguros-section {
-          margin-top: 2rem;
-          padding-top: 2rem;
-          border-top: 1px solid #e5e7eb;
+        /* Seguros Section - Rediseñada con tema naranja */
+        .seguros-card {
+          background: linear-gradient(135deg, rgba(255, 149, 0, 0.02) 0%, rgba(255, 149, 0, 0.05) 100%);
+          border: 1px solid rgba(255, 149, 0, 0.15);
         }
 
-        .subsection-title {
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: #171717;
-          margin: 0 0 1rem 0;
+        .seguros-card::before {
+          background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.4), transparent);
         }
 
         .seguros-grid {
           display: grid;
           gap: 1rem;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         }
 
         .seguro-card {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 0.75rem 1rem;
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 8px;
+          padding: 1rem 1.25rem;
+          background: linear-gradient(135deg, rgba(255, 149, 0, 0.1) 0%, rgba(255, 149, 0, 0.05) 100%);
+          border: 1px solid rgba(255, 149, 0, 0.3);
+          border-radius: 12px;
           text-align: center;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.1);
+        }
+
+        .seguro-card:hover {
+          transform: translateY(-2px);
+          background: linear-gradient(135deg, rgba(255, 149, 0, 0.15) 0%, rgba(255, 149, 0, 0.08) 100%);
+          border-color: rgba(255, 149, 0, 0.4);
+          box-shadow: 0 4px 16px rgba(255, 149, 0, 0.2);
         }
 
         .seguro-icon {
           font-size: 1.25rem;
+          color: #ff9500;
+          margin-right: 0.5rem;
         }
 
         .seguro-name {
           font-size: 0.875rem;
           font-weight: 600;
+          color: #ff9500;
+          letter-spacing: 0.25px;
         }
 
         /* Card Header */
@@ -1562,44 +1573,53 @@ export default function MedicoInfoPage({ params }) {
           font-weight: 300;
         }
 
-        /* Seguros Section */
-        .seguros-section {
-          margin-top: 2rem;
-          padding-top: 2rem;
-          border-top: 1px solid #e5e7eb;
+        /* Seguros Section - Rediseñada con tema naranja */
+        .seguros-card {
+          background: linear-gradient(135deg, rgba(255, 149, 0, 0.02) 0%, rgba(255, 149, 0, 0.05) 100%);
+          border: 1px solid rgba(255, 149, 0, 0.15);
         }
 
-        .subsection-title {
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: #171717;
-          margin: 0 0 1rem 0;
+        .seguros-card::before {
+          background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.4), transparent);
         }
 
         .seguros-grid {
           display: grid;
           gap: 1rem;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         }
 
         .seguro-card {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 0.75rem 1rem;
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 8px;
+          padding: 1rem 1.25rem;
+          background: linear-gradient(135deg, rgba(255, 149, 0, 0.1) 0%, rgba(255, 149, 0, 0.05) 100%);
+          border: 1px solid rgba(255, 149, 0, 0.3);
+          border-radius: 12px;
           text-align: center;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.1);
+        }
+
+        .seguro-card:hover {
+          transform: translateY(-2px);
+          background: linear-gradient(135deg, rgba(255, 149, 0, 0.15) 0%, rgba(255, 149, 0, 0.08) 100%);
+          border-color: rgba(255, 149, 0, 0.4);
+          box-shadow: 0 4px 16px rgba(255, 149, 0, 0.2);
         }
 
         .seguro-icon {
           font-size: 1.25rem;
+          color: #ff9500;
+          margin-right: 0.5rem;
         }
 
         .seguro-name {
           font-size: 0.875rem;
           font-weight: 600;
+          color: #ff9500;
+          letter-spacing: 0.25px;
         }
 
         /* Experience */
