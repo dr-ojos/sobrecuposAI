@@ -398,10 +398,10 @@ export default function Home() {
         }
 
         .heart-icon {
-          height: 0.85em;
+          height: 1.8em;
           width: auto;
           filter: invert(0.1);
-          margin-right: 0.2em;
+          margin-right: 0.3em;
         }
 
         .logo-main {
@@ -959,7 +959,8 @@ export default function Home() {
           }
           
           .heart-icon {
-            height: 0.85em;
+            height: 1.6em;
+            margin-right: 0.25em;
           }
           
           .subtitle {
@@ -1002,7 +1003,8 @@ export default function Home() {
           }
           
           .heart-icon {
-            height: 0.85em;
+            height: 1.4em;
+            margin-right: 0.2em;
           }
           
           .subtitle {
@@ -1047,6 +1049,21 @@ export default function Home() {
           .suggestion-pill {
             font-size: 0.8rem;
             padding: 0.4rem 0.8rem;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .logo-text {
+            font-size: 2rem;
+          }
+          
+          .heart-icon {
+            height: 1.2em;
+            margin-right: 0.15em;
+          }
+          
+          .subtitle {
+            font-size: 1rem;
           }
         }
       `}</style>
