@@ -286,7 +286,7 @@ export default function Home() {
             </div>
             <div className="footer-links">
               <a href="/chat">Buscar</a>
-              <a href="/auth/signin">Médicos</a>
+              <a href="/auth/signin">Login Médicos</a>
               <a href="mailto:contacto@sobrecupos.com">Contacto</a>
             </div>
           </div>
