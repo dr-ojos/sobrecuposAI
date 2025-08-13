@@ -100,7 +100,6 @@ export default function Home() {
             className={`logo-container ${isVisible ? 'visible' : ''}`}
           >
             <div className="logo-text">
-              <img src="/heart-only.svg" alt="Heart" className="heart-icon" />
               <span className="logo-main">Sobrecupos</span>
               <span className="logo-ai">AI</span>
             </div>
@@ -393,15 +392,8 @@ export default function Home() {
           font-weight: 200;
           letter-spacing: -2px;
           display: inline-flex;
-          align-items: center;
+          align-items: baseline;
           gap: 0.5rem;
-        }
-
-        .heart-icon {
-          height: 1.8em;
-          width: auto;
-          filter: invert(0.1);
-          margin-right: 0.3em;
         }
 
         .logo-main {
@@ -951,20 +943,43 @@ export default function Home() {
         /* Responsive */
         @media (max-width: 768px) {
           .hero-section {
-            padding: 1rem;
+            padding: 1.5rem 1rem;
+            min-height: 90vh;
+          }
+          
+          .content-wrapper {
+            max-width: 100%;
+            padding: 0 0.5rem;
+          }
+          
+          .logo-container {
+            margin-bottom: 2rem;
           }
           
           .logo-text {
-            font-size: 3rem;
+            font-size: 3.2rem;
           }
           
-          .heart-icon {
-            height: 1.6em;
-            margin-right: 0.25em;
+          .tagline {
+            margin-bottom: 4rem;
           }
           
           .subtitle {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
+            line-height: 1.3;
+          }
+          
+          .chat-container {
+            margin-bottom: 2rem;
+          }
+          
+          .input-wrapper {
+            padding: 1.2rem;
+            min-height: 75px;
+          }
+          
+          .chat-input {
+            font-size: 1rem;
           }
           
           .section-title {
@@ -998,17 +1013,53 @@ export default function Home() {
         }
 
         @media (max-width: 480px) {
-          .logo-text {
-            font-size: 2.5rem;
+          .hero-section {
+            padding: 1rem 0.75rem;
+            min-height: 85vh;
           }
           
-          .heart-icon {
-            height: 1.4em;
-            margin-right: 0.2em;
+          .content-wrapper {
+            max-width: 100%;
+            padding: 0 0.25rem;
+          }
+          
+          .logo-container {
+            margin-bottom: 1.5rem;
+          }
+          
+          .logo-text {
+            font-size: 2.8rem;
+            letter-spacing: -1.5px;
+          }
+          
+          .tagline {
+            margin-bottom: 3.5rem;
+          }
+          
+          .tagline h1 {
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
           }
           
           .subtitle {
-            font-size: 1.25rem;
+            font-size: 1.4rem;
+            line-height: 1.25;
+          }
+          
+          .chat-title {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+          }
+          
+          .input-wrapper {
+            padding: 1rem;
+            min-height: 70px;
+          }
+          
+          .chat-input {
+            font-size: 0.95rem;
+            min-height: 42px;
           }
           
           .especialidades-label {
@@ -1053,17 +1104,63 @@ export default function Home() {
         }
 
         @media (max-width: 360px) {
-          .logo-text {
-            font-size: 2rem;
+          .hero-section {
+            padding: 0.75rem 0.5rem;
+            min-height: 80vh;
           }
           
-          .heart-icon {
-            height: 1.2em;
-            margin-right: 0.15em;
+          .content-wrapper {
+            padding: 0;
+          }
+          
+          .logo-container {
+            margin-bottom: 1.25rem;
+          }
+          
+          .logo-text {
+            font-size: 2.2rem;
+            letter-spacing: -1px;
+          }
+          
+          .tagline {
+            margin-bottom: 3rem;
+          }
+          
+          .tagline h1 {
+            font-size: 0.8rem;
+            margin-bottom: 0.6rem;
           }
           
           .subtitle {
-            font-size: 1rem;
+            font-size: 1.1rem;
+            line-height: 1.2;
+          }
+          
+          .chat-title {
+            font-size: 0.85rem;
+            margin-bottom: 0.8rem;
+            padding: 0 0.5rem;
+          }
+          
+          .input-wrapper {
+            padding: 0.8rem;
+            min-height: 65px;
+            margin: 0 0.25rem;
+          }
+          
+          .chat-input {
+            font-size: 0.9rem;
+            min-height: 38px;
+          }
+          
+          .send-button {
+            width: 30px;
+            height: 30px;
+          }
+          
+          .suggestion-pill {
+            font-size: 0.75rem;
+            padding: 0.35rem 0.7rem;
           }
         }
       `}</style>
