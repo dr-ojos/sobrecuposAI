@@ -128,7 +128,8 @@ export default function Home() {
                         setChatInput(e.target.value);
                         setIsTyping(e.target.value.length > 0);
                         e.target.style.height = 'auto';
-                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                        const maxHeight = window.innerWidth <= 480 ? 80 : 120;
+                        e.target.style.height = Math.min(e.target.scrollHeight, maxHeight) + 'px';
                       }}
                       onKeyPress={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey && chatInput.trim()) {
@@ -542,6 +543,8 @@ export default function Home() {
           transition: all 0.2s ease;
           position: relative;
           box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          margin: 0 auto;
+          max-width: 100%;
         }
 
         .input-wrapper:focus-within {
@@ -943,17 +946,19 @@ export default function Home() {
         /* Responsive */
         @media (max-width: 768px) {
           .hero-section {
-            padding: 1.5rem 1rem;
-            min-height: 90vh;
+            padding: 1.5rem 0.75rem;
+            min-height: 100vh;
           }
           
           .content-wrapper {
             max-width: 100%;
-            padding: 0 0.5rem;
+            padding: 0;
+            width: 100%;
           }
           
           .logo-container {
             margin-bottom: 2rem;
+            padding: 0 0.5rem;
           }
           
           .logo-text {
@@ -962,6 +967,7 @@ export default function Home() {
           
           .tagline {
             margin-bottom: 4rem;
+            padding: 0 0.5rem;
           }
           
           .subtitle {
@@ -971,15 +977,19 @@ export default function Home() {
           
           .chat-container {
             margin-bottom: 2rem;
+            padding: 0 0.5rem;
           }
           
           .input-wrapper {
-            padding: 1.2rem;
-            min-height: 75px;
+            padding: 1rem;
+            min-height: 70px;
+            margin: 0;
+            border-radius: 12px;
           }
           
           .chat-input {
-            font-size: 1rem;
+            font-size: 16px;
+            max-height: 80px;
           }
           
           .section-title {
@@ -1014,17 +1024,19 @@ export default function Home() {
 
         @media (max-width: 480px) {
           .hero-section {
-            padding: 1rem 0.75rem;
-            min-height: 85vh;
+            padding: 1rem 0.5rem;
+            min-height: 100vh;
           }
           
           .content-wrapper {
             max-width: 100%;
-            padding: 0 0.25rem;
+            padding: 0;
+            width: 100%;
           }
           
           .logo-container {
             margin-bottom: 1.5rem;
+            padding: 0 0.5rem;
           }
           
           .logo-text {
@@ -1034,6 +1046,7 @@ export default function Home() {
           
           .tagline {
             margin-bottom: 3.5rem;
+            padding: 0 0.5rem;
           }
           
           .tagline h1 {
@@ -1050,16 +1063,26 @@ export default function Home() {
             font-size: 0.95rem;
             margin-bottom: 1rem;
             line-height: 1.3;
+            padding: 0;
+          }
+          
+          .chat-container {
+            padding: 0 0.5rem;
           }
           
           .input-wrapper {
-            padding: 1rem;
-            min-height: 70px;
+            padding: 0.875rem;
+            min-height: 65px;
+            margin: 0;
+            border-radius: 10px;
           }
           
           .chat-input {
-            font-size: 0.95rem;
-            min-height: 42px;
+            font-size: 16px;
+            min-height: 40px;
+            max-height: 70px;
+            -webkit-appearance: none;
+            -webkit-border-radius: 0;
           }
           
           .especialidades-label {
@@ -1105,16 +1128,18 @@ export default function Home() {
 
         @media (max-width: 360px) {
           .hero-section {
-            padding: 0.75rem 0.5rem;
-            min-height: 80vh;
+            padding: 0.75rem 0.25rem;
+            min-height: 100vh;
           }
           
           .content-wrapper {
             padding: 0;
+            width: 100%;
           }
           
           .logo-container {
             margin-bottom: 1.25rem;
+            padding: 0 0.25rem;
           }
           
           .logo-text {
@@ -1124,6 +1149,7 @@ export default function Home() {
           
           .tagline {
             margin-bottom: 3rem;
+            padding: 0 0.25rem;
           }
           
           .tagline h1 {
@@ -1139,28 +1165,42 @@ export default function Home() {
           .chat-title {
             font-size: 0.85rem;
             margin-bottom: 0.8rem;
-            padding: 0 0.5rem;
+            padding: 0;
+          }
+          
+          .chat-container {
+            padding: 0 0.25rem;
           }
           
           .input-wrapper {
-            padding: 0.8rem;
-            min-height: 65px;
-            margin: 0 0.25rem;
+            padding: 0.75rem;
+            min-height: 60px;
+            margin: 0;
+            border-radius: 8px;
           }
           
           .chat-input {
-            font-size: 0.9rem;
-            min-height: 38px;
+            font-size: 16px;
+            min-height: 36px;
+            max-height: 60px;
+            -webkit-appearance: none;
+            -webkit-border-radius: 0;
           }
           
           .send-button {
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
+            bottom: 0.75rem;
+            right: 0.75rem;
           }
           
           .suggestion-pill {
             font-size: 0.75rem;
             padding: 0.35rem 0.7rem;
+          }
+          
+          .suggestions-container {
+            padding: 0 0.25rem;
           }
         }
       `}</style>
