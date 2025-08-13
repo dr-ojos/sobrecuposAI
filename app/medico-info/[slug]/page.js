@@ -1,6 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { slugToSearchTerms } from '../../utils/slug';
 
 export default function MedicoInfoPage({ params }) {
   const router = useRouter();
@@ -141,31 +142,34 @@ export default function MedicoInfoPage({ params }) {
       try {
         setLoading(true);
         
-        // Decodificar el slug para obtener el nombre del médico
-        const nombreMedico = decodeURIComponent(slug);
-        console.log('🔍 Buscando médico:', nombreMedico);
+        // Generar términos de búsqueda desde el slug amigable
+        const searchTerms = slugToSearchTerms(slug);
+        console.log('🔍 Buscando médico con términos:', searchTerms);
         
-        // Buscar el médico por nombre exacto en la base de datos
+        // Buscar el médico por nombre en la base de datos
         const response = await fetch('/api/doctors');
         if (!response.ok) throw new Error('Error fetching doctors');
         
         const doctores = await response.json();
         console.log('📋 Doctores obtenidos:', doctores.length);
         
-        // Buscar médico por nombre exacto o similar
+        // Buscar médico usando los términos de búsqueda generados desde el slug
         const doctorEncontrado = doctores.find(doc => {
           const docName = doc.fields?.Name;
           if (!docName) return false;
           
-          // Comparación exacta primero
-          if (docName === nombreMedico) return true;
-          
-          // Comparación insensible a mayúsculas
-          if (docName.toLowerCase() === nombreMedico.toLowerCase()) return true;
-          
-          // Comparación parcial si contiene el nombre
-          return docName.toLowerCase().includes(nombreMedico.toLowerCase()) ||
-                 nombreMedico.toLowerCase().includes(docName.toLowerCase());
+          // Probar con todos los términos de búsqueda
+          return searchTerms.some(term => {
+            // Comparación exacta
+            if (docName === term) return true;
+            
+            // Comparación insensible a mayúsculas
+            if (docName.toLowerCase() === term.toLowerCase()) return true;
+            
+            // Comparación parcial
+            return docName.toLowerCase().includes(term.toLowerCase()) ||
+                   term.toLowerCase().includes(docName.toLowerCase());
+          });
         });
         
         if (doctorEncontrado) {
@@ -176,7 +180,7 @@ export default function MedicoInfoPage({ params }) {
           // Cargar sobrecupos del médico
           await fetchSobrecuposMedico(doctorEncontrado.fields?.Name);
         } else {
-          console.log('❌ Médico no encontrado para:', nombreMedico);
+          console.log('❌ Médico no encontrado para términos:', searchTerms);
           setError('Médico no encontrado');
         }
       } catch (err) {
@@ -1083,15 +1087,7 @@ export default function MedicoInfoPage({ params }) {
           font-weight: 500;
         }
 
-        /* Seguros Section - Rediseñada con tema naranja */
-        .seguros-card {
-          background: linear-gradient(135deg, rgba(255, 149, 0, 0.02) 0%, rgba(255, 149, 0, 0.05) 100%);
-          border: 1px solid rgba(255, 149, 0, 0.15);
-        }
-
-        .seguros-card::before {
-          background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.4), transparent);
-        }
+        /* Seguros Section - Fondo blanco como otras secciones, solo cards naranjas */
 
         .seguros-grid {
           display: grid;
@@ -1114,8 +1110,6 @@ export default function MedicoInfoPage({ params }) {
 
         .seguro-card:hover {
           transform: translateY(-2px);
-          background: linear-gradient(135deg, rgba(255, 149, 0, 0.15) 0%, rgba(255, 149, 0, 0.08) 100%);
-          border-color: rgba(255, 149, 0, 0.4);
           box-shadow: 0 4px 16px rgba(255, 149, 0, 0.2);
         }
 
@@ -1573,15 +1567,7 @@ export default function MedicoInfoPage({ params }) {
           font-weight: 300;
         }
 
-        /* Seguros Section - Rediseñada con tema naranja */
-        .seguros-card {
-          background: linear-gradient(135deg, rgba(255, 149, 0, 0.02) 0%, rgba(255, 149, 0, 0.05) 100%);
-          border: 1px solid rgba(255, 149, 0, 0.15);
-        }
-
-        .seguros-card::before {
-          background: linear-gradient(90deg, transparent, rgba(255, 149, 0, 0.4), transparent);
-        }
+        /* Seguros Section - Fondo blanco como otras secciones, solo cards naranjas */
 
         .seguros-grid {
           display: grid;
@@ -1604,8 +1590,6 @@ export default function MedicoInfoPage({ params }) {
 
         .seguro-card:hover {
           transform: translateY(-2px);
-          background: linear-gradient(135deg, rgba(255, 149, 0, 0.15) 0%, rgba(255, 149, 0, 0.08) 100%);
-          border-color: rgba(255, 149, 0, 0.4);
           box-shadow: 0 4px 16px rgba(255, 149, 0, 0.2);
         }
 
