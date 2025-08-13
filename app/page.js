@@ -128,7 +128,7 @@ export default function Home() {
                         setChatInput(e.target.value);
                         setIsTyping(e.target.value.length > 0);
                         e.target.style.height = 'auto';
-                        const maxHeight = window.innerWidth <= 480 ? 80 : 120;
+                        const maxHeight = window.innerWidth <= 480 ? 70 : window.innerWidth <= 768 ? 80 : 120;
                         e.target.style.height = Math.min(e.target.scrollHeight, maxHeight) + 'px';
                       }}
                       onKeyPress={(e) => {
@@ -566,6 +566,8 @@ export default function Home() {
           padding: 0;
           padding-right: 3rem;
           font-weight: 400;
+          -webkit-appearance: none;
+          -webkit-border-radius: 0;
         }
 
         .chat-input::placeholder {
@@ -981,9 +983,9 @@ export default function Home() {
           }
           
           .input-wrapper {
-            padding: 1rem;
+            padding: 0.875rem;
             min-height: 70px;
-            margin: 0;
+            margin: 0 0.25rem;
             border-radius: 12px;
           }
           
@@ -1071,9 +1073,9 @@ export default function Home() {
           }
           
           .input-wrapper {
-            padding: 0.875rem;
+            padding: 0.75rem;
             min-height: 65px;
-            margin: 0;
+            margin: 0 0.5rem;
             border-radius: 10px;
           }
           
@@ -1111,8 +1113,9 @@ export default function Home() {
           }
           
           .chat-input {
-            font-size: 0.875rem;
+            font-size: 16px;
             min-height: 40px;
+            max-height: 70px;
           }
           
           .send-button {
