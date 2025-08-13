@@ -416,6 +416,118 @@ export default function MedicoInfoPage({ params }) {
                 )}
               </div>
             </section>
+
+            {/* Información Profesional - Mobile */}
+            <section className="professional-info">
+              <h3 className="section-title">Información Profesional</h3>
+              
+              <div className="info-grid">
+                <div className="info-card">
+                  <div className="info-header">
+                    <h4 className="info-title">Especialidad</h4>
+                  </div>
+                  <p className="info-content bold-text">{fields.Especialidad || 'No especificada'}</p>
+                </div>
+                
+                <div className="info-card">
+                  <div className="info-header">
+                    <h4 className="info-title">Atiende a</h4>
+                  </div>
+                  <p className="info-content normal-text">
+                    {fields.Atiende === 'Ambos' ? 'Niños y Adultos' : 
+                     fields.Atiende === 'Niños' ? 'Solo Niños' :
+                     fields.Atiende === 'Adultos' ? 'Solo Adultos' : 
+                     'Consultar'}
+                  </p>
+                </div>
+                
+                {fields.RSS && (
+                  <div className="info-card">
+                    <div className="info-header">
+                      <h4 className="info-title">Reg. SIS</h4>
+                      <div className="info-tooltip-container">
+                        <div className="info-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                            <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
+                          </svg>
+                        </div>
+                        <div className="tooltip">
+                          Registro Superintendencia de Salud
+                        </div>
+                      </div>
+                    </div>
+                    <p className="info-content thin-text">{fields.RSS}</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Seguros y Previsiones - Mobile */}
+            {fields.Seguros && fields.Seguros.length > 0 && (
+              <section className="seguros-card">
+                <h3 className="section-title">Seguros y Previsiones Aceptadas</h3>
+                <div className="seguros-grid">
+                  {(Array.isArray(fields.Seguros) ? fields.Seguros : [fields.Seguros]).map((seguro, index) => (
+                    <div key={index} className="seguro-card">
+                      <span className="seguro-name">{seguro}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Experiencia Profesional - Mobile */}
+            {fields.Experiencia && fields.Experiencia.trim() && (
+              <section className="experience-card">
+                <h3 className="section-title">Experiencia Profesional</h3>
+                <div className="experience-content">
+                  <p className="experience-text">{fields.Experiencia}</p>
+                </div>
+              </section>
+            )}
+
+            {/* Información importante - Mobile */}
+            <section className="important-info-card">
+              <div className="info-header">
+                <div className="info-icon-container">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                </div>
+                <div className="info-title-section">
+                  <h2 className="info-title">Información Importante</h2>
+                  <p className="info-subtitle">Antes de reservar tu cita</p>
+                </div>
+              </div>
+              
+              <div className="info-points">
+                <div className="info-point">
+                  <div className="point-icon">💳</div>
+                  <div className="point-content">
+                    <h4>Pago de Consulta</h4>
+                    <p>La autorización de sobrecupo <strong>no reemplaza</strong> el pago de la consulta médica</p>
+                  </div>
+                </div>
+                
+                <div className="info-point">
+                  <div className="point-icon">📅</div>
+                  <div className="point-content">
+                    <h4>Confirmación Requerida</h4>
+                    <p>Debes confirmar tu asistencia <strong>48 horas antes</strong> de la cita programada</p>
+                  </div>
+                </div>
+                
+                <div className="info-point">
+                  <div className="point-icon">🏥</div>
+                  <div className="point-content">
+                    <h4>Ubicación</h4>
+                    <p>Consulta la dirección exacta de la clínica antes de tu visita</p>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
 
           {/* Layout Desktop: Info y Experiencia | Calendario y Sobrecupos */}
@@ -616,51 +728,51 @@ export default function MedicoInfoPage({ params }) {
                   )}
                 </div>
               </section>
+
+              {/* Información importante - Desktop */}
+              <section className="important-info-card">
+                <div className="info-header">
+                  <div className="info-icon-container">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  </div>
+                  <div className="info-title-section">
+                    <h2 className="info-title">Información Importante</h2>
+                    <p className="info-subtitle">Antes de reservar tu cita</p>
+                  </div>
+                </div>
+                
+                <div className="info-points">
+                  <div className="info-point">
+                    <div className="point-icon">💳</div>
+                    <div className="point-content">
+                      <h4>Pago de Consulta</h4>
+                      <p>La autorización de sobrecupo <strong>no reemplaza</strong> el pago de la consulta médica</p>
+                    </div>
+                  </div>
+                  
+                  <div className="info-point">
+                    <div className="point-icon">📅</div>
+                    <div className="point-content">
+                      <h4>Confirmación Requerida</h4>
+                      <p>Debes confirmar tu asistencia <strong>48 horas antes</strong> de la cita programada</p>
+                    </div>
+                  </div>
+                  
+                  <div className="info-point">
+                    <div className="point-icon">🏥</div>
+                    <div className="point-content">
+                      <h4>Ubicación</h4>
+                      <p>Consulta la dirección exacta de la clínica antes de tu visita</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
 
-
-          {/* Información importante moderna */}
-          <section className="important-info-card">
-            <div className="info-header">
-              <div className="info-icon-container">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-              </div>
-              <div className="info-title-section">
-                <h2 className="info-title">Información Importante</h2>
-                <p className="info-subtitle">Antes de reservar tu cita</p>
-              </div>
-            </div>
-            
-            <div className="info-points">
-              <div className="info-point">
-                <div className="point-icon">💳</div>
-                <div className="point-content">
-                  <h4>Pago de Consulta</h4>
-                  <p>La autorización de sobrecupo <strong>no reemplaza</strong> el pago de la consulta médica</p>
-                </div>
-              </div>
-              
-              <div className="info-point">
-                <div className="point-icon">📅</div>
-                <div className="point-content">
-                  <h4>Cómo Reservar</h4>
-                  <p>Utiliza el calendario para seleccionar una fecha disponible y proceder con la reserva</p>
-                </div>
-              </div>
-              
-              <div className="info-point">
-                <div className="point-icon">🔒</div>
-                <div className="point-content">
-                  <h4>Seguridad</h4>
-                  <p>Todas las reservas se manejan a través de nuestra plataforma segura</p>
-                </div>
-              </div>
-            </div>
-          </section>
 
           {/* Action Section */}
           <section className="action-section">
