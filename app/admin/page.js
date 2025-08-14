@@ -9,6 +9,7 @@ export default function AdminPanelPage() {
   const [clinicas, setClinicas] = useState([]);
   const [sobrecupos, setSobrecupos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [msg, setMsg] = useState('');
@@ -63,8 +64,24 @@ export default function AdminPanelPage() {
     `${(9 + i).toString().padStart(2, '0')}:00`
   );
 
+  // Fix hydration issues by ensuring client-side rendering
   useEffect(() => {
-    fetchAllData();
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return; // Only run on client-side
+    
+    // Run data fetching only after confirming we're on client-side
+    const initializeData = async () => {
+      try {
+        await fetchAllData();
+      } catch (error) {
+        console.error('Data fetch error:', error);
+      }
+    };
+    
+    initializeData();
     
     const handleMouseMove = (e) => {
       setMousePos({
@@ -75,7 +92,9 @@ export default function AdminPanelPage() {
     
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [isClient]);
+
+  // Clean up - removed debug logs
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -385,14 +404,17 @@ export default function AdminPanelPage() {
               <div className="stat-card">
                 <div className="stat-number">{doctors.length}</div>
                 <div className="stat-label">Médicos Registrados</div>
+                {/* Debug info removed - functionality restored */}
               </div>
               <div className="stat-card">
                 <div className="stat-number">{clinicas.length}</div>
                 <div className="stat-label">Clínicas Activas</div>
+                {/* Debug info removed - functionality restored */}
               </div>
               <div className="stat-card">
                 <div className="stat-number">{sobrecupos.length}</div>
                 <div className="stat-label">Sobrecupos Disponibles</div>
+                {/* Debug info removed - functionality restored */}
               </div>
             </div>
 
@@ -429,7 +451,7 @@ export default function AdminPanelPage() {
         {activeSection === "doctors" && (
           <div className="list-section">
             <div className="section-header">
-              <h2 className="section-title">Gestión de Médicos</h2>
+              <h2 className="section-title">Gestión de Médicos ({doctors.length} médicos)</h2>
               <button 
                 className="primary-button"
                 onClick={() => setShowDoctorForm(true)}
@@ -458,48 +480,55 @@ export default function AdminPanelPage() {
               </select>
             </div>
 
-            <div className="items-list">
-              {doctors
-                .filter(doctor => {
-                  const fields = doctor.fields || doctor;
-                  const matchesSearch = fields.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        fields.Especialidad?.toLowerCase().includes(searchTerm.toLowerCase());
-                  const matchesFilter = selectedFilter === 'all' || fields.Especialidad === selectedFilter;
-                  return matchesSearch && matchesFilter;
-                })
-                .map(doctor => {
-                  const fields = doctor.fields || doctor;
-                  return (
-                    <div key={doctor.id} className="item-card">
-                      <div className="item-info">
-                        <div className="item-avatar">
-                          {fields.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+            {loading ? (
+              <div className="loading-message">Cargando médicos...</div>
+            ) : doctors.length === 0 ? (
+              <div className="no-data-message">No hay médicos registrados</div>
+            ) : (
+              <div className="items-list">
+                {doctors
+                  .filter(doctor => {
+                    const fields = doctor.fields || doctor;
+                    const matchesSearch = !searchTerm || 
+                                          fields.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                          fields.Especialidad?.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesFilter = selectedFilter === 'all' || fields.Especialidad === selectedFilter;
+                    return matchesSearch && matchesFilter;
+                  })
+                  .map(doctor => {
+                    const fields = doctor.fields || doctor;
+                    return (
+                      <div key={doctor.id} className="item-card">
+                        <div className="item-info">
+                          <div className="item-avatar">
+                            {fields.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                          </div>
+                          <div className="item-details">
+                            <h3 className="item-name">Dr. {fields.Name}</h3>
+                            <p className="item-specialty">{fields.Especialidad}</p>
+                            <p className="item-contact">{fields.Email}</p>
+                          </div>
                         </div>
-                        <div className="item-details">
-                          <h3 className="item-name">Dr. {fields.Name}</h3>
-                          <p className="item-specialty">{fields.Especialidad}</p>
-                          <p className="item-contact">{fields.Email}</p>
+                        <div className="item-actions">
+                          <button
+                            className="action-btn edit"
+                            onClick={() => handleEdit('doctor', doctor)}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="action-btn delete"
+                            onClick={() => handleDelete('doctor', doctor.id)}
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </div>
-                      <div className="item-actions">
-                        <button
-                          className="action-btn edit"
-                          onClick={() => handleEdit('doctor', doctor)}
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          className="action-btn delete"
-                          onClick={() => handleDelete('doctor', doctor.id)}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              }
-            </div>
+                    );
+                  })
+                }
+              </div>
+            )}
           </div>
         )}
 
@@ -2030,6 +2059,17 @@ export default function AdminPanelPage() {
           margin-top: 2rem;
           padding-top: 1.5rem;
           border-top: 1px solid #e5e5e5;
+        }
+
+        .loading-message,
+        .no-data-message {
+          text-align: center;
+          padding: 2rem;
+          color: #666;
+          font-size: 0.875rem;
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 6px;
         }
 
         /* Responsive */
