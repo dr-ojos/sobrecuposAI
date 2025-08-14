@@ -351,12 +351,6 @@ export default function AdminPanelPage() {
           Médicos
         </button>
         <button 
-          className="nav-tab external-link"
-          onClick={() => router.push("/admin/doctors")}
-        >
-          Gestión Médicos
-        </button>
-        <button 
           className={`nav-tab ${activeSection === "clinicas" ? "active" : ""}`}
           onClick={() => setActiveSection("clinicas")}
         >

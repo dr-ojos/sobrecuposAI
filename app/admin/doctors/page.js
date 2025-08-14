@@ -368,7 +368,7 @@ export default function DoctorsAdminPage() {
           onClick={() => router.push("/admin")}
           className="back-button"
         >
-          ← Sobrecupos
+          ← Volver
         </button>
         <div className="header-title">Médicos</div>
         <div className="header-spacer"></div>
@@ -380,13 +380,7 @@ export default function DoctorsAdminPage() {
             onClick={() => router.push("/admin")}
             className="nav-button"
           >
-            💼 Sobrecupos
-          </button>
-          <button
-            onClick={() => router.push("/admin/clinicas")}
-            className="nav-button"
-          >
-            🏥 Clínicas
+            💼 Panel Admin
           </button>
         </div>
 
