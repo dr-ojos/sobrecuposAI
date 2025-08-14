@@ -3374,7 +3374,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
               console.error("❌ Error buscando otros médicos:", error);
               delete sessions[from];
               return NextResponse.json({
-                text: "Disculpa, hay un problema técnico buscando otros médicos. Intenta más tarde o cuéntame tu síntoma nuevamente."
+                text: "En este momento estoy actualizando mi información de médicos disponibles.\n\n¿Podrías decirme nuevamente qué síntomas tienes? Así podré ayudarte a encontrar la mejor opción."
               });
             }
           } 
@@ -3610,7 +3610,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         }
         
         return NextResponse.json({
-          text: `${respuestaEmpatica}\n\nHay un problema técnico consultando la disponibilidad de **${specialty}** en este momento.\n\n¿Te gustaría que te contacte cuando el sistema esté disponible nuevamente?`
+          text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en **${specialty}**. En este momento estoy actualizando mi base de datos de sobrecupos disponibles.\n\n¿Te gustaría que tome tus datos para contactarte apenas tenga nuevas opciones disponibles?`
         });
       }
     }
@@ -3694,7 +3694,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             AIRTABLE_TABLE_ID: !!AIRTABLE_TABLE_ID
           });
           return NextResponse.json({
-            text: `Detecté que necesitas ver a un especialista en **${specialty}**.\n\nPero hay un problema de configuración del sistema. Por favor contacta al administrador para que revise las variables de entorno de Airtable.\n\n¿Te gustaría que anote tus datos para contactarte cuando esté solucionado?`
+            text: `Por lo que me describes, necesitas ver a un especialista en **${specialty}**.\n\nEn este momento estoy actualizando mi sistema de sobrecupos para ofrecerte las mejores opciones disponibles.\n\n¿Te gustaría que tome tus datos para contactarte apenas tenga nuevas opciones de **${specialty}** disponibles?`
           });
         }
 
@@ -3792,7 +3792,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       } catch (error) {
         console.error("❌ Error consultando médicos:", error);
         return NextResponse.json({
-          text: "Disculpa, hay un problema técnico consultando la disponibilidad. Intenta más tarde."
+          text: "Entiendo que necesitas atención médica. En este momento estoy actualizando mi información de sobrecupos disponibles.\n\n¿Podrías decirme nuevamente qué síntomas tienes o qué especialista necesitas? Así podré ayudarte mejor."
         });
       }
     }
@@ -3976,7 +3976,7 @@ Ejemplos:
             };
 
             return NextResponse.json({
-              text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en **${specialty}**, pero hay un problema técnico consultando la disponibilidad en este momento.\n\n¿Te gustaría que te contacte cuando el sistema esté disponible nuevamente?`,
+              text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en **${specialty}**. En este momento estoy actualizando mi información de sobrecupos disponibles.\n\n¿Te gustaría que tome tus datos para contactarte apenas tenga nuevas opciones de **${specialty}** disponibles?`,
               session: sessions[from]
             });
           }
