@@ -100,7 +100,7 @@ export default function Home() {
             className={`logo-container ${isVisible ? 'visible' : ''}`}
           >
             <div className="logo-svg-container">
-              <svg width="400" height="165" viewBox="0 0 1000 413" className="main-logo-svg">
+              <svg width="500" height="206" viewBox="0 0 1000 413" className="main-logo-svg">
                 <g transform="translate(0.000000,413.000000) scale(0.100000,-0.100000)" stroke="none">
                   {/* Corazón en rojo */}
                   <path d="M1173 2946 c-132 -32 -280 -149 -337 -267 -75 -156 -75 -342 1 -493 19 -38 117 -144 382 -411 196 -198 361 -361 366 -363 10 -2 821 806 938 935 47 52 57 69 57 99 0 51 -53 104 -105 104 -32 0 -47 -10 -123 -82 -48 -45 -139 -135 -202 -199 -63 -64 -167 -165 -230 -225 -139 -132 -189 -156 -324 -156 -167 0 -220 29 -407 219 -175 178 -194 211 -194 328 0 67 4 89 28 137 32 65 90 121 156 151 64 30 187 30 252 1 45 -21 254 -205 283 -249 14 -21 11 -26 -55 -95 l-70 -74 -102 101 c-129 127 -151 143 -194 143 -50 0 -103 -54 -103 -104 0 -33 13 -50 133 -178 168 -180 217 -206 321 -176 34 10 92 62 346 313 343 340 344 340 480 340 124 -1 219 -59 278 -170 23 -43 27 -62 27 -140 0 -78 -4 -96 -27 -140 -19 -36 -165 -188 -517 -540 -270 -269 -491 -495 -491 -500 0 -14 133 -145 146 -145 21 0 1005 1003 1035 1055 48 82 69 165 69 269 0 150 -47 268 -146 370 -100 102 -231 156 -381 156 -173 0 -259 -43 -442 -220 l-134 -129 -131 125 c-141 135 -195 173 -295 204 -73 23 -205 26 -288 6z" fill="#dc2626"/>
@@ -976,8 +976,8 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 320px;
-            height: 132px;
+            width: 400px;
+            height: 165px;
           }
           
           .tagline {
@@ -1057,8 +1057,8 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 280px;
-            height: 116px;
+            width: 350px;
+            height: 145px;
           }
           
           .tagline {
@@ -1163,8 +1163,8 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 220px;
-            height: 91px;
+            width: 280px;
+            height: 116px;
           }
           
           .tagline {
