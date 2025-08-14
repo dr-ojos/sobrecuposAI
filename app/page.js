@@ -239,7 +239,7 @@ export default function Home() {
             <div className="step-card">
               <div className="step-number">02</div>
               <h3>Encuentra</h3>
-              <p>Mostramos citas disponibles</p>
+              <p>Te mostramos Sobrecupos disponibles</p>
             </div>
             <div className="step-card">
               <div className="step-number">03</div>
@@ -766,8 +766,8 @@ export default function Home() {
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          background: #ff9500;
-          border: 1px solid #ff9500;
+          background: #666;
+          border: 1px solid #666;
           border-radius: 16px;
           padding: 0.75rem 1.5rem;
           color: #fff;
@@ -776,14 +776,14 @@ export default function Home() {
           cursor: pointer;
           transition: all 0.2s ease;
           font-family: inherit;
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+          box-shadow: 0 2px 8px rgba(102, 102, 102, 0.2);
         }
 
         .explore-button:hover {
-          background: #e6850a;
-          border-color: #e6850a;
+          background: #555;
+          border-color: #555;
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+          box-shadow: 0 4px 12px rgba(102, 102, 102, 0.3);
         }
 
         .explore-button:active {
