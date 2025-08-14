@@ -351,6 +351,12 @@ export default function AdminPanelPage() {
           Médicos
         </button>
         <button 
+          className="nav-tab external-link"
+          onClick={() => router.push("/admin/doctors")}
+        >
+          Gestión Médicos
+        </button>
+        <button 
           className={`nav-tab ${activeSection === "clinicas" ? "active" : ""}`}
           onClick={() => setActiveSection("clinicas")}
         >
@@ -639,9 +645,9 @@ export default function AdminPanelPage() {
                   // Filtro por estado
                   let matchesFilter = true;
                   if (selectedFilter === 'disponibles') {
-                    matchesFilter = fechaSobrecupo >= hoy && !fields.PacienteNombre;
+                    matchesFilter = fechaSobrecupo >= hoy && fields.Disponible === 'Si';
                   } else if (selectedFilter === 'reservados') {
-                    matchesFilter = fechaSobrecupo >= hoy && fields.PacienteNombre;
+                    matchesFilter = fechaSobrecupo >= hoy && (fields.Disponible === 'No' || fields.PacienteNombre);
                   } else if (selectedFilter === 'antiguos') {
                     matchesFilter = fechaSobrecupo < hoy;
                   }
@@ -660,7 +666,7 @@ export default function AdminPanelPage() {
                   if (fechaSobrecupo < hoy) {
                     statusClass = 'antiguo';
                     statusText = 'Antiguo';
-                  } else if (fields.PacienteNombre) {
+                  } else if (fields.Disponible === 'No' || fields.PacienteNombre) {
                     statusClass = 'reservado';
                     statusText = 'Reservado';
                   }

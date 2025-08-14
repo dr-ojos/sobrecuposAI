@@ -900,9 +900,9 @@ export default function DoctorsAdminPage() {
       <style jsx>{`
         .doctors-container {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          color: #1a1a1a;
+          color: #171717;
           padding-bottom: env(safe-area-inset-bottom);
         }
 
@@ -911,37 +911,42 @@ export default function DoctorsAdminPage() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.95);
+          padding: 1.5rem 2rem;
+          background: rgba(255, 255, 255, 0.8);
           backdrop-filter: blur(20px);
           border-bottom: 1px solid rgba(0, 0, 0, 0.06);
           position: sticky;
           top: 0;
           z-index: 100;
-          height: 56px;
           box-sizing: border-box;
         }
 
         .back-button {
           background: none;
           border: none;
-          color: #007aff;
-          font-size: 15px;
-          font-weight: 600;
-          padding: 8px 12px;
-          border-radius: 8px;
+          color: #666;
+          font-size: 0.875rem;
+          font-weight: 400;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s ease;
+          border: 1px solid #e5e5e5;
         }
 
         .back-button:hover {
-          background: rgba(0, 122, 255, 0.1);
+          border-color: #171717;
+          color: #171717;
         }
 
         .header-title {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1a1a1a;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1rem;
+          font-weight: 400;
+          color: #171717;
+          letter-spacing: 0.5px;
         }
 
         .header-spacer {
@@ -951,32 +956,28 @@ export default function DoctorsAdminPage() {
         /* Navegación adicional */
         .admin-nav {
           display: flex;
-          gap: 8px;
-          padding: 8px 16px;
-          background: rgba(255, 255, 255, 0.8);
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          position: sticky;
-          top: 56px;
-          z-index: 98;
+          justify-content: center;
+          gap: 0;
+          padding: 2rem 2rem 0;
+          background: transparent;
         }
 
         .nav-button {
-          flex: 1;
-          padding: 8px 12px;
-          border: 1px solid #e5e5e7;
-          border-radius: 8px;
-          background: white;
-          color: #007aff;
-          font-size: 12px;
-          font-weight: 600;
+          background: none;
+          border: none;
+          border-bottom: 1px solid transparent;
+          color: #999;
+          font-size: 0.875rem;
+          font-weight: 400;
           cursor: pointer;
           transition: all 0.2s ease;
+          padding: 0.75rem 1.5rem;
+          font-family: inherit;
+          letter-spacing: 0.5px;
         }
 
         .nav-button:hover {
-          background: #f0f4fa;
-          border-color: #007aff;
+          color: #171717;
         }
 
         .nav-button:active {
@@ -986,59 +987,64 @@ export default function DoctorsAdminPage() {
         /* Tabs */
         .mobile-tabs {
           display: flex;
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          position: sticky;
-          top: 112px;
-          z-index: 99;
+          justify-content: center;
+          gap: 0;
+          padding: 2rem 2rem 0;
+          background: transparent;
         }
 
         .tab-button {
-          flex: 1;
-          padding: 12px 8px;
+          background: none;
           border: none;
-          background: transparent;
-          color: #8e8e93;
-          font-size: 13px;
-          font-weight: 600;
+          border-bottom: 1px solid transparent;
+          color: #999;
+          font-size: 0.875rem;
+          font-weight: 400;
           cursor: pointer;
           transition: all 0.2s ease;
-          border-bottom: 2px solid transparent;
+          padding: 0.75rem 1.5rem;
+          font-family: inherit;
+          letter-spacing: 0.5px;
+        }
+
+        .tab-button:hover {
+          color: #171717;
         }
 
         .tab-button.active {
-          color: #007aff;
-          border-bottom-color: #007aff;
+          color: #171717;
+          border-bottom-color: #171717;
         }
 
         /* Container Principal */
         .content-container {
-          padding: 16px;
-          max-width: 100vw;
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: 2rem;
           box-sizing: border-box;
         }
 
         /* Mensajes */
         .mobile-message {
-          padding: 12px 16px;
-          border-radius: 12px;
-          margin-bottom: 16px;
-          font-size: 13px;
-          font-weight: 500;
+          padding: 1rem;
+          border-radius: 6px;
+          margin-bottom: 2rem;
+          font-size: 0.875rem;
+          font-weight: 400;
           text-align: center;
+          border: 1px solid;
         }
 
         .mobile-message.success {
-          background: #e6ffed;
-          color: #006400;
-          border: 1px solid #c3e6cb;
+          background: #f8fff9;
+          color: #166534;
+          border-color: #bbf7d0;
         }
 
         .mobile-message.error {
-          background: #fee;
-          color: #b00020;
-          border: 1px solid #f5c6cb;
+          background: #fef8f8;
+          color: #dc2626;
+          border-color: #fecaca;
         }
 
         /* Formulario */
@@ -1791,64 +1797,40 @@ export default function DoctorsAdminPage() {
         }
 
         /* Responsive */
-        @media (max-width: 430px) {
-          .content-container {
-            padding: 12px;
+        @media (max-width: 768px) {
+          .mobile-header {
+            padding: 1rem;
           }
           
-          .doctor-form {
-            padding: 16px 12px;
+          .content-container {
+            padding: 1rem;
+          }
+          
+          .mobile-tabs, .admin-nav {
+            padding: 1rem 1rem 0;
           }
           
           .form-input, .form-select {
             font-size: 16px; /* Previene zoom en iOS */
           }
-          
-          .doctor-card {
-            padding: 10px;
-          }
-          
-          .doctor-name {
-            font-size: 13px;
-          }
         }
 
-        @media (max-width: 375px) {
+        @media (max-width: 480px) {
           .mobile-header {
-            padding: 10px 12px;
+            padding: 0.75rem;
           }
           
-          .header-title {
-            font-size: 15px;
-          }
-          
-          .tab-button {
-            font-size: 12px;
-            padding: 10px 6px;
-          }
-          
-          .modal-overlay {
-            padding: 16px;
-          }
-        }
-
-        @media (max-width: 320px) {
           .content-container {
-            padding: 8px;
+            padding: 0.75rem;
           }
           
-          .doctor-form {
-            padding: 12px 8px;
+          .mobile-tabs, .admin-nav {
+            padding: 0.75rem 0.75rem 0;
           }
           
-          .form-input, .form-select {
-            padding: 10px 12px;
-            font-size: 14px;
-          }
-          
-          .submit-button {
-            padding: 12px;
-            font-size: 14px;
+          .tab-button, .nav-button {
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
           }
         }
 
