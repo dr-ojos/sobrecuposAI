@@ -3478,46 +3478,141 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       
       const specialty = especialidadDirecta;
       
-      let respuestaEmpatica = "";
-      if (OPENAI_API_KEY) {
-        try {
-          const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${OPENAI_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: "gpt-4o-mini",
-              temperature: 0.7,
-              max_tokens: 40,
-              messages: [
-                {
-                  role: "system",
-                  content: "Eres Sobrecupos IA, asistente médico chileno, humano y empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al usuario que busca una especialidad específica. No menciones 'Sobrecupos IA' ni uses comillas."
+      // ✅ VERIFICAR DISPONIBILIDAD ANTES DE PEDIR DATOS
+      try {
+        const sobrecuposDisponibles = await fetchSobrecupos(specialty);
+        const sobrecuposFuturos = filterFutureDates(sobrecuposDisponibles);
+        
+        if (sobrecuposFuturos.length === 0) {
+          // No hay sobrecupos disponibles - no pedir datos, solo ofrecer contacto
+          let respuestaEmpatica = "Entiendo que necesitas atención especializada.";
+          if (OPENAI_API_KEY) {
+            try {
+              const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${OPENAI_API_KEY}`,
+                  "Content-Type": "application/json"
                 },
-                { role: "user", content: `Usuario busca: "${specialty}"` }
-              ]
-            })
+                body: JSON.stringify({
+                  model: "gpt-4o-mini",
+                  temperature: 0.7,
+                  max_tokens: 40,
+                  messages: [
+                    {
+                      role: "system",
+                      content: "Eres Sobrecupos IA, asistente médico chileno, humano y empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al usuario que busca una especialidad específica. No menciones 'Sobrecupos IA' ni uses comillas."
+                    },
+                    { role: "user", content: `Usuario busca: "${specialty}"` }
+                  ]
+                })
+              });
+              const empatJson = await empatRes.json();
+              respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
+            } catch (err) {
+              respuestaEmpatica = "Entiendo que necesitas atención especializada.";
+            }
+          }
+          
+          sessions[from] = {
+            stage: 'asking-for-contact-data',
+            specialty: specialty,
+            motivo: text
+          };
+          
+          return NextResponse.json({
+            text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver ${specialty}, pero lamentablemente no tengo sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
           });
-          const empatJson = await empatRes.json();
-          respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
-        } catch (err) {
-          respuestaEmpatica = "Entiendo que necesitas atención especializada.";
         }
+        
+        // HAY sobrecupos disponibles - mostrar opciones directamente
+        const selectedOptions = selectSmartAppointmentOptions(sobrecuposFuturos);
+        const presentation = await createOptionsPresentation(selectedOptions, specialty);
+        
+        let respuestaEmpatica = "Entiendo que necesitas atención especializada.";
+        if (OPENAI_API_KEY) {
+          try {
+            const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${OPENAI_API_KEY}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0.7,
+                max_tokens: 40,
+                messages: [
+                  {
+                    role: "system",
+                    content: "Eres Sobrecupos IA, asistente médico chileno, humano y empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al usuario que busca una especialidad específica. No menciones 'Sobrecupos IA' ni uses comillas."
+                  },
+                  { role: "user", content: `Usuario busca: "${specialty}"` }
+                ]
+              })
+            });
+            const empatJson = await empatRes.json();
+            respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
+          } catch (err) {
+            respuestaEmpatica = "Entiendo que necesitas atención especializada.";
+          }
+        }
+        
+        const baseSession = {
+          specialty,
+          records: sobrecuposFuturos,
+          motivo: text,
+          respuestaEmpatica,
+          attempts: 0,
+          selectedOptions
+        };
+
+        sessions[from] = presentation.stage === 'confirming-appointment'
+          ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+          : { ...baseSession, stage: 'choosing-from-options' };
+
+        return NextResponse.json({
+          text: `${respuestaEmpatica}\n\n¡Perfecto! Tengo sobrecupos disponibles de **${specialty}**.\n\n${presentation.text}`,
+          session: sessions[from]
+        });
+        
+      } catch (error) {
+        console.error('❌ Error verificando sobrecupos para especialidad directa:', error);
+        
+        // En caso de error, ofrecer contacto en lugar de pedir datos
+        let respuestaEmpatica = "Entiendo que necesitas atención especializada.";
+        if (OPENAI_API_KEY) {
+          try {
+            const empatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${OPENAI_API_KEY}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0.7,
+                max_tokens: 40,
+                messages: [
+                  {
+                    role: "system",
+                    content: "Eres Sobrecupos IA, asistente médico chileno, humano y empático. Responde con una frase breve (máx 2 líneas) mostrando comprensión al usuario que busca una especialidad específica. No menciones 'Sobrecupos IA' ni uses comillas."
+                  },
+                  { role: "user", content: `Usuario busca: "${specialty}"` }
+                ]
+              })
+            });
+            const empatJson = await empatRes.json();
+            respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
+          } catch (err) {
+            respuestaEmpatica = "Entiendo que necesitas atención especializada.";
+          }
+        }
+        
+        return NextResponse.json({
+          text: `${respuestaEmpatica}\n\nHay un problema técnico consultando la disponibilidad de **${specialty}** en este momento.\n\n¿Te gustaría que te contacte cuando el sistema esté disponible nuevamente?`
+        });
       }
-
-      sessions[from] = {
-        stage: 'getting-name-for-specialty',
-        specialty: specialty,
-        respuestaEmpatica,
-        attempts: 0
-      };
-
-      return NextResponse.json({
-        text: `${respuestaEmpatica}\n\nPara ayudarte con la reserva de **${specialty}**, necesito algunos datos básicos.\n\nPrimero, ¿cuál es tu nombre completo?`,
-        session: sessions[from]
-      });
     }
 
     // 🔥 DETECTAR MÉDICO ESPECÍFICO POR NOMBRE
@@ -3652,8 +3747,8 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           });
         }
 
-        // 🆕 NUEVO FLUJO: Primero recopilar datos básicos, luego mostrar opciones
-        console.log(`🔍 [DEBUG] Generating empathic response for new flow`);
+        // ✅ HAY SOBRECUPOS DISPONIBLES: Mostrar opciones directamente sin pedir datos primero
+        console.log(`🔍 [DEBUG] Generating empathic response and showing available options`);
         let respuestaEmpatica;
         try {
           const empathicPromise = generateEmphaticResponse(text, "Entiendo tu preocupación.", {
@@ -3671,19 +3766,26 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           respuestaEmpatica = "Entiendo tu preocupación";
         }
         
-        sessions[from] = {
-          stage: 'collecting-basic-data',
+        // Seleccionar y presentar las mejores opciones
+        const selectedOptions = selectSmartAppointmentOptions(available);
+        const presentation = await createOptionsPresentation(selectedOptions, specialty);
+        
+        const baseSession = {
           specialty,
-          respuestaEmpatica,
-          motivo: text,
           records: available,
+          motivo: text,
+          respuestaEmpatica,
           attempts: 0,
-          dataStep: 'name' // Empezar por el nombre
+          selectedOptions
         };
 
-        console.log(`🔍 [DEBUG] Session created successfully, returning response`);
+        sessions[from] = presentation.stage === 'confirming-appointment'
+          ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+          : { ...baseSession, stage: 'choosing-from-options' };
+
+        console.log(`🔍 [DEBUG] Session created successfully, showing available appointments`);
         return NextResponse.json({
-          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n🤝 Para brindarte la mejor experiencia y encontrar el médico perfecto para ti, ayúdame con algunos datos.\n\n¿Cuál es tu **nombre completo**?`,
+          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n¡Perfecto! Tengo sobrecupos disponibles:\n\n${presentation.text}`,
           session: sessions[from]
         });
 
@@ -3866,16 +3968,15 @@ Ejemplos:
               respuestaEmpatica = "Entiendo tu preocupación.";
             }
 
-            // Continuar con el flujo normal pidiendo datos del paciente
+            // En caso de error, ofrecer contacto en lugar de pedir datos inmediatamente
             sessions[from] = {
-              stage: 'getting-name-for-specialty',
+              stage: 'asking-for-contact-data',
               specialty: specialty,
-              respuestaEmpatica,
-              attempts: 0
+              motivo: text
             };
 
             return NextResponse.json({
-              text: `${respuestaEmpatica}\n\nPara ayudarte con la reserva de **${specialty}**, necesito algunos datos básicos.\n\nPrimero, ¿cuál es tu nombre completo?`,
+              text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en **${specialty}**, pero hay un problema técnico consultando la disponibilidad en este momento.\n\n¿Te gustaría que te contacte cuando el sistema esté disponible nuevamente?`,
               session: sessions[from]
             });
           }
