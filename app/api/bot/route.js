@@ -953,8 +953,154 @@ function detectarEspecialidadPorSintomas(text) {
     'agitacion', 'agitación', 'cansancio extremo', 'muy cansado'
   ];
 
-  // 🔥 SÍNTOMAS GASTROENTEROLÓGICOS - NUEVOS PARA MEJORAR MAPEO ESPECÍFICO
+  // 🔥 SÍNTOMAS GASTROENTEROLÓGICOS - SOLO CASOS QUE REQUIEREN ESPECIALISTA DIRECTO
   const sintomasGastroenterologia = [
+    // Casos muy específicos que requieren gastroenterología directa
+    'endoscopia', 'colonoscopia', 'gastroscopia', 'biopsia digestiva',
+    'sangre en las heces', 'sangre en deposiciones', 'deposiciones con sangre',
+    'vomitos con sangre', 'vómitos con sangre', 'hematemesis',
+    'ictericia', 'piel amarilla', 'ojos amarillos',
+    'masa abdominal', 'tumor abdominal', 'bulto en el abdomen',
+    // Casos de urgencia que podrían requerir gastroenterología específica
+    'dolor abdominal severo', 'dolor abdominal intenso', 'abdomen agudo'
+  ];
+  
+  // Síntomas neurológicos - EXPANDIDO CON VARIANTES "DUELE" Y CORRECCIONES TIPOGRÁFICAS
+  const sintomasNeurologia = [
+    'dolor cabeza', 'dolor de cabeza', 'me duele la cabeza', 'duele la cabeza', 
+    'duele cabeza', 'cabeza duele', 'cefalea', 'migrana', 'migraña',
+    // Incluir variantes tipográficas directamente
+    'me duele el cabezo', 'dolor de cabezo', 'duele el cabezo', 'cabezo duele', 'cabezo',
+    'me duele la cabezo', 'dolor cabezo', 'duele cabezo', 'tengo dolor de cabezo',
+    'mareo', 'vertigo', 'vértigo', 'desmayo',
+    'hormigueo', 'entumecimiento', 'adormecimiento',
+    'perdida memoria', 'pérdida memoria', 'olvidos', 'confusion', 'confusión'
+  ];
+  
+  // Síntomas pediátricos
+  const sintomasPediatria = [
+    'niño', 'niña', 'bebe', 'bebé', 'hijo', 'hija',
+    'mi hijo', 'mi hija', 'mi bebe', 'mi bebé',
+    'menor', 'pequeño', 'pequeña', 'infante'
+  ];
+  
+  // Síntomas medicina familiar niños - INCLUYENDO SÍNTOMAS DIGESTIVOS COMO PRIMERA OPCIÓN
+  const sintomasMedicinaFamiliarNinos = [
+    'control niño sano', 'control nino sano', 'vacunas', 'vacuna',
+    'resfriado niño', 'resfriado nino', 'fiebre niño', 'fiebre nino',
+    'mi niño tiene fiebre', 'mi nino tiene fiebre', 'niño con fiebre', 'nino con fiebre',
+    'tos niño', 'tos nino',
+    
+    // 🔥 SÍNTOMAS DIGESTIVOS EN NIÑOS - MEDICINA FAMILIAR COMO PRIMERA OPCIÓN
+    'dolor estomago niño', 'dolor estomago nino', 'dolor de estomago niño', 'dolor de estomago nino',
+    'mi niño le duele el estomago', 'mi nino le duele el estomago', 'niño dolor estomago', 'nino dolor estomago',
+    'vomitos niño', 'vomitos nino', 'mi niño vomita', 'mi nino vomita', 'niño vomitando', 'nino vomitando',
+    'diarrea niño', 'diarrea nino', 'mi niño tiene diarrea', 'mi nino tiene diarrea'
+  ];
+  
+  // Síntomas medicina familiar adultos
+  const sintomasMedicinaFamiliarAdultos = [
+    'control adulto', 'examen preventivo', 'chequeo general',
+    'resfriado adulto', 'gripe adulto',
+    // Removed "dolor general" - demasiado genérico, puede interceptar síntomas específicos
+    'dolor muscular general', 'dolor corporal general', 'malestar general',
+    'presion arterial', 'presión arterial', 'hipertension', 'hipertensión',
+    'diabetes', 'colesterol', 'examenes generales', 'exámenes generales',
+    // 🆕 Síntomas generales que requieren medicina familiar
+    'me siento cansado', 'estoy cansado', 'mucho cansancio', 'fatiga', 'cansancio',
+    'me siento mal', 'no me siento bien', 'malestar', 'decaimiento',
+    'sin energia', 'sin energía', 'agotamiento', 'muy cansado', 'muy cansada',
+    
+    // 🔥 SÍNTOMAS DIGESTIVOS - MEDICINA FAMILIAR COMO PRIMERA OPCIÓN
+    // Dolor y molestias abdominales
+    'dolor estomago', 'dolor de estomago', 'dolor de estómago', 'me duele el estomago', 'me duele el estómago',
+    'duele estomago', 'duele estómago', 'duele el estomago', 'duele el estómago',
+    'dolor abdominal', 'duele el abdomen', 'me duele el abdomen', 'dolor en el abdomen',
+    'dolor de barriga', 'me duele la barriga', 'duele la barriga',
+    'dolor de panza', 'me duele la panza', 'duele la panza',
+    
+    // Problemas digestivos específicos
+    'acidez', 'acidez estomacal', 'agruras', 'reflujo', 'reflujo gastrico', 'reflujo gástrico',
+    'ardor estomago', 'ardor estómago', 'ardor en el estomago', 'ardor en el estómago',
+    'quemazón estomago', 'quemazón estómago', 'sensacion de quemazon', 'sensación de quemazón',
+    
+    // Náuseas y vómitos
+    'nausea', 'náusea', 'nauseas', 'náuseas', 'ganas de vomitar', 'tengo nauseas',
+    'vomito', 'vómito', 'vomitos', 'vómitos', 'estoy vomitando', 'he vomitado',
+    
+    // Problemas intestinales
+    'diarrea', 'deposiciones liquidas', 'deposiciones líquidas', 'heces liquidas', 'heces líquidas',
+    'estreñimiento', 'estrenimiento', 'no puedo ir al baño', 'constipacion', 'constipación',
+    'gases', 'flatulencia', 'distension abdominal', 'distensión abdominal', 'hinchazon abdominal', 'hinchazón abdominal',
+    
+    // Problemas digestivos generales
+    'problemas digestivos', 'problemas de digestion', 'problemas de digestión',
+    'indigestion', 'indigestión', 'empacho', 'pesadez estomacal',
+    'mala digestion', 'mala digestión', 'digiero mal', 'no digiero bien',
+    
+    // Otros síntomas gastrointestinales
+    'colicos', 'cólicos', 'retorcijones', 'espasmos abdominales',
+    'gastritis', 'ulcera', 'úlcera', 'colon irritable', 'intestino irritable'
+  ];
+  
+  // 🔥 EVALUAR SÍNTOMAS EN ORDEN DE PRIORIDAD - OFTALMOLOGÍA PRIMERO
+  console.log('🔍 Evaluando síntomas. Texto original:', text);
+  console.log('🔍 Texto normalizado:', textoLimpio);
+  
+  const sintomaDetectado = sintomasOftalmologia.find(s => textoLimpio.includes(s));
+  if (sintomaDetectado) {
+    console.log('✅ Síntomas oftalmológicos detectados:', sintomaDetectado);
+    return 'Oftalmología';
+  }
+  
+  const sintomaDermato = sintomasDermatologia.find(s => textoLimpio.includes(s));
+  if (sintomaDermato) {
+    console.log('✅ Síntomas dermatológicos detectados:', sintomaDermato);
+    return 'Dermatología';
+  }
+  
+  const sintomaCardio = sintomasCardiologia.find(s => textoLimpio.includes(s));
+  if (sintomaCardio) {
+    console.log('✅ Síntomas cardiológicos detectados:', sintomaCardio);
+    return 'Cardiología';
+  }
+  
+  const sintomaNeuro = sintomasNeurologia.find(s => textoLimpio.includes(s));
+  if (sintomaNeuro) {
+    console.log('✅ Síntomas neurológicos detectados:', sintomaNeuro);
+    return 'Neurología';
+  }
+  
+  // 🔥 EVALUAR MEDICINA FAMILIAR PRIMERO - ENFOQUE MÉDICAMENTE APROPIADO
+  const sintomaMFNinos = sintomasMedicinaFamiliarNinos.find(s => textoLimpio.includes(s));
+  if (sintomaMFNinos) {
+    console.log('✅ Síntomas medicina familiar niños detectados:', sintomaMFNinos);
+    return 'Medicina Familiar Niños';
+  }
+  
+  const sintomaMFAdultos = sintomasMedicinaFamiliarAdultos.find(s => textoLimpio.includes(s));
+  if (sintomaMFAdultos) {
+    console.log('✅ Síntomas medicina familiar adultos detectados:', sintomaMFAdultos);
+    return 'Medicina Familiar Adultos';
+  }
+  
+  // 🔥 EVALUAR SÍNTOMAS GASTROENTEROLÓGICOS - DESPUÉS DE MEDICINA FAMILIAR (como alternativa especializada)
+  const sintomaGastro = sintomasGastroenterologia.find(s => textoLimpio.includes(s));
+  if (sintomaGastro) {
+    console.log('✅ Síntomas gastroenterológicos detectados:', sintomaGastro);
+    return 'Gastroenterología';
+  }
+  if (sintomasPediatria.some(s => textoLimpio.includes(s))) return 'Pediatría';
+  
+  return null;
+}
+
+// 🔥 NUEVA FUNCIÓN: Detectar especialidades alternativas especializadas
+function detectarEspecialidadAlternativa(text) {
+  const textoLimpio = normalizarTextoMedico(text);
+  
+  // 🔍 SÍNTOMAS DIGESTIVOS -> Gastroenterología como alternativa especializada
+  const sintomasDigestivos = [
     // Dolor y molestias abdominales
     'dolor estomago', 'dolor de estomago', 'dolor de estómago', 'me duele el estomago', 'me duele el estómago',
     'duele estomago', 'duele estómago', 'duele el estomago', 'duele el estómago',
@@ -985,102 +1131,21 @@ function detectarEspecialidadPorSintomas(text) {
     'colicos', 'cólicos', 'retorcijones', 'espasmos abdominales',
     'gastritis', 'ulcera', 'úlcera', 'colon irritable', 'intestino irritable',
     
-    // Síntomas digestivos en niños - específicos para gastroenterología
+    // Síntomas digestivos en niños
     'dolor estomago niño', 'dolor estomago nino', 'dolor de estomago niño', 'dolor de estomago nino',
     'mi niño le duele el estomago', 'mi nino le duele el estomago', 'niño dolor estomago', 'nino dolor estomago',
     'vomitos niño', 'vomitos nino', 'mi niño vomita', 'mi nino vomita', 'niño vomitando', 'nino vomitando',
     'diarrea niño', 'diarrea nino', 'mi niño tiene diarrea', 'mi nino tiene diarrea'
   ];
   
-  // Síntomas neurológicos - EXPANDIDO CON VARIANTES "DUELE" Y CORRECCIONES TIPOGRÁFICAS
-  const sintomasNeurologia = [
-    'dolor cabeza', 'dolor de cabeza', 'me duele la cabeza', 'duele la cabeza', 
-    'duele cabeza', 'cabeza duele', 'cefalea', 'migrana', 'migraña',
-    // Incluir variantes tipográficas directamente
-    'me duele el cabezo', 'dolor de cabezo', 'duele el cabezo', 'cabezo duele', 'cabezo',
-    'me duele la cabezo', 'dolor cabezo', 'duele cabezo', 'tengo dolor de cabezo',
-    'mareo', 'vertigo', 'vértigo', 'desmayo',
-    'hormigueo', 'entumecimiento', 'adormecimiento',
-    'perdida memoria', 'pérdida memoria', 'olvidos', 'confusion', 'confusión'
-  ];
-  
-  // Síntomas pediátricos
-  const sintomasPediatria = [
-    'niño', 'niña', 'bebe', 'bebé', 'hijo', 'hija',
-    'mi hijo', 'mi hija', 'mi bebe', 'mi bebé',
-    'menor', 'pequeño', 'pequeña', 'infante'
-  ];
-  
-  // Síntomas medicina familiar niños - removidos síntomas digestivos que van a gastroenterología
-  const sintomasMedicinaFamiliarNinos = [
-    'control niño sano', 'control nino sano', 'vacunas', 'vacuna',
-    'resfriado niño', 'resfriado nino', 'fiebre niño', 'fiebre nino',
-    'mi niño tiene fiebre', 'mi nino tiene fiebre', 'niño con fiebre', 'nino con fiebre',
-    'tos niño', 'tos nino'
-    // Removidos: 'diarrea niño', 'dolor estomago niño', 'vomitos niño' -> van a Gastroenterología
-  ];
-  
-  // Síntomas medicina familiar adultos
-  const sintomasMedicinaFamiliarAdultos = [
-    'control adulto', 'examen preventivo', 'chequeo general',
-    'resfriado adulto', 'gripe adulto',
-    // Removed "dolor general" - demasiado genérico, puede interceptar síntomas específicos
-    'dolor muscular general', 'dolor corporal general', 'malestar general',
-    'presion arterial', 'presión arterial', 'hipertension', 'hipertensión',
-    'diabetes', 'colesterol', 'examenes generales', 'exámenes generales',
-    // 🆕 Síntomas generales que requieren medicina familiar
-    'me siento cansado', 'estoy cansado', 'mucho cansancio', 'fatiga', 'cansancio',
-    'me siento mal', 'no me siento bien', 'malestar', 'decaimiento',
-    'sin energia', 'sin energía', 'agotamiento', 'muy cansado', 'muy cansada'
-  ];
-  
-  // 🔥 EVALUAR SÍNTOMAS EN ORDEN DE PRIORIDAD - OFTALMOLOGÍA PRIMERO
-  console.log('🔍 Evaluando síntomas. Texto original:', text);
-  console.log('🔍 Texto normalizado:', textoLimpio);
-  
-  const sintomaDetectado = sintomasOftalmologia.find(s => textoLimpio.includes(s));
-  if (sintomaDetectado) {
-    console.log('✅ Síntomas oftalmológicos detectados:', sintomaDetectado);
-    return 'Oftalmología';
-  }
-  
-  const sintomaDermato = sintomasDermatologia.find(s => textoLimpio.includes(s));
-  if (sintomaDermato) {
-    console.log('✅ Síntomas dermatológicos detectados:', sintomaDermato);
-    return 'Dermatología';
-  }
-  
-  const sintomaCardio = sintomasCardiologia.find(s => textoLimpio.includes(s));
-  if (sintomaCardio) {
-    console.log('✅ Síntomas cardiológicos detectados:', sintomaCardio);
-    return 'Cardiología';
-  }
-  
-  // 🔥 EVALUAR SÍNTOMAS GASTROENTEROLÓGICOS - ANTES QUE MEDICINA FAMILIAR
-  const sintomaGastro = sintomasGastroenterologia.find(s => textoLimpio.includes(s));
-  if (sintomaGastro) {
-    console.log('✅ Síntomas gastroenterológicos detectados:', sintomaGastro);
+  const sintomaDigestivo = sintomasDigestivos.find(s => textoLimpio.includes(s));
+  if (sintomaDigestivo) {
+    console.log('🔄 Especialidad alternativa detectada: Gastroenterología para síntoma digestivo:', sintomaDigestivo);
     return 'Gastroenterología';
   }
   
-  const sintomaNeuro = sintomasNeurologia.find(s => textoLimpio.includes(s));
-  if (sintomaNeuro) {
-    console.log('✅ Síntomas neurológicos detectados:', sintomaNeuro);
-    return 'Neurología';
-  }
-  
-  const sintomaMFNinos = sintomasMedicinaFamiliarNinos.find(s => textoLimpio.includes(s));
-  if (sintomaMFNinos) {
-    console.log('✅ Síntomas medicina familiar niños detectados:', sintomaMFNinos);
-    return 'Medicina Familiar Niños';
-  }
-  
-  const sintomaMFAdultos = sintomasMedicinaFamiliarAdultos.find(s => textoLimpio.includes(s));
-  if (sintomaMFAdultos) {
-    console.log('✅ Síntomas medicina familiar adultos detectados:', sintomaMFAdultos);
-    return 'Medicina Familiar Adultos';
-  }
-  if (sintomasPediatria.some(s => textoLimpio.includes(s))) return 'Pediatría';
+  // Aquí se pueden agregar más mapeos de síntomas a especialidades alternativas en el futuro
+  // Por ejemplo: síntomas de piel -> Dermatología como alternativa si no hay medicina familiar
   
   return null;
 }
@@ -3715,32 +3780,24 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       }
     }
 
-    // 🔥 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES - FLUJO MEJORADO
+    // 🔥 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES - FLUJO MÉDICAMENTE MEJORADO
     const especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
     
     if (especialidadPorSintomas) {
       const specialty = especialidadPorSintomas;
-      console.log(`🎯 Especialidad detectada por síntomas: ${specialty}`);
+      const alternativa = detectarEspecialidadAlternativa(text);
+      console.log(`🎯 Especialidad principal detectada: ${specialty}`);
+      console.log(`🔄 Especialidad alternativa detectada: ${alternativa}`);
       
-      // 🆕 BUSCAR MÉDICOS DISPONIBLES INMEDIATAMENTE
+      // 🆕 BUSCAR MÉDICOS DISPONIBLES EN AMBAS ESPECIALIDADES
       try {
-        console.log(`🔍 [DEBUG] Buscando sobrecupos para especialidad: ${specialty}`);
-        console.log(`🔍 [DEBUG] Variables env:`, {
-          AIRTABLE_API_KEY: !!AIRTABLE_API_KEY,
-          AIRTABLE_BASE_ID: !!AIRTABLE_BASE_ID,
-          AIRTABLE_TABLE_ID: !!AIRTABLE_TABLE_ID,
-          OPENAI_API_KEY: !!OPENAI_API_KEY
-        });
+        console.log(`🔍 [DEBUG] Buscando sobrecupos para especialidad principal: ${specialty} y alternativa: ${alternativa}`);
 
         // 🚨 VERIFICAR VARIABLES DE ENTORNO CRÍTICAS
         if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
-          console.error("❌ Variables de entorno críticas faltantes:", {
-            AIRTABLE_API_KEY: !!AIRTABLE_API_KEY,
-            AIRTABLE_BASE_ID: !!AIRTABLE_BASE_ID,
-            AIRTABLE_TABLE_ID: !!AIRTABLE_TABLE_ID
-          });
+          console.error("❌ Variables de entorno críticas faltantes");
           return NextResponse.json({
-            text: `Por lo que me describes, necesitas ver a un especialista en **${specialty}**.\n\nEn este momento estoy actualizando mi sistema de sobrecupos para ofrecerte las mejores opciones disponibles.\n\n¿Te gustaría que tome tus datos para contactarte apenas tenga nuevas opciones de **${specialty}** disponibles?`
+            text: `Por lo que me describes, te recomiendo ver primero **${specialty}**${alternativa ? `, o si prefieres un especialista, **${alternativa}**` : ''}.\n\nEn este momento estoy actualizando mi sistema de sobrecupos para ofrecerte las mejores opciones disponibles.\n\n¿Te gustaría que tome tus datos para contactarte apenas tenga nuevas opciones disponibles?`
           });
         }
 
@@ -3748,8 +3805,6 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
           { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
         );
-        
-        console.log(`🔍 [DEBUG] Airtable response status: ${resp.status}`);
         
         if (!resp.ok) {
           throw new Error(`Airtable API error: ${resp.status} ${resp.statusText}`);
@@ -3759,42 +3814,31 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         const sobrecuposRecords = data.records || [];
         console.log(`🔍 [DEBUG] Total records from Airtable: ${sobrecuposRecords.length}`);
 
-        // Filtrar por especialidad y disponibilidad
+        // Filtrar por especialidad principal y disponibilidad
         const availableFiltered = sobrecuposRecords.filter(record => {
           const fields = record.fields || {};
           return fields.Especialidad === specialty && 
                  (fields.Disponible === "Si" || fields.Disponible === true);
         });
-        console.log(`🔍 [DEBUG] Filtered by specialty "${specialty}": ${availableFiltered.length} records`);
+        console.log(`🔍 [DEBUG] Filtered by specialty principal "${specialty}": ${availableFiltered.length} records`);
 
-        // Filtrar solo fechas futuras
-        const available = filterFutureDates(availableFiltered);
-        console.log(`🔍 [DEBUG] Future dates available: ${available.length} records`);
-
-        if (available.length === 0) {
-          console.log(`🔍 [DEBUG] No appointments available, generating empathic response`);
-          let respuestaEmpatica;
-          try {
-            const empathicPromise = generateEmphaticResponse(text, "Entiendo tu preocupación.", {
-              emotionalState: session.emotionalState,
-              urgency: patientInsights.urgency,
-              patientProfile: session.patientProfile
-            });
-            respuestaEmpatica = await Promise.race([
-              empathicPromise,
-              new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 8000))
-            ]);
-          } catch (empathicError) {
-            console.error(`❌ [DEBUG] Error generating empathic response (no appointments):`, empathicError);
-            respuestaEmpatica = "Entiendo tu preocupación";
-          }
-          return NextResponse.json({
-            text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver a un especialista en ${specialty}, pero lamentablemente no tengo sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+        // Filtrar por especialidad alternativa si existe
+        let availableAlternativa = [];
+        if (alternativa) {
+          availableAlternativa = sobrecuposRecords.filter(record => {
+            const fields = record.fields || {};
+            return fields.Especialidad === alternativa && 
+                   (fields.Disponible === "Si" || fields.Disponible === true);
           });
+          console.log(`🔍 [DEBUG] Filtered by specialty alternativa "${alternativa}": ${availableAlternativa.length} records`);
         }
 
-        // ✅ HAY SOBRECUPOS DISPONIBLES: Mostrar opciones directamente sin pedir datos primero
-        console.log(`🔍 [DEBUG] Generating empathic response and showing available options`);
+        // Filtrar solo fechas futuras para ambas especialidades
+        const available = filterFutureDates(availableFiltered);
+        const availableAlt = alternativa ? filterFutureDates(availableAlternativa) : [];
+        console.log(`🔍 [DEBUG] Future dates - Principal: ${available.length}, Alternativa: ${availableAlt.length}`);
+
+        // Generar respuesta empática
         let respuestaEmpatica;
         try {
           const empathicPromise = generateEmphaticResponse(text, "Entiendo tu preocupación.", {
@@ -3806,34 +3850,76 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             empathicPromise,
             new Promise((_, reject) => setTimeout(() => reject(new Error('OpenAI timeout')), 8000))
           ]);
-          console.log(`🔍 [DEBUG] Empathic response generated successfully`);
         } catch (empathicError) {
           console.error(`❌ [DEBUG] Error generating empathic response:`, empathicError);
           respuestaEmpatica = "Entiendo tu preocupación";
         }
-        
-        // Seleccionar y presentar las mejores opciones
-        const selectedOptions = selectSmartAppointmentOptions(available);
-        const presentation = await createOptionsPresentation(selectedOptions, specialty);
-        
-        const baseSession = {
-          specialty,
-          records: available,
-          motivo: text,
-          respuestaEmpatica,
-          attempts: 0,
-          selectedOptions
-        };
 
-        sessions[from] = presentation.stage === 'confirming-appointment'
-          ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
-          : { ...baseSession, stage: 'choosing-from-options' };
+        // LÓGICA DE RESPUESTA SEGÚN DISPONIBILIDAD
+        if (available.length > 0) {
+          // HAY DISPONIBILIDAD EN ESPECIALIDAD PRINCIPAL
+          const selectedOptions = selectSmartAppointmentOptions(available);
+          const presentation = await createOptionsPresentation(selectedOptions, specialty);
+          
+          const baseSession = {
+            specialty,
+            records: available,
+            motivo: text,
+            respuestaEmpatica,
+            attempts: 0,
+            selectedOptions,
+            alternativeSpecialty: alternativa,
+            alternativeRecords: availableAlt
+          };
 
-        console.log(`🔍 [DEBUG] Session created successfully, showing available appointments`);
-        return NextResponse.json({
-          text: `${respuestaEmpatica}\n\n✅ Por lo que me describes, te recomiendo ver a un especialista en **${specialty}**.\n\n¡Perfecto! Tengo sobrecupos disponibles:\n\n${presentation.text}`,
-          session: sessions[from]
-        });
+          sessions[from] = presentation.stage === 'confirming-appointment'
+            ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+            : { ...baseSession, stage: 'choosing-from-options' };
+
+          // Mensaje diferenciado según si hay alternativas
+          let mensajeOpciones = `Para lo que me describes, te recomiendo ver **${specialty}** como primera opción.`;
+          if (alternativa && availableAlt.length > 0) {
+            mensajeOpciones += ` También tengo disponibilidad en **${alternativa}** si prefieres un especialista.`;
+          } else if (alternativa) {
+            mensajeOpciones += ` Si prefieres un especialista en **${alternativa}**, puedo contactarte cuando haya disponibilidad.`;
+          }
+
+          return NextResponse.json({
+            text: `${respuestaEmpatica}\n\n✅ ${mensajeOpciones}\n\n¡Perfecto! Tengo sobrecupos disponibles de **${specialty}**:\n\n${presentation.text}`,
+            session: sessions[from]
+          });
+          
+        } else if (alternativa && availableAlt.length > 0) {
+          // NO HAY DISPONIBILIDAD EN PRINCIPAL, PERO SÍ EN ALTERNATIVA
+          const selectedOptions = selectSmartAppointmentOptions(availableAlt);
+          const presentation = await createOptionsPresentation(selectedOptions, alternativa);
+          
+          const baseSession = {
+            specialty: alternativa,
+            records: availableAlt,
+            motivo: text,
+            respuestaEmpatica,
+            attempts: 0,
+            selectedOptions,
+            wasAlternative: true,
+            originalSpecialty: specialty
+          };
+
+          sessions[from] = presentation.stage === 'confirming-appointment'
+            ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+            : { ...baseSession, stage: 'choosing-from-options' };
+
+          return NextResponse.json({
+            text: `${respuestaEmpatica}\n\nPara lo que me describes, lo ideal sería **${specialty}**, pero no tengo disponibilidad en este momento.\n\n✅ Como alternativa, tengo sobrecupos disponibles de **${alternativa}**:\n\n${presentation.text}\n\n¿Te interesa alguna de estas opciones, o prefieres que te contacte cuando tenga disponibilidad de ${specialty}?`,
+            session: sessions[from]
+          });
+          
+        } else {
+          // NO HAY DISPONIBILIDAD EN NINGUNA ESPECIALIDAD
+          return NextResponse.json({
+            text: `${respuestaEmpatica}\n\nPara lo que me describes, te recomiendo ver **${specialty}**${alternativa ? ` o si prefieres un especialista, **${alternativa}**` : ''}.\n\nLamentablemente no tengo sobrecupos disponibles en este momento en ${alternativa ? 'ninguna de estas especialidades' : 'esta especialidad'}.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+          });
+        }
 
       } catch (error) {
         console.error("❌ Error consultando médicos:", error);
