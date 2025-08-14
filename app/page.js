@@ -389,7 +389,7 @@ export default function Home() {
         }
 
         .logo-text {
-          font-size: 4rem;
+          font-size: 3.2rem;
           font-weight: 200;
           letter-spacing: -2px;
           display: inline-flex;
@@ -429,11 +429,12 @@ export default function Home() {
         }
 
         .subtitle {
-          font-size: 2rem;
+          font-size: 1.6rem;
           color: #171717;
           font-weight: 300;
           line-height: 1.2;
           letter-spacing: -0.5px;
+          margin-bottom: 1.5rem;
         }
 
         /* Especialidades Disponibles Mejoradas */
@@ -518,6 +519,7 @@ export default function Home() {
           color: #666;
           text-align: center;
           margin-bottom: 1rem;
+          margin-top: 1.5rem;
           line-height: 1.4;
           letter-spacing: 0.2px;
         }
@@ -964,7 +966,7 @@ export default function Home() {
           }
           
           .logo-text {
-            font-size: 3.2rem;
+            font-size: 2.4rem;
           }
           
           .tagline {
@@ -973,8 +975,9 @@ export default function Home() {
           }
           
           .subtitle {
-            font-size: 1.6rem;
+            font-size: 1.2rem;
             line-height: 1.3;
+            margin-bottom: 1.25rem;
           }
           
           .chat-container {
@@ -1042,7 +1045,7 @@ export default function Home() {
           }
           
           .logo-text {
-            font-size: 2.8rem;
+            font-size: 2rem;
             letter-spacing: -1.5px;
           }
           
@@ -1057,8 +1060,9 @@ export default function Home() {
           }
           
           .subtitle {
-            font-size: 1.4rem;
+            font-size: 1rem;
             line-height: 1.25;
+            margin-bottom: 1rem;
           }
           
           .chat-title {
@@ -1146,7 +1150,7 @@ export default function Home() {
           }
           
           .logo-text {
-            font-size: 2.2rem;
+            font-size: 1.6rem;
             letter-spacing: -1px;
           }
           
@@ -1161,8 +1165,9 @@ export default function Home() {
           }
           
           .subtitle {
-            font-size: 1.1rem;
+            font-size: 0.85rem;
             line-height: 1.2;
+            margin-bottom: 0.75rem;
           }
           
           .chat-title {
