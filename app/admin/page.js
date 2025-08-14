@@ -805,6 +805,37 @@ export default function AdminPanelPage() {
                   ))}
                 </div>
               </div>
+
+              <div className="form-field full-width">
+                <label className="field-label">Clínicas donde atiende</label>
+                <div className="checkbox-grid">
+                  {clinicas.map(clinica => (
+                    <label key={clinica.id} className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={doctorForm.Clinicas?.includes(clinica.id)}
+                        onChange={(e) => {
+                          const clinicasSeleccionadas = doctorForm.Clinicas || [];
+                          if (e.target.checked) {
+                            setDoctorForm({...doctorForm, Clinicas: [...clinicasSeleccionadas, clinica.id]});
+                          } else {
+                            setDoctorForm({...doctorForm, Clinicas: clinicasSeleccionadas.filter(c => c !== clinica.id)});
+                          }
+                        }}
+                        className="checkbox-input"
+                      />
+                      <span className="checkbox-label">
+                        {clinica.fields?.Nombre || clinica.Nombre} - {clinica.fields?.Comuna || clinica.Comuna}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {clinicas.length === 0 && (
+                  <div className="no-clinicas-message">
+                    <p>No hay clínicas registradas. Agrega una clínica primero.</p>
+                  </div>
+                )}
+              </div>
               
               <div className="modal-actions">
                 <button 
@@ -1788,6 +1819,22 @@ export default function AdminPanelPage() {
           font-size: 0.875rem;
           color: #171717;
           font-weight: 400;
+        }
+
+        .no-clinicas-message {
+          text-align: center;
+          padding: 2rem 1rem;
+          color: #666;
+          font-style: italic;
+          background: #f9f9f9;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          margin-top: 1rem;
+        }
+
+        .no-clinicas-message p {
+          margin: 0;
+          font-size: 0.875rem;
         }
 
         .modal-actions {
