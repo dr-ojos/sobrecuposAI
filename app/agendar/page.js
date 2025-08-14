@@ -669,7 +669,12 @@ const AgendarSobrecuposContent = () => {
                         </div>
                         <div className="doctor-details">
                           <h3 className="doctor-name">
-                            {sobrecupo.fields.Médico}
+                            <button
+                              onClick={() => router.push(`/medico-info/${encodeURIComponent(sobrecupo.fields.Médico)}`)}
+                              className="doctor-name-button"
+                            >
+                              {sobrecupo.fields.Médico}
+                            </button>
                           </h3>
                           <p className="doctor-specialty">
                             {sobrecupo.fields.Especialidad}
@@ -1523,6 +1528,32 @@ const AgendarSobrecuposContent = () => {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+        }
+        .doctor-name-button {
+          background: none;
+          border: none;
+          padding: 0;
+          margin: 0;
+          font-size: inherit;
+          font-weight: inherit;
+          color: inherit;
+          text-align: left;
+          cursor: pointer;
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-family: inherit;
+          line-height: inherit;
+        }
+        .doctor-name-button:hover {
+          color: inherit;
+          opacity: 0.8;
+        }
+        .doctor-name-button:focus {
+          outline: none;
+          text-decoration: underline;
+          text-decoration-color: rgba(23, 23, 23, 0.3);
         }
 
         .doctor-specialty {
