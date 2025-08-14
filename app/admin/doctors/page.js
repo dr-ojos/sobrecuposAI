@@ -901,7 +901,7 @@ export default function DoctorsAdminPage() {
         .doctors-container {
           min-height: 100vh;
           background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
           color: #171717;
           padding-bottom: env(safe-area-inset-bottom);
         }
@@ -922,31 +922,35 @@ export default function DoctorsAdminPage() {
         }
 
         .back-button {
-          background: none;
-          border: none;
-          color: #666;
+          background: #ff9500;
+          border: 1px solid #ff9500;
+          border-radius: 16px;
+          padding: 0.75rem 1.5rem;
+          color: #fff;
           font-size: 0.875rem;
-          font-weight: 400;
-          padding: 0.5rem 1rem;
-          border-radius: 6px;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
-          border: 1px solid #e5e5e5;
+          font-family: inherit;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
         }
 
         .back-button:hover {
-          border-color: #171717;
-          color: #171717;
+          background: #e6850a;
+          border-color: #e6850a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+        }
+
+        .back-button:active {
+          transform: scale(0.98);
         }
 
         .header-title {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 1rem;
-          font-weight: 400;
+          font-size: 2rem;
+          font-weight: 200;
           color: #171717;
-          letter-spacing: 0.5px;
+          letter-spacing: -1px;
         }
 
         .header-spacer {
@@ -963,21 +967,25 @@ export default function DoctorsAdminPage() {
         }
 
         .nav-button {
-          background: none;
-          border: none;
-          border-bottom: 1px solid transparent;
-          color: #999;
+          background: #ff9500;
+          border: 1px solid #ff9500;
+          border-radius: 16px;
+          padding: 0.75rem 1.5rem;
+          color: #fff;
           font-size: 0.875rem;
-          font-weight: 400;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
-          padding: 0.75rem 1.5rem;
           font-family: inherit;
-          letter-spacing: 0.5px;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+          margin: 0 0.5rem;
         }
 
         .nav-button:hover {
-          color: #171717;
+          background: #e6850a;
+          border-color: #e6850a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
         }
 
         .nav-button:active {
@@ -996,8 +1004,8 @@ export default function DoctorsAdminPage() {
         .tab-button {
           background: none;
           border: none;
-          border-bottom: 1px solid transparent;
-          color: #999;
+          border-bottom: 2px solid transparent;
+          color: #666;
           font-size: 0.875rem;
           font-weight: 400;
           cursor: pointer;
@@ -1012,8 +1020,8 @@ export default function DoctorsAdminPage() {
         }
 
         .tab-button.active {
-          color: #171717;
-          border-bottom-color: #171717;
+          color: #ff9500;
+          border-bottom-color: #ff9500;
         }
 
         /* Container Principal */
@@ -1122,19 +1130,28 @@ export default function DoctorsAdminPage() {
           width: 100%;
           padding: 14px;
           border: none;
-          border-radius: 12px;
-          background: linear-gradient(135deg, #34c759, #30a14e);
+          border-radius: 16px;
+          background: #ff9500;
+          border: 1px solid #ff9500;
           color: white;
           font-size: 15px;
-          font-weight: 700;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
           margin-top: 8px;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
         }
 
         .submit-button:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+        }
+
+        .submit-button:not(:disabled):hover {
+          background: #e6850a;
+          border-color: #e6850a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
         }
 
         .submit-button:not(:disabled):active {
@@ -1362,15 +1379,24 @@ export default function DoctorsAdminPage() {
         }
 
         .empty-button {
-          background: linear-gradient(135deg, #007aff, #5856d6);
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 700;
+          background: #ff9500;
+          border: 1px solid #ff9500;
+          border-radius: 16px;
+          padding: 0.75rem 1.5rem;
+          color: #fff;
+          font-size: 0.875rem;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
+          font-family: inherit;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+        }
+
+        .empty-button:hover {
+          background: #e6850a;
+          border-color: #e6850a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
         }
 
         .empty-button:active {
@@ -1522,15 +1548,22 @@ export default function DoctorsAdminPage() {
         }
 
         .add-clinica-btn {
-          background: #007aff;
+          background: #ff9500;
           color: white;
-          border: none;
+          border: 1px solid #ff9500;
           border-radius: 8px;
           padding: 4px 8px;
           font-size: 11px;
-          font-weight: 600;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
+          box-shadow: 0 1px 4px rgba(255, 149, 0, 0.2);
+        }
+
+        .add-clinica-btn:hover {
+          background: #e6850a;
+          border-color: #e6850a;
+          box-shadow: 0 2px 6px rgba(255, 149, 0, 0.3);
         }
 
         .add-clinica-btn:active {
@@ -1549,15 +1582,24 @@ export default function DoctorsAdminPage() {
         }
 
         .add-first-clinica {
-          background: linear-gradient(135deg, #34c759, #30a14e);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          padding: 8px 16px;
-          font-size: 12px;
-          font-weight: 600;
+          background: #ff9500;
+          border: 1px solid #ff9500;
+          border-radius: 16px;
+          padding: 0.75rem 1.5rem;
+          color: #fff;
+          font-size: 0.875rem;
+          font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
+          font-family: inherit;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+        }
+
+        .add-first-clinica:hover {
+          background: #e6850a;
+          border-color: #e6850a;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
         }
 
         .add-first-clinica:active {
@@ -1776,10 +1818,28 @@ export default function DoctorsAdminPage() {
           transition: all 0.2s ease;
         }
 
+        .modal-button.primary {
+          background: #ff9500;
+          border: 1px solid #ff9500;
+          color: white;
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
+        }
+
+        .modal-button.primary:hover {
+          background: #e6850a;
+          border-color: #e6850a;
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+        }
+
         .modal-button.secondary {
           background: white;
-          color: #007aff;
-          border: 1.5px solid #007aff;
+          color: #666;
+          border: 1.5px solid #e5e5e5;
+        }
+
+        .modal-button.secondary:hover {
+          border-color: #171717;
+          color: #171717;
         }
 
         .modal-button.danger {
