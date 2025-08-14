@@ -406,7 +406,8 @@ export default function Home() {
         .logo-svg-container {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-start;
+          margin-left: -20px;
         }
 
         .main-logo-svg {
