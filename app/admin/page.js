@@ -14,6 +14,7 @@ export default function AdminPanelPage() {
   const [msg, setMsg] = useState('');
   const [showDoctorForm, setShowDoctorForm] = useState(false);
   const [showClinicaForm, setShowClinicaForm] = useState(false);
+  const [showClinicasDropdown, setShowClinicasDropdown] = useState(false);
   const [showSobrecupoForm, setShowSobrecupoForm] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
@@ -808,56 +809,72 @@ export default function AdminPanelPage() {
 
               <div className="form-field full-width">
                 <label className="field-label">Clínicas donde atiende</label>
-                <div className="clinicas-selector">
+                <div className="clinicas-selector-compact">
                   {clinicas.length === 0 ? (
-                    <div className="no-clinicas-state">
-                      <div className="no-clinicas-icon">🏥</div>
-                      <h4>No hay clínicas registradas</h4>
-                      <p>Agrega una clínica primero para asignarla al médico</p>
+                    <div className="no-clinicas-compact">
+                      <span>🏥 No hay clínicas registradas. Agrega una clínica primero.</span>
                     </div>
                   ) : (
-                    <div className="clinicas-grid-professional">
-                      {clinicas.map(clinica => {
-                        const isSelected = doctorForm.Clinicas?.includes(clinica.id);
-                        return (
-                          <div
-                            key={clinica.id}
-                            className={`clinica-card ${isSelected ? 'selected' : ''}`}
-                            onClick={() => {
-                              const clinicasSeleccionadas = doctorForm.Clinicas || [];
-                              if (isSelected) {
-                                setDoctorForm({...doctorForm, Clinicas: clinicasSeleccionadas.filter(c => c !== clinica.id)});
-                              } else {
-                                setDoctorForm({...doctorForm, Clinicas: [...clinicasSeleccionadas, clinica.id]});
-                              }
-                            }}
-                          >
-                            <div className="clinica-card-header">
-                              <div className="clinica-checkbox">
-                                <div className={`checkbox-custom ${isSelected ? 'checked' : ''}`}>
-                                  {isSelected && <span className="checkmark">✓</span>}
+                    <>
+                      <div className="accordion-trigger" onClick={() => setShowClinicasDropdown(!showClinicasDropdown)}>
+                        <span>🏥 Seleccionar clínicas ({doctorForm.Clinicas?.length || 0} seleccionadas)</span>
+                        <span className={`accordion-icon ${showClinicasDropdown ? 'open' : ''}`}>▼</span>
+                      </div>
+                      
+                      {showClinicasDropdown && (
+                        <div className="accordion-content">
+                          {clinicas.map(clinica => {
+                            const isSelected = doctorForm.Clinicas?.includes(clinica.id);
+                            return (
+                              <div
+                                key={clinica.id}
+                                className={`clinic-option ${isSelected ? 'selected' : ''}`}
+                                onClick={() => {
+                                  const clinicasSeleccionadas = doctorForm.Clinicas || [];
+                                  if (!isSelected) {
+                                    setDoctorForm({...doctorForm, Clinicas: [...clinicasSeleccionadas, clinica.id]});
+                                  }
+                                }}
+                              >
+                                <div className="clinic-option-content">
+                                  <span className="clinic-name">{clinica.fields?.Nombre || clinica.Nombre}</span>
+                                  <span className="clinic-location">{clinica.fields?.Comuna || clinica.Comuna}</span>
                                 </div>
+                                {isSelected && <span className="selected-checkmark">✓</span>}
                               </div>
-                              <div className="clinica-icon">🏥</div>
-                            </div>
-                            <div className="clinica-card-content">
-                              <h4 className="clinica-name">{clinica.fields?.Nombre || clinica.Nombre}</h4>
-                              <p className="clinica-location">📍 {clinica.fields?.Comuna || clinica.Comuna}</p>
-                              {(clinica.fields?.Direccion || clinica.Direccion) && (
-                                <p className="clinica-address">{clinica.fields?.Direccion || clinica.Direccion}</p>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {doctorForm.Clinicas?.length > 0 && (
-                    <div className="selected-summary">
-                      <span className="summary-text">
-                        ✓ {doctorForm.Clinicas.length} clínica{doctorForm.Clinicas.length !== 1 ? 's' : ''} seleccionada{doctorForm.Clinicas.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {doctorForm.Clinicas?.length > 0 && (
+                        <div className="selected-clinics-list">
+                          <div className="selected-clinics-header">Clínicas seleccionadas:</div>
+                          {doctorForm.Clinicas.map(clinicaId => {
+                            const clinica = clinicas.find(c => c.id === clinicaId);
+                            if (!clinica) return null;
+                            return (
+                              <div key={clinicaId} className="selected-clinic-item">
+                                <div className="selected-clinic-info">
+                                  <span className="selected-clinic-name">{clinica.fields?.Nombre || clinica.Nombre}</span>
+                                  <span className="selected-clinic-address">{clinica.fields?.Direccion || clinica.Direccion}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="remove-clinic-btn"
+                                  onClick={() => {
+                                    const clinicasSeleccionadas = doctorForm.Clinicas || [];
+                                    setDoctorForm({...doctorForm, Clinicas: clinicasSeleccionadas.filter(c => c !== clinicaId)});
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -1846,147 +1863,164 @@ export default function AdminPanelPage() {
           font-weight: 400;
         }
 
-        /* Selector de clínicas profesional */
-        .clinicas-selector {
+        /* Selector de clínicas compacto - acordeón */
+        .clinicas-selector-compact {
           margin-top: 0.5rem;
         }
 
-        .no-clinicas-state {
+        .no-clinicas-compact {
+          padding: 1rem;
+          background: #f9f9f9;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          color: #666;
+          font-size: 0.875rem;
           text-align: center;
-          padding: 3rem 2rem;
-          background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
-          border: 2px dashed #e0e7ff;
-          border-radius: 12px;
+        }
+
+        .accordion-trigger {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 0.875rem;
+          color: #374151;
+        }
+
+        .accordion-trigger:hover {
+          background: #f9f9f9;
+          border-color: #d1d5db;
+        }
+
+        .accordion-icon {
+          transition: transform 0.2s ease;
+          font-size: 0.75rem;
           color: #6b7280;
         }
 
-        .no-clinicas-icon {
-          font-size: 3rem;
-          margin-bottom: 1rem;
-          opacity: 0.7;
+        .accordion-icon.open {
+          transform: rotate(180deg);
         }
 
-        .no-clinicas-state h4 {
-          margin: 0 0 0.5rem 0;
-          font-size: 1.125rem;
+        .accordion-content {
+          border: 1px solid #e5e5e5;
+          border-top: none;
+          border-radius: 0 0 6px 6px;
+          background: white;
+          max-height: 200px;
+          overflow-y: auto;
+        }
+
+        .clinic-option {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid #f3f4f6;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .clinic-option:last-child {
+          border-bottom: none;
+        }
+
+        .clinic-option:hover {
+          background: #f9f9f9;
+        }
+
+        .clinic-option.selected {
+          background: #eff6ff;
+          color: #3b82f6;
+        }
+
+        .clinic-option-content {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .clinic-name {
+          font-weight: 500;
+          font-size: 0.875rem;
+        }
+
+        .clinic-location {
+          font-size: 0.75rem;
+          color: #6b7280;
+        }
+
+        .selected-checkmark {
+          color: #3b82f6;
+          font-weight: bold;
+        }
+
+        .selected-clinics-list {
+          margin-top: 1rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          background: #fafafa;
+        }
+
+        .selected-clinics-header {
+          padding: 0.75rem 1rem;
+          background: #f3f4f6;
+          border-bottom: 1px solid #e5e5e5;
+          font-size: 0.875rem;
           font-weight: 500;
           color: #374151;
         }
 
-        .no-clinicas-state p {
-          margin: 0;
-          font-size: 0.875rem;
-        }
-
-        .clinicas-grid-professional {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 1rem;
-          margin-top: 0.75rem;
-        }
-
-        .clinica-card {
-          background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-          padding: 1.25rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .clinica-card:hover {
-          border-color: #d1d5db;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .clinica-card.selected {
-          border-color: #3b82f6;
-          background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-        }
-
-        .clinica-card.selected:hover {
-          border-color: #2563eb;
-          transform: translateY(-2px);
-        }
-
-        .clinica-card-header {
+        .selected-clinic-item {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1rem;
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid #e5e5e5;
         }
 
-        .checkbox-custom {
-          width: 20px;
-          height: 20px;
-          border: 2px solid #d1d5db;
-          border-radius: 4px;
+        .selected-clinic-item:last-child {
+          border-bottom: none;
+        }
+
+        .selected-clinic-info {
           display: flex;
-          align-items: center;
-          justify-content: center;
+          flex-direction: column;
+          gap: 0.25rem;
+          flex: 1;
+        }
+
+        .selected-clinic-name {
+          font-weight: 500;
+          font-size: 0.875rem;
+          color: #374151;
+        }
+
+        .selected-clinic-address {
+          font-size: 0.75rem;
+          color: #6b7280;
+        }
+
+        .remove-clinic-btn {
+          background: #fee2e2;
+          border: 1px solid #fecaca;
+          border-radius: 4px;
+          color: #dc2626;
+          padding: 0.25rem 0.5rem;
+          cursor: pointer;
           transition: all 0.2s ease;
-          background: white;
-        }
-
-        .checkbox-custom.checked {
-          background: #3b82f6;
-          border-color: #3b82f6;
-        }
-
-        .checkmark {
-          color: white;
-          font-size: 12px;
+          font-size: 0.75rem;
           font-weight: bold;
         }
 
-        .clinica-icon {
-          font-size: 1.5rem;
-          opacity: 0.7;
-        }
-
-        .clinica-card.selected .clinica-icon {
-          opacity: 1;
-        }
-
-        .clinica-card-content h4 {
-          margin: 0 0 0.5rem 0;
-          font-size: 1rem;
-          font-weight: 600;
-          color: #111827;
-          line-height: 1.3;
-        }
-
-        .clinica-location {
-          margin: 0 0 0.25rem 0;
-          font-size: 0.875rem;
-          color: #6b7280;
-          font-weight: 500;
-        }
-
-        .clinica-address {
-          margin: 0;
-          font-size: 0.75rem;
-          color: #9ca3af;
-          line-height: 1.4;
-        }
-
-        .selected-summary {
-          margin-top: 1rem;
-          padding: 0.75rem 1rem;
-          background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-          border: 1px solid #a7f3d0;
-          border-radius: 8px;
-          text-align: center;
-        }
-
-        .summary-text {
-          font-size: 0.875rem;
-          color: #065f46;
-          font-weight: 500;
+        .remove-clinic-btn:hover {
+          background: #fecaca;
+          border-color: #f87171;
         }
 
         .modal-actions {
@@ -2058,17 +2092,12 @@ export default function AdminPanelPage() {
             flex-direction: column;
           }
 
-          .clinicas-grid-professional {
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
+          .accordion-content {
+            max-height: 150px;
           }
 
-          .clinica-card {
-            padding: 1rem;
-          }
-
-          .no-clinicas-state {
-            padding: 2rem 1rem;
+          .selected-clinic-info {
+            gap: 0.125rem;
           }
         }
 
