@@ -712,7 +712,7 @@ const AgendarSobrecuposContent = () => {
                           onClick={() => router.push(`/medico-info/${encodeURIComponent(sobrecupo.fields.Médico)}`)}
                           className="info-button"
                         >
-                          Más información
+                          Perfil médico
                         </button>
                         <button
                           onClick={() => handleReservarClick(sobrecupo)}
