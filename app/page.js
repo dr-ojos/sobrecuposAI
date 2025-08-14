@@ -556,19 +556,20 @@ export default function Home() {
           align-items: flex-start;
           background: #fff;
           border: 1px solid #e5e5e5;
-          border-radius: 16px;
+          border-radius: 24px;
           padding: 1rem;
           min-height: 80px;
-          transition: all 0.2s ease;
+          transition: all 0.3s ease;
           position: relative;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
           margin: 0 auto;
           max-width: 100%;
         }
 
         .input-wrapper:focus-within {
           border-color: #171717;
-          box-shadow: 0 0 0 1px #171717;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 0 0 1px #171717;
+          transform: translateY(-1px);
         }
 
         .chat-input {
@@ -1011,7 +1012,8 @@ export default function Home() {
             padding: 0.875rem;
             min-height: 70px;
             margin: 0;
-            border-radius: 12px;
+            border-radius: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
           }
           
           .chat-input {
@@ -1106,7 +1108,8 @@ export default function Home() {
             padding: 0.75rem;
             min-height: 65px;
             margin: 0 0.25rem;
-            border-radius: 10px;
+            border-radius: 18px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
           }
           
           .chat-input {
@@ -1214,7 +1217,8 @@ export default function Home() {
             padding: 0.75rem;
             min-height: 60px;
             margin: 0 0.125rem;
-            border-radius: 8px;
+            border-radius: 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
           }
           
           .chat-input {
