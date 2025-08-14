@@ -952,6 +952,45 @@ function detectarEspecialidadPorSintomas(text) {
     'falta aire', 'sin aire', 'me falta aire', 'no puedo respirar',
     'agitacion', 'agitación', 'cansancio extremo', 'muy cansado'
   ];
+
+  // 🔥 SÍNTOMAS GASTROENTEROLÓGICOS - NUEVOS PARA MEJORAR MAPEO ESPECÍFICO
+  const sintomasGastroenterologia = [
+    // Dolor y molestias abdominales
+    'dolor estomago', 'dolor de estomago', 'dolor de estómago', 'me duele el estomago', 'me duele el estómago',
+    'duele estomago', 'duele estómago', 'duele el estomago', 'duele el estómago',
+    'dolor abdominal', 'duele el abdomen', 'me duele el abdomen', 'dolor en el abdomen',
+    'dolor de barriga', 'me duele la barriga', 'duele la barriga',
+    'dolor de panza', 'me duele la panza', 'duele la panza',
+    
+    // Problemas digestivos específicos
+    'acidez', 'acidez estomacal', 'agruras', 'reflujo', 'reflujo gastrico', 'reflujo gástrico',
+    'ardor estomago', 'ardor estómago', 'ardor en el estomago', 'ardor en el estómago',
+    'quemazón estomago', 'quemazón estómago', 'sensacion de quemazon', 'sensación de quemazón',
+    
+    // Náuseas y vómitos
+    'nausea', 'náusea', 'nauseas', 'náuseas', 'ganas de vomitar', 'tengo nauseas',
+    'vomito', 'vómito', 'vomitos', 'vómitos', 'estoy vomitando', 'he vomitado',
+    
+    // Problemas intestinales
+    'diarrea', 'deposiciones liquidas', 'deposiciones líquidas', 'heces liquidas', 'heces líquidas',
+    'estreñimiento', 'estrenimiento', 'no puedo ir al baño', 'constipacion', 'constipación',
+    'gases', 'flatulencia', 'distension abdominal', 'distensión abdominal', 'hinchazon abdominal', 'hinchazón abdominal',
+    
+    // Problemas digestivos generales
+    'problemas digestivos', 'problemas de digestion', 'problemas de digestión',
+    'indigestion', 'indigestión', 'empacho', 'pesadez estomacal',
+    'mala digestion', 'mala digestión', 'digiero mal', 'no digiero bien',
+    
+    // Otros síntomas gastrointestinales
+    'colicos', 'cólicos', 'retorcijones', 'espasmos abdominales',
+    'gastritis', 'ulcera', 'úlcera', 'colon irritable', 'intestino irritable',
+    
+    // Síntomas digestivos en niños - específicos para gastroenterología
+    'dolor estomago niño', 'dolor estomago nino', 'dolor de estomago niño', 'dolor de estomago nino',
+    'mi niño le duele el estomago', 'mi nino le duele el estomago', 'niño dolor estomago', 'nino dolor estomago',
+    'vomitos niño', 'vomitos nino', 'mi niño vomita', 'mi nino vomita', 'niño vomitando', 'nino vomitando',
+    'diarrea niño', 'diarrea nino', 'mi niño tiene diarrea', 'mi nino tiene diarrea'
+  ];
   
   // Síntomas neurológicos - EXPANDIDO CON VARIANTES "DUELE" Y CORRECCIONES TIPOGRÁFICAS
   const sintomasNeurologia = [
@@ -972,13 +1011,13 @@ function detectarEspecialidadPorSintomas(text) {
     'menor', 'pequeño', 'pequeña', 'infante'
   ];
   
-  // Síntomas medicina familiar niños
+  // Síntomas medicina familiar niños - removidos síntomas digestivos que van a gastroenterología
   const sintomasMedicinaFamiliarNinos = [
     'control niño sano', 'control nino sano', 'vacunas', 'vacuna',
     'resfriado niño', 'resfriado nino', 'fiebre niño', 'fiebre nino',
     'mi niño tiene fiebre', 'mi nino tiene fiebre', 'niño con fiebre', 'nino con fiebre',
-    'tos niño', 'tos nino', 'diarrea niño', 'diarrea nino',
-    'dolor estomago niño', 'dolor estomago nino', 'vomitos niño', 'vomitos nino'
+    'tos niño', 'tos nino'
+    // Removidos: 'diarrea niño', 'dolor estomago niño', 'vomitos niño' -> van a Gastroenterología
   ];
   
   // Síntomas medicina familiar adultos
@@ -1015,6 +1054,13 @@ function detectarEspecialidadPorSintomas(text) {
   if (sintomaCardio) {
     console.log('✅ Síntomas cardiológicos detectados:', sintomaCardio);
     return 'Cardiología';
+  }
+  
+  // 🔥 EVALUAR SÍNTOMAS GASTROENTEROLÓGICOS - ANTES QUE MEDICINA FAMILIAR
+  const sintomaGastro = sintomasGastroenterologia.find(s => textoLimpio.includes(s));
+  if (sintomaGastro) {
+    console.log('✅ Síntomas gastroenterológicos detectados:', sintomaGastro);
+    return 'Gastroenterología';
   }
   
   const sintomaNeuro = sintomasNeurologia.find(s => textoLimpio.includes(s));
