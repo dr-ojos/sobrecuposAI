@@ -11,6 +11,7 @@ function PagoContent() {
   const [processing, setProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState('pending'); // pending, processing, success, error
   const [message, setMessage] = useState('');
+  const [isFromChat, setIsFromChat] = useState(false);
   // Función simple de logging para producción
   const addDebugLog = (message) => {
     console.log(message);
@@ -33,6 +34,14 @@ function PagoContent() {
       amount: searchParams.get('amount') || '2990',
       sessionId: searchParams.get('sessionId')
     };
+
+    // Detectar si viene del chat o directamente
+    const fromChat = searchParams.get('fromChat') === 'true' || window.opener;
+    setIsFromChat(fromChat);
+    
+    addDebugLog(`🔍 Detectado origen: ${fromChat ? 'CHAT' : 'DIRECTO'}`);
+    addDebugLog(`🔍 window.opener exists: ${!!window.opener}`);
+    addDebugLog(`🔍 fromChat param: ${searchParams.get('fromChat')}`);
 
     if (!data.sobrecupoId || !data.sessionId) {
       setMessage('Enlace de pago inválido o expirado');
@@ -139,10 +148,11 @@ function PagoContent() {
           addDebugLog(`📋 Resultado de confirmación: ${JSON.stringify(confirmResult)}`);
           
           if (confirmResult.success) {
-            setMessage('¡Reserva confirmada exitosamente! Cerrando ventana...');
+            addDebugLog(`✅ Reserva confirmada. Origen: ${isFromChat ? 'CHAT' : 'DIRECTO'}`);
             
-            // Notificar al chat que el pago y reserva fueron exitosos
-            if (window.opener) {
+            // Si viene del chat, usar el flujo actual
+            if (isFromChat && window.opener) {
+              setMessage('¡Reserva confirmada exitosamente! Cerrando ventana...');
               const successMessage = {
                 type: 'PAYMENT_SUCCESS',
                 transactionId: result.transactionId,
@@ -191,10 +201,11 @@ function PagoContent() {
                 }
                 window.close();
               }, 1500); // Optimizado para cierre rápido
-            } else {
-              console.log('❌ No hay window.opener - usando localStorage como fallback');
               
-              // 🔄 FALLBACK: Usar localStorage para comunicar con el chat
+            } else if (isFromChat) {
+              // Flujo del chat sin window.opener (fallback)
+              console.log('❌ Chat sin window.opener - usando localStorage como fallback');
+              
               const fallbackMessage = {
                 type: 'PAYMENT_SUCCESS',
                 transactionId: result.transactionId,
@@ -211,17 +222,32 @@ function PagoContent() {
                 timestamp: new Date().toISOString()
               };
               
-              // Guardar en localStorage
               localStorage.setItem('payment_success_message', JSON.stringify(fallbackMessage));
               console.log('💾 Mensaje guardado en localStorage para el chat');
               
-              // Mostrar mensaje de éxito
               setMessage('¡Pago y reserva exitosos! 🎉\n\nCierra esta ventana y revisa el chat para ver los detalles.\n\nTambién recibirás email de confirmación.');
               
-              // Cerrar después de 3 segundos
               setTimeout(() => {
                 window.close();
               }, 3000);
+              
+            } else {
+              // Flujo de reserva directa - redirigir a página de confirmación
+              console.log('🔄 Reserva directa exitosa - redirigiendo a página de confirmación');
+              
+              const confirmationParams = new URLSearchParams({
+                doctor: paymentData.doctorName,
+                specialty: paymentData.specialty,
+                date: paymentData.date,
+                time: paymentData.time,
+                clinic: paymentData.clinic,
+                patient: paymentData.patientName,
+                transactionId: result.transactionId,
+                amount: paymentData.amount
+              });
+              
+              // Redirigir a la página de confirmación
+              router.push(`/reserva-exitosa?${confirmationParams.toString()}`);
             }
           } else {
             setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
@@ -229,8 +255,8 @@ function PagoContent() {
             
             // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
             
-            // Notificar el problema al chat
-            if (window.opener) {
+            // Notificar el problema al chat si viene del chat
+            if (isFromChat && window.opener) {
               window.opener.postMessage({
                 type: 'PAYMENT_SUCCESS_RESERVATION_ERROR',
                 transactionId: result.transactionId,
@@ -248,8 +274,8 @@ function PagoContent() {
           
           // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
           
-          // Notificar el error al chat
-          if (window.opener) {
+          // Notificar el error al chat si viene del chat
+          if (isFromChat && window.opener) {
             window.opener.postMessage({
               type: 'PAYMENT_SUCCESS_RESERVATION_ERROR',
               transactionId: result.transactionId,
@@ -281,13 +307,19 @@ function PagoContent() {
   };
 
   const handleClose = () => {
-    if (window.opener) {
-      window.opener.postMessage({
-        type: 'PAYMENT_CANCELLED',
-        sessionId: paymentData?.sessionId
-      }, '*');
+    if (isFromChat) {
+      // Si viene del chat, notificar y cerrar ventana
+      if (window.opener) {
+        window.opener.postMessage({
+          type: 'PAYMENT_CANCELLED',
+          sessionId: paymentData?.sessionId
+        }, '*');
+      }
+      window.close();
+    } else {
+      // Si es reserva directa, volver a la página principal
+      router.push('/');
     }
-    window.close();
   };
 
   if (loading) {

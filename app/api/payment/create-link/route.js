@@ -31,6 +31,7 @@ export async function POST(req) {
       ...paymentData,
       amount: paymentData.amount || "2990", // Precio por defecto actualizado
       motivo: paymentData.motivo || null, // 🆕 GUARDAR MOTIVO DE CONSULTA
+      fromChat: paymentData.fromChat || true, // 🆕 MARCAR ORIGEN COMO CHAT
       createdAt: new Date(),
       expiresAt: expiresAt,
       used: false

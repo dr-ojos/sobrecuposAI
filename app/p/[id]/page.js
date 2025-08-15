@@ -46,7 +46,8 @@ export default function PaymentRedirectPage() {
             time: data.time || '',
             clinic: data.clinic || '',
             amount: data.amount || '2990',
-            sessionId: data.sessionId || ''
+            sessionId: data.sessionId || '',
+            fromChat: data.fromChat || true // 🆕 INCLUIR ORIGEN DEL CHAT
           });
 
           const paymentUrl = `/pago?${paymentParams.toString()}`;
