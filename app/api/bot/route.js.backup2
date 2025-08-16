@@ -4121,7 +4121,7 @@ Ejemplos:
       } catch (err) {
         console.error("❌ Error OpenAI evaluación:", err);
         return NextResponse.json({
-          text: "No estoy seguro de cómo ayudarte con eso 🤔\n\nSoy Sobrecupos IA, así que cuéntame: ¿tienes algún síntoma o necesitas ver algún especialista?"
+          text: "No estoy seguro de cómo ayudarte con eso 🤔\n\nSoy tu asistente médico, así que cuéntame: ¿tienes algún síntoma o necesitas ver algún especialista?"
         });
       }
     }

@@ -15,16 +15,23 @@ import {
 const sessions: Record<string, PatientSession> = {};
 const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos
 
-// Limpiar sesiones expiradas cada 10 minutos
-setInterval(() => {
-  const now = Date.now();
-  Object.keys(sessions).forEach(sessionId => {
-    if (sessions[sessionId] && (now - (sessions[sessionId].lastActivity || 0)) > SESSION_TIMEOUT) {
-      console.log(`🧹 Limpiando sesión expirada: ${sessionId}`);
-      delete sessions[sessionId];
-    }
-  });
-}, 10 * 60 * 1000);
+// Variable para evitar múltiples intervalos
+let cleanupIntervalId: NodeJS.Timeout | null = null;
+
+// Función para inicializar limpieza de sesiones (solo una vez)
+function initSessionCleanup() {
+  if (!cleanupIntervalId) {
+    cleanupIntervalId = setInterval(() => {
+      const now = Date.now();
+      Object.keys(sessions).forEach(sessionId => {
+        if (sessions[sessionId] && (now - (sessions[sessionId].lastActivity || 0)) > SESSION_TIMEOUT) {
+          console.log(`🧹 Limpiando sesión expirada: ${sessionId}`);
+          delete sessions[sessionId];
+        }
+      });
+    }, 10 * 60 * 1000);
+  }
+}
 
 // Función para obtener o crear sesión
 function getOrCreateSession(sessionId?: string, sessionData: Partial<PatientSession> = {}): PatientSession {
@@ -444,6 +451,9 @@ function analizarConfusion(text: string, tipoEsperado: 'rut' | 'email' | 'telefo
 
 // Función principal del handler POST
 export async function POST(req: NextRequest): Promise<NextResponse<BotResponse>> {
+  // Inicializar limpieza de sesiones (solo la primera vez)
+  initSessionCleanup();
+  
   try {
     const body = await req.json();
     const { message: text, sessionId, from } = body;

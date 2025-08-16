@@ -8,7 +8,7 @@ function ChatComponent() {
   const [messages, setMessages] = useState([
     {
       from: "bot",
-      text: "Hola. Soy tu asistente médico. ¿En qué puedo ayudarte hoy?",
+      text: "Hola! Soy Sobrecupos IA. ¿En qué puedo ayudarte hoy?",
       timestamp: new Date()
     }
   ]);
