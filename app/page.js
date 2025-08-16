@@ -318,6 +318,11 @@ export default function Home() {
               <a href="/auth/signin">Login Médicos</a>
               <a href="mailto:contacto@sobrecupos.com">Contacto</a>
             </div>
+            <div className="footer-legal">
+              <a href="/privacidad">Política de Privacidad</a>
+              <a href="/terminos-pacientes">Términos Pacientes</a>
+              <a href="/terminos-profesionales">Términos Profesionales</a>
+            </div>
           </div>
           <div className="footer-bottom">
             <p>© 2025 Sobrecupos</p>
@@ -958,6 +963,23 @@ export default function Home() {
           color: #fff;
         }
 
+        .footer-legal {
+          display: flex;
+          gap: 1.5rem;
+          margin-top: 1rem;
+        }
+
+        .footer-legal a {
+          color: #999;
+          text-decoration: none;
+          font-size: 0.8rem;
+          transition: color 0.2s ease;
+        }
+
+        .footer-legal a:hover {
+          color: #ccc;
+        }
+
         .footer-bottom {
           border-top: 1px solid #333;
           padding-top: 2rem;
@@ -1232,6 +1254,13 @@ export default function Home() {
           
           .suggestions-container {
             padding: 0 0.25rem;
+          }
+
+          .footer-legal {
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            text-align: center;
           }
         }
       `}</style>
