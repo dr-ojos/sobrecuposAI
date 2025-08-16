@@ -210,6 +210,7 @@ const AgendarSobrecuposContent = () => {
           clinic: selectedSobrecupo.fields.Clínica,
           amount: "2990", // Precio estándar
           motivo: "Reserva desde página principal (DEMO)", // Motivo de la consulta
+          fromChat: false, // 🆕 MARCAR ORIGEN COMO RESERVA DIRECTA
           sessionId: `direct-booking-demo-${Date.now()}` // ID de sesión único
         })
       });

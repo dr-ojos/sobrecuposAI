@@ -36,7 +36,8 @@ function PagoContent() {
     };
 
     // Detectar si viene del chat o directamente
-    const fromChat = searchParams.get('fromChat') === 'true' || window.opener;
+    const fromChatParam = searchParams.get('fromChat');
+    const fromChat = fromChatParam === 'true' || (fromChatParam === null && window.opener);
     setIsFromChat(fromChat);
     
     addDebugLog(`🔍 Detectado origen: ${fromChat ? 'CHAT' : 'DIRECTO'}`);
