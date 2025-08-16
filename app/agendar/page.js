@@ -394,7 +394,7 @@ const AgendarSobrecuposContent = () => {
   }, [showCalendar]);
 
   const handleBackClick = () => {
-    router.back();
+    router.push('/');
   };
 
   const handleCloseModal = () => {
@@ -452,7 +452,6 @@ const AgendarSobrecuposContent = () => {
               </button>
               <div className="header-text">
                 <h1 className="header-title">Sobrecupos</h1>
-                <span className="header-subtitle">AI</span>
               </div>
             </div>
             <div className="header-stats">

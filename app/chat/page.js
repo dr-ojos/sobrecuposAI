@@ -494,7 +494,7 @@ function ChatComponent() {
   };
 
   const handleBackClick = () => {
-    router.back();
+    router.push('/');
   };
 
   return (
@@ -511,7 +511,6 @@ function ChatComponent() {
             <div className="header-text">
               <div className="header-title-row">
                 <h1 className="header-title">Sobrecupos</h1>
-                <span className="header-subtitle">AI</span>
               </div>
               <div className="status-info">
                 <div className="status-dot"></div>
