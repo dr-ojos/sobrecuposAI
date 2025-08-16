@@ -306,23 +306,4 @@ function formatDate(dateString) {
   }
 }
 
-// 📧 Función para notificar sobrecupos automáticamente (llamar desde otros endpoints)
-export async function notifyNewSobrecupo(sobrecupoData) {
-  try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/whatsapp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(sobrecupoData)
-    });
-    
-    const result = await response.json();
-    console.log('📱 Notificación automática enviada:', result);
-    
-    return result;
-  } catch (error) {
-    console.error('❌ Error enviando notificación automática:', error);
-    return { success: false, error: error.message };
-  }
-}
+// Función movida a lib/whatsapp-notification.ts para evitar problemas con Next.js routes
