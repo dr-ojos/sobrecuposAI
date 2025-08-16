@@ -713,7 +713,7 @@ export default function AdminPanelPage() {
                     <div key={sobrecupo.id} className={`sobrecupo-card ${statusClass}`}>
                       <div className="sobrecupo-info">
                         <div className="sobrecupo-header">
-                          <h3 className="sobrecupo-doctor">{fields.MedicoNombre || 'Dr. Desconocido'}</h3>
+                          <h3 className="sobrecupo-doctor">Dr. {fields.MedicoNombre || 'Desconocido'}</h3>
                           <span className={`status-badge ${statusClass}`}>{statusText}</span>
                         </div>
                         <p className="sobrecupo-specialty">{fields.Especialidad}</p>
