@@ -3755,7 +3755,8 @@ Te contactaremos pronto para confirmar los detalles finales.`;
               records: sobrecupos, // 🆕 INCLUIR TODOS LOS SOBRECUPOS DEL MÉDICO
               selectedRecord: sobrecupos[0], // 🆕 INCLUIR REGISTRO SELECCIONADO
               attempts: 0,
-              esMedicoEspecifico: true // 🆕 MARCAR COMO MÉDICO ESPECÍFICO
+              esMedicoEspecifico: true, // 🆕 MARCAR COMO MÉDICO ESPECÍFICO
+              motivo: text // 🆕 FIX: CAPTURAR MOTIVO DE CONSULTA
             };
 
             return NextResponse.json({
