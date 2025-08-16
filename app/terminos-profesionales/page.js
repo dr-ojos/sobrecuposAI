@@ -45,6 +45,18 @@ export default function TerminosProfesionales() {
           
           <h1 className="legal-title">Términos y Condiciones para Profesionales</h1>
           <p className="legal-updated">Última actualización: 16 de agosto de 2025</p>
+          
+          <div className="download-section">
+            <p className="download-text">Descarga el documento oficial:</p>
+            <div className="download-buttons">
+              <a href="/documentos/terminos-profesionales.pdf" download className="download-btn pdf">
+                📄 Descargar PDF
+              </a>
+              <a href="/documentos/terminos-profesionales.docx" download className="download-btn docx">
+                📝 Descargar DOCX
+              </a>
+            </div>
+          </div>
 
           <section className="legal-section">
             <h2>1. Aceptación de los Términos</h2>
@@ -432,6 +444,65 @@ export default function TerminosProfesionales() {
         strong {
           color: #171717;
           font-weight: 600;
+        }
+
+        .download-section {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 1.5rem;
+          margin-bottom: 2rem;
+          text-align: center;
+        }
+
+        .download-text {
+          margin: 0 0 1rem 0;
+          color: #333;
+          font-weight: 500;
+        }
+
+        .download-buttons {
+          display: flex;
+          gap: 1rem;
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .download-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          text-decoration: none;
+          font-weight: 500;
+          font-size: 0.9rem;
+          transition: all 0.2s ease;
+          border: 1px solid transparent;
+        }
+
+        .download-btn.pdf {
+          background: #dc2626;
+          color: white;
+          border-color: #dc2626;
+        }
+
+        .download-btn.pdf:hover {
+          background: #b91c1c;
+          border-color: #b91c1c;
+          transform: translateY(-1px);
+        }
+
+        .download-btn.docx {
+          background: #2563eb;
+          color: white;
+          border-color: #2563eb;
+        }
+
+        .download-btn.docx:hover {
+          background: #1d4ed8;
+          border-color: #1d4ed8;
+          transform: translateY(-1px);
         }
 
         /* Mobile optimizations */
