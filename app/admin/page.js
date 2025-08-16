@@ -120,12 +120,28 @@ export default function AdminPanelPage() {
 
   const fetchClinicas = async () => {
     try {
-      const res = await fetch('/api/clinicas');
+      console.log('🔄 Iniciando carga de clínicas...');
+      const res = await fetch('/api/clinicas', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
-      setClinicas(Array.isArray(data) ? data : []);
+      console.log('📊 Respuesta de clínicas:', data);
+      
+      const clinicasArray = Array.isArray(data) ? data : [];
+      setClinicas(clinicasArray);
+      console.log('✅ Clínicas cargadas:', clinicasArray.length);
     } catch (error) {
-      console.error('Error cargando clínicas:', error);
+      console.error('❌ Error cargando clínicas:', error);
       setClinicas([]);
+      setMessage(`Error cargando clínicas: ${error.message}`);
     }
   };
 
@@ -570,7 +586,21 @@ export default function AdminPanelPage() {
             </div>
 
             <div className="items-list">
-              {clinicas
+              {loading && <div className="loading-message">Cargando clínicas...</div>}
+              {!loading && clinicas.length === 0 && (
+                <div className="no-data-message">
+                  No hay clínicas disponibles. 
+                  <br />
+                  <button 
+                    onClick={fetchClinicas}
+                    className="secondary-button"
+                    style={{marginTop: '1rem'}}
+                  >
+                    🔄 Reintentar carga
+                  </button>
+                </div>
+              )}
+              {!loading && clinicas.length > 0 && clinicas
                 .filter(clinica => {
                   const fields = clinica.fields || clinica;
                   return fields.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
