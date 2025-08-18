@@ -18,7 +18,7 @@ interface ErrorResponse {
 // GET: obtener médico específico por ID
 export async function GET(
   request: NextRequest, 
-  { params }: DoctorParams
+  { params }: any
 ): Promise<NextResponse<DoctorProfile | ErrorResponse>> {
   try {
     const { id } = params;

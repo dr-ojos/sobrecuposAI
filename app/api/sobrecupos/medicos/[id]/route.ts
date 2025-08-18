@@ -35,7 +35,7 @@ interface CreateSobrecupoSuccess {
 // GET: obtener sobrecupos de un médico específico
 export async function GET(
   request: NextRequest, 
-  { params }: SobrecupoParams
+  { params }: any
 ): Promise<NextResponse<SobrecupoItem[] | ErrorResponse>> {
   try {
     const { id } = params;
@@ -234,7 +234,7 @@ async function filterInJavaScript(doctorId: string): Promise<NextResponse<Sobrec
 // POST: crear nuevo sobrecupo para el médico
 export async function POST(
   request: NextRequest, 
-  { params }: SobrecupoParams
+  { params }: any
 ): Promise<NextResponse<CreateSobrecupoSuccess | ErrorResponse>> {
   try {
     const { id } = params; // ID del médico

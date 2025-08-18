@@ -1,6 +1,6 @@
 // app/api/payment/confirm/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import whatsAppService from '../../../../lib/whatsapp-service.js';
+import whatsAppService from '../../../../lib/whatsapp-service';
 
 // Types for patient data
 interface PatientData {

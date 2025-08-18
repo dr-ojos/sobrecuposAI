@@ -12,7 +12,7 @@ interface PhotoErrorResponse {
   details?: string;
 }
 
-interface RouteParams {
+interface DoctorPhotoParams {
   params: {
     id: string;
   };
@@ -20,7 +20,7 @@ interface RouteParams {
 
 export async function GET(
   request: NextRequest, 
-  { params }: RouteParams
+  { params }: any
 ): Promise<NextResponse<PhotoResponse | PhotoErrorResponse>> {
   try {
     const { id } = params;
