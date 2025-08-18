@@ -1,0 +1,2324 @@
+'use client';
+import React, { useState, useEffect, FormEvent, ChangeEvent, MouseEvent } from "react";
+import { useRouter } from "next/navigation";
+
+// Interface definitions for data structures
+interface Doctor {
+  id: string;
+  fields?: DoctorFields;
+  Name?: string;
+  Especialidad?: string;
+  WhatsApp?: string;
+  Email?: string;
+  Atiende?: string;
+  Seguros?: string[];
+  Clinicas?: string[];
+}
+
+interface DoctorFields {
+  Name: string;
+  Especialidad: string;
+  WhatsApp: string;
+  Email: string;
+  Atiende: string;
+  Seguros: string[];
+  Clinicas: string[];
+}
+
+interface Clinica {
+  id: string;
+  fields?: ClinicaFields;
+  Nombre?: string;
+  Direccion?: string;
+  Comuna?: string;
+  Telefono?: string;
+}
+
+interface ClinicaFields {
+  Nombre: string;
+  Direccion: string;
+  Comuna: string;
+  Telefono: string;
+}
+
+interface Sobrecupo {
+  id: string;
+  fields?: SobrecupoFields;
+  Fecha?: string;
+  Hora?: string;
+  MedicoNombre?: string;
+  Clínica?: string;
+  Especialidad?: string;
+  Disponible?: string;
+  PacienteNombre?: string;
+}
+
+interface SobrecupoFields {
+  MedicoNombre?: string;
+  Especialidad?: string;
+  Clínica?: string;
+  Direccion?: string;
+  Fecha: string;
+  Hora: string;
+  Disponible?: string;
+  PacienteNombre?: string;
+}
+
+interface DoctorForm {
+  Name: string;
+  Especialidad: string;
+  WhatsApp: string;
+  Email: string;
+  Atiende: string;
+  Seguros: string[];
+  Clinicas: string[];
+}
+
+interface ClinicaForm {
+  Nombre: string;
+  Direccion: string;
+  Comuna: string;
+  Telefono: string;
+}
+
+interface SobrecupoForm {
+  medico: string;
+  especialidad: string;
+  clinica: string;
+  direccion: string;
+  fecha: string;
+  hora: string;
+}
+
+interface MousePosition {
+  x: number;
+  y: number;
+}
+
+interface SobrecuposLogoProps {
+  size?: number;
+  className?: string;
+}
+
+type ActiveSection = 'dashboard' | 'doctors' | 'clinicas' | 'sobrecupos';
+type FilterOption = 'all' | 'todos' | 'disponibles' | 'reservados' | 'antiguos';
+type EditableItem = Doctor | Clinica | null;
+
+// Type for message setter function (compatibility with existing setMessage calls)
+type MessageSetter = (msg: string) => void;
+
+export default function AdminPanelPage(): React.JSX.Element {
+  const router = useRouter();
+  const [activeSection, setActiveSection] = useState<ActiveSection>('dashboard');
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [clinicas, setClinicas] = useState<Clinica[]>([]);
+  const [sobrecupos, setSobrecupos] = useState<Sobrecupo[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isClient, setIsClient] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedFilter, setSelectedFilter] = useState<FilterOption>('all');
+  const [msg, setMsg] = useState<string>('');
+  const [showDoctorForm, setShowDoctorForm] = useState<boolean>(false);
+  const [showClinicaForm, setShowClinicaForm] = useState<boolean>(false);
+  const [showClinicasDropdown, setShowClinicasDropdown] = useState<boolean>(false);
+  const [showSobrecupoForm, setShowSobrecupoForm] = useState<boolean>(false);
+  const [mousePos, setMousePos] = useState<MousePosition>({ x: 0, y: 0 });
+
+  const [sobrecupoForm, setSobrecupoForm] = useState<SobrecupoForm>({
+    medico: '',
+    especialidad: '',
+    clinica: '',
+    direccion: '',
+    fecha: '',
+    hora: ''
+  });
+
+  const [editingItem, setEditingItem] = useState<EditableItem>(null);
+
+  const [doctorForm, setDoctorForm] = useState<DoctorForm>({
+    Name: '',
+    Especialidad: '',
+    WhatsApp: '',
+    Email: '',
+    Atiende: '',
+    Seguros: [],
+    Clinicas: []
+  });
+
+  const [clinicaForm, setClinicaForm] = useState<ClinicaForm>({
+    Nombre: '',
+    Direccion: '',
+    Comuna: '',
+    Telefono: ''
+  });
+
+  const especialidades: string[] = [
+    'Oftalmología', 'Medicina Familiar', 'Medicina Familiar Niños', 'Medicina Familiar Adultos',
+    'Dermatología', 'Pediatría', 'Otorrinolaringología', 'Neurología', 'Cardiología', 
+    'Ginecología', 'Traumatología', 'Psiquiatría', 'Urología', 'Endocrinología',
+    'Gastroenterología', 'Neumología', 'Reumatología', 'Oncología',
+    'Hematología', 'Nefrología', 'Infectología', 'Geriatría',
+    'Medicina Interna', 'Anestesiología', 'Radiología', 'Patología'
+  ];
+
+  const opcionesAtiende: string[] = ['Adultos', 'Niños', 'Ambos'];
+  const opcionesSeguros: string[] = ['Fonasa', 'Isapres', 'Particular'];
+
+  // Horas disponibles de 09:00 a 19:00 cada 60 min
+  const timeSlots: string[] = Array.from({ length: 11 }, (_, i) =>
+    `${(9 + i).toString().padStart(2, '0')}:00`
+  );
+
+  // Function to handle message compatibility (used in fetchClinicas)
+  const setMessage: MessageSetter = (message: string) => {
+    setMsg(message);
+  };
+
+  // Fix hydration issues by ensuring client-side rendering
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return; // Only run on client-side
+    
+    // Run data fetching only after confirming we're on client-side
+    const initializeData = async (): Promise<void> => {
+      try {
+        await fetchAllData();
+      } catch (error) {
+        console.error('Data fetch error:', error);
+      }
+    };
+    
+    initializeData();
+    
+    const handleMouseMove = (e: globalThis.MouseEvent): void => {
+      setMousePos({
+        x: (e.clientX / window.innerWidth - 0.5) * 5,
+        y: (e.clientY / window.innerHeight - 0.5) * 5
+      });
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isClient]);
+
+  const fetchAllData = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      await Promise.all([fetchDoctors(), fetchClinicas(), fetchSobrecupos()]);
+    } catch (error) {
+      console.error('Error cargando datos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDoctors = async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/doctors');
+      const data: Doctor[] = await res.json();
+      setDoctors(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error cargando médicos:', error);
+      setDoctors([]);
+    }
+  };
+
+  const fetchClinicas = async (): Promise<void> => {
+    try {
+      console.log('🔄 Iniciando carga de clínicas...');
+      const res = await fetch('/api/clinicas', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const data: Clinica[] = await res.json();
+      console.log('📊 Respuesta de clínicas:', data);
+      
+      const clinicasArray = Array.isArray(data) ? data : [];
+      setClinicas(clinicasArray);
+      console.log('✅ Clínicas cargadas:', clinicasArray.length);
+    } catch (error) {
+      console.error('❌ Error cargando clínicas:', error);
+      setClinicas([]);
+      setMessage(`Error cargando clínicas: ${(error as Error).message}`);
+    }
+  };
+
+  const fetchSobrecupos = async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/sobrecupos');
+      const data: Sobrecupo[] = await res.json();
+      setSobrecupos(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error cargando sobrecupos:', error);
+      setSobrecupos([]);
+    }
+  };
+
+  const handleDoctorSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const method = editingItem ? 'PUT' : 'POST';
+      const body = editingItem 
+        ? JSON.stringify({ id: editingItem.id, ...doctorForm })
+        : JSON.stringify(doctorForm);
+
+      const res = await fetch('/api/doctors', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body
+      });
+
+      if (res.ok) {
+        await fetchDoctors();
+        setShowDoctorForm(false);
+        setEditingItem(null);
+        setDoctorForm({
+          Name: '',
+          Especialidad: '',
+          WhatsApp: '',
+          Email: '',
+          Atiende: '',
+          Seguros: [],
+          Clinicas: []
+        });
+        setMsg('✅ Médico guardado exitosamente');
+      } else {
+        setMsg('❌ Error guardando médico');
+      }
+    } catch (error) {
+      setMsg('❌ Error de conexión');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
+  const handleClinicaSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const method = editingItem ? 'PUT' : 'POST';
+      const body = editingItem 
+        ? JSON.stringify({ id: editingItem.id, ...clinicaForm })
+        : JSON.stringify(clinicaForm);
+
+      const res = await fetch('/api/clinicas', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body
+      });
+
+      if (res.ok) {
+        await fetchClinicas();
+        setShowClinicaForm(false);
+        setEditingItem(null);
+        setClinicaForm({
+          Nombre: '',
+          Direccion: '',
+          Comuna: '',
+          Telefono: ''
+        });
+        setMsg('✅ Clínica guardada exitosamente');
+      } else {
+        setMsg('❌ Error guardando clínica');
+      }
+    } catch (error) {
+      setMsg('❌ Error de conexión');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
+  const handleSobrecupoSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!sobrecupoForm.medico || !sobrecupoForm.especialidad || !sobrecupoForm.clinica || 
+          !sobrecupoForm.direccion || !sobrecupoForm.fecha || !sobrecupoForm.hora) {
+        setMsg('❌ Todos los campos son obligatorios');
+        setLoading(false);
+        setTimeout(() => setMsg(''), 3000);
+        return;
+      }
+
+      const res = await fetch('/api/sobrecupos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sobrecupoForm)
+      });
+
+      const responseData = await res.json();
+
+      if (res.ok) {
+        await fetchSobrecupos();
+        setShowSobrecupoForm(false);
+        setSobrecupoForm({
+          medico: '',
+          especialidad: '',
+          clinica: '',
+          direccion: '',
+          fecha: '',
+          hora: ''
+        });
+        setMsg('✅ Sobrecupo creado exitosamente');
+      } else {
+        setMsg(`❌ Error: ${responseData.error || 'Error guardando sobrecupo'}`);
+      }
+    } catch (error) {
+      setMsg('❌ Error de conexión');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
+  const handleDelete = async (type: string, id: string): Promise<void> => {
+    if (!confirm('¿Estás seguro de eliminar este elemento?')) return;
+    
+    try {
+      const res = await fetch(`/api/${type}s?id=${id}`, { method: 'DELETE' });
+      
+      if (res.ok) {
+        if (type === 'doctor') await fetchDoctors();
+        else if (type === 'clinica') await fetchClinicas();
+        else if (type === 'sobrecupo') await fetchSobrecupos();
+        
+        setMsg('✅ Elemento eliminado exitosamente');
+      } else {
+        setMsg('❌ Error eliminando elemento');
+      }
+    } catch (error) {
+      setMsg('❌ Error de conexión');
+    } finally {
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+
+  const handleEdit = (type: string, item: Doctor | Clinica): void => {
+    setEditingItem(item);
+    
+    if (type === 'doctor') {
+      const doctor = item as Doctor;
+      setDoctorForm(doctor.fields || doctor as DoctorForm);
+      setShowDoctorForm(true);
+    } else if (type === 'clinica') {
+      const clinica = item as Clinica;
+      setClinicaForm(clinica.fields || clinica as ClinicaForm);
+      setShowClinicaForm(true);
+    }
+  };
+
+  // Componente del Logo SVG de Sobrecupos
+  const SobrecuposLogo = ({ size = 32, className = "" }: SobrecuposLogoProps): React.JSX.Element => (
+    <svg 
+      width={size} 
+      height={size * 0.588}
+      viewBox="0 0 1005 591" 
+      className={className}
+      fill="currentColor"
+    >
+      <g transform="translate(0,591) scale(0.1,-0.1)">
+        <path d="M1363 3665 c-143 -39 -241 -131 -293 -272 -19 -53 -22 -77 -18 -156
+3 -84 8 -103 40 -168 34 -67 64 -101 320 -357 l283 -282 398 398 c372 372 397
+400 397 432 -1 57 -48 98 -98 85 -17 -4 -116 -95 -262 -240 -272 -271 -297
+-288 -430 -289 -128 -1 -165 18 -307 157 -144 141 -173 188 -173 282 0 113 70
+209 174 240 119 36 179 13 316 -121 l105 -103 -60 -61 -60 -60 -95 94 c-98 98
+-132 117 -172 95 -34 -18 -47 -40 -48 -79 0 -30 12 -46 118 -151 92 -92 126
+-120 157 -128 83 -22 97 -12 360 249 132 131 255 245 274 255 45 22 126 30
+178 16 105 -28 183 -134 183 -245 -1 -110 -4 -114 -438 -548 l-397 -398 60
+-60 60 -60 403 402 c374 374 406 408 440 477 36 73 37 78 37 186 0 108 -1 113
+-38 187 -103 210 -346 293 -563 194 -42 -19 -87 -56 -164 -131 -58 -58 -110
+-105 -115 -105 -5 0 -56 47 -114 104 -59 57 -124 113 -146 124 -102 51 -211
+64 -312 37z"/>
+      </g>
+    </svg>
+  );
+
+  return (
+    <main className="admin-container">
+      {/* Fondo con gradiente minimalista */}
+      <div className="bg-gradient" />
+      
+      {/* Elementos geométricos sutiles */}
+      <div className="floating-elements">
+        <div className="element element-1" style={{transform: `translate(${mousePos.x * 0.2}px, ${mousePos.y * 0.2}px)`}}>
+          <div className="geometric-circle"></div>
+        </div>
+        <div className="element element-2" style={{transform: `translate(${mousePos.x * -0.15}px, ${mousePos.y * 0.15}px)`}}>
+          <div className="geometric-square"></div>
+        </div>
+        <div className="element element-3" style={{transform: `translate(${mousePos.x * 0.25}px, ${mousePos.y * -0.2}px)`}}>
+          <div className="geometric-triangle"></div>
+        </div>
+      </div>
+
+      {/* Header minimalista */}
+      <div className="admin-header">
+        <button
+          onClick={() => router.back()}
+          className="back-button"
+        >
+          ← Volver
+        </button>
+        <div className="header-title">
+          <svg width="120" height="50" viewBox="0 0 1000 413" className="header-logo">
+            <g transform="translate(0.000000,413.000000) scale(0.100000,-0.100000)" stroke="none">
+              <path d="M1173 2946 c-132 -32 -280 -149 -337 -267 -75 -156 -75 -342 1 -493 19 -38 117 -144 382 -411 196 -198 361 -361 366 -363 10 -2 821 806 938 935 47 52 57 69 57 99 0 51 -53 104 -105 104 -32 0 -47 -10 -123 -82 -48 -45 -139 -135 -202 -199 -63 -64 -167 -165 -230 -225 -139 -132 -189 -156 -324 -156 -167 0 -220 29 -407 219 -175 178 -194 211 -194 328 0 67 4 89 28 137 32 65 90 121 156 151 64 30 187 30 252 1 45 -21 254 -205 283 -249 14 -21 11 -26 -55 -95 l-70 -74 -102 101 c-129 127 -151 143 -194 143 -50 0 -103 -54 -103 -104 0 -33 13 -50 133 -178 168 -180 217 -206 321 -176 34 10 92 62 346 313 343 340 344 340 480 340 124 -1 219 -59 278 -170 23 -43 27 -62 27 -140 0 -78 -4 -96 -27 -140 -19 -36 -165 -188 -517 -540 -270 -269 -491 -495 -491 -500 0 -14 133 -145 146 -145 21 0 1005 1003 1035 1055 48 82 69 165 69 269 0 150 -47 268 -146 370 -100 102 -231 156 -381 156 -173 0 -259 -43 -442 -220 l-134 -129 -131 125 c-141 135 -195 173 -295 204 -73 23 -205 26 -288 6z" fill="#dc2626"/>
+              <path d="M4440 2285 l0 -485 105 0 105 0 0 30 0 31 38 -30 c135 -107 369 -24 428 152 22 65 22 169 0 234 -23 68 -83 135 -153 169 -95 47 -224 34 -290 -28 l-23 -21 0 216 0 217 -105 0 -105 0 0 -485z m411 -71 c40 -20 73 -92 63 -137 -24 -113 -149 -151 -230 -71 -59 59 -47 163 25 207 33 21 103 22 142 1z" fill="#171717"/>
+              <path d="M3377 2409 c-114 -27 -188 -122 -173 -225 10 -75 54 -118 141 -138 84 -20 106 -28 115 -46 8 -14 8 -26 0 -40 -16 -30 -99 -27 -168 5 -30 14 -55 25 -57 25 -5 0 -75 -132 -75 -141 0 -3 28 -19 62 -34 84 -38 209 -46 294 -19 117 37 183 145 154 253 -20 74 -49 95 -199 142 -53 17 -71 40 -51 64 13 16 47 17 150 3 21 -3 29 5 57 57 17 33 28 63 24 68 -12 12 -142 37 -191 36 -25 -1 -62 -5 -83 -10z" fill="#171717"/>
+              <path d="M3935 2407 c-104 -28 -180 -87 -226 -177 -34 -65 -33 -194 1 -265 32 -65 89 -121 159 -154 50 -23 68 -26 171 -26 103 0 121 3 171 26 70 33 127 89 159 154 34 70 34 189 2 260 -53 115 -164 185 -306 191 -47 2 -102 -2 -131 -9z m183 -193 c42 -27 64 -74 59 -127 -10 -118 -155 -170 -234 -83 -18 19 -35 47 -39 61 -15 61 21 135 80 161 36 16 100 10 134 -12z" fill="#171717"/>
+              <path d="M6551 2409 c-108 -18 -191 -84 -238 -187 -22 -46 -24 -65 -21 -135 4 -99 30 -158 96 -219 84 -77 205 -106 315 -74 l57 17 0 90 0 90 -28 -15 c-15 -8 -41 -15 -57 -17 -68 -5 -87 1 -126 40 -36 35 -39 43 -39 92 0 66 15 96 59 126 40 27 112 30 151 8 14 -8 28 -14 33 -15 4 0 7 38 7 86 l0 85 -32 13 c-48 20 -115 25 -177 15z" fill="#171717"/>
+              <path d="M7812 2402 c-29 -11 -64 -30 -77 -42 l-25 -23 0 31 0 32 -105 0 -105 0 0 -450 0 -450 105 0 105 0 0 176 0 176 23 -16 c51 -38 92 -50 167 -50 92 -1 156 29 218 99 52 59 75 129 75 223 -1 61 -6 83 -32 137 -68 137 -216 204 -349 157z m99 -188 c40 -20 73 -92 63 -137 -24 -113 -149 -151 -230 -71 -41 41 -48 93 -23 156 24 60 123 87 190 52z" fill="#171717"/>
+              <path d="M8465 2407 c-104 -28 -180 -87 -226 -177 -34 -65 -33 -194 1 -265 32 -65 89 -121 159 -154 50 -23 68 -26 171 -26 103 0 121 3 171 26 70 33 127 89 159 154 34 70 34 189 2 260 -53 115 -164 185 -306 191 -47 2 -102 -2 -131 -9z m183 -193 c42 -27 64 -74 59 -127 -10 -118 -155 -170 -234 -83 -18 19 -35 47 -39 61 -15 61 21 135 80 161 36 16 100 10 134 -12z" fill="#171717"/>
+              <path d="M9148 2406 c-106 -28 -168 -103 -168 -200 0 -93 34 -128 162 -164 91 -26 93 -28 96 -59 3 -28 -1 -33 -23 -39 -40 -10 -108 1 -157 25 -24 11 -47 21 -49 21 -3 0 -21 -32 -39 -71 -34 -70 -34 -71 -15 -85 11 -8 51 -24 89 -36 55 -17 85 -20 156 -16 110 7 179 40 222 108 27 41 29 52 26 115 -5 104 -50 151 -169 176 -69 15 -89 25 -89 48 0 32 26 44 83 38 28 -3 62 -8 74 -12 19 -6 26 1 53 56 38 75 34 81 -64 98 -79 14 -128 13 -188 -3z" fill="#171717"/>
+              <path d="M5533 2400 c-55 -11 -97 -34 -122 -65 l-20 -26 -3 43 -3 43 -105 0 -105 0 -3 -297 -2 -298 109 0 110 0 3 176 3 176 39 35 c38 35 39 35 113 31 l74 -5 -3 96 c-3 108 -3 107 -85 91z" fill="#171717"/>
+              <path d="M5819 2396 c-131 -47 -202 -152 -203 -301 0 -188 117 -303 317 -313 147 -7 241 34 296 130 17 29 31 56 31 61 0 4 -45 7 -99 7 -93 0 -102 -2 -127 -25 -49 -46 -160 -30 -190 26 -8 16 -14 39 -14 54 l0 25 221 0 222 0 -6 65 c-12 126 -82 227 -185 265 -62 24 -205 27 -263 6z m223 -155 c50 -56 43 -61 -91 -61 l-120 0 11 31 c26 75 144 93 200 30z" fill="#171717"/>
+              <path d="M6800 2189 c0 -240 7 -276 61 -330 55 -55 133 -80 249 -81 125 -1 197 20 255 73 65 60 70 82 70 329 l0 215 -105 0 -105 0 -2 -190 c-2 -115 -7 -198 -14 -211 -25 -49 -119 -60 -166 -20 l-28 24 -3 201 -3 201 -105 0 -104 0 0 -211z" fill="#171717"/>
+            </g>
+          </svg>
+          <span>Admin Panel</span>
+        </div>
+        <div className="header-spacer"></div>
+      </div>
+
+      {/* Navegación principal - estilo minimalista */}
+      <div className="nav-tabs">
+        <button 
+          className={`nav-tab ${activeSection === "dashboard" ? "active" : ""}`}
+          onClick={() => setActiveSection("dashboard")}
+        >
+          Dashboard
+        </button>
+        <button 
+          className={`nav-tab ${activeSection === "doctors" ? "active" : ""}`}
+          onClick={() => setActiveSection("doctors")}
+        >
+          Médicos
+        </button>
+        <button 
+          className={`nav-tab ${activeSection === "clinicas" ? "active" : ""}`}
+          onClick={() => setActiveSection("clinicas")}
+        >
+          Clínicas
+        </button>
+        <button 
+          className={`nav-tab ${activeSection === "sobrecupos" ? "active" : ""}`}
+          onClick={() => setActiveSection("sobrecupos")}
+        >
+          Sobrecupos
+        </button>
+      </div>
+
+      <div className="content-wrapper">
+        {/* Mensajes */}
+        {msg && (
+          <div className={`message ${msg.includes("✅") ? "success" : "error"}`}>
+            {msg}
+          </div>
+        )}
+
+        {/* Dashboard */}
+        {activeSection === "dashboard" && (
+          <div className="dashboard-section">
+            <div className="section-header">
+              <h1 className="section-title">Panel Administrativo</h1>
+              <p className="section-subtitle">Gestiona tu plataforma médica</p>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-number">{doctors.length}</div>
+                <div className="stat-label">Médicos Registrados</div>
+                {/* Debug info removed - functionality restored */}
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">{clinicas.length}</div>
+                <div className="stat-label">Clínicas Activas</div>
+                {/* Debug info removed - functionality restored */}
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">{sobrecupos.length}</div>
+                <div className="stat-label">Sobrecupos Disponibles</div>
+                {/* Debug info removed - functionality restored */}
+              </div>
+            </div>
+
+            <div className="quick-actions">
+              <h2 className="subsection-title">Acciones Rápidas</h2>
+              <div className="actions-grid">
+                <button 
+                  className="action-card"
+                  onClick={() => setShowSobrecupoForm(true)}
+                >
+                  <div className="action-icon">+</div>
+                  <div className="action-title">Crear Sobrecupo</div>
+                </button>
+                <button 
+                  className="action-card"
+                  onClick={() => setShowDoctorForm(true)}
+                >
+                  <div className="action-icon">👨‍⚕️</div>
+                  <div className="action-title">Agregar Médico</div>
+                </button>
+                <button 
+                  className="action-card"
+                  onClick={() => setShowClinicaForm(true)}
+                >
+                  <div className="action-icon">🏥</div>
+                  <div className="action-title">Agregar Clínica</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Médicos */}
+        {activeSection === "doctors" && (
+          <div className="list-section">
+            <div className="section-header">
+              <h2 className="section-title">Gestión de Médicos ({doctors.length} médicos)</h2>
+              <button 
+                className="primary-button"
+                onClick={() => setShowDoctorForm(true)}
+              >
+                + Agregar Médico
+              </button>
+            </div>
+
+            <div className="search-controls">
+              <input
+                type="text"
+                placeholder="Buscar médicos..."
+                value={searchTerm}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <select 
+                value={selectedFilter}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedFilter(e.target.value as FilterOption)}
+                className="filter-select"
+              >
+                <option value="all">Todas las especialidades</option>
+                {especialidades.map(esp => (
+                  <option key={esp} value={esp}>{esp}</option>
+                ))}
+              </select>
+            </div>
+
+            {loading ? (
+              <div className="loading-message">Cargando médicos...</div>
+            ) : doctors.length === 0 ? (
+              <div className="no-data-message">No hay médicos registrados</div>
+            ) : (
+              <div className="items-list">
+                {doctors
+                  .filter(doctor => {
+                    const fields = doctor.fields || doctor;
+                    const matchesSearch = !searchTerm || 
+                                          fields.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                          fields.Especialidad?.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesFilter = selectedFilter === 'all' || fields.Especialidad === selectedFilter;
+                    return matchesSearch && matchesFilter;
+                  })
+                  .map(doctor => {
+                    const fields = doctor.fields || doctor;
+                    return (
+                      <div key={doctor.id} className="item-card">
+                        <div className="item-info">
+                          <div className="item-avatar">
+                            {fields.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                          </div>
+                          <div className="item-details">
+                            <h3 className="item-name">Dr. {fields.Name}</h3>
+                            <p className="item-specialty">{fields.Especialidad}</p>
+                            <p className="item-contact">{fields.Email}</p>
+                          </div>
+                        </div>
+                        <div className="item-actions">
+                          <button
+                            className="action-btn edit"
+                            onClick={() => handleEdit('doctor', doctor)}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="action-btn delete"
+                            onClick={() => handleDelete('doctor', doctor.id)}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                }
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Clínicas */}
+        {activeSection === "clinicas" && (
+          <div className="list-section">
+            <div className="section-header">
+              <h2 className="section-title">Gestión de Clínicas</h2>
+              <button 
+                className="primary-button"
+                onClick={() => setShowClinicaForm(true)}
+              >
+                + Agregar Clínica
+              </button>
+            </div>
+
+            <div className="search-controls">
+              <input
+                type="text"
+                placeholder="Buscar clínicas..."
+                value={searchTerm}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
+
+            <div className="items-list">
+              {loading && <div className="loading-message">Cargando clínicas...</div>}
+              {!loading && clinicas.length === 0 && (
+                <div className="no-data-message">
+                  No hay clínicas disponibles. 
+                  <br />
+                  <button 
+                    onClick={fetchClinicas}
+                    className="secondary-button"
+                    style={{marginTop: '1rem'}}
+                  >
+                    🔄 Reintentar carga
+                  </button>
+                </div>
+              )}
+              {!loading && clinicas.length > 0 && clinicas
+                .filter(clinica => {
+                  const fields = clinica.fields || clinica;
+                  return fields.Nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         fields.Comuna?.toLowerCase().includes(searchTerm.toLowerCase());
+                })
+                .map(clinica => {
+                  const fields = clinica.fields || clinica;
+                  return (
+                    <div key={clinica.id} className="item-card">
+                      <div className="item-info">
+                        <div className="item-avatar clinic">🏥</div>
+                        <div className="item-details">
+                          <h3 className="item-name">{fields.Nombre}</h3>
+                          <p className="item-specialty">{fields.Comuna}</p>
+                          <p className="item-contact">{fields.Direccion}</p>
+                        </div>
+                      </div>
+                      <div className="item-actions">
+                        <button
+                          className="action-btn edit"
+                          onClick={() => handleEdit('clinica', clinica)}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="action-btn delete"
+                          onClick={() => handleDelete('clinica', clinica.id)}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </div>
+        )}
+
+        {/* Sobrecupos */}
+        {activeSection === "sobrecupos" && (
+          <div className="list-section">
+            <div className="section-header">
+              <h2 className="section-title">Gestión de Sobrecupos</h2>
+              <button 
+                className="primary-button"
+                onClick={() => setShowSobrecupoForm(true)}
+              >
+                + Crear Sobrecupo
+              </button>
+            </div>
+
+            <div className="search-controls">
+              <input
+                type="text"
+                placeholder="Buscar por médico o clínica..."
+                value={searchTerm}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <select 
+                value={selectedFilter}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedFilter(e.target.value as FilterOption)}
+                className="filter-select"
+              >
+                <option value="todos">Todos</option>
+                <option value="disponibles">Disponibles</option>
+                <option value="reservados">Reservados</option>
+                <option value="antiguos">Antiguos</option>
+              </select>
+              <select 
+                className="filter-select"
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSearchTerm(e.target.value)}
+              >
+                <option value="">Por médico</option>
+                {doctors.map(doc => {
+                  const fields = doc.fields || doc;
+                  return (
+                    <option key={doc.id} value={fields.Name}>
+                      Dr. {fields.Name}
+                    </option>
+                  );
+                })}
+              </select>
+              <select 
+                className="filter-select"
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setSearchTerm(e.target.value)}
+              >
+                <option value="">Por especialidad</option>
+                {especialidades.map(esp => (
+                  <option key={esp} value={esp}>{esp}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="sobrecupos-list">
+              {sobrecupos
+                .filter(sobrecupo => {
+                  const fields = sobrecupo.fields || sobrecupo;
+                  const fechaSobrecupo = new Date(fields.Fecha || '');
+                  const hoy = new Date();
+                  hoy.setHours(0, 0, 0, 0);
+                  
+                  // Filtro por búsqueda
+                  const matchesSearch = !searchTerm || 
+                    (fields.MedicoNombre && fields.MedicoNombre.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (fields.Clínica && fields.Clínica.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    (fields.Especialidad && fields.Especialidad.toLowerCase().includes(searchTerm.toLowerCase()));
+                  
+                  // Filtro por estado
+                  let matchesFilter = true;
+                  if (selectedFilter === 'disponibles') {
+                    matchesFilter = fechaSobrecupo >= hoy && fields.Disponible === 'Si';
+                  } else if (selectedFilter === 'reservados') {
+                    matchesFilter = fechaSobrecupo >= hoy && (fields.Disponible === 'No' || !!fields.PacienteNombre);
+                  } else if (selectedFilter === 'antiguos') {
+                    matchesFilter = fechaSobrecupo < hoy;
+                  }
+                  
+                  return matchesSearch && matchesFilter;
+                })
+                .map(sobrecupo => {
+                  const fields = sobrecupo.fields || sobrecupo;
+                  const fechaSobrecupo = new Date(fields.Fecha || '');
+                  const hoy = new Date();
+                  hoy.setHours(0, 0, 0, 0);
+                  
+                  let statusClass = 'disponible';
+                  let statusText = 'Disponible';
+                  
+                  if (fechaSobrecupo < hoy) {
+                    statusClass = 'antiguo';
+                    statusText = 'Antiguo';
+                  } else if (fields.Disponible === 'No' || fields.PacienteNombre) {
+                    statusClass = 'reservado';
+                    statusText = 'Reservado';
+                  }
+                  
+                  return (
+                    <div key={sobrecupo.id} className={`sobrecupo-card ${statusClass}`}>
+                      <div className="sobrecupo-info">
+                        <div className="sobrecupo-header">
+                          <h3 className="sobrecupo-doctor">Dr. {fields.MedicoNombre || 'Desconocido'}</h3>
+                          <span className={`status-badge ${statusClass}`}>{statusText}</span>
+                        </div>
+                        <p className="sobrecupo-specialty">{fields.Especialidad}</p>
+                        <div className="sobrecupo-details">
+                          <span className="detail-item">📅 {fields.Fecha}</span>
+                          <span className="detail-item">🕐 {fields.Hora}</span>
+                          <span className="detail-item">📍 {fields.Clínica}</span>
+                          {fields.PacienteNombre && (
+                            <span className="detail-item">👤 {fields.PacienteNombre}</span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        className="action-btn delete"
+                        onClick={() => handleDelete('sobrecupo', sobrecupo.id)}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modales - usando el mismo estilo minimalista */}
+      {showDoctorForm && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">{editingItem ? 'Editar Médico' : 'Nuevo Médico'}</h2>
+              <button 
+                className="modal-close"
+                onClick={() => {
+                  setShowDoctorForm(false);
+                  setEditingItem(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleDoctorSubmit} className="modal-form">
+              <div className="form-grid">
+                <div className="form-field">
+                  <label className="field-label">Nombre Completo</label>
+                  <input
+                    type="text"
+                    value={doctorForm.Name}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setDoctorForm({...doctorForm, Name: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Juan Pérez Silva"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Especialidad</label>
+                  <select
+                    value={doctorForm.Especialidad}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setDoctorForm({...doctorForm, Especialidad: e.target.value})}
+                    className="field-select"
+                    required
+                  >
+                    <option value="">Seleccionar especialidad</option>
+                    {especialidades.map(esp => (
+                      <option key={esp} value={esp}>{esp}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">WhatsApp</label>
+                  <input
+                    type="tel"
+                    value={doctorForm.WhatsApp}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setDoctorForm({...doctorForm, WhatsApp: e.target.value})}
+                    className="field-input"
+                    placeholder="+56 9 1234 5678"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Email</label>
+                  <input
+                    type="email"
+                    value={doctorForm.Email}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setDoctorForm({...doctorForm, Email: e.target.value})}
+                    className="field-input"
+                    placeholder="doctor@email.com"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Atiende</label>
+                  <select
+                    value={doctorForm.Atiende}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setDoctorForm({...doctorForm, Atiende: e.target.value})}
+                    className="field-select"
+                    required
+                  >
+                    <option value="">Seleccionar</option>
+                    {opcionesAtiende.map(opcion => (
+                      <option key={opcion} value={opcion}>{opcion}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="form-field full-width">
+                <label className="field-label">Seguros Aceptados</label>
+                <div className="checkbox-grid">
+                  {opcionesSeguros.map(seguro => (
+                    <label key={seguro} className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={doctorForm.Seguros?.includes(seguro)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                          const seguros = doctorForm.Seguros || [];
+                          if (e.target.checked) {
+                            setDoctorForm({...doctorForm, Seguros: [...seguros, seguro]});
+                          } else {
+                            setDoctorForm({...doctorForm, Seguros: seguros.filter(s => s !== seguro)});
+                          }
+                        }}
+                        className="checkbox-input"
+                      />
+                      <span className="checkbox-label">{seguro}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="form-field full-width">
+                <label className="field-label">Clínicas donde atiende</label>
+                <div className="clinicas-selector-compact">
+                  {clinicas.length === 0 ? (
+                    <div className="no-clinicas-compact">
+                      <span>🏥 No hay clínicas registradas. Agrega una clínica primero.</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="accordion-trigger" onClick={() => setShowClinicasDropdown(!showClinicasDropdown)}>
+                        <span>🏥 Seleccionar clínicas ({doctorForm.Clinicas?.length || 0} seleccionadas)</span>
+                        <span className={`accordion-icon ${showClinicasDropdown ? 'open' : ''}`}>▼</span>
+                      </div>
+                      
+                      {showClinicasDropdown && (
+                        <div className="accordion-content">
+                          {clinicas.map(clinica => {
+                            const isSelected = doctorForm.Clinicas?.includes(clinica.id);
+                            return (
+                              <div
+                                key={clinica.id}
+                                className={`clinic-option ${isSelected ? 'selected' : ''}`}
+                                onClick={() => {
+                                  const clinicasSeleccionadas = doctorForm.Clinicas || [];
+                                  if (!isSelected) {
+                                    setDoctorForm({...doctorForm, Clinicas: [...clinicasSeleccionadas, clinica.id]});
+                                  }
+                                }}
+                              >
+                                <div className="clinic-option-content">
+                                  <span className="clinic-name">{clinica.fields?.Nombre || clinica.Nombre}</span>
+                                  <span className="clinic-location">{clinica.fields?.Comuna || clinica.Comuna}</span>
+                                </div>
+                                {isSelected && <span className="selected-checkmark">✓</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {doctorForm.Clinicas?.length > 0 && (
+                        <div className="selected-clinics-list">
+                          <div className="selected-clinics-header">Clínicas seleccionadas:</div>
+                          {doctorForm.Clinicas.map(clinicaId => {
+                            const clinica = clinicas.find(c => c.id === clinicaId);
+                            if (!clinica) return null;
+                            return (
+                              <div key={clinicaId} className="selected-clinic-item">
+                                <div className="selected-clinic-info">
+                                  <span className="selected-clinic-name">{clinica.fields?.Nombre || clinica.Nombre}</span>
+                                  <span className="selected-clinic-address">{clinica.fields?.Direccion || clinica.Direccion}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="remove-clinic-btn"
+                                  onClick={() => {
+                                    const clinicasSeleccionadas = doctorForm.Clinicas || [];
+                                    setDoctorForm({...doctorForm, Clinicas: clinicasSeleccionadas.filter(c => c !== clinicaId)});
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  type="button" 
+                  className="secondary-button" 
+                  onClick={() => setShowDoctorForm(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="primary-button" 
+                  disabled={loading}
+                >
+                  {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Clínica */}
+      {showClinicaForm && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">{editingItem ? 'Editar Clínica' : 'Nueva Clínica'}</h2>
+              <button 
+                className="modal-close"
+                onClick={() => {
+                  setShowClinicaForm(false);
+                  setEditingItem(null);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleClinicaSubmit} className="modal-form">
+              <div className="form-grid">
+                <div className="form-field">
+                  <label className="field-label">Nombre de la Clínica</label>
+                  <input
+                    type="text"
+                    value={clinicaForm.Nombre}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setClinicaForm({...clinicaForm, Nombre: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Clínica Las Condes"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Comuna</label>
+                  <input
+                    type="text"
+                    value={clinicaForm.Comuna}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setClinicaForm({...clinicaForm, Comuna: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Las Condes"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field full-width">
+                  <label className="field-label">Dirección</label>
+                  <input
+                    type="text"
+                    value={clinicaForm.Direccion}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setClinicaForm({...clinicaForm, Direccion: e.target.value})}
+                    className="field-input"
+                    placeholder="Ej: Av. Las Condes 123, Oficina 456"
+                    required
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="field-label">Teléfono</label>
+                  <input
+                    type="tel"
+                    value={clinicaForm.Telefono}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setClinicaForm({...clinicaForm, Telefono: e.target.value})}
+                    className="field-input"
+                    placeholder="+56 2 2345 6789"
+                  />
+                </div>
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  type="button" 
+                  className="secondary-button" 
+                  onClick={() => setShowClinicaForm(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="primary-button" 
+                  disabled={loading}
+                >
+                  {loading ? 'Guardando...' : (editingItem ? 'Actualizar' : 'Guardar')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Sobrecupo */}
+      {showSobrecupoForm && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">Nuevo Sobrecupo</h2>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowSobrecupoForm(false);
+                  setSobrecupoForm({
+                    medico: '',
+                    especialidad: '',
+                    clinica: '',
+                    direccion: '',
+                    fecha: '',
+                    hora: ''
+                  });
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSobrecupoSubmit} className="modal-form">
+              <div className="form-grid">
+                <div className="form-field">
+                  <label className="field-label">Médico</label>
+                  <select
+                    value={sobrecupoForm.medico}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                      const selectedDoctor = doctors.find(d => d.id === e.target.value);
+                      const fields = selectedDoctor?.fields || selectedDoctor;
+                      setSobrecupoForm({
+                        ...sobrecupoForm,
+                        medico: e.target.value,
+                        especialidad: fields?.Especialidad || ''
+                      });
+                    }}
+                    className="field-select"
+                    required
+                  >
+                    <option value="">Seleccionar médico</option>
+                    {doctors.map(doc => {
+                      const fields = doc.fields || doc;
+                      return (
+                        <option key={doc.id} value={doc.id}>
+                          {fields.Name} - {fields.Especialidad}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Especialidad</label>
+                  <input
+                    type="text"
+                    value={sobrecupoForm.especialidad}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setSobrecupoForm({...sobrecupoForm, especialidad: e.target.value})}
+                    className="field-input"
+                    placeholder="Se llena automáticamente"
+                    required
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Clínica</label>
+                  <select
+                    value={sobrecupoForm.clinica}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                      const selectedClinica = clinicas.find(c => (c.fields || c).Nombre === e.target.value);
+                      const fields = selectedClinica?.fields || selectedClinica;
+                      setSobrecupoForm({
+                        ...sobrecupoForm,
+                        clinica: e.target.value,
+                        direccion: fields?.Direccion || ''
+                      });
+                    }}
+                    className="field-select"
+                    required
+                  >
+                    <option value="">Seleccionar clínica</option>
+                    {clinicas.map(cl => {
+                      const nombre = (cl.fields || cl).Nombre;
+                      return (
+                        <option key={cl.id} value={nombre}>{nombre}</option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Dirección</label>
+                  <input
+                    type="text"
+                    value={sobrecupoForm.direccion}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setSobrecupoForm({...sobrecupoForm, direccion: e.target.value})}
+                    className="field-input"
+                    placeholder="Se llena automáticamente"
+                    required
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Fecha</label>
+                  <input
+                    type="date"
+                    value={sobrecupoForm.fecha}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setSobrecupoForm({...sobrecupoForm, fecha: e.target.value})}
+                    className="field-input"
+                    min={new Date().toISOString().split('T')[0]}
+                    required
+                  />
+                </div>
+
+                <div className="form-field">
+                  <label className="field-label">Hora</label>
+                  <select
+                    value={sobrecupoForm.hora}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => setSobrecupoForm({...sobrecupoForm, hora: e.target.value})}
+                    className="field-select"
+                    required
+                  >
+                    <option value="">Seleccionar hora</option>
+                    {timeSlots.map(slot => (
+                      <option key={slot} value={slot}>{slot}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => {
+                    setShowSobrecupoForm(false);
+                    setSobrecupoForm({
+                      medico: '',
+                      especialidad: '',
+                      clinica: '',
+                      direccion: '',
+                      fecha: '',
+                      hora: ''
+                    });
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={loading}
+                >
+                  {loading ? 'Guardando...' : 'Crear Sobrecupo'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .admin-container {
+          min-height: 100vh;
+          position: relative;
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+          overflow-x: hidden;
+          color: #171717;
+        }
+
+        .bg-gradient {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(180deg, 
+            #fafafa 0%, 
+            #f5f5f5 50%, 
+            #e5e5e5 100%);
+          z-index: -2;
+        }
+
+        .floating-elements {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        .element {
+          position: absolute;
+          opacity: 0.03;
+          transition: transform 0.1s ease-out;
+        }
+
+        .element-1 { top: 20%; right: 15%; }
+        .element-2 { bottom: 25%; left: 10%; }
+        .element-3 { top: 60%; right: 25%; }
+
+        .geometric-circle {
+          width: 120px;
+          height: 120px;
+          border: 1px solid #999;
+          border-radius: 50%;
+        }
+
+        .geometric-square {
+          width: 80px;
+          height: 80px;
+          border: 1px solid #999;
+          transform: rotate(45deg);
+        }
+
+        .geometric-triangle {
+          width: 0;
+          height: 0;
+          border-left: 40px solid transparent;
+          border-right: 40px solid transparent;
+          border-bottom: 70px solid #999;
+        }
+
+        /* Header minimalista */
+        .admin-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1.5rem 2rem;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(20px);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+
+        .back-button {
+          background: none;
+          border: none;
+          color: #666;
+          font-size: 0.875rem;
+          font-weight: 400;
+          padding: 0.5rem 1rem;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: 1px solid #e5e5e5;
+        }
+
+        .back-button:hover {
+          border-color: #171717;
+          color: #171717;
+        }
+
+        .header-title {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1rem;
+          font-weight: 400;
+          color: #171717;
+          letter-spacing: 0.5px;
+        }
+
+        .header-logo {
+          transition: opacity 0.2s ease;
+        }
+        
+        .header-logo:hover {
+          opacity: 0.8;
+        }
+
+        .header-spacer {
+          width: 64px;
+        }
+
+        /* Navegación estilo minimalista */
+        .nav-tabs {
+          display: flex;
+          justify-content: center;
+          gap: 0;
+          padding: 2rem 2rem 0;
+          background: transparent;
+        }
+
+        .nav-tab {
+          background: none;
+          border: none;
+          border-bottom: 1px solid transparent;
+          color: #999;
+          font-size: 0.875rem;
+          font-weight: 400;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          padding: 0.75rem 1.5rem;
+          font-family: inherit;
+          letter-spacing: 0.5px;
+        }
+
+        .nav-tab:hover {
+          color: #171717;
+        }
+
+        .nav-tab.active {
+          color: #171717;
+          border-bottom-color: #171717;
+        }
+
+        /* Container principal */
+        .content-wrapper {
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: 2rem;
+        }
+
+        /* Mensajes */
+        .message {
+          padding: 1rem;
+          border-radius: 6px;
+          margin-bottom: 2rem;
+          font-size: 0.875rem;
+          font-weight: 400;
+          text-align: center;
+          border: 1px solid;
+        }
+
+        .message.success {
+          background: #f8fff9;
+          color: #166534;
+          border-color: #bbf7d0;
+        }
+
+        .message.error {
+          background: #fef8f8;
+          color: #dc2626;
+          border-color: #fecaca;
+        }
+
+        /* Dashboard */
+        .dashboard-section {
+          text-align: center;
+        }
+
+        .section-header {
+          margin-bottom: 3rem;
+        }
+
+        .section-title {
+          font-size: 2rem;
+          font-weight: 200;
+          color: #171717;
+          margin-bottom: 0.5rem;
+          letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+          font-size: 0.875rem;
+          color: #666;
+          font-weight: 400;
+          letter-spacing: 0.5px;
+        }
+
+        .subsection-title {
+          font-size: 1rem;
+          font-weight: 400;
+          color: #171717;
+          margin-bottom: 1.5rem;
+          letter-spacing: 0.5px;
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 2rem;
+          margin-bottom: 4rem;
+        }
+
+        .stat-card {
+          background: rgba(255, 255, 255, 0.6);
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 6px;
+          padding: 2rem;
+          text-align: center;
+          transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+          background: rgba(255, 255, 255, 0.8);
+          border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+          font-size: 2.5rem;
+          font-weight: 200;
+          color: #171717;
+          margin-bottom: 0.5rem;
+          letter-spacing: -1px;
+        }
+
+        .stat-label {
+          font-size: 0.75rem;
+          color: #666;
+          font-weight: 400;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+        }
+
+        .quick-actions {
+          margin-top: 4rem;
+        }
+
+        .actions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 1rem;
+        }
+
+        .action-card {
+          background: rgba(255, 255, 255, 0.6);
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 6px;
+          padding: 1.5rem;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-family: inherit;
+        }
+
+        .action-card:hover {
+          background: rgba(255, 255, 255, 0.8);
+          border-color: rgba(0, 0, 0, 0.1);
+          transform: translateY(-1px);
+        }
+
+        .action-icon {
+          font-size: 1.5rem;
+          margin-bottom: 0.5rem;
+          color: #171717;
+        }
+
+        .action-title {
+          font-size: 0.75rem;
+          font-weight: 400;
+          color: #666;
+          letter-spacing: 0.5px;
+        }
+
+        /* Secciones de lista */
+        .list-section {
+          max-width: 100%;
+        }
+
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .primary-button {
+          background: #171717;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.875rem;
+          font-weight: 400;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-family: inherit;
+        }
+
+        .primary-button:hover {
+          background: #000;
+          transform: translateY(-1px);
+        }
+
+        .secondary-button {
+          background: white;
+          color: #666;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          padding: 0.75rem 1.5rem;
+          font-size: 0.875rem;
+          font-weight: 400;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-family: inherit;
+        }
+
+        .secondary-button:hover {
+          border-color: #171717;
+          color: #171717;
+        }
+
+        /* Controles de búsqueda */
+        .search-controls {
+          display: flex;
+          gap: 1rem;
+          margin-bottom: 2rem;
+        }
+
+        .search-input {
+          flex: 1;
+          padding: 0.75rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          font-size: 0.875rem;
+          background: rgba(255, 255, 255, 0.8);
+          font-family: inherit;
+        }
+
+        .search-input:focus {
+          outline: none;
+          border-color: #171717;
+          background: white;
+        }
+
+        .filter-select {
+          padding: 0.75rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          font-size: 0.875rem;
+          background: rgba(255, 255, 255, 0.8);
+          min-width: 200px;
+          font-family: inherit;
+        }
+
+        .filter-select:focus {
+          outline: none;
+          border-color: #171717;
+          background: white;
+        }
+
+        /* Lista de elementos */
+        .items-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .item-card {
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 6px;
+          padding: 1.5rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          transition: all 0.2s ease;
+        }
+
+        .item-card:hover {
+          background: white;
+          border-color: rgba(0, 0, 0, 0.1);
+          transform: translateY(-1px);
+        }
+
+        .item-info {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          flex: 1;
+        }
+
+        .item-avatar {
+          width: 48px;
+          height: 48px;
+          background: #171717;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 400;
+          font-size: 0.875rem;
+          letter-spacing: 0.5px;
+        }
+
+        .item-avatar.clinic {
+          background: #666;
+          font-size: 1.25rem;
+        }
+
+        .item-details {
+          flex: 1;
+        }
+
+        .item-name {
+          font-size: 1rem;
+          font-weight: 400;
+          color: #171717;
+          margin: 0 0 0.25rem 0;
+          letter-spacing: 0.25px;
+        }
+
+        .item-specialty {
+          font-size: 0.875rem;
+          color: #666;
+          margin: 0 0 0.25rem 0;
+          font-weight: 400;
+        }
+
+        .item-contact {
+          font-size: 0.75rem;
+          color: #999;
+          margin: 0;
+          font-weight: 400;
+        }
+
+        .item-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .action-btn {
+          width: 32px;
+          height: 32px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.875rem;
+          transition: all 0.2s ease;
+        }
+
+        .action-btn.edit {
+          background: #f0f9ff;
+          color: #0284c7;
+        }
+
+        .action-btn.edit:hover {
+          background: #e0f2fe;
+        }
+
+        .action-btn.delete {
+          background: #fef2f2;
+          color: #dc2626;
+        }
+
+        .action-btn.delete:hover {
+          background: #fee2e2;
+        }
+
+        /* Sobrecupos */
+        .sobrecupos-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .sobrecupo-card {
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 6px;
+          padding: 1.5rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          transition: all 0.2s ease;
+        }
+
+        .sobrecupo-card:hover {
+          background: white;
+          border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .sobrecupo-card.disponible {
+          border-left: 4px solid #16a34a;
+        }
+
+        .sobrecupo-card.reservado {
+          border-left: 4px solid #2563eb;
+        }
+
+        .sobrecupo-card.antiguo {
+          border-left: 4px solid #94a3b8;
+          opacity: 0.7;
+        }
+
+        .sobrecupo-info {
+          flex: 1;
+        }
+
+        .sobrecupo-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.25rem;
+        }
+
+        .sobrecupo-doctor {
+          font-size: 1rem;
+          font-weight: 400;
+          color: #171717;
+          margin: 0;
+        }
+
+        .status-badge {
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .status-badge.disponible {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        .status-badge.reservado {
+          background: #dbeafe;
+          color: #1d4ed8;
+        }
+
+        .status-badge.antiguo {
+          background: #f1f5f9;
+          color: #64748b;
+        }
+
+        .sobrecupo-specialty {
+          font-size: 0.875rem;
+          color: #666;
+          margin: 0 0 0.75rem 0;
+        }
+
+        .sobrecupo-details {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+        }
+
+        .detail-item {
+          font-size: 0.75rem;
+          color: #999;
+          font-weight: 400;
+        }
+
+        /* Modales */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 2rem;
+        }
+
+        .modal {
+          background: white;
+          border-radius: 6px;
+          width: 100%;
+          max-width: 600px;
+          max-height: 90vh;
+          overflow-y: auto;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.5rem 1.5rem 0;
+          margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+          font-size: 1.125rem;
+          font-weight: 400;
+          color: #171717;
+          margin: 0;
+          letter-spacing: 0.25px;
+        }
+
+        .modal-close {
+          width: 28px;
+          height: 28px;
+          border: none;
+          background: #f5f5f5;
+          border-radius: 4px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #666;
+          font-size: 0.875rem;
+        }
+
+        .modal-close:hover {
+          background: #e5e5e5;
+        }
+
+        .modal-form {
+          padding: 0 1.5rem 1.5rem;
+        }
+
+        .form-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .form-field {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .form-field.full-width {
+          grid-column: 1 / -1;
+        }
+
+        .field-label {
+          font-size: 0.875rem;
+          font-weight: 400;
+          color: #171717;
+          letter-spacing: 0.25px;
+        }
+
+        .field-input,
+        .field-select {
+          padding: 0.75rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          font-size: 0.875rem;
+          transition: border-color 0.2s ease;
+          font-family: inherit;
+          background: white;
+        }
+
+        .field-input:focus,
+        .field-select:focus {
+          outline: none;
+          border-color: #171717;
+        }
+
+        .checkbox-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 0.75rem;
+          padding: 1rem;
+          background: #fafafa;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+        }
+
+        .checkbox-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+        }
+
+        .checkbox-input {
+          width: 16px;
+          height: 16px;
+        }
+
+        .checkbox-label {
+          font-size: 0.875rem;
+          color: #171717;
+          font-weight: 400;
+        }
+
+        /* Selector de clínicas compacto - acordeón */
+        .clinicas-selector-compact {
+          margin-top: 0.5rem;
+        }
+
+        .no-clinicas-compact {
+          padding: 1rem;
+          background: #f9f9f9;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          color: #666;
+          font-size: 0.875rem;
+          text-align: center;
+        }
+
+        .accordion-trigger {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          background: white;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 0.875rem;
+          color: #374151;
+        }
+
+        .accordion-trigger:hover {
+          background: #f9f9f9;
+          border-color: #d1d5db;
+        }
+
+        .accordion-icon {
+          transition: transform 0.2s ease;
+          font-size: 0.75rem;
+          color: #6b7280;
+        }
+
+        .accordion-icon.open {
+          transform: rotate(180deg);
+        }
+
+        .accordion-content {
+          border: 1px solid #e5e5e5;
+          border-top: none;
+          border-radius: 0 0 6px 6px;
+          background: white;
+          max-height: 200px;
+          overflow-y: auto;
+        }
+
+        .clinic-option {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid #f3f4f6;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+
+        .clinic-option:last-child {
+          border-bottom: none;
+        }
+
+        .clinic-option:hover {
+          background: #f9f9f9;
+        }
+
+        .clinic-option.selected {
+          background: #eff6ff;
+          color: #3b82f6;
+        }
+
+        .clinic-option-content {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .clinic-name {
+          font-weight: 500;
+          font-size: 0.875rem;
+        }
+
+        .clinic-location {
+          font-size: 0.75rem;
+          color: #6b7280;
+        }
+
+        .selected-checkmark {
+          color: #3b82f6;
+          font-weight: bold;
+        }
+
+        .selected-clinics-list {
+          margin-top: 1rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 6px;
+          background: #fafafa;
+        }
+
+        .selected-clinics-header {
+          padding: 0.75rem 1rem;
+          background: #f3f4f6;
+          border-bottom: 1px solid #e5e5e5;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+        }
+
+        .selected-clinic-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid #e5e5e5;
+        }
+
+        .selected-clinic-item:last-child {
+          border-bottom: none;
+        }
+
+        .selected-clinic-info {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          flex: 1;
+        }
+
+        .selected-clinic-name {
+          font-weight: 500;
+          font-size: 0.875rem;
+          color: #374151;
+        }
+
+        .selected-clinic-address {
+          font-size: 0.75rem;
+          color: #6b7280;
+        }
+
+        .remove-clinic-btn {
+          background: #fee2e2;
+          border: 1px solid #fecaca;
+          border-radius: 4px;
+          color: #dc2626;
+          padding: 0.25rem 0.5rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 0.75rem;
+          font-weight: bold;
+        }
+
+        .remove-clinic-btn:hover {
+          background: #fecaca;
+          border-color: #f87171;
+        }
+
+        .modal-actions {
+          display: flex;
+          gap: 0.75rem;
+          justify-content: flex-end;
+          margin-top: 2rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid #e5e5e5;
+        }
+
+        .loading-message,
+        .no-data-message {
+          text-align: center;
+          padding: 2rem;
+          color: #666;
+          font-size: 0.875rem;
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-radius: 6px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+          .content-wrapper {
+            padding: 1rem;
+          }
+          
+          .admin-header {
+            padding: 1rem;
+          }
+          
+          .nav-tabs {
+            padding: 1rem 1rem 0;
+            overflow-x: auto;
+            justify-content: flex-start;
+          }
+          
+          .search-controls {
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+          
+          .section-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+          }
+          
+          .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+          
+          .actions-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .item-info {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+          }
+          
+          .sobrecupo-details {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+          
+          .form-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .modal {
+            margin: 1rem;
+            max-width: calc(100% - 2rem);
+          }
+          
+          .modal-actions {
+            flex-direction: column;
+          }
+
+          .accordion-content {
+            max-height: 150px;
+          }
+
+          .selected-clinic-info {
+            gap: 0.125rem;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .section-title {
+            font-size: 1.5rem;
+          }
+          
+          .header-title {
+            font-size: 0.875rem;
+          }
+          
+          .nav-tab {
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+          }
+        }
+
+        /* Smooth animations */
+        * {
+          -webkit-overflow-scrolling: touch;
+        }
+      `}</style>
+    </main>
+  );
+}
