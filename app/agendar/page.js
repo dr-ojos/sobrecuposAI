@@ -25,7 +25,8 @@ const AgendarSobrecuposContent = () => {
     email: '',
     telefono: '',
     rut: '',
-    edad: ''
+    edad: '',
+    motivoConsulta: ''
   });
   const [message, setMessage] = useState('');
   const [reservationLoading, setReservationLoading] = useState(false);
@@ -187,7 +188,8 @@ const AgendarSobrecuposContent = () => {
         rut: reservationData.rut || '12.345.678-9',
         telefono: reservationData.telefono || '+56912345678',
         email: reservationData.email || 'demo@sobrecupos.com',
-        edad: reservationData.edad || '35'
+        edad: reservationData.edad || '35',
+        motivoConsulta: reservationData.motivoConsulta || 'Consulta general'
       };
       
       // Crear enlace de pago (mismo flujo que el chatbot)
@@ -209,7 +211,7 @@ const AgendarSobrecuposContent = () => {
           time: selectedSobrecupo.fields.Hora,
           clinic: selectedSobrecupo.fields.Clínica,
           amount: "2990", // Precio estándar
-          motivo: "Reserva desde página principal (DEMO)", // Motivo de la consulta
+          motivo: demoData.motivoConsulta, // Motivo de la consulta del usuario
           fromChat: false, // 🆕 MARCAR ORIGEN COMO RESERVA DIRECTA
           sessionId: `direct-booking-demo-${Date.now()}` // ID de sesión único
         })
@@ -228,7 +230,8 @@ const AgendarSobrecuposContent = () => {
           email: '',
           telefono: '',
           rut: '',
-          edad: ''
+          edad: '',
+          motivoConsulta: ''
         });
         setAcceptTerms(false);
         
@@ -406,7 +409,8 @@ const AgendarSobrecuposContent = () => {
       email: '',
       telefono: '',
       rut: '',
-      edad: ''
+      edad: '',
+      motivoConsulta: ''
     });
     setAcceptTerms(false);
   };
@@ -852,6 +856,19 @@ const AgendarSobrecuposContent = () => {
                       disabled={reservationLoading}
                     />
                   </div>
+                </div>
+
+                {/* Motivo de consulta */}
+                <div className="form-field">
+                  <label className="field-label">Motivo de consulta</label>
+                  <textarea
+                    value={reservationData.motivoConsulta}
+                    onChange={(e) => setReservationData(prev => ({ ...prev, motivoConsulta: e.target.value }))}
+                    className="field-input field-textarea"
+                    placeholder="Describe brevemente el motivo de tu consulta..."
+                    rows="3"
+                    disabled={reservationLoading}
+                  />
                 </div>
 
                 {/* Términos */}
@@ -1838,6 +1855,27 @@ const AgendarSobrecuposContent = () => {
         .field-input:disabled {
           opacity: 0.6;
           background: #f9fafb;
+        }
+
+        .field-textarea {
+          resize: vertical;
+          min-height: 80px;
+          font-family: inherit;
+          line-height: 1.4;
+        }
+
+        /* Responsive para textarea del motivo de consulta */
+        @media (max-width: 768px) {
+          .field-textarea {
+            min-height: 70px;
+            font-size: 16px; /* Evita zoom en iOS */
+          }
+        }
+
+        @media (max-width: 375px) {
+          .field-textarea {
+            min-height: 60px;
+          }
         }
 
         /* Terms */

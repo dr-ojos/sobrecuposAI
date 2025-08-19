@@ -193,11 +193,18 @@ export async function POST(req) {
       // Preparar los datos con validación estricta
       const edad = patientData.age ? parseInt(String(patientData.age), 10) : null;
       
-      // Solo actualizar campos que SABEMOS que existen en Airtable
+      // Actualizar sobrecupo con datos del paciente y motivo de consulta
       const updateData = {
         fields: {
-          Disponible: "No"
-          // Remover todos los campos que no existen hasta confirmar estructura
+          Disponible: "No",
+          // Datos del paciente
+          Nombre: String(patientData.name || '').trim(),
+          Email: String(patientData.email || '').trim(),
+          Telefono: String(patientData.phone || '').trim(),
+          RUT: String(patientData.rut || '').trim(),
+          ...(edad && edad > 0 ? { Edad: edad } : {}),
+          // Motivo de consulta
+          ...(motivo ? { "Motivo de consulta": String(motivo).trim() } : {})
         }
       };
 
