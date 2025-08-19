@@ -12,6 +12,11 @@ export default function MedicoInfoPage({ params }) {
   const [calendarDates, setCalendarDates] = useState(new Map());
   const [showCalendar, setShowCalendar] = useState(false);
   
+  // Modal states
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDateSobrecupos, setSelectedDateSobrecupos] = useState([]);
+  
   // Extract slug from params
   const [slug, setSlug] = useState(null);
   
@@ -131,9 +136,26 @@ export default function MedicoInfoPage({ params }) {
 
   const handleDateClick = (dateInfo) => {
     if (dateInfo && dateInfo.isAvailable) {
-      // Navegar a la página principal con filtros aplicados
-      router.push(`/agendar?medico=${encodeURIComponent(medico.fields.Name)}&fecha=${dateInfo.dateString}`);
+      // Filtrar sobrecupos del día seleccionado
+      const sobrecuposDelDia = sobrecupos.filter(
+        sobrecupo => sobrecupo.fields?.Fecha === dateInfo.dateString
+      );
+      
+      setSelectedDate(dateInfo.dateString);
+      setSelectedDateSobrecupos(sobrecuposDelDia);
+      setShowModal(true);
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedDate(null);
+    setSelectedDateSobrecupos([]);
+  };
+
+  const handleReserveSobrecupo = (sobrecupo) => {
+    // Navegar a la página de reserva con el sobrecupo específico
+    router.push(`/agendar?medico=${encodeURIComponent(medico.fields.Name)}&fecha=${sobrecupo.fields?.Fecha}&hora=${encodeURIComponent(sobrecupo.fields?.Hora)}&id=${sobrecupo.id}`);
   };
 
   useEffect(() => {
@@ -2729,6 +2751,231 @@ export default function MedicoInfoPage({ params }) {
           font-weight: 500;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+          padding: 1rem;
+        }
+
+        .modal-content {
+          background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+          border-radius: 20px;
+          box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.15),
+            0 8px 16px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          max-width: 500px;
+          width: 100%;
+          max-height: 80vh;
+          overflow: hidden;
+          position: relative;
+          border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .modal-header {
+          padding: 2rem 2rem 1rem 2rem;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          position: relative;
+        }
+
+        .modal-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #171717;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .modal-date {
+          font-size: 0.875rem;
+          color: #ff9500;
+          font-weight: 500;
+          text-transform: capitalize;
+          background: rgba(255, 149, 0, 0.1);
+          padding: 0.25rem 0.75rem;
+          border-radius: 12px;
+          display: inline-block;
+        }
+
+        .modal-close {
+          position: absolute;
+          top: 1.5rem;
+          right: 1.5rem;
+          width: 40px;
+          height: 40px;
+          border: none;
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 10px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #666;
+          transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+          background: rgba(255, 149, 0, 0.1);
+          color: #ff9500;
+        }
+
+        .modal-body {
+          padding: 1rem 2rem 2rem 2rem;
+          max-height: 60vh;
+          overflow-y: auto;
+        }
+
+        .sobrecupos-modal-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .sobrecupo-modal-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1.5rem;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.8) 100%);
+          border-radius: 16px;
+          border: 1px solid rgba(229, 231, 235, 0.5);
+          box-shadow: 
+            0 4px 12px rgba(0, 0, 0, 0.03),
+            0 2px 4px rgba(0, 0, 0, 0.02);
+          transition: all 0.3s ease;
+        }
+
+        .sobrecupo-modal-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 
+            0 8px 20px rgba(0, 0, 0, 0.06),
+            0 4px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .sobrecupo-modal-info {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .sobrecupo-modal-time {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1.125rem;
+          font-weight: 600;
+          color: #171717;
+        }
+
+        .sobrecupo-modal-time svg {
+          color: #ff9500;
+        }
+
+        .sobrecupo-modal-clinic {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: #666;
+          font-weight: 500;
+        }
+
+        .sobrecupo-modal-clinic svg {
+          color: #666;
+        }
+
+        .sobrecupo-modal-address {
+          font-size: 0.75rem;
+          color: #999;
+          margin-left: 1.5rem;
+        }
+
+        .sobrecupo-modal-reserve-btn {
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #ff9500 0%, #ff8800 100%);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.25);
+          flex-shrink: 0;
+        }
+
+        .sobrecupo-modal-reserve-btn:hover {
+          background: linear-gradient(135deg, #ff8800 0%, #ff7700 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(255, 149, 0, 0.35);
+        }
+
+        .no-sobrecupos-modal {
+          text-align: center;
+          padding: 3rem 1rem;
+          color: #666;
+        }
+
+        .no-sobrecupos-modal-icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+          opacity: 0.3;
+        }
+
+        .no-sobrecupos-modal p {
+          margin: 0;
+          font-size: 1rem;
+          font-weight: 500;
+        }
+
+        /* Mobile Modal Adjustments */
+        @media (max-width: 768px) {
+          .modal-overlay {
+            padding: 0.5rem;
+          }
+
+          .modal-header {
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+          }
+
+          .modal-title {
+            font-size: 1.25rem;
+          }
+
+          .modal-close {
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+          }
+
+          .modal-body {
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+          }
+
+          .sobrecupo-modal-card {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+            padding: 1.25rem;
+          }
+
+          .sobrecupo-modal-reserve-btn {
+            width: 100%;
+            padding: 1rem;
+          }
+        }
+
         /* Safe area for iPhones */
         @supports (padding: max(0px)) {
           .page-container {
@@ -2736,6 +2983,75 @@ export default function MedicoInfoPage({ params }) {
           }
         }
       `}</style>
+
+      {/* Modal de Sobrecupos del Día */}
+      {showModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">
+                Sobrecupos disponibles
+              </h3>
+              <div className="modal-date">
+                {selectedDate && new Date(selectedDate).toLocaleDateString('es-CL', {
+                  weekday: 'long',
+                  day: 'numeric', 
+                  month: 'long',
+                  year: 'numeric'
+                })}
+              </div>
+              <button onClick={handleCloseModal} className="modal-close">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              {selectedDateSobrecupos.length > 0 ? (
+                <div className="sobrecupos-modal-list">
+                  {selectedDateSobrecupos.map((sobrecupo, index) => (
+                    <div key={index} className="sobrecupo-modal-card">
+                      <div className="sobrecupo-modal-info">
+                        <div className="sobrecupo-modal-time">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                            <polyline points="12,6 12,12 16,14" stroke="currentColor" strokeWidth="2"/>
+                          </svg>
+                          {sobrecupo.fields?.Hora}
+                        </div>
+                        <div className="sobrecupo-modal-clinic">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" strokeWidth="2"/>
+                            <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
+                          </svg>
+                          {sobrecupo.fields?.Clínica}
+                        </div>
+                        {sobrecupo.fields?.Dirección && (
+                          <div className="sobrecupo-modal-address">
+                            {sobrecupo.fields.Dirección}
+                          </div>
+                        )}
+                      </div>
+                      <button 
+                        onClick={() => handleReserveSobrecupo(sobrecupo)}
+                        className="sobrecupo-modal-reserve-btn"
+                      >
+                        Reservar Cita
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-sobrecupos-modal">
+                  <div className="no-sobrecupos-modal-icon">📅</div>
+                  <p>No hay sobrecupos disponibles para esta fecha</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
