@@ -352,24 +352,32 @@ function selectSmartAppointmentOptions(records) {
     new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`)
   );
 
+  // Si solo hay un registro, retornar solo ese
   if (sorted.length === 1) return sorted;
 
   const [first] = sorted;
   const firstDate = first.fields?.Fecha;
   const sameDayOptions = sorted.filter(r => r.fields?.Fecha === firstDate && r.id !== first.id);
 
+  // Si no hay opciones del mismo día, buscar del día siguiente
   if (sameDayOptions.length === 0) {
     const nextDayOptions = sorted.filter(r => r.fields?.Fecha !== firstDate);
     return nextDayOptions.length > 0 ? [first, nextDayOptions[0]] : [first];
   }
 
+  // Si hay opciones del mismo día, intentar separar por mañana/tarde
   const allSameDay = [first, ...sameDayOptions];
   const morning = allSameDay.filter(r => getHour(r.fields?.Hora) < 14);
   const afternoon = allSameDay.filter(r => getHour(r.fields?.Hora) >= 14);
 
-  return morning.length > 0 && afternoon.length > 0 
-    ? [morning[0], afternoon[0]] 
-    : [first, sameDayOptions[0]];
+  // Solo mostrar 2 opciones si realmente hay mañana Y tarde diferentes
+  if (morning.length > 0 && afternoon.length > 0) {
+    return [morning[0], afternoon[0]];
+  }
+
+  // Si todas las citas son en el mismo período (mañana o tarde), mostrar solo la primera
+  // No crear opciones artificiales duplicadas
+  return [first];
 }
 
 // 🎯 Función para crear presentación de opciones optimizada
