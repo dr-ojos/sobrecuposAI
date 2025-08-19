@@ -998,6 +998,12 @@ export default function SobrecuposMedico() {
           place-items: center;
         }
 
+        @media (max-width: 768px) {
+          .results-grid {
+            gap: 1rem;
+          }
+        }
+
         .results-grid > * {
           width: 100%;
           max-width: 600px;
@@ -1284,9 +1290,24 @@ export default function SobrecuposMedico() {
             padding: 1rem;
           }
 
+          .header-content {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+          }
+
+          .header-left {
+            align-self: flex-start;
+          }
+
+          .create-button {
+            align-self: stretch;
+            text-align: center;
+          }
+
           .main-content {
-            padding: 1.5rem 1rem;
-            gap: 2rem;
+            padding: 1rem;
+            gap: 1.5rem;
           }
 
           .main-title {
@@ -1302,34 +1323,48 @@ export default function SobrecuposMedico() {
           }
 
           .filters-container {
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
             width: 100%;
+            padding: 0.375rem;
           }
 
           .filter-button {
             justify-content: center;
+            padding: 0.625rem 1rem;
+            font-size: 0.8125rem;
+          }
+
+          .filter-label {
+            font-size: 0.8125rem;
+          }
+
+          .filter-count {
+            font-size: 0.6875rem;
+            padding: 0.1875rem 0.375rem;
           }
 
           .card-header {
-            padding: 0.75rem 1rem;
+            padding: 0.75rem;
           }
 
           .card-body {
-            padding: 1rem;
-            gap: 0.75rem;
+            padding: 0.75rem;
+            gap: 0.5rem;
           }
 
           .datetime-info {
-            gap: 0.75rem;
+            gap: 0.5rem;
           }
 
           .date-block {
-            min-width: 42px;
-            padding: 0.5rem;
+            min-width: 36px;
+            padding: 0.375rem;
           }
 
           .day {
-            font-size: 1.125rem;
+            font-size: 1rem;
           }
 
           .month {
@@ -1337,11 +1372,11 @@ export default function SobrecuposMedico() {
           }
 
           .time {
-            font-size: 1rem;
+            font-size: 0.875rem;
           }
 
           .relative-time {
-            font-size: 0.6875rem;
+            font-size: 0.625rem;
           }
 
           .patient-info {
@@ -1352,6 +1387,14 @@ export default function SobrecuposMedico() {
           .patient-avatar {
             width: 28px;
             height: 28px;
+            font-size: 0.6875rem;
+          }
+
+          .clinic-name {
+            font-size: 0.75rem;
+          }
+
+          .clinic-address {
             font-size: 0.6875rem;
           }
 
@@ -1367,7 +1410,7 @@ export default function SobrecuposMedico() {
           }
 
           .header-content {
-            gap: 0.5rem;
+            gap: 0.75rem;
           }
 
           .header-title {
@@ -1375,8 +1418,36 @@ export default function SobrecuposMedico() {
           }
 
           .create-button {
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
+            padding: 0.625rem 1rem;
+            font-size: 0.8125rem;
+          }
+
+          .card-header,
+          .card-body {
+            padding: 0.625rem;
+          }
+
+          .date-block {
+            min-width: 32px;
+            padding: 0.25rem;
+          }
+
+          .day {
+            font-size: 0.875rem;
+          }
+
+          .time {
+            font-size: 0.8125rem;
+          }
+
+          .patient-info {
+            padding: 0.375rem;
+          }
+
+          .patient-avatar {
+            width: 24px;
+            height: 24px;
+            font-size: 0.625rem;
           }
         }
 
