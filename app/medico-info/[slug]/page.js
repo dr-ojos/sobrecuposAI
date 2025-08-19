@@ -1264,6 +1264,14 @@ export default function MedicoInfoPage({ params }) {
           letter-spacing: -0.5px;
         }
 
+        /* Mobile: Títulos más pequeños */
+        @media (max-width: 768px) {
+          .section-title {
+            font-size: 1.25rem;
+            margin: 0 0 1rem 0;
+          }
+        }
+
         .professional-info,
         .experience-card,
         .important-info-card,
@@ -1280,6 +1288,16 @@ export default function MedicoInfoPage({ params }) {
           backdrop-filter: blur(10px);
           position: relative;
           overflow: hidden;
+        }
+
+        /* Mobile: Padding más pequeño para cajas */
+        @media (max-width: 768px) {
+          .professional-info,
+          .experience-card,
+          .seguros-card {
+            padding: 1.25rem;
+            border-radius: 16px;
+          }
         }
 
         .professional-info::before,
@@ -1336,6 +1354,14 @@ export default function MedicoInfoPage({ params }) {
           transition: all 0.3s ease;
         }
 
+        /* Mobile: Cards de info más pequeñas */
+        @media (max-width: 768px) {
+          .info-card {
+            padding: 1rem;
+            border-radius: 12px;
+          }
+        }
+
         .info-card:hover {
           transform: translateY(-2px);
           box-shadow: 
@@ -1364,11 +1390,25 @@ export default function MedicoInfoPage({ params }) {
           letter-spacing: 0.5px;
         }
 
+        /* Mobile: Títulos de info más pequeños */
+        @media (max-width: 768px) {
+          .info-title {
+            font-size: 0.75rem;
+          }
+        }
+
         .info-content {
           font-size: 1rem;
           color: #171717;
           margin: 0;
           font-weight: 500;
+        }
+
+        /* Mobile: Contenido de info más pequeño */
+        @media (max-width: 768px) {
+          .info-content {
+            font-size: 0.875rem;
+          }
         }
 
         /* Seguros Section - Fondo blanco como otras secciones, solo cards naranjas */
@@ -1392,6 +1432,14 @@ export default function MedicoInfoPage({ params }) {
           box-shadow: 0 2px 8px rgba(255, 149, 0, 0.1);
         }
 
+        /* Mobile: Cards de seguro más pequeñas */
+        @media (max-width: 768px) {
+          .seguro-card {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+          }
+        }
+
         .seguro-card:hover {
           transform: translateY(-2px);
           box-shadow: 0 4px 16px rgba(255, 149, 0, 0.2);
@@ -1408,6 +1456,13 @@ export default function MedicoInfoPage({ params }) {
           font-weight: 600;
           color: #ff9500;
           letter-spacing: 0.25px;
+        }
+
+        /* Mobile: Texto de seguro más pequeño */
+        @media (max-width: 768px) {
+          .seguro-name {
+            font-size: 0.75rem;
+          }
         }
 
         /* Card Header */
@@ -1444,11 +1499,27 @@ export default function MedicoInfoPage({ params }) {
           border: 1px solid #e5e7eb;
         }
 
+        /* Mobile: Contenedor de experiencia más compacto */
+        @media (max-width: 768px) {
+          .experience-content {
+            padding: 1rem;
+            border-radius: 10px;
+          }
+        }
+
         .experience-text {
           font-size: 0.95rem;
           line-height: 1.6;
           color: #374151;
           margin: 0;
+        }
+
+        /* Mobile: Texto de experiencia más pequeño */
+        @media (max-width: 768px) {
+          .experience-text {
+            font-size: 0.85rem;
+            line-height: 1.5;
+          }
         }
 
         /* Important Info Header */
@@ -1816,6 +1887,14 @@ export default function MedicoInfoPage({ params }) {
           transition: all 0.3s ease;
         }
 
+        /* Mobile: Cards de info más pequeñas */
+        @media (max-width: 768px) {
+          .info-card {
+            padding: 1rem;
+            border-radius: 12px;
+          }
+        }
+
         .info-card:hover {
           transform: translateY(-2px);
           box-shadow: 
@@ -1872,6 +1951,14 @@ export default function MedicoInfoPage({ params }) {
           box-shadow: 0 2px 8px rgba(255, 149, 0, 0.1);
         }
 
+        /* Mobile: Cards de seguro más pequeñas */
+        @media (max-width: 768px) {
+          .seguro-card {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+          }
+        }
+
         .seguro-card:hover {
           transform: translateY(-2px);
           box-shadow: 0 4px 16px rgba(255, 149, 0, 0.2);
@@ -1890,12 +1977,27 @@ export default function MedicoInfoPage({ params }) {
           letter-spacing: 0.25px;
         }
 
+        /* Mobile: Texto de seguro más pequeño */
+        @media (max-width: 768px) {
+          .seguro-name {
+            font-size: 0.75rem;
+          }
+        }
+
         /* Experience */
         .experience-content {
           background: #f9fafb;
           padding: 1.5rem;
           border-radius: 12px;
           border: 1px solid #e5e7eb;
+        }
+
+        /* Mobile: Contenedor de experiencia más compacto */
+        @media (max-width: 768px) {
+          .experience-content {
+            padding: 1rem;
+            border-radius: 10px;
+          }
         }
 
         .experience-content p {
