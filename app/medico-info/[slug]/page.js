@@ -1226,6 +1226,19 @@ export default function MedicoInfoPage({ params }) {
           background: rgba(255, 149, 0, 0.1);
         }
 
+        /* Desktop: Icono optimizado */
+        @media (min-width: 769px) {
+          .info-icon {
+            width: 16px;
+            height: 16px;
+          }
+          
+          .info-icon svg {
+            width: 12px;
+            height: 12px;
+          }
+        }
+
         /* Mobile: Icono de información más pequeño */
         @media (max-width: 768px) {
           .info-icon {
@@ -1255,6 +1268,16 @@ export default function MedicoInfoPage({ params }) {
           transition: all 0.2s ease;
           z-index: 1000;
           margin-bottom: 5px;
+        }
+
+        /* Desktop: Tooltip optimizado */
+        @media (min-width: 769px) {
+          .tooltip {
+            padding: 0.375rem 0.625rem;
+            font-size: 0.6875rem;
+            border-radius: 5px;
+            margin-bottom: 4px;
+          }
         }
 
         /* Mobile: Tooltip más pequeño */
@@ -1291,6 +1314,14 @@ export default function MedicoInfoPage({ params }) {
           letter-spacing: -0.5px;
         }
 
+        /* Desktop: Títulos optimizados */
+        @media (min-width: 769px) {
+          .section-title {
+            font-size: 1.5rem;
+            margin: 0 0 1.25rem 0;
+          }
+        }
+
         /* Mobile: Títulos más pequeños */
         @media (max-width: 768px) {
           .section-title {
@@ -1315,6 +1346,16 @@ export default function MedicoInfoPage({ params }) {
           backdrop-filter: blur(10px);
           position: relative;
           overflow: hidden;
+        }
+
+        /* Desktop: Padding optimizado para cajas */
+        @media (min-width: 769px) {
+          .professional-info,
+          .experience-card,
+          .seguros-card {
+            padding: 2rem;
+            border-radius: 18px;
+          }
         }
 
         /* Mobile: Padding más pequeño para cajas */
@@ -1381,6 +1422,14 @@ export default function MedicoInfoPage({ params }) {
           transition: all 0.3s ease;
         }
 
+        /* Desktop: Cards de info optimizadas */
+        @media (min-width: 769px) {
+          .info-card {
+            padding: 1.25rem;
+            border-radius: 14px;
+          }
+        }
+
         /* Mobile: Cards de info más pequeñas */
         @media (max-width: 768px) {
           .info-card {
@@ -1411,6 +1460,18 @@ export default function MedicoInfoPage({ params }) {
           gap: 0.5rem;
         }
 
+        /* Desktop: Optimizar espaciado */
+        @media (min-width: 769px) {
+          .info-header {
+            gap: 0.625rem;
+            margin-bottom: 0.5rem;
+          }
+          
+          .info-title-with-icon {
+            gap: 0.375rem;
+          }
+        }
+
         /* Mobile: Reducir gap en info-header y hacer más compacto */
         @media (max-width: 768px) {
           .info-header {
@@ -1436,6 +1497,13 @@ export default function MedicoInfoPage({ params }) {
           letter-spacing: 0.5px;
         }
 
+        /* Desktop: Títulos de info optimizados */
+        @media (min-width: 769px) {
+          .info-title {
+            font-size: 0.8125rem;
+          }
+        }
+
         /* Mobile: Títulos de info más pequeños */
         @media (max-width: 768px) {
           .info-title {
@@ -1448,6 +1516,13 @@ export default function MedicoInfoPage({ params }) {
           color: #171717;
           margin: 0;
           font-weight: 500;
+        }
+
+        /* Desktop: Contenido de info optimizado */
+        @media (min-width: 769px) {
+          .info-content {
+            font-size: 0.9375rem;
+          }
         }
 
         /* Mobile: Contenido de info más pequeño */
@@ -1931,6 +2006,14 @@ export default function MedicoInfoPage({ params }) {
             0 2px 4px rgba(0, 0, 0, 0.02);
           backdrop-filter: blur(5px);
           transition: all 0.3s ease;
+        }
+
+        /* Desktop: Cards de info optimizadas */
+        @media (min-width: 769px) {
+          .info-card {
+            padding: 1.25rem;
+            border-radius: 14px;
+          }
         }
 
         /* Mobile: Cards de info más pequeñas */
