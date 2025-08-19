@@ -583,9 +583,33 @@ export default function SobrecuposMedico() {
                         </div>
                         <div className="patient-details">
                           <div className="patient-name">{sobrecupo.fields.Nombre}</div>
-                          {sobrecupo.fields?.Email && (
-                            <div className="patient-contact">{sobrecupo.fields.Email}</div>
-                          )}
+                          <div className="patient-contacts">
+                            {sobrecupo.fields?.Email && (
+                              <div className="patient-contact">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2"/>
+                                  <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                {sobrecupo.fields.Email}
+                              </div>
+                            )}
+                            {sobrecupo.fields?.Telefono && (
+                              <div className="patient-contact">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                {sobrecupo.fields.Telefono}
+                              </div>
+                            )}
+                            {sobrecupo.fields?.RUT && (
+                              <div className="patient-contact">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                RUT: {sobrecupo.fields.RUT}
+                              </div>
+                            )}
+                          </div>
                           <div className="confirmed-badge">Confirmado</div>
                         </div>
                       </div>
@@ -999,7 +1023,7 @@ export default function SobrecuposMedico() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 1.5rem;
+          padding: 1rem 1.25rem;
           border-bottom: 1px solid #f5f5f5;
         }
 
@@ -1049,10 +1073,10 @@ export default function SobrecuposMedico() {
         }
 
         .card-body {
-          padding: 1.5rem;
+          padding: 1.25rem;
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1rem;
         }
 
         .datetime-info {
@@ -1129,22 +1153,22 @@ export default function SobrecuposMedico() {
         .patient-info {
           display: flex;
           align-items: center;
-          gap: 1rem;
-          padding: 1rem;
+          gap: 0.75rem;
+          padding: 0.75rem;
           background: #fafafa;
-          border-radius: 12px;
+          border-radius: 8px;
           border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .patient-avatar {
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
           background: #171717;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           font-weight: 600;
           color: white;
           flex-shrink: 0;
@@ -1164,9 +1188,23 @@ export default function SobrecuposMedico() {
           font-weight: 500;
         }
 
+        .patient-contacts {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
         .patient-contact {
-          font-size: 0.75rem;
+          font-size: 0.6875rem;
           color: #666;
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+        }
+
+        .patient-contact svg {
+          color: #999;
+          flex-shrink: 0;
         }
 
         .confirmed-badge {
@@ -1231,12 +1269,12 @@ export default function SobrecuposMedico() {
           }
 
           .card-header {
-            padding: 2rem;
+            padding: 1.25rem 1.5rem;
           }
 
           .card-body {
-            padding: 1.5rem 2rem 2rem;
-            gap: 2rem;
+            padding: 1.5rem;
+            gap: 1.25rem;
           }
         }
 
@@ -1273,12 +1311,12 @@ export default function SobrecuposMedico() {
           }
 
           .card-header {
-            padding: 1rem;
+            padding: 0.75rem 1rem;
           }
 
           .card-body {
             padding: 1rem;
-            gap: 1rem;
+            gap: 0.75rem;
           }
 
           .datetime-info {
@@ -1307,14 +1345,18 @@ export default function SobrecuposMedico() {
           }
 
           .patient-info {
-            padding: 0.75rem;
-            gap: 0.75rem;
+            padding: 0.5rem;
+            gap: 0.5rem;
           }
 
           .patient-avatar {
-            width: 32px;
-            height: 32px;
-            font-size: 0.75rem;
+            width: 28px;
+            height: 28px;
+            font-size: 0.6875rem;
+          }
+
+          .patient-contact {
+            font-size: 0.625rem;
           }
         }
 
