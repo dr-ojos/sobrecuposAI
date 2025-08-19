@@ -447,7 +447,7 @@ function MedicoDashboard() {
               Próximos Sobrecupos
             </h2>
             <button onClick={() => router.push('/medico/sobrecupos')} className="view-all-btn">
-              Ver todos
+              Gestiona tus sobrecupos
             </button>
           </div>
           
@@ -1205,14 +1205,42 @@ function MedicoDashboard() {
           flex-shrink: 0;
         }
 
-        /* Responsive - estilo Apple */
+        /* Responsive - Mobile optimizado */
         @media (max-width: 768px) {
           .header {
-            padding: 1rem;
+            padding: 0.75rem 1rem;
+          }
+
+          .header-content {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+          }
+
+          .doctor-profile {
+            justify-content: center;
+          }
+
+          .doctor-name {
+            font-size: 1.125rem;
+          }
+
+          .doctor-specialty {
+            font-size: 0.8125rem;
+          }
+
+          .logout-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 0.75rem;
           }
 
           .main-content {
-            padding: 2rem 1rem;
+            padding: 1.5rem 1rem;
+          }
+
+          .stats-section {
+            margin-bottom: 4rem;
           }
 
           .stats-grid {
@@ -1221,11 +1249,54 @@ function MedicoDashboard() {
           }
 
           .stat-card {
-            padding: 1.5rem;
+            padding: 1.25rem;
+            border-radius: 12px;
           }
 
           .stat-number {
-            font-size: 2rem;
+            font-size: 1.875rem;
+          }
+
+          .stat-label {
+            font-size: 0.875rem;
+          }
+
+          .stat-sublabel {
+            font-size: 0.75rem;
+          }
+
+          .actions-section,
+          .timeline-section {
+            margin-bottom: 4rem;
+          }
+
+          .section-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+          }
+
+          .section-title {
+            font-size: 1.375rem;
+            text-align: center;
+          }
+
+          .view-all-btn {
+            width: 100%;
+            padding: 0.875rem;
+            background: linear-gradient(135deg, #ff9500, #ff8800);
+            color: white;
+            border: none;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(255, 149, 0, 0.25);
+          }
+
+          .view-all-btn:hover {
+            background: linear-gradient(135deg, #ff8800, #ff7700);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.35);
           }
 
           .actions-grid {
@@ -1234,30 +1305,35 @@ function MedicoDashboard() {
           }
 
           .action-content {
-            padding: 1.5rem;
-          }
-
-          .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
-          }
-
-          .timeline-card {
             padding: 1.25rem;
           }
 
+          .action-title {
+            font-size: 1rem;
+          }
+
+          .action-description {
+            font-size: 0.8125rem;
+          }
+
+          .timeline-card {
+            padding: 1.125rem;
+            border-radius: 12px;
+          }
+
           .timeline-header {
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.875rem;
             gap: 0.75rem;
           }
 
           .date-block {
-            min-width: 42px;
+            min-width: 40px;
             padding: 0.5rem;
+            border-radius: 6px;
           }
 
           .day {
-            font-size: 1.125rem;
+            font-size: 1rem;
           }
 
           .month {
@@ -1292,12 +1368,12 @@ function MedicoDashboard() {
 
           .patient-info {
             padding: 0.75rem;
-            gap: 0.5rem;
+            gap: 0.625rem;
           }
 
           .patient-avatar {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             font-size: 10px;
           }
 
@@ -1309,23 +1385,102 @@ function MedicoDashboard() {
             padding: 0.1875rem 0.375rem;
             font-size: 0.5625rem;
           }
+
+          .empty-state {
+            padding: 3rem 1.5rem;
+          }
+
+          .empty-title {
+            font-size: 1.25rem;
+          }
+
+          .empty-text {
+            font-size: 0.875rem;
+          }
+
+          .empty-action {
+            width: 100%;
+            padding: 1rem;
+          }
         }
 
+        /* iPhone SE y dispositivos muy pequeños */
         @media (max-width: 480px) {
+          .header {
+            padding: 0.625rem 0.75rem;
+          }
+
+          .doctor-name {
+            font-size: 1rem;
+          }
+
+          .doctor-specialty {
+            font-size: 0.75rem;
+          }
+
+          .logout-btn {
+            padding: 0.625rem;
+            font-size: 0.8125rem;
+          }
+
           .main-content {
-            padding: 1.5rem 0.75rem;
+            padding: 1.25rem 0.75rem;
+          }
+
+          .stats-section {
+            margin-bottom: 3rem;
           }
 
           .stats-grid {
             gap: 0.75rem;
+            grid-template-columns: 1fr;
           }
 
           .stat-card {
-            padding: 1.25rem;
+            padding: 1rem;
           }
 
           .stat-number {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
+          }
+
+          .stat-label {
+            font-size: 0.8125rem;
+          }
+
+          .stat-sublabel {
+            font-size: 0.6875rem;
+          }
+
+          .actions-section,
+          .timeline-section {
+            margin-bottom: 3rem;
+          }
+
+          .section-title {
+            font-size: 1.125rem;
+          }
+
+          .view-all-btn {
+            padding: 0.75rem;
+            font-size: 0.8125rem;
+          }
+
+          .action-content {
+            padding: 1rem;
+          }
+
+          .action-icon-bg {
+            width: 36px;
+            height: 36px;
+          }
+
+          .action-title {
+            font-size: 0.9375rem;
+          }
+
+          .action-description {
+            font-size: 0.75rem;
           }
 
           .timeline-card {
@@ -1333,25 +1488,25 @@ function MedicoDashboard() {
           }
 
           .timeline-header {
-            margin-bottom: 0.5rem;
-            gap: 0.5rem;
+            margin-bottom: 0.625rem;
+            gap: 0.625rem;
           }
 
           .date-block {
-            min-width: 38px;
+            min-width: 36px;
             padding: 0.375rem;
           }
 
           .day {
-            font-size: 1rem;
+            font-size: 0.9375rem;
           }
 
           .month {
-            font-size: 0.5rem;
+            font-size: 0.4375rem;
           }
 
           .time {
-            font-size: 0.875rem;
+            font-size: 0.9375rem;
           }
 
           .relative-time {
@@ -1364,7 +1519,7 @@ function MedicoDashboard() {
           }
 
           .timeline-body {
-            gap: 0.5rem;
+            gap: 0.625rem;
           }
 
           .clinic-info {
@@ -1381,13 +1536,13 @@ function MedicoDashboard() {
           }
 
           .patient-info {
-            padding: 0.5rem;
-            gap: 0.375rem;
+            padding: 0.625rem;
+            gap: 0.5rem;
           }
 
           .patient-avatar {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             font-size: 9px;
           }
 
@@ -1400,20 +1555,20 @@ function MedicoDashboard() {
             font-size: 0.5rem;
           }
 
-          .action-content {
-            padding: 1.25rem;
+          .empty-state {
+            padding: 2.5rem 1rem;
           }
 
-          .action-icon-bg {
-            width: 36px;
-            height: 36px;
+          .empty-title {
+            font-size: 1.125rem;
           }
 
-          .action-title {
-            font-size: 1rem;
+          .empty-text {
+            font-size: 0.8125rem;
           }
 
-          .action-description {
+          .empty-action {
+            padding: 0.875rem;
             font-size: 0.8125rem;
           }
         }
