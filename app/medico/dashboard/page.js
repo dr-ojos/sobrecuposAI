@@ -633,7 +633,7 @@ function MedicoDashboard() {
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 1.5rem;
         }
 
@@ -1203,6 +1203,22 @@ function MedicoDashboard() {
           font-weight: 400;
           border: 1px solid rgba(52, 199, 89, 0.1);
           flex-shrink: 0;
+        }
+
+        /* Responsive - Tablet mantiene 4 columnas */
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+          }
+
+          .stat-card {
+            padding: 1.25rem;
+          }
+
+          .stat-number {
+            font-size: 1.75rem;
+          }
         }
 
         /* Responsive - Mobile optimizado */
