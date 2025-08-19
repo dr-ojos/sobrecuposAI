@@ -633,15 +633,15 @@ function MedicoDashboard() {
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 2rem;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.5rem;
         }
 
         .stat-card {
           background: white;
           border: 1px solid rgba(0, 0, 0, 0.05);
           border-radius: 16px;
-          padding: 2rem;
+          padding: 1.5rem;
           cursor: pointer;
           transition: all 0.2s ease;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -658,7 +658,7 @@ function MedicoDashboard() {
         .stat-content {
           display: flex;
           flex-direction: column;
-          gap: 1.5rem;
+          gap: 1rem;
         }
 
         .stat-header {
@@ -692,10 +692,10 @@ function MedicoDashboard() {
         }
 
         .stat-number {
-          font-size: 2.5rem;
+          font-size: 2rem;
           font-weight: 200;
           color: #171717;
-          letter-spacing: -2px;
+          letter-spacing: -1px;
         }
 
         .stat-label {
@@ -1433,7 +1433,7 @@ function MedicoDashboard() {
 
           .stats-grid {
             gap: 0.75rem;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr);
           }
 
           .stat-card {
