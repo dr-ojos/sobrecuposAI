@@ -444,16 +444,18 @@ export default function MedicoInfoPage({ params }) {
                 {fields.RSS && (
                   <div className="info-card">
                     <div className="info-header">
-                      <h4 className="info-title">Reg. SIS</h4>
-                      <div className="info-tooltip-container">
-                        <div className="info-icon">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                            <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
-                          </svg>
-                        </div>
-                        <div className="tooltip">
-                          Registro Superintendencia de Salud
+                      <div className="info-title-with-icon">
+                        <h4 className="info-title">Reg. SIS</h4>
+                        <div className="info-tooltip-container">
+                          <div className="info-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                              <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
+                            </svg>
+                          </div>
+                          <div className="tooltip">
+                            Registro Superintendencia de Salud
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -553,16 +555,18 @@ export default function MedicoInfoPage({ params }) {
                   {fields.RSS && (
                     <div className="info-card">
                       <div className="info-header">
-                        <h4 className="info-title">Reg. SIS</h4>
-                        <div className="info-tooltip-container">
-                          <div className="info-icon">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                              <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
-                            </svg>
-                          </div>
-                          <div className="tooltip">
-                            Registro Superintendencia de Salud
+                        <div className="info-title-with-icon">
+                          <h4 className="info-title">Reg. SIS</h4>
+                          <div className="info-tooltip-container">
+                            <div className="info-icon">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                                <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
+                              </svg>
+                            </div>
+                            <div className="tooltip">
+                              Registro Superintendencia de Salud
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1222,6 +1226,19 @@ export default function MedicoInfoPage({ params }) {
           background: rgba(255, 149, 0, 0.1);
         }
 
+        /* Mobile: Icono de información más pequeño */
+        @media (max-width: 768px) {
+          .info-icon {
+            width: 14px;
+            height: 14px;
+          }
+          
+          .info-icon svg {
+            width: 10px;
+            height: 10px;
+          }
+        }
+
         .tooltip {
           position: absolute;
           bottom: 100%;
@@ -1238,6 +1255,16 @@ export default function MedicoInfoPage({ params }) {
           transition: all 0.2s ease;
           z-index: 1000;
           margin-bottom: 5px;
+        }
+
+        /* Mobile: Tooltip más pequeño */
+        @media (max-width: 768px) {
+          .tooltip {
+            padding: 0.375rem 0.5rem;
+            font-size: 0.6rem;
+            border-radius: 4px;
+            margin-bottom: 3px;
+          }
         }
 
         .tooltip::after {
@@ -1375,6 +1402,25 @@ export default function MedicoInfoPage({ params }) {
           gap: 0.75rem;
           margin-bottom: 0.75rem;
           justify-content: space-between;
+        }
+
+        /* Nuevo contenedor para título con icono */
+        .info-title-with-icon {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        /* Mobile: Reducir gap en info-header y hacer más compacto */
+        @media (max-width: 768px) {
+          .info-header {
+            gap: 0.5rem;
+            margin-bottom: 0.375rem;
+          }
+          
+          .info-title-with-icon {
+            gap: 0.25rem;
+          }
         }
 
         .info-icon {
