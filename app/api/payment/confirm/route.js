@@ -203,8 +203,8 @@ export async function POST(req) {
           Telefono: String(patientData.phone || '').trim(),
           RUT: String(patientData.rut || '').trim(),
           ...(edad && edad > 0 ? { Edad: edad } : {}),
-          // Motivo de consulta
-          ...(motivo ? { "Motivo de consulta": String(motivo).trim() } : {})
+          // Motivo de consulta (mismo nombre que en tabla Pacientes)
+          ...(motivo ? { "Motivo Consulta": String(motivo).trim() } : {})
         }
       };
 

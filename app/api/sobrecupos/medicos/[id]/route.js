@@ -7,7 +7,7 @@ const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
 // GET: obtener sobrecupos de un médico específico
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     if (!id) {
       console.error("❌ ID de médico no proporcionado");
@@ -72,7 +72,15 @@ export async function GET(request, { params }) {
         fecha: sobrecupos[0].fields?.Fecha,
         hora: sobrecupos[0].fields?.Hora,
         disponible: sobrecupos[0].fields?.Disponible,
-        medico: sobrecupos[0].fields?.Médico
+        medico: sobrecupos[0].fields?.Médico,
+        // 🆕 CAMPOS DEL PACIENTE
+        nombre: sobrecupos[0].fields?.Nombre,
+        edad: sobrecupos[0].fields?.Edad,
+        email: sobrecupos[0].fields?.Email,
+        telefono: sobrecupos[0].fields?.Telefono,
+        motivoConsulta: sobrecupos[0].fields?.['Motivo Consulta'],
+        // 🔍 TODOS LOS CAMPOS DISPONIBLES
+        allFields: Object.keys(sobrecupos[0].fields || {})
       });
     } else {
       // ✅ Si no encontramos nada, intentar método alternativo
@@ -204,7 +212,7 @@ async function filterInJavaScript(doctorId) {
 // POST: crear nuevo sobrecupo para el médico
 export async function POST(request, { params }) {
   try {
-    const { id } = params; // ID del médico
+    const { id } = await params; // ID del médico
     const body = await request.json();
     
     if (!id) {

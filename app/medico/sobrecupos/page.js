@@ -589,12 +589,12 @@ export default function SobrecuposMedico() {
                             )}
                           </div>
                           
-                          {sobrecupo.fields?.['Motivo de consulta'] && (
+                          {sobrecupo.fields?.['Motivo Consulta'] && (
                             <div className="patient-reason">
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                                 <path d="M9 11H3a1 1 0 00-1 1v3c0 1.66 1.34 3 3 3h1m4-6h7a1 1 0 011 1v3c0 1.66-1.34 3-3 3h-1m-4-6V7c0-1.66 1.34-3 3-3s3 1.34 3 3v4m-8 0V7c0-1.66-1.34-3-3-3S5 5.34 5 7v4" stroke="currentColor" strokeWidth="2"/>
                               </svg>
-                              <span>{sobrecupo.fields['Motivo de consulta']}</span>
+                              <span>{sobrecupo.fields['Motivo Consulta']}</span>
                             </div>
                           )}
 
