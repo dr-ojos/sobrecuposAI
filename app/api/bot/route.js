@@ -927,6 +927,11 @@ function detectarEspecialidadPorSintomas(text) {
     'ardor en los ojos', 'quemazón ojos', 'lagrimeo', 'lagrimean', 'ojo llora',
     'dolor de ojos', 'duelen los ojos', 'ojo duele', 'me duele el ojo',
     
+    // Síntomas específicos de córnea
+    'cornea', 'córnea', 'problema en la cornea', 'problema en la córnea',
+    'dolor en la cornea', 'dolor en la córnea', 'cornea dañada', 'córnea dañada',
+    'lesion cornea', 'lesión córnea', 'ulcera corneal', 'úlcera corneal',
+    
     // Síntomas relacionados con luz
     'sensible a la luz', 'fotofobia', 'molesta la luz', 'me molesta la luz',
     
@@ -1193,20 +1198,71 @@ async function getEspecialidadesDisponibles() {
   }
 }
 
+// 🆕 NUEVA FUNCIÓN: Extraer áreas de interés específicas del texto
+function extraerAreasInteres(texto) {
+  const areasConocidas = [
+    // Oftalmología
+    'córnea', 'cornea', 'retina', 'glaucoma', 'cataratas', 'cirugía refractiva', 'láser', 'laser',
+    'miopía', 'miopia', 'astigmatismo', 'hipermetropia', 'hipermetropía', 'ojos secos',
+    'conjuntivitis', 'orzuelo', 'chalazión', 'chalacion',
+    
+    // Dermatología  
+    'acné', 'acne', 'psoriasis', 'dermatitis', 'eczema', 'rosácea', 'rosacea',
+    'láser dermatológico', 'laser dermatologico', 'tricología', 'tricologia',
+    
+    // Cardiología
+    'ecocardiografía', 'ecocardiografia', 'electrocardiografía', 'electrocardiografia',
+    'holter', 'test de esfuerzo', 'arritmias', 'hipertensión arterial',
+    
+    // Gastroenterología
+    'endoscopía', 'endoscopia', 'colonoscopía', 'colonoscopia', 'reflujo gastroesofágico',
+    'síndrome intestino irritable', 'sindrome intestino irritable'
+  ];
+  
+  const textoLower = texto.toLowerCase();
+  const areasEncontradas = [];
+  
+  for (const area of areasConocidas) {
+    if (textoLower.includes(area.toLowerCase())) {
+      areasEncontradas.push(area);
+    }
+  }
+  
+  return areasEncontradas;
+}
+
 // 🆕 NUEVA FUNCIÓN: Buscar médicos por área de interés específica
 async function buscarMedicosPorAreaInteres(areaText) {
   try {
     console.log(`🔍 Buscando médicos por área de interés: "${areaText}"`);
     
-    // Buscar qué especialidades tienen esta área
-    const areasEncontradas = searchAreas(areaText);
+    // Extraer áreas específicas del texto
+    const areasEspecificas = extraerAreasInteres(areaText);
+    console.log(`🎯 Áreas específicas detectadas:`, areasEspecificas);
     
-    if (areasEncontradas.length === 0) {
+    if (areasEspecificas.length === 0) {
+      console.log(`❌ No se detectaron áreas específicas en: "${areaText}"`);
+      return [];
+    }
+    
+    // Buscar cada área específica
+    let todasLasAreas = [];
+    for (const area of areasEspecificas) {
+      const areasEncontradas = searchAreas(area);
+      todasLasAreas.push(...areasEncontradas);
+    }
+    
+    // Eliminar duplicados
+    const areasUnicas = todasLasAreas.filter((area, index, self) => 
+      index === self.findIndex(a => a.especialidad === area.especialidad)
+    );
+    
+    if (areasUnicas.length === 0) {
       console.log(`❌ No se encontraron áreas que coincidan con: "${areaText}"`);
       return [];
     }
 
-    console.log(`✅ Áreas encontradas:`, areasEncontradas);
+    console.log(`✅ Áreas encontradas:`, areasUnicas);
 
     // Obtener todos los médicos
     const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}`;
@@ -1231,7 +1287,7 @@ async function buscarMedicosPorAreaInteres(areaText) {
       const areasInteres = fields.AreasInteres || [];
       
       // Verificar si la especialidad del médico está en las áreas encontradas
-      const especialidadMatch = areasEncontradas.some(area => area.especialidad === especialidad);
+      const especialidadMatch = areasUnicas.some(area => area.especialidad === especialidad);
       
       if (!especialidadMatch) return false;
       
@@ -1239,7 +1295,7 @@ async function buscarMedicosPorAreaInteres(areaText) {
       if (!areasInteres.length) return true;
       
       // Verificar si el médico tiene el área específica en sus intereses
-      const tieneAreaEspecifica = areasEncontradas.some(areaInfo => 
+      const tieneAreaEspecifica = areasUnicas.some(areaInfo => 
         areaInfo.areas.some(area => 
           areasInteres.some(medicoArea => 
             medicoArea.toLowerCase().includes(area.toLowerCase()) ||
@@ -3882,6 +3938,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       if (sobrecuposFuturos.length > 0) {
         // Encontramos médicos especializados con disponibilidad
         const medicoInfo = medicosEspecializados[0];
+        const areasEspecificas = extraerAreasInteres(text);
         const especialistText = medicoInfo.areasInteres.length > 0 
           ? `especialista en ${medicoInfo.areasInteres.slice(0, 2).join(' y ')}`
           : `médico de ${medicoInfo.especialidad}`;
@@ -3889,8 +3946,14 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         session.specialty = medicoInfo.especialidad;
         session.stage = 'found_specialty';
         
+        // Mensaje personalizado según el área específica
+        let mensajePersonalizado = '';
+        if (areasEspecificas.length > 0) {
+          mensajePersonalizado = `Entiendo tu preocupación por ${areasEspecificas.join(', ')}. `;
+        }
+        
         return NextResponse.json({
-          text: `¡Perfecto! He encontrado médicos ${especialistText} con disponibilidad.\n\n${sobrecuposFuturos.length > 1 ? 'Hay varias opciones' : 'Hay una opción'} disponible. Para reservar necesito algunos datos:\n\n¿Cuál es tu edad?`,
+          text: `${mensajePersonalizado}¡Perfecto! He encontrado médicos ${especialistText} con disponibilidad.\n\n${sobrecuposFuturos.length > 1 ? 'Hay varias opciones' : 'Hay una opción'} disponible. Para reservar necesito algunos datos:\n\n¿Cuál es tu edad?`,
           session: session
         });
       } else {
