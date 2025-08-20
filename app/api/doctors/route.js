@@ -72,8 +72,48 @@ export async function PUT(req) {
         }, { status: 400 });
       }
     }
+
+    // Limpiar datos antes de enviar a Airtable
+    const cleanedData = {};
     
-    console.log('📝 Actualizando médico:', id, updateData);
+    // Solo incluir campos que tienen valores válidos
+    Object.keys(updateData).forEach(key => {
+      const value = updateData[key];
+      
+      // Excluir valores null, undefined, o strings vacíos
+      if (value !== null && value !== undefined && value !== '') {
+        // Para arrays, solo incluir si no están vacíos
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            cleanedData[key] = value;
+          }
+        } else {
+          cleanedData[key] = value;
+        }
+      }
+    });
+    
+    // Si AreasInteres está presente pero vacío, no lo incluimos
+    if (cleanedData.AreasInteres && cleanedData.AreasInteres.length === 0) {
+      delete cleanedData.AreasInteres;
+    }
+    
+    // Convertir AreasInteres a string JSON para evitar problemas con Multiple Select
+    if (cleanedData.AreasInteres && Array.isArray(cleanedData.AreasInteres)) {
+      cleanedData.AreasInteres = JSON.stringify(cleanedData.AreasInteres);
+    }
+    
+    console.log('📝 Actualizando médico:', {
+      id,
+      originalData: updateData,
+      cleanedData,
+      requestBody: {
+        records: [{
+          id: id,
+          fields: cleanedData
+        }]
+      }
+    });
     
     const res = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}`,
@@ -86,7 +126,7 @@ export async function PUT(req) {
         body: JSON.stringify({
           records: [{
             id: id,
-            fields: updateData
+            fields: cleanedData
           }]
         }),
       }

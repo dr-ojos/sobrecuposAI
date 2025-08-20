@@ -80,7 +80,19 @@ export default function PerfilMedico() {
           Especialidad: data.fields?.Especialidad || '',
           Atiende: data.fields?.Atiende || '',
           Seguros: data.fields?.Seguros || [],
-          AreasInteres: data.fields?.AreasInteres || [],
+          AreasInteres: (() => {
+            const areas = data.fields?.AreasInteres;
+            if (!areas) return [];
+            if (Array.isArray(areas)) return areas;
+            if (typeof areas === 'string') {
+              try {
+                return JSON.parse(areas);
+              } catch {
+                return [];
+              }
+            }
+            return [];
+          })(),
           Password: '',
           PhotoURL: finalPhotoURL,
           RSS: data.fields?.RSS || '',
@@ -168,6 +180,12 @@ export default function PerfilMedico() {
         delete updateData.Password;
       }
 
+      console.log('🔄 Actualizando perfil con datos:', {
+        id: session.user.doctorId,
+        AreasInteres: updateData.AreasInteres,
+        updateData
+      });
+
       const res = await fetch('/api/doctors', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -183,7 +201,8 @@ export default function PerfilMedico() {
         setTimeout(() => setMessage(''), 3000);
       } else {
         const errorData = await res.json();
-        setMessage(`${errorData.message || 'Error actualizando perfil'}`);
+        console.error('Error response:', errorData);
+        setMessage(`${errorData.error || errorData.message || 'Error actualizando perfil'}`);
       }
     } catch (error) {
       setMessage('Error de conexión');
