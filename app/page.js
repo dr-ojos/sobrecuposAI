@@ -209,21 +209,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Botón ver sobrecupos - Centrado */}
-          <div className={`additional-options ${isVisible ? 'visible' : ''}`}>
-            <div className="explore-button-container">
-              <button 
-                onClick={goToSobrecupos}
-                className="explore-button"
-              >
-                <span>Ver Sobrecupos disponibles</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-
           {/* Especialidades Disponibles Mejoradas */}
           {especialidades.length > 0 && (
             <div className={`especialidades-section ${isVisible ? 'visible' : ''}`}>
@@ -239,6 +224,21 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          {/* Botón ver sobrecupos - Centrado */}
+          <div className={`additional-options ${isVisible ? 'visible' : ''}`}>
+            <div className="explore-button-container">
+              <button 
+                onClick={goToSobrecupos}
+                className="explore-button"
+              >
+                <span>Ver Sobrecupos disponibles</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -552,6 +552,9 @@ export default function Home() {
           line-height: 1.3;
           letter-spacing: -0.3px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          max-width: 500px;
+          margin-left: auto;
+          margin-right: auto;
         }
 
         .chat-title {
@@ -1024,12 +1027,12 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 400px;
-            height: 165px;
+            width: 320px;
+            height: 132px;
           }
           
           .tagline {
-            margin-bottom: 6rem;
+            margin-bottom: 8rem;
             margin-top: -2rem;
             padding: 0 0.5rem;
           }
@@ -1106,12 +1109,12 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 350px;
-            height: 145px;
+            width: 280px;
+            height: 116px;
           }
           
           .tagline {
-            margin-bottom: 5rem;
+            margin-bottom: 7rem;
             margin-top: -1.5rem;
             padding: 0 0.5rem;
           }
@@ -1136,7 +1139,7 @@ export default function Home() {
           }
 
           .chat-title {
-            font-size: 0.95rem;
+            font-size: 0.8rem;
             margin-bottom: 1rem;
             line-height: 1.3;
             padding: 0;
@@ -1188,7 +1191,7 @@ export default function Home() {
           }
 
           .chat-title {
-            font-size: 0.875rem;
+            font-size: 0.75rem;
           }
           
           .input-wrapper {
@@ -1229,12 +1232,12 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 280px;
-            height: 116px;
+            width: 240px;
+            height: 99px;
           }
           
           .tagline {
-            margin-bottom: 4.5rem;
+            margin-bottom: 6rem;
             margin-top: -1rem;
             padding: 0 0.25rem;
           }
@@ -1259,7 +1262,7 @@ export default function Home() {
           }
 
           .chat-title {
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             margin-bottom: 0.8rem;
             padding: 0;
           }
