@@ -480,6 +480,26 @@ function ChatComponent() {
     });
   };
 
+  // Función para determinar si debe mostrar el timestamp
+  const shouldShowTimestamp = (currentIndex, messages) => {
+    const currentMsg = messages[currentIndex];
+    const nextMsg = messages[currentIndex + 1];
+    
+    // Si es del usuario, siempre mostrar
+    if (currentMsg.from === 'user') return true;
+    
+    // Si es el último mensaje, mostrar
+    if (currentIndex === messages.length - 1) return true;
+    
+    // Si el siguiente mensaje es del usuario, mostrar (fin de secuencia del bot)
+    if (nextMsg && nextMsg.from === 'user') return true;
+    
+    // Si es del bot y el siguiente también es del bot, no mostrar
+    if (currentMsg.from === 'bot' && nextMsg && nextMsg.from === 'bot') return false;
+    
+    return true;
+  };
+
   const quickSuggestions = [
     "Veo borroso",
     "Necesito control de lentes", 
@@ -564,9 +584,11 @@ function ChatComponent() {
                     </div>
                   )}
                 </div>
-                <div className="message-time">
-                  {formatTime(msg.timestamp)}
-                </div>
+                {shouldShowTimestamp(i, messages) && (
+                  <div className="message-time">
+                    {formatTime(msg.timestamp)}
+                  </div>
+                )}
               </div>
             </div>
           ))}

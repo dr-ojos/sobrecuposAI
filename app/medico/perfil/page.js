@@ -2,6 +2,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
+import { getAreasByEspecialidad } from '../../../lib/areas-interes.js';
 
 export default function PerfilMedico() {
   const { data: session, status } = useSession();
@@ -18,6 +19,7 @@ export default function PerfilMedico() {
     Especialidad: '',
     Atiende: '',
     Seguros: [],
+    AreasInteres: [],
     Password: '',
     PhotoURL: '',
     RSS: '',
@@ -28,9 +30,8 @@ export default function PerfilMedico() {
     "Oftalmología", "Medicina Familiar", "Medicina Familiar Niños", "Medicina Familiar Adultos",
     "Dermatología", "Pediatría", "Otorrinolaringología", "Neurología", "Cardiología", 
     "Ginecología", "Traumatología", "Psiquiatría", "Urología", "Endocrinología",
-    "Gastroenterología", "Neumología", "Reumatología", "Oncología",
-    "Hematología", "Nefrología", "Infectología", "Geriatría",
-    "Medicina Interna", "Anestesiología", "Radiología", "Patología"
+    "Gastroenterología", "Broncopulmonar", "Reumatología", "Oncología",
+    "Hematología", "Nefrología", "Infectología", "Geriatría", "Medicina Interna"
   ];
 
   const opcionesAtiende = ["Adultos", "Niños", "Ambos"];
@@ -79,6 +80,7 @@ export default function PerfilMedico() {
           Especialidad: data.fields?.Especialidad || '',
           Atiende: data.fields?.Atiende || '',
           Seguros: data.fields?.Seguros || [],
+          AreasInteres: data.fields?.AreasInteres || [],
           Password: '',
           PhotoURL: finalPhotoURL,
           RSS: data.fields?.RSS || '',
@@ -196,6 +198,15 @@ export default function PerfilMedico() {
       Seguros: prev.Seguros.includes(seguro)
         ? prev.Seguros.filter(s => s !== seguro)
         : [...prev.Seguros, seguro]
+    }));
+  };
+
+  const handleAreaInteresChange = (area) => {
+    setDoctorData(prev => ({
+      ...prev,
+      AreasInteres: prev.AreasInteres.includes(area)
+        ? prev.AreasInteres.filter(a => a !== area)
+        : [...prev.AreasInteres, area]
     }));
   };
 
@@ -506,6 +517,43 @@ export default function PerfilMedico() {
                       {doctorData.Seguros.length} seleccionado{doctorData.Seguros.length !== 1 ? 's' : ''}
                     </p>
                   )}
+                </div>
+
+                {/* Áreas de Interés */}
+                <div className="form-field">
+                  <label className="field-label">Áreas de Interés</label>
+                  {doctorData.Especialidad ? (
+                    <div className="checkbox-group areas-interes">
+                      {getAreasByEspecialidad(doctorData.Especialidad).map(area => (
+                        <label key={area} className="checkbox-item area-item">
+                          <input
+                            type="checkbox"
+                            checked={doctorData.AreasInteres.includes(area)}
+                            onChange={() => handleAreaInteresChange(area)}
+                            className="checkbox-input"
+                          />
+                          <div className="checkbox-custom">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                              <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                          <span className="checkbox-label">{area}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="no-especialidad-message">
+                      <p>💡 Selecciona primero tu especialidad para ver las áreas de interés disponibles</p>
+                    </div>
+                  )}
+                  {doctorData.AreasInteres.length > 0 && (
+                    <p className="selected-count">
+                      {doctorData.AreasInteres.length} área{doctorData.AreasInteres.length !== 1 ? 's' : ''} seleccionada{doctorData.AreasInteres.length !== 1 ? 's' : ''}
+                    </p>
+                  )}
+                  <p className="field-help">
+                    Estas áreas aparecerán en tu perfil público y ayudarán a los pacientes a encontrarte
+                  </p>
                 </div>
 
                 <div className="form-field">
@@ -961,6 +1009,41 @@ export default function PerfilMedico() {
           color: #ff9500;
           font-weight: 500;
           margin: 0;
+        }
+
+        /* Áreas de Interés específicos */
+        .areas-interes {
+          max-height: 300px;
+          overflow-y: auto;
+          padding: 1rem;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          background: #fafafa;
+        }
+
+        .area-item {
+          padding: 0.5rem;
+          border-radius: 6px;
+          transition: all 0.2s ease;
+        }
+
+        .area-item:hover {
+          background: white;
+          transform: translateX(2px);
+        }
+
+        .no-especialidad-message {
+          padding: 2rem;
+          text-align: center;
+          background: #f9fafb;
+          border: 1px solid #e5e5e5;
+          border-radius: 8px;
+          color: #666;
+        }
+
+        .no-especialidad-message p {
+          margin: 0;
+          font-size: 0.875rem;
         }
 
         /* Form Actions */

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isValidArea, getAreasByEspecialidad } from '../../../lib/areas-interes.js';
 
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
@@ -55,6 +56,21 @@ export async function PUT(req) {
     
     if (!id) {
       return NextResponse.json({ error: "ID requerido" }, { status: 400 });
+    }
+
+    // Validar áreas de interés si se están actualizando
+    if (updateData.AreasInteres && updateData.Especialidad) {
+      const areasValidas = getAreasByEspecialidad(updateData.Especialidad);
+      const areasInvalidas = updateData.AreasInteres.filter(area => 
+        !isValidArea(updateData.Especialidad, area)
+      );
+      
+      if (areasInvalidas.length > 0) {
+        return NextResponse.json({ 
+          error: `Áreas de interés inválidas para ${updateData.Especialidad}: ${areasInvalidas.join(', ')}`,
+          areasDisponibles: areasValidas
+        }, { status: 400 });
+      }
     }
     
     console.log('📝 Actualizando médico:', id, updateData);

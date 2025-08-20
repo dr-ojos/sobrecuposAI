@@ -1,6 +1,7 @@
 // app/api/bot/route.js - VERSIÓN FINAL CORREGIDA Y COMPLETA
 import { NextResponse } from 'next/server';
 import whatsAppService from '../../../lib/whatsapp-service';
+import { searchAreas } from '../../../lib/areas-interes.js';
 
 // Estado de sesiones en memoria mejorado con timeout
 const sessions = {};
@@ -1188,6 +1189,81 @@ async function getEspecialidadesDisponibles() {
     return especialidades;
   } catch (error) {
     console.error('Error obteniendo especialidades:', error);
+    return [];
+  }
+}
+
+// 🆕 NUEVA FUNCIÓN: Buscar médicos por área de interés específica
+async function buscarMedicosPorAreaInteres(areaText) {
+  try {
+    console.log(`🔍 Buscando médicos por área de interés: "${areaText}"`);
+    
+    // Buscar qué especialidades tienen esta área
+    const areasEncontradas = searchAreas(areaText);
+    
+    if (areasEncontradas.length === 0) {
+      console.log(`❌ No se encontraron áreas que coincidan con: "${areaText}"`);
+      return [];
+    }
+
+    console.log(`✅ Áreas encontradas:`, areasEncontradas);
+
+    // Obtener todos los médicos
+    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_DOCTORS_TABLE}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${process.env.AIRTABLE_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const records = data.records || [];
+
+    // Filtrar médicos que tengan el área de interés específica
+    const medicosEspecializados = records.filter(record => {
+      const fields = record.fields || {};
+      const especialidad = fields.Especialidad;
+      const areasInteres = fields.AreasInteres || [];
+      
+      // Verificar si la especialidad del médico está en las áreas encontradas
+      const especialidadMatch = areasEncontradas.some(area => area.especialidad === especialidad);
+      
+      if (!especialidadMatch) return false;
+      
+      // Si el médico no tiene áreas de interés específicas, incluirlo
+      if (!areasInteres.length) return true;
+      
+      // Verificar si el médico tiene el área específica en sus intereses
+      const tieneAreaEspecifica = areasEncontradas.some(areaInfo => 
+        areaInfo.areas.some(area => 
+          areasInteres.some(medicoArea => 
+            medicoArea.toLowerCase().includes(area.toLowerCase()) ||
+            area.toLowerCase().includes(medicoArea.toLowerCase())
+          )
+        )
+      );
+      
+      return tieneAreaEspecifica;
+    });
+
+    console.log(`👨‍⚕️ Encontrados ${medicosEspecializados.length} médicos especializados en: "${areaText}"`);
+    
+    return medicosEspecializados.map(record => ({
+      id: record.id,
+      name: record.fields?.Name,
+      especialidad: record.fields?.Especialidad,
+      areasInteres: record.fields?.AreasInteres || [],
+      atiende: record.fields?.Atiende,
+      seguros: record.fields?.Seguros || []
+    }));
+
+  } catch (error) {
+    console.error('Error buscando médicos por área de interés:', error);
     return [];
   }
 }
@@ -3785,6 +3861,43 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         console.error('Error buscando médico específico:', error);
         return NextResponse.json({
           text: `Hubo un problema buscando al médico "${medicoEspecifico}". ¿Podrías intentar nuevamente o prefieres que te ayude a buscar por especialidad?`
+        });
+      }
+    }
+
+    // 🆕 DETECTAR BÚSQUEDA POR ÁREA DE INTERÉS ESPECÍFICA
+    const medicosEspecializados = await buscarMedicosPorAreaInteres(text);
+    if (medicosEspecializados.length > 0) {
+      console.log(`🎯 Encontrados médicos especializados en área específica`);
+      
+      // Buscar sobrecupos de estos médicos especializados
+      const sobrecuposEspecializados = [];
+      for (const medico of medicosEspecializados) {
+        const sobrecuposMedico = await buscarSobrecuposDeMedico(medico.id);
+        sobrecuposEspecializados.push(...sobrecuposMedico);
+      }
+      
+      const sobrecuposFuturos = filterFutureDates(sobrecuposEspecializados);
+      
+      if (sobrecuposFuturos.length > 0) {
+        // Encontramos médicos especializados con disponibilidad
+        const medicoInfo = medicosEspecializados[0];
+        const especialistText = medicoInfo.areasInteres.length > 0 
+          ? `especialista en ${medicoInfo.areasInteres.slice(0, 2).join(' y ')}`
+          : `médico de ${medicoInfo.especialidad}`;
+        
+        session.specialty = medicoInfo.especialidad;
+        session.stage = 'found_specialty';
+        
+        return NextResponse.json({
+          text: `¡Perfecto! He encontrado médicos ${especialistText} con disponibilidad.\n\n${sobrecuposFuturos.length > 1 ? 'Hay varias opciones' : 'Hay una opción'} disponible. Para reservar necesito algunos datos:\n\n¿Cuál es tu edad?`,
+          session: session
+        });
+      } else {
+        // Médicos especializados pero sin disponibilidad
+        const especialidades = [...new Set(medicosEspecializados.map(m => m.especialidad))];
+        return NextResponse.json({
+          text: `He encontrado médicos especializados en lo que buscas (${especialidades.join(', ')}), pero lamentablemente no tienen sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad de estos especialistas?`
         });
       }
     }
