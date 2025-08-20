@@ -20,13 +20,19 @@ export default function TestProfileUpdate() {
 
       const firstDoctor = doctors[0];
       
+      // Buscar específicamente a José Peña o usar el primero
+      const josePena = doctors.find(d => d.fields?.Name?.includes('José') || d.fields?.Name?.includes('Peña'));
+      const targetDoctor = josePena || firstDoctor;
+      
       // Datos de prueba usando ID real
       const testData = {
-        id: firstDoctor.id,
-        Name: firstDoctor.fields.Name || 'Dr. Test',
-        Email: firstDoctor.fields.Email || 'test@test.com',
-        Especialidad: 'Oftalmología',
-        AreasInteres: ['Cirugía refractiva Laser', 'Córnea']
+        id: targetDoctor.id,
+        Name: targetDoctor.fields.Name || 'Dr. Test',
+        Email: targetDoctor.fields.Email || 'test@test.com',
+        Especialidad: targetDoctor.fields.Especialidad || 'Medicina Interna',
+        AreasInteres: targetDoctor.fields.Especialidad === 'Medicina Interna' 
+          ? ['Medicina Hospitalaria', 'Diabetes', 'Hipertensión']
+          : ['Cirugía refractiva Laser', 'Córnea']
       };
 
       console.log('🧪 Enviando datos de prueba:', testData);

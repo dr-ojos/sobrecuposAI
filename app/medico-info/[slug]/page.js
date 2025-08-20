@@ -193,6 +193,19 @@ export default function MedicoInfoPage({ params }) {
         if (doctorEncontrado) {
           console.log('✅ Médico encontrado:', doctorEncontrado.fields?.Name);
           console.log('📄 Datos del médico:', doctorEncontrado.fields);
+          
+          // Procesar AreasInteres si existe
+          if (doctorEncontrado.fields?.AreasInteres) {
+            try {
+              if (typeof doctorEncontrado.fields.AreasInteres === 'string') {
+                doctorEncontrado.fields.AreasInteres = JSON.parse(doctorEncontrado.fields.AreasInteres);
+              }
+            } catch (error) {
+              console.log('⚠️ Error parsing AreasInteres:', error);
+              doctorEncontrado.fields.AreasInteres = [];
+            }
+          }
+          
           setMedico(doctorEncontrado);
           
           // Cargar sobrecupos del médico
@@ -511,6 +524,26 @@ export default function MedicoInfoPage({ params }) {
               </section>
             )}
 
+            {/* Áreas de Interés - Mobile */}
+            {fields.AreasInteres && Array.isArray(fields.AreasInteres) && fields.AreasInteres.length > 0 && (
+              <section className="areas-interes-card">
+                <h3 className="section-title">
+                  <span className="title-icon">🎯</span>
+                  Áreas de Especialización
+                </h3>
+                <div className="areas-grid">
+                  {fields.AreasInteres.map((area, index) => (
+                    <div key={index} className="area-badge">
+                      <span className="area-text">{area}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="areas-count">
+                  {fields.AreasInteres.length} área{fields.AreasInteres.length !== 1 ? 's' : ''} de especialización
+                </p>
+              </section>
+            )}
+
             {/* Información importante - Mobile */}
             <section className="important-info-card">
               <div className="info-header">
@@ -619,6 +652,26 @@ export default function MedicoInfoPage({ params }) {
                   <div className="experience-content">
                     <p className="experience-text">{fields.Experiencia}</p>
                   </div>
+                </section>
+              )}
+
+              {/* Áreas de Interés - Desktop */}
+              {fields.AreasInteres && Array.isArray(fields.AreasInteres) && fields.AreasInteres.length > 0 && (
+                <section className="areas-interes-card">
+                  <h3 className="section-title">
+                    <span className="title-icon">🎯</span>
+                    Áreas de Especialización
+                  </h3>
+                  <div className="areas-grid">
+                    {fields.AreasInteres.map((area, index) => (
+                      <div key={index} className="area-badge">
+                        <span className="area-text">{area}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="areas-count">
+                    {fields.AreasInteres.length} área{fields.AreasInteres.length !== 1 ? 's' : ''} de especialización
+                  </p>
                 </section>
               )}
             </div>
@@ -1188,9 +1241,9 @@ export default function MedicoInfoPage({ params }) {
           gap: 0.5rem;
           margin-bottom: 0.75rem;
           padding: 0.5rem 1rem;
-          background: linear-gradient(135deg, rgba(255, 149, 0, 0.1) 0%, rgba(255, 149, 0, 0.05) 100%);
+          background: #ff9500;
           border-radius: 20px;
-          border: 1px solid rgba(255, 149, 0, 0.2);
+          border: none;
           display: inline-flex;
         }
 
@@ -1200,7 +1253,7 @@ export default function MedicoInfoPage({ params }) {
 
         .specialty-text {
           font-size: 1rem;
-          color: #ff9500;
+          color: white;
           font-weight: 600;
           letter-spacing: 0.5px;
         }
@@ -1356,7 +1409,8 @@ export default function MedicoInfoPage({ params }) {
         .experience-card,
         .important-info-card,
         .calendar-section,
-        .seguros-card {
+        .seguros-card,
+        .areas-interes-card {
           background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
           border: 1px solid rgba(255, 255, 255, 0.5);
           border-radius: 20px;
@@ -1374,7 +1428,8 @@ export default function MedicoInfoPage({ params }) {
         @media (min-width: 769px) {
           .professional-info,
           .experience-card,
-          .seguros-card {
+          .seguros-card,
+          .areas-interes-card {
             padding: 2rem;
             border-radius: 18px;
           }
@@ -1384,7 +1439,8 @@ export default function MedicoInfoPage({ params }) {
         @media (max-width: 768px) {
           .professional-info,
           .experience-card,
-          .seguros-card {
+          .seguros-card,
+          .areas-interes-card {
             padding: 1.25rem;
             border-radius: 16px;
           }
@@ -1394,7 +1450,8 @@ export default function MedicoInfoPage({ params }) {
         .experience-card::before,
         .important-info-card::before,
         .calendar-section::before,
-        .seguros-card::before {
+        .seguros-card::before,
+        .areas-interes-card::before {
           content: '';
           position: absolute;
           top: 0;
@@ -1566,27 +1623,23 @@ export default function MedicoInfoPage({ params }) {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 1rem 1.25rem;
-          background: linear-gradient(135deg, rgba(255, 149, 0, 0.1) 0%, rgba(255, 149, 0, 0.05) 100%);
-          border: 1px solid rgba(255, 149, 0, 0.3);
-          border-radius: 12px;
+          padding: 0.5rem 0.75rem;
+          background: #6b7280;
+          border: 1px solid #9ca3af;
+          border-radius: 8px;
           text-align: center;
-          transition: all 0.3s ease;
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         /* Mobile: Cards de seguro más pequeñas */
         @media (max-width: 768px) {
           .seguro-card {
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
+            padding: 0.375rem 0.625rem;
+            border-radius: 6px;
           }
         }
 
-        .seguro-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(255, 149, 0, 0.2);
-        }
+        /* Seguro card hover removed */
 
         .seguro-icon {
           font-size: 1.25rem;
@@ -1595,9 +1648,9 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .seguro-name {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #ff9500;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: white;
           letter-spacing: 0.25px;
         }
 
@@ -1605,6 +1658,69 @@ export default function MedicoInfoPage({ params }) {
         @media (max-width: 768px) {
           .seguro-name {
             font-size: 0.75rem;
+          }
+        }
+
+        /* Áreas de Interés Styles */
+        .areas-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+          margin-bottom: 1rem;
+        }
+
+        .area-badge {
+          background: linear-gradient(135deg, #fff8f0, #ffebcc);
+          border: 1px solid rgba(255, 149, 0, 0.2);
+          border-radius: 12px;
+          padding: 0.5rem 1rem;
+          transition: all 0.2s ease;
+          cursor: default;
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+        }
+
+        .area-badge:hover {
+          transform: translateY(-1px);
+          border-color: rgba(255, 149, 0, 0.4);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.15);
+        }
+
+        .area-text {
+          font-size: 0.875rem;
+          color: #ea580c;
+          font-weight: 500;
+          line-height: 1.2;
+        }
+
+        .areas-count {
+          font-size: 0.75rem;
+          color: #666;
+          margin: 0;
+          font-style: italic;
+          text-align: center;
+        }
+
+        .title-icon {
+          font-size: 1.125rem;
+          opacity: 0.7;
+          margin-right: 0.5rem;
+        }
+
+        /* Mobile: Áreas más compactas */
+        @media (max-width: 768px) {
+          .areas-grid {
+            gap: 0.5rem;
+          }
+
+          .area-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 10px;
+          }
+
+          .area-text {
+            font-size: 0.8125rem;
           }
         }
 
@@ -2093,27 +2209,23 @@ export default function MedicoInfoPage({ params }) {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 1rem 1.25rem;
-          background: linear-gradient(135deg, rgba(255, 149, 0, 0.1) 0%, rgba(255, 149, 0, 0.05) 100%);
-          border: 1px solid rgba(255, 149, 0, 0.3);
-          border-radius: 12px;
+          padding: 0.5rem 0.75rem;
+          background: #6b7280;
+          border: 1px solid #9ca3af;
+          border-radius: 8px;
           text-align: center;
-          transition: all 0.3s ease;
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         /* Mobile: Cards de seguro más pequeñas */
         @media (max-width: 768px) {
           .seguro-card {
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
+            padding: 0.375rem 0.625rem;
+            border-radius: 6px;
           }
         }
 
-        .seguro-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(255, 149, 0, 0.2);
-        }
+        /* Seguro card hover removed */
 
         .seguro-icon {
           font-size: 1.25rem;
@@ -2122,9 +2234,9 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .seguro-name {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #ff9500;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: white;
           letter-spacing: 0.25px;
         }
 
