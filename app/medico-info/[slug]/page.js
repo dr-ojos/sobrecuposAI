@@ -597,7 +597,7 @@ export default function MedicoInfoPage({ params }) {
                     ) : null}
                     <div className="desktop-photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
                       <span className="desktop-placeholder-initials">
-                        {getInitials(fields.Name || 'Dr')}
+                        {(fields.Name || 'Dr').split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
                       </span>
                     </div>
                   </div>
