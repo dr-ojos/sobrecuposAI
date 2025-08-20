@@ -1029,7 +1029,8 @@ export default function Home() {
           }
           
           .tagline {
-            margin-bottom: 4rem;
+            margin-bottom: 6rem;
+            margin-top: -2rem;
             padding: 0 0.5rem;
           }
           
@@ -1110,7 +1111,8 @@ export default function Home() {
           }
           
           .tagline {
-            margin-bottom: 3.5rem;
+            margin-bottom: 5rem;
+            margin-top: -1.5rem;
             padding: 0 0.5rem;
           }
           
@@ -1232,7 +1234,8 @@ export default function Home() {
           }
           
           .tagline {
-            margin-bottom: 3rem;
+            margin-bottom: 4.5rem;
+            margin-top: -1rem;
             padding: 0 0.25rem;
           }
           
