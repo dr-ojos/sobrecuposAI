@@ -121,7 +121,6 @@ export default function Home() {
           </div>
 
           <div className={`tagline ${isVisible ? 'visible' : ''}`}>
-            <h1>Encuentra tu Sobrecupo médico</h1>
             <p className="subtitle">
               <strong>Más tiempo sano, </strong>  menos tiempo enfermo.
             </p>
@@ -131,6 +130,7 @@ export default function Home() {
           <div className={`chat-container ${isVisible ? 'visible' : ''} ${chatExpanding ? 'expanding' : ''}`}>
             <div className="chat-wrapper">
               <div className="chat-section">
+                <h1 className="main-chat-title">No encuentras hora médica, entonces pide aquí tu Sobrecupo médico</h1>
                 <h2 className="chat-title">Cuéntanos cómo te sientes o qué especialista necesitas</h2>
 
                 <div className={`input-hero ${chatExpanding ? 'expanding' : ''}`}>
@@ -440,7 +440,8 @@ export default function Home() {
           opacity: 0;
           transform: translateY(20px);
           transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s;
-          margin-bottom: 5rem;
+          margin-bottom: 8.5rem;
+          margin-top: -4rem;
         }
 
         .tagline.visible {
@@ -541,13 +542,25 @@ export default function Home() {
           width: 100%;
         }
 
+        .main-chat-title {
+          font-size: 1.1rem;
+          font-weight: 100;
+          color: #171717;
+          text-align: center;
+          margin-bottom: 1.5rem;
+          margin-top: 0;
+          line-height: 1.3;
+          letter-spacing: -0.3px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
         .chat-title {
           font-size: 1rem;
           font-weight: 400;
           color: #666;
           text-align: center;
           margin-bottom: 1rem;
-          margin-top: 1.5rem;
+          margin-top: 0;
           line-height: 1.4;
           letter-spacing: 0.2px;
         }
@@ -1112,6 +1125,14 @@ export default function Home() {
             margin-bottom: 1rem;
           }
           
+          .main-chat-title {
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+            line-height: 1.25;
+            padding: 0 0.5rem;
+            font-weight: 100;
+          }
+
           .chat-title {
             font-size: 0.95rem;
             margin-bottom: 1rem;
@@ -1156,6 +1177,14 @@ export default function Home() {
             gap: 1rem;
           }
           
+          .main-chat-title {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            padding: 0 0.25rem;
+            font-weight: 100;
+          }
+
           .chat-title {
             font-size: 0.875rem;
           }
@@ -1218,6 +1247,14 @@ export default function Home() {
             margin-bottom: 0.75rem;
           }
           
+          .main-chat-title {
+            font-size: 0.8rem;
+            margin-bottom: 0.8rem;
+            line-height: 1.15;
+            padding: 0 0.25rem;
+            font-weight: 100;
+          }
+
           .chat-title {
             font-size: 0.85rem;
             margin-bottom: 0.8rem;
