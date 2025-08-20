@@ -634,14 +634,14 @@ function MedicoDashboard() {
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 1.5rem;
+          gap: 1rem;
         }
 
         .stat-card {
           background: white;
           border: 1px solid rgba(0, 0, 0, 0.05);
-          border-radius: 16px;
-          padding: 1.5rem;
+          border-radius: 12px;
+          padding: 1rem;
           cursor: pointer;
           transition: all 0.2s ease;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -658,7 +658,7 @@ function MedicoDashboard() {
         .stat-content {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.75rem;
         }
 
         .stat-header {
@@ -672,13 +672,13 @@ function MedicoDashboard() {
         }
 
         .stat-icon-bg {
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 18px;
+          font-size: 16px;
           background: #f5f5f5;
         }
 
@@ -692,21 +692,21 @@ function MedicoDashboard() {
         }
 
         .stat-number {
-          font-size: 2rem;
+          font-size: 1.75rem;
           font-weight: 200;
           color: #171717;
-          letter-spacing: -1px;
+          letter-spacing: -0.5px;
         }
 
         .stat-label {
-          font-size: 1rem;
+          font-size: 0.875rem;
           font-weight: 400;
           color: #171717;
           margin: 0;
         }
 
         .stat-sublabel {
-          font-size: 0.875rem;
+          font-size: 0.75rem;
           color: #666;
           margin: 0;
           font-weight: 400;
@@ -734,8 +734,8 @@ function MedicoDashboard() {
 
         .pulse-indicator {
           position: absolute;
-          top: 1.5rem;
-          right: 1.5rem;
+          top: 1rem;
+          right: 1rem;
           width: 6px;
           height: 6px;
           border-radius: 50%;
