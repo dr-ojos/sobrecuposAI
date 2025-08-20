@@ -1027,12 +1027,12 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 320px;
-            height: 132px;
+            width: 400px;
+            height: 165px;
           }
           
           .tagline {
-            margin-bottom: 8rem;
+            margin-bottom: 10rem;
             margin-top: -2rem;
             padding: 0 0.5rem;
           }
@@ -1109,12 +1109,12 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 280px;
-            height: 116px;
+            width: 350px;
+            height: 145px;
           }
           
           .tagline {
-            margin-bottom: 7rem;
+            margin-bottom: 9rem;
             margin-top: -1.5rem;
             padding: 0 0.5rem;
           }
@@ -1232,12 +1232,12 @@ export default function Home() {
           }
           
           .main-logo-svg {
-            width: 240px;
-            height: 99px;
+            width: 280px;
+            height: 116px;
           }
           
           .tagline {
-            margin-bottom: 6rem;
+            margin-bottom: 8rem;
             margin-top: -1rem;
             padding: 0 0.25rem;
           }
