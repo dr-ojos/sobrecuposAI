@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import whatsAppService from '../../../lib/whatsapp-service';
 import { searchAreas } from '../../../lib/areas-interes.js';
+import { detectMedicalCondition, generateMedicalResponse } from '../../../lib/medical-intelligence.js';
 
 // Estado de sesiones en memoria mejorado con timeout
 const sessions = {};
@@ -1198,13 +1199,21 @@ async function getEspecialidadesDisponibles() {
   }
 }
 
-// 🆕 NUEVA FUNCIÓN: Extraer áreas de interés específicas del texto
+// 🆕 ALGORITMO INTELIGENTE: Extraer áreas de interés específicas del texto
 function extraerAreasInteres(texto) {
+  console.log(`🧠 [ALGORITMO] Analizando texto: "${texto}"`);
+  
+  // PASO 1: Usar el sistema de inteligencia médica avanzado
+  const deteccionesMedicas = detectMedicalCondition(texto);
+  console.log(`🎯 [ALGORITMO] Detecciones médicas:`, deteccionesMedicas);
+  
+  // PASO 2: Sistema legacy (mantener para compatibilidad)
   const areasConocidas = [
-    // Oftalmología
+    // Oftalmología - EXPANDIDO
     'córnea', 'cornea', 'retina', 'glaucoma', 'cataratas', 'cirugía refractiva', 'láser', 'laser',
     'miopía', 'miopia', 'astigmatismo', 'hipermetropia', 'hipermetropía', 'ojos secos',
-    'conjuntivitis', 'orzuelo', 'chalazión', 'chalacion',
+    'conjuntivitis', 'orzuelo', 'chalazión', 'chalacion', 'lagrimal', 'macula', 'mácula',
+    'uveitis', 'uveítis', 'desprendimiento de retina', 'degeneración macular',
     
     // Dermatología  
     'acné', 'acne', 'psoriasis', 'dermatitis', 'eczema', 'rosácea', 'rosacea',
@@ -1216,18 +1225,33 @@ function extraerAreasInteres(texto) {
     
     // Gastroenterología
     'endoscopía', 'endoscopia', 'colonoscopía', 'colonoscopia', 'reflujo gastroesofágico',
-    'síndrome intestino irritable', 'sindrome intestino irritable'
+    'síndrome intestino irritable', 'sindrome intestino irritable',
+    
+    // Otorrinolaringología
+    'oidos', 'oídos', 'vertigo', 'vértigo', 'rinoplastia', 'ronquidos'
   ];
   
-  const textoLower = texto.toLowerCase();
+  // PASO 3: Fusionar resultados del sistema inteligente con el legacy
   const areasEncontradas = [];
   
-  for (const area of areasConocidas) {
-    if (textoLower.includes(area.toLowerCase())) {
-      areasEncontradas.push(area);
+  // Agregar detecciones del sistema inteligente (prioridad alta)
+  for (const deteccion of deteccionesMedicas) {
+    if (deteccion.confidence === 'high' || deteccion.score >= 10) {
+      areasEncontradas.push(deteccion.area);
+      console.log(`✅ [ALGORITMO] Área detectada con IA: ${deteccion.area} (score: ${deteccion.score})`);
     }
   }
   
+  // Agregar detecciones del sistema legacy (compatibilidad)
+  const textoLower = texto.toLowerCase();
+  for (const area of areasConocidas) {
+    if (textoLower.includes(area.toLowerCase()) && !areasEncontradas.includes(area)) {
+      areasEncontradas.push(area);
+      console.log(`✅ [ALGORITMO] Área detectada con sistema legacy: ${area}`);
+    }
+  }
+  
+  console.log(`🎯 [ALGORITMO] Áreas finales detectadas:`, areasEncontradas);
   return areasEncontradas;
 }
 
@@ -3946,9 +3970,16 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         session.specialty = medicoInfo.especialidad;
         session.stage = 'found_specialty';
         
-        // Mensaje personalizado según el área específica
+        // Mensaje personalizado usando sistema inteligente + área específica
         let mensajePersonalizado = '';
-        if (areasEspecificas.length > 0) {
+        
+        // PASO 1: Usar sistema inteligente para respuesta personalizada
+        const deteccionesMedicas = detectMedicalCondition(text);
+        if (deteccionesMedicas.length > 0) {
+          const respuestaInteligente = generateMedicalResponse(deteccionesMedicas, true);
+          mensajePersonalizado = respuestaInteligente.message + '\n\n';
+        } else if (areasEspecificas.length > 0) {
+          // PASO 2: Fallback al sistema legacy
           mensajePersonalizado = `Entiendo tu preocupación por ${areasEspecificas.join(', ')}. `;
         }
         
@@ -3965,8 +3996,17 @@ Te contactaremos pronto para confirmar los detalles finales.`;
       }
     }
 
-    // 🔥 DETECTAR SÍNTOMAS Y MAPEAR A ESPECIALIDADES - FLUJO MÉDICAMENTE MEJORADO
-    const especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
+    // 🧠 ALGORITMO HÍBRIDO: Combinar detección tradicional + IA médica
+    let especialidadPorSintomas = detectarEspecialidadPorSintomas(text);
+    
+    // MEJORA: Si el sistema tradicional no detecta nada, usar IA médica
+    if (!especialidadPorSintomas) {
+      const deteccionesMedicas = detectMedicalCondition(text);
+      if (deteccionesMedicas.length > 0 && deteccionesMedicas[0].confidence === 'high') {
+        especialidadPorSintomas = deteccionesMedicas[0].especialidad;
+        console.log(`🧠 [IA MÉDICA] Especialidad detectada por IA: ${especialidadPorSintomas}`);
+      }
+    }
     
     if (especialidadPorSintomas) {
       const specialty = especialidadPorSintomas;
