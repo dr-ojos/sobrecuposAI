@@ -580,6 +580,34 @@ export default function MedicoInfoPage({ params }) {
           <div className="desktop-layout">
             {/* Columna izquierda: Info + Experiencia */}
             <div className="left-column">
+              {/* Perfil del Médico - Desktop */}
+              <section className="doctor-profile-desktop">
+                <div className="desktop-profile-header">
+                  <div className="desktop-doctor-photo">
+                    {fields.PhotoURL ? (
+                      <img 
+                        src={fields.PhotoURL} 
+                        alt={`Foto del ${fields.Name}`}
+                        className="desktop-profile-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div className="desktop-photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
+                      <span className="desktop-placeholder-initials">
+                        {getInitials(fields.Name || 'Dr')}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="desktop-doctor-info">
+                    <h2 className="desktop-doctor-name">{fields.Name}</h2>
+                    <p className="desktop-doctor-specialty">{fields.Especialidad}</p>
+                  </div>
+                </div>
+              </section>
+
               {/* Información Profesional */}
               <section className="professional-info">
                 <h3 className="section-title">Información Profesional</h3>
@@ -1188,6 +1216,71 @@ export default function MedicoInfoPage({ params }) {
           justify-content: center;
           color: #999;
           background: #f5f5f5;
+        }
+
+        /* Desktop Doctor Profile Styles */
+        .doctor-profile-desktop {
+          background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+          border: 1px solid rgba(0, 0, 0, 0.05);
+          border-radius: 16px;
+          padding: 2rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          margin-bottom: 2rem;
+        }
+
+        .desktop-profile-header {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+        }
+
+        .desktop-doctor-photo {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          overflow: hidden;
+          background: #f5f5f5;
+          flex-shrink: 0;
+        }
+
+        .desktop-profile-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .desktop-photo-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #171717, #333);
+          color: white;
+        }
+
+        .desktop-placeholder-initials {
+          font-size: 1.5rem;
+          font-weight: 600;
+        }
+
+        .desktop-doctor-info {
+          flex: 1;
+        }
+
+        .desktop-doctor-name {
+          margin: 0 0 0.5rem;
+          color: #171717;
+          font-size: 1.5rem;
+          font-weight: 600;
+          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+
+        .desktop-doctor-specialty {
+          margin: 0;
+          color: #ff9500;
+          font-size: 1rem;
+          font-weight: 500;
         }
 
         .status-indicator {
