@@ -32,7 +32,7 @@ export default function TestProfileUpdate() {
         Especialidad: targetDoctor.fields.Especialidad || 'Medicina Interna',
         AreasInteres: targetDoctor.fields.Especialidad === 'Medicina Interna' 
           ? ['Medicina Hospitalaria', 'Diabetes', 'Hipertensión']
-          : ['Cirugía refractiva Laser', 'Córnea']
+          : ['Cirugía refractiva Láser', 'Córnea']
       };
 
       console.log('🧪 Enviando datos de prueba:', testData);

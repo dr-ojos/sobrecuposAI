@@ -529,7 +529,7 @@ export default function MedicoInfoPage({ params }) {
               <section className="areas-interes-card">
                 <h3 className="section-title">
                   <span className="title-icon">🎯</span>
-                  Áreas de Especialización
+                  Áreas de interés en especialidad
                 </h3>
                 <div className="areas-grid">
                   {fields.AreasInteres.map((area, index) => (
@@ -538,9 +538,6 @@ export default function MedicoInfoPage({ params }) {
                     </div>
                   ))}
                 </div>
-                <p className="areas-count">
-                  {fields.AreasInteres.length} área{fields.AreasInteres.length !== 1 ? 's' : ''} de especialización
-                </p>
               </section>
             )}
 
@@ -660,7 +657,7 @@ export default function MedicoInfoPage({ params }) {
                 <section className="areas-interes-card">
                   <h3 className="section-title">
                     <span className="title-icon">🎯</span>
-                    Áreas de Especialización
+                    Áreas de interés en especialidad
                   </h3>
                   <div className="areas-grid">
                     {fields.AreasInteres.map((area, index) => (
@@ -669,9 +666,6 @@ export default function MedicoInfoPage({ params }) {
                       </div>
                     ))}
                   </div>
-                  <p className="areas-count">
-                    {fields.AreasInteres.length} área{fields.AreasInteres.length !== 1 ? 's' : ''} de especialización
-                  </p>
                 </section>
               )}
             </div>

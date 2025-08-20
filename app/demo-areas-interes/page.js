@@ -12,7 +12,7 @@ export default function DemoAreasInteres() {
       id: 'demo1',
       name: 'Dr. Ana García',
       especialidad: 'Oftalmología',
-      areasInteres: ['Cirugía refractiva Laser', 'Córnea', 'Cataratas'],
+      areasInteres: ['Cirugía refractiva Láser', 'Córnea', 'Cataratas'],
       atiende: 'Adultos',
       seguros: ['Fonasa', 'Isapres']
     },
@@ -41,7 +41,7 @@ export default function DemoAreasInteres() {
     },
     {
       consulta: "Quiero operarme la vista con láser",
-      esperado: "Dr. Ana García (Oftalmología) - Cirugía refractiva Laser"
+      esperado: "Dr. Ana García (Oftalmología) - Cirugía refractiva Láser"
     },
     {
       consulta: "Mi hijo necesita vacunas",
