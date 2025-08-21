@@ -176,20 +176,67 @@ const AgendarSobrecuposContent = () => {
   };
 
   const handleReservationSubmit = async () => {
+    // Validar campos obligatorios
+    const requiredFields = {
+      nombre: 'Nombres',
+      rut: 'RUT',
+      email: 'Email',
+      telefono: 'Teléfono'
+    };
+
+    const emptyFields = [];
+    Object.entries(requiredFields).forEach(([field, label]) => {
+      if (!reservationData[field] || reservationData[field].trim() === '') {
+        emptyFields.push(label);
+      }
+    });
+
+    // Validar términos y condiciones
+    if (!acceptTerms) {
+      emptyFields.push('Aceptar términos y condiciones');
+    }
+
+    if (emptyFields.length > 0) {
+      setMessage(`Por favor completa los siguientes campos obligatorios: ${emptyFields.join(', ')}`);
+      return;
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(reservationData.email)) {
+      setMessage('Por favor ingresa un email válido');
+      return;
+    }
+
+    // Validar RUT (formato básico)
+    const rutRegex = /^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/;
+    if (!rutRegex.test(reservationData.rut)) {
+      setMessage('Por favor ingresa un RUT válido (formato: 12.345.678-9)');
+      return;
+    }
+
+    // Validar teléfono (formato básico)
+    const phoneRegex = /^\+?56\d{9}$/;
+    if (!phoneRegex.test(reservationData.telefono.replace(/\s/g, ''))) {
+      setMessage('Por favor ingresa un teléfono válido (+56912345678)');
+      return;
+    }
+
+    setMessage(''); // Limpiar mensaje de error
     setReservationLoading(true);
 
     try {
-      console.log('🎯 Creando enlace de pago simulado...');
+      console.log('🎯 Creando enlace de pago...');
       
-      // Usar datos demo si no se proporcionan datos reales
-      const demoData = {
-        nombre: reservationData.nombre || 'Usuario Demo',
-        apellidos: reservationData.apellidos || 'Prueba',
-        rut: reservationData.rut || '12.345.678-9',
-        telefono: reservationData.telefono || '+56912345678',
-        email: reservationData.email || 'demo@sobrecupos.com',
+      // Usar datos reales proporcionados por el usuario
+      const userData = {
+        nombre: reservationData.nombre.trim(),
+        apellidos: reservationData.apellidos.trim() || '',
+        rut: reservationData.rut.trim(),
+        telefono: reservationData.telefono.trim(),
+        email: reservationData.email.trim(),
         edad: reservationData.edad || '35',
-        motivoConsulta: reservationData.motivoConsulta || 'Consulta general'
+        motivoConsulta: reservationData.motivoConsulta.trim() || 'Consulta general'
       };
       
       // Crear enlace de pago (mismo flujo que el chatbot)
@@ -200,18 +247,18 @@ const AgendarSobrecuposContent = () => {
         },
         body: JSON.stringify({
           sobrecupoId: selectedSobrecupo.id,
-          patientName: `${demoData.nombre} ${demoData.apellidos}`.trim(),
-          patientRut: demoData.rut,
-          patientPhone: demoData.telefono,
-          patientEmail: demoData.email,
-          patientAge: demoData.edad,
+          patientName: `${userData.nombre} ${userData.apellidos}`.trim(),
+          patientRut: userData.rut,
+          patientPhone: userData.telefono,
+          patientEmail: userData.email,
+          patientAge: userData.edad,
           doctorName: selectedSobrecupo.fields.Médico,
           specialty: selectedSobrecupo.fields.Especialidad,
           date: selectedSobrecupo.fields.Fecha,
           time: selectedSobrecupo.fields.Hora,
           clinic: selectedSobrecupo.fields.Clínica,
           amount: "2990", // Precio estándar
-          motivo: demoData.motivoConsulta, // Motivo de la consulta del usuario
+          motivo: userData.motivoConsulta, // Motivo de la consulta del usuario
           fromChat: false, // 🆕 MARCAR ORIGEN COMO RESERVA DIRECTA
           sessionId: `direct-booking-demo-${Date.now()}` // ID de sesión único
         })
@@ -788,6 +835,7 @@ const AgendarSobrecuposContent = () => {
                       className="field-input"
                       placeholder="Juan Carlos"
                       disabled={reservationLoading}
+                      required
                     />
                   </div>
 
@@ -814,6 +862,7 @@ const AgendarSobrecuposContent = () => {
                       className="field-input"
                       placeholder="12.345.678-9"
                       disabled={reservationLoading}
+                      required
                     />
                   </div>
 
@@ -826,6 +875,7 @@ const AgendarSobrecuposContent = () => {
                       className="field-input"
                       placeholder="juan@email.com"
                       disabled={reservationLoading}
+                      required
                     />
                   </div>
                 </div>
@@ -840,6 +890,7 @@ const AgendarSobrecuposContent = () => {
                       className="field-input"
                       placeholder="+56912345678"
                       disabled={reservationLoading}
+                      required
                     />
                   </div>
 
@@ -893,16 +944,24 @@ const AgendarSobrecuposContent = () => {
                   <div>
                     <div className="warning-title">Modo Demo</div>
                     <div className="warning-text">
-                      Puedes proceder sin llenar datos reales. Se usarán datos de prueba para mostrar la simulación de pago de $2.990.
+                      Completa todos los campos obligatorios (*) para proceder con la simulación de pago de $2.990.
                     </div>
                   </div>
                 </div>
 
+                {/* Mensaje de error */}
+                {message && (
+                  <div className="error-message">
+                    <span className="error-icon">⚠️</span>
+                    {message}
+                  </div>
+                )}
+
                 {/* Botón de envío */}
                 <button
                   onClick={handleReservationSubmit}
-                  disabled={reservationLoading}
-                  className={`submit-button ${reservationLoading ? 'disabled' : ''}`}
+                  disabled={reservationLoading || !acceptTerms}
+                  className={`submit-button ${reservationLoading || !acceptTerms ? 'disabled' : ''}`}
                 >
                   {reservationLoading ? (
                     <span className="loading-content">
@@ -910,7 +969,7 @@ const AgendarSobrecuposContent = () => {
                       Creando enlace de pago...
                     </span>
                   ) : (
-                    'Ver Simulación de Pago ($2.990)'
+                    acceptTerms ? 'Ver Simulación de Pago ($2.990)' : 'Acepta los términos para continuar'
                   )}
                 </button>
               </div>
@@ -1941,6 +2000,27 @@ const AgendarSobrecuposContent = () => {
         }
 
         /* Submit Button */
+        .error-message {
+          background: #fef2f2;
+          color: #dc2626;
+          padding: 1rem;
+          border-radius: 8px;
+          border: 1px solid #fecaca;
+          margin-bottom: 1rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          display: flex;
+          align-items: flex-start;
+          gap: 0.5rem;
+          line-height: 1.5;
+        }
+
+        .error-icon {
+          font-size: 1rem;
+          flex-shrink: 0;
+          margin-top: 0.1rem;
+        }
+
         .submit-button {
           width: 100%;
           padding: 1rem;
