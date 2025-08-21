@@ -1235,8 +1235,8 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .desktop-doctor-photo {
-          width: 80px;
-          height: 80px;
+          width: 120px;
+          height: 120px;
           border-radius: 50%;
           overflow: hidden;
           background: #f5f5f5;
@@ -1260,7 +1260,7 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .desktop-placeholder-initials {
-          font-size: 1.5rem;
+          font-size: 2rem;
           font-weight: 600;
         }
 

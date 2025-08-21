@@ -55,7 +55,7 @@ function PagoContent() {
   }, [searchParams]);
 
   const handlePaymentSubmit = async () => {
-    addDebugLog('🟡 === INICIANDO PAGO ===');
+    addDebugLog('🟡 === INICIANDO PAGO CON FLOW.CL ===');
     addDebugLog(`📋 Payment data: ${JSON.stringify(paymentData)}`);
     
     if (!paymentData) {
@@ -63,21 +63,24 @@ function PagoContent() {
       return;
     }
 
-    addDebugLog('✅ Iniciando proceso de pago...');
+    addDebugLog('✅ Iniciando proceso de pago con Flow.cl...');
     setProcessing(true);
     setPaymentStatus('processing');
-    setMessage('Procesando pago...');
+    setMessage('Creando orden de pago...');
 
     try {
-      const response = await fetch('/api/payment/simulate', {
+      // Crear orden de pago en Flow.cl
+      const response = await fetch('/api/flow/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           sobrecupoId: paymentData.sobrecupoId,
+          sessionId: paymentData.sessionId,
           patientData: {
-            name: paymentData.patientName
+            name: paymentData.patientName,
+            email: paymentData.patientEmail
           },
           appointmentData: {
             doctor: paymentData.doctorName,
@@ -86,70 +89,26 @@ function PagoContent() {
             time: paymentData.time,
             clinic: paymentData.clinic
           },
-          paymentAmount: paymentData.amount,
-          sessionId: paymentData.sessionId
+          amount: paymentData.amount
         })
       });
 
-      addDebugLog(`📡 Simulate response status: ${response.status}`);
-      addDebugLog(`📡 Simulate response ok: ${response.ok}`);
+      addDebugLog(`📡 Flow response status: ${response.status}`);
+      addDebugLog(`📡 Flow response ok: ${response.ok}`);
       
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status}`);
       }
 
       const result = await response.json();
-      addDebugLog(`📋 Resultado de simulación: ${JSON.stringify(result)}`);
+      addDebugLog(`📋 Resultado de Flow: ${JSON.stringify(result)}`);
 
       if (result.success) {
-        setPaymentStatus('success');
-        setMessage('¡Pago exitoso! Procesando reserva...');
+        addDebugLog('✅ Orden creada en Flow.cl, redirigiendo...');
+        setMessage('Redirigiendo a Flow.cl...');
         
-        // Confirmar la reserva en el backend
-        addDebugLog('🔄 Iniciando confirmación de reserva...');
-        setMessage('¡Pago exitoso! ⏳ Espera... procesando reserva...');
-        
-        try {
-          const confirmPayload = {
-            sessionId: paymentData.sessionId,
-            transactionId: result.transactionId,
-            sobrecupoId: paymentData.sobrecupoId,
-            motivo: paymentData.motivo || null, // 🆕 MOTIVO DE CONSULTA
-            patientData: {
-              name: paymentData.patientName,
-              rut: paymentData.patientRut || 'N/A',
-              phone: paymentData.patientPhone || 'N/A',
-              email: paymentData.patientEmail || 'N/A',
-              age: paymentData.patientAge || 'N/A'
-            },
-            appointmentData: {
-              doctor: paymentData.doctorName,
-              specialty: paymentData.specialty,
-              date: paymentData.date,
-              time: paymentData.time,
-              clinic: paymentData.clinic,
-              amount: paymentData.amount
-            }
-          };
-          
-          addDebugLog(`📦 Payload de confirmación: ${JSON.stringify(confirmPayload)}`);
-          
-          const confirmResponse = await fetch('/api/payment/confirm', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(confirmPayload)
-          });
-
-          addDebugLog(`📡 Confirm response status: ${confirmResponse.status}`);
-          addDebugLog(`📡 Confirm response ok: ${confirmResponse.ok}`);
-
-          const confirmResult = await confirmResponse.json();
-          addDebugLog(`📋 Resultado de confirmación: ${JSON.stringify(confirmResult)}`);
-          
-          if (confirmResult.success) {
-            addDebugLog(`✅ Reserva confirmada. Origen: ${isFromChat ? 'CHAT' : 'DIRECTO'}`);
+        // Redirigir a Flow.cl para completar el pago
+        window.location.href = result.url;
             
             // Si viene del chat, usar el flujo actual
             if (isFromChat && window.opener) {
@@ -398,38 +357,17 @@ function PagoContent() {
               </div>
             </div>
 
-            {/* Simulated Payment Form */}
+            {/* Flow.cl Payment Form */}
             <div className="payment-form">
-              <div className="card-info">
-                <h4>Información de pago simulado</h4>
-                <div className="form-group">
-                  <label>Número de tarjeta</label>
-                  <input 
-                    type="text" 
-                    value="**** **** **** 1234" 
-                    disabled 
-                    className="card-input"
-                  />
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Vence</label>
-                    <input 
-                      type="text" 
-                      value="12/25" 
-                      disabled 
-                      className="card-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>CVV</label>
-                    <input 
-                      type="text" 
-                      value="***" 
-                      disabled 
-                      className="card-input"
-                    />
-                  </div>
+              <div className="payment-info">
+                <h4>Pago seguro con Flow.cl</h4>
+                <p className="payment-description">
+                  Serás redirigido a Flow.cl para completar el pago de forma segura.
+                </p>
+                <div className="payment-methods">
+                  <span className="method-badge">💳 Tarjetas</span>
+                  <span className="method-badge">🏦 Transferencia</span>
+                  <span className="method-badge">📱 App Banco</span>
                 </div>
               </div>
 
@@ -455,7 +393,7 @@ function PagoContent() {
               </button>
 
               <p className="payment-notice">
-                🔒 Este es un pago simulado para demostración
+                🔒 Pago seguro procesado por Flow.cl
               </p>
             </div>
           </>
@@ -630,40 +568,34 @@ function PagoContent() {
           padding: 1.5rem;
         }
 
-        .card-info h4 {
-          margin: 0 0 1rem 0;
+        .payment-info h4 {
+          margin: 0 0 0.5rem 0;
           color: #171717;
           font-size: 1rem;
           font-weight: 600;
         }
 
-        .form-group {
+        .payment-description {
+          color: #666;
+          font-size: 0.85rem;
+          margin: 0 0 1rem 0;
+          line-height: 1.4;
+        }
+
+        .payment-methods {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
           margin-bottom: 1rem;
         }
 
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-
-        .form-group label {
-          display: block;
-          font-size: 0.85rem;
-          color: #666;
-          margin-bottom: 0.5rem;
-          font-weight: 500;
-        }
-
-        .card-input {
-          width: 100%;
-          padding: 0.75rem;
-          border: 1px solid #e5e5e5;
-          border-radius: 6px;
-          font-size: 0.9rem;
-          background: #f9fafb;
-          color: #666;
-          box-sizing: border-box;
+        .method-badge {
+          background: #f0f9ff;
+          color: #0369a1;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          border: 1px solid #bae6fd;
         }
 
         .message {
