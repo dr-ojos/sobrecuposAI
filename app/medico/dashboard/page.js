@@ -98,22 +98,33 @@ function MedicoDashboard() {
       if (res.ok) {
         const data = await res.json();
         console.log('📄 Doctor data refreshed, PhotoURL:', data.fields?.PhotoURL);
+        console.log('🖥️ User agent (para debug desktop/móvil):', navigator.userAgent.substring(0, 100));
+        console.log('🌐 Current location:', window.location.href);
         
         let finalPhotoURL = data.fields?.PhotoURL || '';
         
         // Si hay una foto de S3, generar URL firmada
         if (finalPhotoURL && finalPhotoURL.includes('s3.') && finalPhotoURL.includes('amazonaws.com')) {
           try {
+            console.log('🔄 Generando URL firmada para:', finalPhotoURL);
             const photoRes = await fetch(`/api/doctors/${session.user.doctorId}/photo`);
+            console.log('📡 Photo API response status:', photoRes.status);
+            
             if (photoRes.ok) {
               const photoData = await photoRes.json();
+              console.log('📄 Photo API response data:', photoData);
+              
               if (photoData.signedUrl) {
                 finalPhotoURL = photoData.signedUrl;
-                console.log('✅ Using signed URL for existing photo');
+                console.log('✅ Using signed URL for existing photo:', finalPhotoURL.substring(0, 100) + '...');
+              } else {
+                console.warn('⚠️ No signed URL in response');
               }
+            } else {
+              console.error('❌ Photo API request failed:', photoRes.status);
             }
           } catch (photoError) {
-            console.warn('Warning: Could not generate signed URL, using original:', photoError);
+            console.error('❌ Error generating signed URL:', photoError);
           }
         }
         
@@ -315,13 +326,24 @@ function MedicoDashboard() {
           <div className="doctor-profile">
             <div className="doctor-avatar-container">
               <div className="doctor-avatar">
+                {(() => {
+                  console.log('🎯 Render avatar: PhotoURL exists?', !!doctorData?.fields?.PhotoURL);
+                  if (doctorData?.fields?.PhotoURL) {
+                    console.log('🎯 PhotoURL para render:', doctorData.fields.PhotoURL.substring(0, 100) + '...');
+                  }
+                  return null;
+                })()}
                 {doctorData?.fields?.PhotoURL ? (
                   <img 
                     src={doctorData.fields.PhotoURL} 
                     alt="Foto de perfil" 
                     className="profile-photo"
                     onError={(e) => {
-                      console.error('Error cargando imagen de perfil:', e);
+                      console.error('❌ Error cargando imagen de perfil:', {
+                        url: e.target.src,
+                        error: e.type,
+                        userAgent: navigator.userAgent.substring(0, 50)
+                      });
                       e.target.style.display = 'none';
                       e.target.nextSibling.style.display = 'flex';
                     }}
