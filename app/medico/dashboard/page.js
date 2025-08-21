@@ -97,7 +97,36 @@ function MedicoDashboard() {
       const res = await fetch(`/api/doctors/${session.user.doctorId}`);
       if (res.ok) {
         const data = await res.json();
-        setDoctorData(data);
+        console.log('📄 Doctor data refreshed, PhotoURL:', data.fields?.PhotoURL);
+        
+        let finalPhotoURL = data.fields?.PhotoURL || '';
+        
+        // Si hay una foto de S3, generar URL firmada
+        if (finalPhotoURL && finalPhotoURL.includes('s3.') && finalPhotoURL.includes('amazonaws.com')) {
+          try {
+            const photoRes = await fetch(`/api/doctors/${session.user.doctorId}/photo`);
+            if (photoRes.ok) {
+              const photoData = await photoRes.json();
+              if (photoData.signedUrl) {
+                finalPhotoURL = photoData.signedUrl;
+                console.log('✅ Using signed URL for existing photo');
+              }
+            }
+          } catch (photoError) {
+            console.warn('Warning: Could not generate signed URL, using original:', photoError);
+          }
+        }
+        
+        // Actualizar los datos con la URL final
+        const updatedData = {
+          ...data,
+          fields: {
+            ...data.fields,
+            PhotoURL: finalPhotoURL
+          }
+        };
+        
+        setDoctorData(updatedData);
         
         setStats(prev => ({
           ...prev,
@@ -286,7 +315,24 @@ function MedicoDashboard() {
           <div className="doctor-profile">
             <div className="doctor-avatar-container">
               <div className="doctor-avatar">
-                {doctorData?.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                {doctorData?.fields?.PhotoURL ? (
+                  <img 
+                    src={doctorData.fields.PhotoURL} 
+                    alt="Foto de perfil" 
+                    className="profile-photo"
+                    onError={(e) => {
+                      console.error('Error cargando imagen de perfil:', e);
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className="profile-initials" 
+                  style={{ display: doctorData?.fields?.PhotoURL ? 'none' : 'flex' }}
+                >
+                  {doctorData?.fields?.Name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'DR'}
+                </div>
               </div>
               <div className="status-dot"></div>
             </div>
@@ -564,6 +610,29 @@ function MedicoDashboard() {
           font-size: 16px;
           font-weight: 600;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .profile-photo {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 50%;
+        }
+
+        .profile-initials {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          font-weight: 600;
+          color: white;
         }
 
         .status-dot {
