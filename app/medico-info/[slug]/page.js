@@ -299,28 +299,22 @@ export default function MedicoInfoPage({ params }) {
             <div className="profile-header">
               <div className="doctor-photo-container">
                 <div className="doctor-photo">
-                  {/* SIEMPRE renderizar imagen para debug */}
-                  <img 
-                    src={fields.PhotoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'}
-                    alt={`Foto del ${fields.Name}`}
-                    className="profile-image"
-                    onError={(e) => {
-                      console.log('❌ [MOBILE] Error cargando imagen:', fields.PhotoURL);
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                    onLoad={(e) => {
-                      console.log('✅ [MOBILE] Imagen cargada exitosamente:', fields.PhotoURL);
-                      if (fields.PhotoURL) {
+                  {fields.PhotoURL && (
+                    <img 
+                      src={fields.PhotoURL}
+                      alt={`Foto del ${fields.Name}`}
+                      className="profile-image"
+                      onLoad={(e) => {
+                        console.log('✅ [MOBILE] Imagen cargada exitosamente:', fields.PhotoURL);
                         e.target.nextSibling.style.display = 'none';
-                      }
-                    }}
-                    style={{
-                      display: 'block',
-                      border: '3px solid blue', // DEBUG: borde azul para diferenciar de desktop
-                      background: 'pink' // DEBUG: fondo rosa para ver el elemento
-                    }}
-                  />
+                      }}
+                      onError={(e) => {
+                        console.log('❌ [MOBILE] Error cargando imagen, mostrando placeholder:', fields.PhotoURL);
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  )}
                   <div className="photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
                     <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -594,48 +588,7 @@ export default function MedicoInfoPage({ params }) {
           <div className="desktop-layout">
             {/* Columna izquierda: Info + Experiencia */}
             <div className="left-column">
-              {/* Perfil del Médico - Desktop */}
-              <section className="doctor-profile-desktop">
-                {console.log('🔍 [DESKTOP DEBUG] fields completos:', fields)}
-                {console.log('🔍 [DESKTOP DEBUG] PhotoURL específico:', fields.PhotoURL)}
-                {console.log('🔍 [DESKTOP DEBUG] Name:', fields.Name)}
-                <div className="desktop-profile-header">
-                  <div className="desktop-doctor-photo">
-                    {/* SIEMPRE renderizar la imagen para debug */}
-                    <img 
-                      src={fields.PhotoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'}
-                      alt={`Foto del ${fields.Name}`}
-                      className="desktop-profile-image"
-                      onError={(e) => {
-                        console.log('❌ [DESKTOP] Error cargando imagen:', fields.PhotoURL);
-                        console.log('❌ [DESKTOP] Error event:', e);
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                      onLoad={(e) => {
-                        console.log('✅ [DESKTOP] Imagen cargada exitosamente:', fields.PhotoURL);
-                        if (fields.PhotoURL) {
-                          e.target.nextSibling.style.display = 'none';
-                        }
-                      }}
-                      style={{
-                        display: 'block',
-                        border: '3px solid lime', // DEBUG: borde verde más visible
-                        background: 'yellow' // DEBUG: fondo amarillo para ver el elemento
-                      }}
-                    />
-                    <div className="desktop-photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
-                      <span className="desktop-placeholder-initials">
-                        {(fields.Name || 'Dr').split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="desktop-doctor-info">
-                    <h2 className="desktop-doctor-name">{fields.Name}</h2>
-                    <p className="desktop-doctor-specialty">{fields.Especialidad}</p>
-                  </div>
-                </div>
-              </section>
+              {/* Perfil del Médico Desktop - ELIMINADO - ahora usa la sección superior con "Disponible" */}
 
               {/* Información Profesional */}
               <section className="professional-info">
