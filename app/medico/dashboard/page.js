@@ -103,28 +103,34 @@ function MedicoDashboard() {
         
         let finalPhotoURL = data.fields?.PhotoURL || '';
         
-        // Si hay una foto de S3, generar URL firmada
+        // Si hay una foto de S3, verificar si es pública o necesita URL firmada
         if (finalPhotoURL && finalPhotoURL.includes('s3.') && finalPhotoURL.includes('amazonaws.com')) {
-          try {
-            console.log('🔄 Generando URL firmada para:', finalPhotoURL);
-            const photoRes = await fetch(`/api/doctors/${session.user.doctorId}/photo`);
-            console.log('📡 Photo API response status:', photoRes.status);
-            
-            if (photoRes.ok) {
-              const photoData = await photoRes.json();
-              console.log('📄 Photo API response data:', photoData);
+          // Si es URL pública nueva (con formato directo), usarla tal como está
+          if (finalPhotoURL.includes('.s3.') && finalPhotoURL.includes('.amazonaws.com/')) {
+            console.log('✅ Using public S3 URL directly:', finalPhotoURL.substring(0, 100) + '...');
+          } else {
+            // Para URLs antigas que necesitan firma
+            try {
+              console.log('🔄 Generando URL firmada para:', finalPhotoURL);
+              const photoRes = await fetch(`/api/doctors/${session.user.doctorId}/photo`);
+              console.log('📡 Photo API response status:', photoRes.status);
               
-              if (photoData.signedUrl) {
-                finalPhotoURL = photoData.signedUrl;
-                console.log('✅ Using signed URL for existing photo:', finalPhotoURL.substring(0, 100) + '...');
+              if (photoRes.ok) {
+                const photoData = await photoRes.json();
+                console.log('📄 Photo API response data:', photoData);
+                
+                if (photoData.signedUrl) {
+                  finalPhotoURL = photoData.signedUrl;
+                  console.log('✅ Using signed URL for existing photo:', finalPhotoURL.substring(0, 100) + '...');
+                } else {
+                  console.warn('⚠️ No signed URL in response');
+                }
               } else {
-                console.warn('⚠️ No signed URL in response');
+                console.error('❌ Photo API request failed:', photoRes.status);
               }
-            } else {
-              console.error('❌ Photo API request failed:', photoRes.status);
+            } catch (photoError) {
+              console.error('❌ Error generating signed URL:', photoError);
             }
-          } catch (photoError) {
-            console.error('❌ Error generating signed URL:', photoError);
           }
         }
         
