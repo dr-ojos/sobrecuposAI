@@ -590,11 +590,22 @@ export default function MedicoInfoPage({ params }) {
                         alt={`Foto del ${fields.Name}`}
                         className="desktop-profile-image"
                         onError={(e) => {
+                          console.log('❌ [DESKTOP] Error cargando imagen:', fields.PhotoURL);
                           e.target.style.display = 'none';
                           e.target.nextSibling.style.display = 'flex';
                         }}
+                        onLoad={(e) => {
+                          console.log('✅ [DESKTOP] Imagen cargada exitosamente:', fields.PhotoURL);
+                          e.target.nextSibling.style.display = 'none';
+                        }}
+                        style={{
+                          display: 'block',
+                          border: '2px solid red' // DEBUG: borde rojo temporal para visualizar
+                        }}
                       />
-                    ) : null}
+                    ) : (
+                      console.log('⚠️ [DESKTOP] No hay PhotoURL disponible') || null
+                    )}
                     <div className="desktop-photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
                       <span className="desktop-placeholder-initials">
                         {(fields.Name || 'Dr').split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
@@ -1247,6 +1258,9 @@ export default function MedicoInfoPage({ params }) {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          border-radius: 50%;
+          position: relative;
+          z-index: 1;
         }
 
         .desktop-photo-placeholder {
