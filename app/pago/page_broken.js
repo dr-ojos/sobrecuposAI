@@ -12,7 +12,6 @@ function PagoContent() {
   const [paymentStatus, setPaymentStatus] = useState('pending'); // pending, processing, success, error
   const [message, setMessage] = useState('');
   const [isFromChat, setIsFromChat] = useState(false);
-  
   // Función simple de logging para producción
   const addDebugLog = (message) => {
     console.log(message);
@@ -110,10 +109,149 @@ function PagoContent() {
         
         // Redirigir a Flow.cl para completar el pago
         window.location.href = result.url;
+            
+            // Si viene del chat, usar el flujo actual
+            if (isFromChat && window.opener) {
+              setMessage('¡Reserva confirmada exitosamente! Cerrando ventana...');
+              const successMessage = {
+                type: 'PAYMENT_SUCCESS',
+                transactionId: result.transactionId,
+                sessionId: paymentData.sessionId,
+                reservationConfirmed: true,
+                appointmentDetails: {
+                  doctorName: paymentData.doctorName,
+                  specialty: paymentData.specialty,
+                  date: paymentData.date,
+                  time: paymentData.time,
+                  clinic: paymentData.clinic,
+                  patientName: paymentData.patientName
+                }
+              };
+              
+              console.log('📨 === ENVIANDO MENSAJE AL CHAT ===');
+              console.log('📨 Message:', successMessage);
+              console.log('📨 Window opener exists:', !!window.opener);
+              console.log('📨 Window opener closed:', window.opener && window.opener.closed);
+              console.log('📨 Target origin:', window.location.origin);
+              console.log('📨 Current URL:', window.location.href);
+              
+              // 🆘 DEBUG TEMPORAL - Alert para confirmar envío
+              alert('📨 ENVIANDO POSTMESSAGE AL CHAT - Verifica consola del chat!');
+              
+              try {
+                window.opener.postMessage(successMessage, window.location.origin);
+                console.log('✅ Mensaje enviado al chat con origin específico');
+              } catch (postMessageError) {
+                console.error('❌ Error enviando postMessage:', postMessageError);
+                // Intentar con * como fallback
+                try {
+                  window.opener.postMessage(successMessage, '*');
+                  console.log('✅ Mensaje enviado al chat con origin wildcard');
+                } catch (fallbackError) {
+                  console.error('❌ Error enviando postMessage fallback:', fallbackError);
+                }
+              }
+              
+              // Dar un momento para que se procese el mensaje antes de cerrar
+              setTimeout(() => {
+                console.log('🔄 Cerrando ventana de pago...');
+                // Intentar enfocar la ventana padre antes de cerrar
+                if (window.opener && !window.opener.closed) {
+                  window.opener.focus();
+                }
+                window.close();
+              }, 1500); // Optimizado para cierre rápido
+              
+            } else if (isFromChat) {
+              // Flujo del chat sin window.opener (fallback)
+              console.log('❌ Chat sin window.opener - usando localStorage como fallback');
+              
+              const fallbackMessage = {
+                type: 'PAYMENT_SUCCESS',
+                transactionId: result.transactionId,
+                sessionId: paymentData.sessionId,
+                reservationConfirmed: true,
+                appointmentDetails: {
+                  doctorName: paymentData.doctorName,
+                  specialty: paymentData.specialty,
+                  date: paymentData.date,
+                  time: paymentData.time,
+                  clinic: paymentData.clinic,
+                  patientName: paymentData.patientName
+                },
+                timestamp: new Date().toISOString()
+              };
+              
+              localStorage.setItem('payment_success_message', JSON.stringify(fallbackMessage));
+              console.log('💾 Mensaje guardado en localStorage para el chat');
+              
+              setMessage('¡Pago y reserva exitosos! 🎉\n\nCierra esta ventana y revisa el chat para ver los detalles.\n\nTambién recibirás email de confirmación.');
+              
+              setTimeout(() => {
+                window.close();
+              }, 3000);
+              
+            } else {
+              // Flujo de reserva directa - redirigir a página de confirmación
+              console.log('🔄 Reserva directa exitosa - redirigiendo a página de confirmación');
+              
+              const confirmationParams = new URLSearchParams({
+                doctor: paymentData.doctorName,
+                specialty: paymentData.specialty,
+                date: paymentData.date,
+                time: paymentData.time,
+                clinic: paymentData.clinic,
+                patient: paymentData.patientName,
+                transactionId: result.transactionId,
+                amount: paymentData.amount
+              });
+              
+              // Redirigir a la página de confirmación
+              router.push(`/reserva-exitosa?${confirmationParams.toString()}`);
+            }
+          } else {
+            setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
+            console.error('❌ Error en confirmación:', confirmResult);
+            
+            // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
+            
+            // Notificar el problema al chat si viene del chat
+            if (isFromChat && window.opener) {
+              window.opener.postMessage({
+                type: 'PAYMENT_SUCCESS_RESERVATION_ERROR',
+                transactionId: result.transactionId,
+                sessionId: paymentData.sessionId,
+                error: confirmResult.error
+              }, '*');
+            }
+          }
+        } catch (confirmError) {
+          addDebugLog('❌ === ERROR CONFIRMANDO RESERVA ===');
+          addDebugLog(`❌ Error: ${confirmError.message}`);
+          addDebugLog(`❌ Stack: ${confirmError.stack}`);
+          setMessage('Pago exitoso pero error confirmando reserva. Contacta soporte.');
+          console.error('❌ Catch error confirmando reserva:', confirmError);
+          
+          // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
+          
+          // Notificar el error al chat si viene del chat
+          if (isFromChat && window.opener) {
+            window.opener.postMessage({
+              type: 'PAYMENT_SUCCESS_RESERVATION_ERROR',
+              transactionId: result.transactionId,
+              sessionId: paymentData.sessionId,
+              error: confirmError.message
+            }, '*');
+          }
+        }
+
+        // El cierre se maneja individualmente en cada caso arriba
+
       } else {
         setPaymentStatus('error');
         setMessage(result.error || 'Error procesando el pago. Intenta nuevamente.');
-        console.error('❌ Error creando orden en Flow.cl:', result);
+        console.error('❌ Error en simulación de pago:', result);
+        // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
       }
 
     } catch (error) {
@@ -122,6 +260,7 @@ function PagoContent() {
       console.error('❌ Stack:', error.stack);
       setPaymentStatus('error');
       setMessage(`Error de conexión: ${error.message}`);
+      // NO CERRAR LA VENTANA cuando hay error para poder ver los logs
     } finally {
       setProcessing(false);
     }
@@ -578,6 +717,10 @@ function PagoContent() {
           .payment-details,
           .payment-form {
             padding: 1rem;
+          }
+
+          .form-row {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>
