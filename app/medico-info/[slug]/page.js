@@ -299,22 +299,33 @@ export default function MedicoInfoPage({ params }) {
             <div className="profile-header">
               <div className="doctor-photo-container">
                 <div className="doctor-photo">
+                  {console.log('🔍 [DEBUG] PhotoURL existe?', !!fields.PhotoURL)}
+                  {console.log('🔍 [DEBUG] Renderizando imagen?', !!fields.PhotoURL)}
                   {fields.PhotoURL && (
                     <img 
                       src={fields.PhotoURL}
                       alt={`Foto del ${fields.Name}`}
                       className="profile-image"
                       onLoad={(e) => {
-                        console.log('✅ [MOBILE] Imagen cargada exitosamente:', fields.PhotoURL);
+                        console.log('✅ [MOBILE] Imagen cargada exitosamente!');
                         e.target.nextSibling.style.display = 'none';
                       }}
                       onError={(e) => {
-                        console.log('❌ [MOBILE] Error cargando imagen, mostrando placeholder:', fields.PhotoURL);
+                        console.log('❌ [MOBILE] Error cargando imagen:', e);
+                        console.log('❌ [MOBILE] URL problemática:', fields.PhotoURL);
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'flex';
                       }}
+                      style={{
+                        display: 'block',
+                        border: '5px solid red',
+                        background: 'yellow',
+                        minWidth: '120px',
+                        minHeight: '120px'
+                      }}
                     />
                   )}
+                  {console.log('🔍 [DEBUG] Placeholder display:', fields.PhotoURL ? 'none' : 'flex')}
                   <div className="photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
                     <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
