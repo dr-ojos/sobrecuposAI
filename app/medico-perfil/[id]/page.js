@@ -321,11 +321,12 @@ export default function PerfilPublicoMedico({ params }) {
         }
 
         .doctor-avatar {
-          width: 80px;
-          height: 80px;
+          width: 140px;
+          height: 140px;
           border-radius: 50%;
           overflow: hidden;
           flex-shrink: 0;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
         .avatar-image {
@@ -342,7 +343,7 @@ export default function PerfilPublicoMedico({ params }) {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 1.5rem;
+          font-size: 2.5rem;
           font-weight: 600;
         }
 
@@ -541,8 +542,8 @@ export default function PerfilPublicoMedico({ params }) {
           }
 
           .doctor-avatar {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
           }
 
           .areas-grid {
