@@ -460,6 +460,7 @@ const AgendarSobrecuposContent = () => {
       motivoConsulta: ''
     });
     setAcceptTerms(false);
+    setMessage(''); // Limpiar mensaje de error al cerrar modal
   };
 
   const getPrevisiones = (sobrecupo) => {
@@ -682,12 +683,6 @@ const AgendarSobrecuposContent = () => {
             </div>
           </section>
 
-          {/* Mensaje */}
-          {message && (
-            <div className={`message ${message.includes('confirmada') ? 'success' : 'error'}`}>
-              {message}
-            </div>
-          )}
 
           {/* Contenido Principal */}
           <section className="results-section">
@@ -1441,27 +1436,6 @@ const AgendarSobrecuposContent = () => {
           line-height: 1.4;
         }
 
-        /* Mensaje */
-        .message {
-          padding: 1rem;
-          border-radius: 8px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          text-align: center;
-          margin-bottom: 1rem;
-        }
-
-        .message.success {
-          background: #f0fdf4;
-          color: #166534;
-          border: 1px solid #bbf7d0;
-        }
-
-        .message.error {
-          background: #fef2f2;
-          color: #991b1b;
-          border: 1px solid #fecaca;
-        }
 
         /* Loading */
         .loading-container {
