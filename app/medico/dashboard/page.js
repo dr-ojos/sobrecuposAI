@@ -483,8 +483,8 @@ function MedicoDashboard() {
                   </div>
                 </div>
                 <div className="action-info">
-                  <div className="action-title primary-title">Crear Sobrecupos</div>
-                  <div className="action-description primary-description">Agregar nuevos horarios disponibles</div>
+                  <div className="action-title primary-title">Gestiona y crea tus sobrecupos</div>
+                  <div className="action-description primary-description">Administra horarios y crea nuevos sobrecupos</div>
                 </div>
                 <div className="action-arrow primary-arrow">→</div>
               </div>
@@ -514,9 +514,6 @@ function MedicoDashboard() {
               <span className="title-icon">📅</span>
               Próximos Sobrecupos
             </h2>
-            <button onClick={() => router.push('/medico/sobrecupos')} className="view-all-btn">
-              Gestiona tus sobrecupos
-            </button>
           </div>
           
           {sobrecupos.length === 0 ? (
