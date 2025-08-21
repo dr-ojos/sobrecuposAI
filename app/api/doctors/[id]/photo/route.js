@@ -28,15 +28,8 @@ export async function GET(request, { params }) {
       return NextResponse.json({ signedUrl: photoURL });
     }
 
-    // Si es URL de S3, revisar si es pública o necesita firma
+    // Si es URL de S3 no firmada, generar URL firmada
     if (photoURL.includes('s3.') && photoURL.includes('amazonaws.com')) {
-      // Si es una URL pública nueva (contiene nombre del bucket), usarla directamente
-      if (photoURL.includes('.s3.') && photoURL.includes('.amazonaws.com/')) {
-        console.log('✅ Using public S3 URL directly:', photoURL.substring(0, 100) + '...');
-        return NextResponse.json({ signedUrl: photoURL });
-      }
-      
-      // Si es URL de S3 antigua que necesita firma
       const signedUrl = await getSignedImageUrl(photoURL);
       return NextResponse.json({ signedUrl });
     }
