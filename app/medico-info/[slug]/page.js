@@ -293,43 +293,25 @@ export default function MedicoInfoPage({ params }) {
           
           {/* Perfil del Médico - Optimizado para móvil */}
           <section className="doctor-profile-card">
-            {console.log('🔍 [MOBILE DEBUG] fields completos:', fields)}
-            {console.log('🔍 [MOBILE DEBUG] PhotoURL específico:', fields.PhotoURL)}
-            {console.log('🔍 [MOBILE DEBUG] Name:', fields.Name)}
             <div className="profile-header">
               <div className="doctor-photo-container">
                 <div className="doctor-photo">
-                  {fields.PhotoURL && (
+                  {fields.PhotoURL ? (
                     <img 
                       src={fields.PhotoURL}
                       alt={`Foto del ${fields.Name}`}
                       className="profile-image"
                       onLoad={(e) => {
-                        console.log('✅ [MOBILE] Imagen cargada exitosamente!');
-                        // NO OCULTAR NADA - comentado para debug
-                        // e.target.nextSibling.style.display = 'none';
+                        console.log('✅ Imagen del médico cargada correctamente');
+                        e.target.nextSibling.style.display = 'none';
                       }}
                       onError={(e) => {
-                        console.log('❌ [MOBILE] Error cargando imagen:', e);
-                        console.log('❌ [MOBILE] URL problemática:', fields.PhotoURL);
-                        // NO OCULTAR LA IMAGEN - mantener visible para debug
-                        // e.target.style.display = 'none';
-                        // e.target.nextSibling.style.display = 'flex';
-                      }}
-                      style={{
-                        display: 'block !important',
-                        visibility: 'visible !important',
-                        opacity: '1 !important',
-                        border: '5px solid red',
-                        background: 'yellow',
-                        minWidth: '120px',
-                        minHeight: '120px',
-                        position: 'relative',
-                        zIndex: '9999'
+                        console.log('❌ Error cargando imagen del médico (URL probablemente expirada), mostrando placeholder');
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
                       }}
                     />
-                  )}
-                  {console.log('🔍 [DEBUG] Placeholder display:', fields.PhotoURL ? 'none' : 'flex')}
+                  ) : null}
                   <div className="photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
                     <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
