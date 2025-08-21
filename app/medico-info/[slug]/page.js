@@ -293,6 +293,9 @@ export default function MedicoInfoPage({ params }) {
           
           {/* Perfil del Médico - Optimizado para móvil */}
           <section className="doctor-profile-card">
+            {console.log('🔍 [MOBILE DEBUG] fields completos:', fields)}
+            {console.log('🔍 [MOBILE DEBUG] PhotoURL específico:', fields.PhotoURL)}
+            {console.log('🔍 [MOBILE DEBUG] Name:', fields.Name)}
             <div className="profile-header">
               <div className="doctor-photo-container">
                 <div className="doctor-photo">
@@ -582,6 +585,9 @@ export default function MedicoInfoPage({ params }) {
             <div className="left-column">
               {/* Perfil del Médico - Desktop */}
               <section className="doctor-profile-desktop">
+                {console.log('🔍 [DESKTOP DEBUG] fields completos:', fields)}
+                {console.log('🔍 [DESKTOP DEBUG] PhotoURL específico:', fields.PhotoURL)}
+                {console.log('🔍 [DESKTOP DEBUG] Name:', fields.Name)}
                 <div className="desktop-profile-header">
                   <div className="desktop-doctor-photo">
                     {fields.PhotoURL ? (
