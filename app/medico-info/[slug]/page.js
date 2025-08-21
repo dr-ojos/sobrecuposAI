@@ -299,8 +299,6 @@ export default function MedicoInfoPage({ params }) {
             <div className="profile-header">
               <div className="doctor-photo-container">
                 <div className="doctor-photo">
-                  {console.log('🔍 [DEBUG] PhotoURL existe?', !!fields.PhotoURL)}
-                  {console.log('🔍 [DEBUG] Renderizando imagen?', !!fields.PhotoURL)}
                   {fields.PhotoURL && (
                     <img 
                       src={fields.PhotoURL}
@@ -308,20 +306,26 @@ export default function MedicoInfoPage({ params }) {
                       className="profile-image"
                       onLoad={(e) => {
                         console.log('✅ [MOBILE] Imagen cargada exitosamente!');
-                        e.target.nextSibling.style.display = 'none';
+                        // NO OCULTAR NADA - comentado para debug
+                        // e.target.nextSibling.style.display = 'none';
                       }}
                       onError={(e) => {
                         console.log('❌ [MOBILE] Error cargando imagen:', e);
                         console.log('❌ [MOBILE] URL problemática:', fields.PhotoURL);
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
+                        // NO OCULTAR LA IMAGEN - mantener visible para debug
+                        // e.target.style.display = 'none';
+                        // e.target.nextSibling.style.display = 'flex';
                       }}
                       style={{
-                        display: 'block',
+                        display: 'block !important',
+                        visibility: 'visible !important',
+                        opacity: '1 !important',
                         border: '5px solid red',
                         background: 'yellow',
                         minWidth: '120px',
-                        minHeight: '120px'
+                        minHeight: '120px',
+                        position: 'relative',
+                        zIndex: '9999'
                       }}
                     />
                   )}
