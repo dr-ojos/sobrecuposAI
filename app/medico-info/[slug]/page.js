@@ -590,28 +590,29 @@ export default function MedicoInfoPage({ params }) {
                 {console.log('🔍 [DESKTOP DEBUG] Name:', fields.Name)}
                 <div className="desktop-profile-header">
                   <div className="desktop-doctor-photo">
-                    {fields.PhotoURL ? (
-                      <img 
-                        src={fields.PhotoURL} 
-                        alt={`Foto del ${fields.Name}`}
-                        className="desktop-profile-image"
-                        onError={(e) => {
-                          console.log('❌ [DESKTOP] Error cargando imagen:', fields.PhotoURL);
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'flex';
-                        }}
-                        onLoad={(e) => {
-                          console.log('✅ [DESKTOP] Imagen cargada exitosamente:', fields.PhotoURL);
+                    {/* SIEMPRE renderizar la imagen para debug */}
+                    <img 
+                      src={fields.PhotoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'}
+                      alt={`Foto del ${fields.Name}`}
+                      className="desktop-profile-image"
+                      onError={(e) => {
+                        console.log('❌ [DESKTOP] Error cargando imagen:', fields.PhotoURL);
+                        console.log('❌ [DESKTOP] Error event:', e);
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                      onLoad={(e) => {
+                        console.log('✅ [DESKTOP] Imagen cargada exitosamente:', fields.PhotoURL);
+                        if (fields.PhotoURL) {
                           e.target.nextSibling.style.display = 'none';
-                        }}
-                        style={{
-                          display: 'block',
-                          border: '2px solid red' // DEBUG: borde rojo temporal para visualizar
-                        }}
-                      />
-                    ) : (
-                      console.log('⚠️ [DESKTOP] No hay PhotoURL disponible') || null
-                    )}
+                        }
+                      }}
+                      style={{
+                        display: 'block',
+                        border: '3px solid lime', // DEBUG: borde verde más visible
+                        background: 'yellow' // DEBUG: fondo amarillo para ver el elemento
+                      }}
+                    />
                     <div className="desktop-photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
                       <span className="desktop-placeholder-initials">
                         {(fields.Name || 'Dr').split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
