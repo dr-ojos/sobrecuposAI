@@ -1,21 +1,31 @@
 'use client';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 export default function DemoCalendar() {
   const [sobrecupos, setSobrecupos] = useState({});
   const [showModal, setShowModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [modalData, setModalData] = useState({
-    clinica: '',
-    direccion: ''
-  });
+  const [selectedSobrecupo, setSelectedSobrecupo] = useState(null);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+  const [modalData, setModalData] = useState({ clinica: '' });
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
 
-  // Generar semana actual
+  const clinicasRegistradas = [
+    'Consulta particular',
+    'Clínica Las Condes', 
+    'Clínica Alemana',
+    'Hospital Salvador',
+    'Clínica Santa María',
+    'Clínica UC'
+  ];
+
   const getWeekDays = () => {
     const today = new Date();
     const currentDay = today.getDay();
     const monday = new Date(today);
-    monday.setDate(today.getDate() - currentDay + 1);
+    monday.setDate(today.getDate() - currentDay + 1 + (currentWeekOffset * 7));
     
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -26,37 +36,83 @@ export default function DemoCalendar() {
     return days;
   };
 
-  const weekDays = getWeekDays();
-  const hours = Array.from({ length: 11 }, (_, i) => i + 9); // 9 AM a 7 PM
+  const isToday = (date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  };
 
+  const isPastDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate < today;
+  };
+
+  const goToPreviousWeek = () => setCurrentWeekOffset(prev => prev - 1);
+  const goToNextWeek = () => setCurrentWeekOffset(prev => prev + 1);
+  const goToCurrentWeek = () => setCurrentWeekOffset(0);
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNextWeek();
+    }
+    if (isRightSwipe) {
+      goToPreviousWeek();
+    }
+    
+    setTouchStartX(0);
+    setTouchEndX(0);
+  };
+
+  const getWeekInfo = () => {
+    const weekDays = getWeekDays();
+    const firstDay = weekDays[0];
+    const lastDay = weekDays[6];
+    
+    if (firstDay.getMonth() !== lastDay.getMonth()) {
+      return {
+        monthYear: `${firstDay.toLocaleDateString('es', { month: 'short' })} - ${lastDay.toLocaleDateString('es', { month: 'short' })} ${lastDay.getFullYear()}`
+      };
+    }
+    
+    return {
+      monthYear: `${firstDay.toLocaleDateString('es', { month: 'long' })} ${firstDay.getFullYear()}`
+    };
+  };
+
+  const weekDays = getWeekDays();
+  const weekInfo = getWeekInfo();
+  const hours = Array.from({ length: 11 }, (_, i) => i + 9);
   const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
-  const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
-  };
-
-  const formatTime = (hour) => {
-    return `${hour.toString().padStart(2, '0')}:00`;
-  };
-
-  const getSlotKey = (date, hour) => {
-    return `${formatDate(date)}-${hour}`;
-  };
+  const formatDate = (date) => date.toISOString().split('T')[0];
+  const formatTime = (hour) => `${hour.toString().padStart(2, '0')}:00`;
+  const getSlotKey = (date, hour) => `${formatDate(date)}-${hour}`;
 
   const handleSlotClick = (date, hour) => {
     const slotKey = getSlotKey(date, hour);
     
     if (sobrecupos[slotKey]) {
-      // Si ya existe, alternar estado reservado/disponible
-      setSobrecupos(prev => ({
-        ...prev,
-        [slotKey]: {
-          ...prev[slotKey],
-          estado: prev[slotKey].estado === 'disponible' ? 'reservado' : 'disponible'
-        }
-      }));
-    } else {
-      // Crear nuevo sobrecupo
+      setSelectedSobrecupo({ ...sobrecupos[slotKey], slotKey, date, hour, isPast: isPastDate(date) });
+      setShowInfoModal(true);
+    } else if (!isPastDate(date)) {
       setSelectedSlot({ date, hour, slotKey });
       setShowModal(true);
     }
@@ -69,7 +125,6 @@ export default function DemoCalendar() {
       fecha: formatDate(selectedSlot.date),
       hora: formatTime(selectedSlot.hour),
       clinica: modalData.clinica || 'Consulta particular',
-      direccion: modalData.direccion || 'Por definir',
       estado: 'disponible'
     };
 
@@ -80,7 +135,28 @@ export default function DemoCalendar() {
 
     setShowModal(false);
     setSelectedSlot(null);
-    setModalData({ clinica: '', direccion: '' });
+    setModalData({ clinica: '' });
+  };
+
+  const handleEditSobrecupo = () => {
+    setSelectedSlot({
+      date: selectedSobrecupo.date,
+      hour: selectedSobrecupo.hour,
+      slotKey: selectedSobrecupo.slotKey
+    });
+    setModalData({ clinica: selectedSobrecupo.clinica });
+    setShowInfoModal(false);
+    setShowModal(true);
+  };
+
+  const handleDeleteSobrecupo = () => {
+    setSobrecupos(prev => {
+      const newSobrecupos = { ...prev };
+      delete newSobrecupos[selectedSobrecupo.slotKey];
+      return newSobrecupos;
+    });
+    setShowInfoModal(false);
+    setSelectedSobrecupo(null);
   };
 
   const getSobrecupoCount = () => {
@@ -92,131 +168,355 @@ export default function DemoCalendar() {
   const stats = getSobrecupoCount();
 
   return (
-    <div className="calendar-container">
-      <div className="calendar-header">
-        <h1>📅 Calendario de Sobrecupos</h1>
-        <p>Haz clic en cualquier hora para crear un sobrecupo</p>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%)', 
+      padding: '1rem',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif'
+    }}>
+      <div style={{
+        textAlign: 'center',
+        color: '#171717',
+        marginBottom: '1.5rem',
+        maxWidth: '900px',
+        margin: '0 auto 1.5rem auto'
+      }}>
+        <h1 style={{
+          fontSize: '1.75rem',
+          margin: '0 0 0.5rem 0',
+          fontWeight: 200,
+          letterSpacing: '-0.6px'
+        }}>Gestiona tus Sobrecupos</h1>
         
-        <div className="stats-bar">
-          <div className="stat-item">
-            <span className="stat-number">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number orange">{stats.disponibles}</span>
-            <span className="stat-label">Disponibles</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-number green">{stats.reservados}</span>
-            <span className="stat-label">Reservados</span>
-          </div>
-        </div>
-
-        <div className="legend">
-          <div className="legend-item">
-            <div className="legend-color available"></div>
-            <span>Disponible</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color reserved"></div>
-            <span>Reservado</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color empty"></div>
-            <span>Sin sobrecupo</span>
-          </div>
-        </div>
+        <p style={{
+          fontSize: '0.9375rem',
+          color: '#8e8e93',
+          margin: '0 0 1rem 0',
+          fontWeight: 400
+        }}>Haz clic en cualquier hora para crear un sobrecupo</p>
+        
+        {currentWeekOffset !== 0 && (
+          <button onClick={goToCurrentWeek} style={{
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            padding: '0.375rem 0.75rem',
+            background: 'rgba(255, 149, 0, 0.1)',
+            border: 'none',
+            borderRadius: '20px',
+            color: '#ff9500',
+            fontSize: '0.8125rem',
+            fontWeight: 500,
+            cursor: 'pointer'
+          }}>
+            Hoy
+          </button>
+        )}
       </div>
 
-      <div className="calendar-grid">
-        {/* Header con días */}
-        <div className="time-column"></div>
-        {weekDays.map((day, index) => (
-          <div key={day.toISOString()} className="day-header">
-            <div className="day-name">{dayNames[index]}</div>
-            <div className="day-number">{day.getDate()}</div>
-            <div className="day-month">
-              {day.toLocaleDateString('es', { month: 'short' })}
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div className="calendar-header">
+          <div className="month-name">
+            {weekInfo.monthYear}
+          </div>
+          
+          <div className="stats-container">
+            <div className="stat-item">
+              <div className="stat-indicator available"></div>
+              <span>Disponibles: {stats.disponibles}</span>
+            </div>
+            <div className="stat-item">
+              <div className="stat-indicator reserved"></div>
+              <span>Reservados: {stats.reservados}</span>
+            </div>
+            <div className="stat-total">
+              Total: {stats.total}
             </div>
           </div>
-        ))}
-
-        {/* Grid de horas */}
-        {hours.map(hour => (
-          <div key={hour} className="hour-row">
-            <div className="time-label">
-              {formatTime(hour)}
-            </div>
-            {weekDays.map(day => {
-              const slotKey = getSlotKey(day, hour);
-              const sobrecupo = sobrecupos[slotKey];
+        </div>
+        
+        
+        <div 
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '50px repeat(7, 1fr)',
+            gap: '0.5px',
+            background: 'rgba(0, 0, 0, 0.04)',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+            touchAction: 'pan-x'
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Header con días */}
+          <div className="calendar-nav-header">
+            <button onClick={goToPreviousWeek} className="nav-btn nav-btn-left">
+              ‹
+            </button>
+            <button onClick={goToNextWeek} className="nav-btn nav-btn-center">
+              ›
+            </button>
+          </div>
+          
+          {weekDays.map((day, index) => (
+            <div key={day.toISOString()} style={{
+              background: isToday(day) ? 'rgba(255, 149, 0, 0.08)' : isPastDate(day) ? '#f9f9f9' : 'white',
+              padding: '0.625rem 0.5rem',
+              textAlign: 'center',
+              borderBottom: '1px solid #e5e5e5',
+              position: 'relative',
+              border: isToday(day) ? '1px solid rgba(255, 149, 0, 0.2)' : 'none',
+              opacity: isPastDate(day) ? 0.6 : 1
+            }}>
+              <div style={{
+                fontWeight: 500,
+                color: '#171717',
+                fontSize: '0.8125rem',
+                marginBottom: '0.25rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                {dayNames[index]}
+              </div>
+              <div className="day-number" style={{
+                color: isToday(day) ? '#ff9500' : '#171717',
+                fontWeight: isToday(day) ? 600 : 300
+              }}>
+                {day.getDate()}
+              </div>
               
-              return (
-                <div
-                  key={`${day.toISOString()}-${hour}`}
-                  className={`time-slot ${sobrecupo ? sobrecupo.estado : 'empty'}`}
-                  onClick={() => handleSlotClick(day, hour)}
-                >
-                  {sobrecupo && (
-                    <div className="sobrecupo-info">
-                      <div className="sobrecupo-time">{sobrecupo.hora}</div>
-                      <div className="sobrecupo-clinic">{sobrecupo.clinica}</div>
-                      {sobrecupo.estado === 'reservado' && (
-                        <div className="sobrecupo-status">✓ Reservado</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+              {index === 6 && (
+                <button onClick={goToNextWeek} className="nav-btn nav-btn-right">
+                  ›
+                </button>
+              )}
+              
+            </div>
+          ))}
+
+          {/* Grid de horas */}
+          {hours.map(hour => (
+            <React.Fragment key={hour}>
+              <div style={{
+                background: 'white',
+                padding: '0.625rem 0.375rem',
+                textAlign: 'center',
+                fontSize: '0.6875rem',
+                fontWeight: 400,
+                color: '#666',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderBottom: '1px solid #e5e5e5'
+              }}>
+                {formatTime(hour)}
+              </div>
+              
+              {weekDays.map(day => {
+                const slotKey = getSlotKey(day, hour);
+                const sobrecupo = sobrecupos[slotKey];
+                
+                return (
+                  <div
+                    key={`${day.toISOString()}-${hour}`}
+                    style={{
+                      background: sobrecupo ? (sobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981') : isPastDate(day) ? '#f9f9f9' : 'white',
+                      color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : 'black',
+                      minHeight: '40px',
+                      cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderBottom: '1px solid #e5e5e5',
+                      position: 'relative',
+                      opacity: isPastDate(day) ? 0.6 : 1
+                    }}
+                    onClick={() => handleSlotClick(day, hour)}
+                  >
+                    {sobrecupo ? (
+                      <div style={{
+                        textAlign: 'center',
+                        padding: '0.25rem',
+                        width: '100%'
+                      }}>
+                        <div style={{
+                          fontWeight: 500,
+                          fontSize: '0.6875rem',
+                          marginBottom: '0.0625rem'
+                        }}>
+                          {sobrecupo.hora}
+                        </div>
+                        <div style={{
+                          fontSize: '0.625rem',
+                          opacity: 0.9,
+                          marginBottom: '0.0625rem'
+                        }}>
+                          {sobrecupo.clinica}
+                        </div>
+                        {sobrecupo.estado === 'reservado' && (
+                          <div style={{
+                            fontSize: '0.5625rem',
+                            fontWeight: 500,
+                            opacity: 0.8
+                          }}>
+                            ✓ Reservado
+                          </div>
+                        )}
+                      </div>
+                    ) : !isPastDate(day) ? (
+                      <div style={{
+                        fontSize: '1.25rem',
+                        color: '#d1d5db',
+                        fontWeight: 300,
+                        opacity: 0.6
+                      }}>
+                        +
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
 
       {/* Modal para crear sobrecupo */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Crear Sobrecupo</h3>
-              <button onClick={() => setShowModal(false)} className="modal-close">×</button>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(23, 23, 23, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '300px',
+            margin: '1rem',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.8)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem 1.25rem',
+              borderBottom: '1px solid #e5e5e5'
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: '#171717'
+              }}>Crear Sobrecupo</h3>
+              <button onClick={() => setShowModal(false)} style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: '#6b7280',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%'
+              }}>×</button>
             </div>
             
-            <div className="modal-body">
-              <div className="selected-time">
+            <div style={{ padding: '1rem 1.25rem' }}>
+              <div style={{
+                background: '#fff7ed',
+                border: '1px solid #fed7aa',
+                borderRadius: '6px',
+                padding: '0.75rem',
+                marginBottom: '1.25rem',
+                textAlign: 'center',
+                color: '#9a3412',
+                fontSize: '0.875rem'
+              }}>
                 <strong>
                   {selectedSlot && `${dayNames[selectedSlot.date.getDay() - 1]} ${selectedSlot.date.getDate()}, ${formatTime(selectedSlot.hour)}`}
                 </strong>
               </div>
               
-              <div className="form-field">
-                <label>Clínica</label>
-                <input
-                  type="text"
+              <div style={{ marginBottom: '0.875rem' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.375rem',
+                  fontWeight: 500,
+                  color: '#171717',
+                  fontSize: '0.8125rem'
+                }}>Clínica</label>
+                <select
                   value={modalData.clinica}
                   onChange={(e) => setModalData(prev => ({ ...prev, clinica: e.target.value }))}
-                  placeholder="Nombre de la clínica"
-                  className="modal-input"
-                />
-              </div>
-
-              <div className="form-field">
-                <label>Dirección</label>
-                <input
-                  type="text"
-                  value={modalData.direccion}
-                  onChange={(e) => setModalData(prev => ({ ...prev, direccion: e.target.value }))}
-                  placeholder="Dirección de la clínica"
-                  className="modal-input"
-                />
+                  style={{
+                    width: '100%',
+                    padding: '0.625rem 0.75rem',
+                    border: '1px solid #e5e5e5',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    background: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">Selecciona una clínica</option>
+                  {clinicasRegistradas.map((clinica, index) => (
+                    <option key={index} value={clinica}>
+                      {clinica}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="modal-footer">
-              <button onClick={() => setShowModal(false)} className="btn-secondary">
+            <div style={{
+              display: 'flex',
+              gap: '0.75rem',
+              padding: '0.75rem 1.25rem 1.25rem 1.25rem',
+              justifyContent: 'center'
+            }}>
+              <button onClick={() => setShowModal(false)} style={{
+                flex: 1,
+                padding: '0.625rem 1rem',
+                borderRadius: '6px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                border: '1px solid #e5e5e5',
+                fontSize: '0.875rem',
+                fontFamily: 'inherit',
+                background: '#f9f9f9',
+                color: '#666'
+              }}>
                 Cancelar
               </button>
-              <button onClick={handleCreateSobrecupo} className="btn-primary">
+              <button onClick={handleCreateSobrecupo} style={{
+                flex: 1,
+                padding: '0.625rem 1rem',
+                borderRadius: '6px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                border: '1px solid #ff9500',
+                fontSize: '0.875rem',
+                fontFamily: 'inherit',
+                background: '#ff9500',
+                color: 'white'
+              }}>
                 Crear Sobrecupo
               </button>
             </div>
@@ -224,396 +524,323 @@ export default function DemoCalendar() {
         </div>
       )}
 
+      {/* Modal para ver información del sobrecupo */}
+      {showInfoModal && selectedSobrecupo && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(23, 23, 23, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '300px',
+            margin: '1rem',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.8)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem 1.25rem',
+              borderBottom: '1px solid #e5e5e5'
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: '#171717'
+              }}>Información del Sobrecupo</h3>
+              <button onClick={() => setShowInfoModal(false)} style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: '#6b7280',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%'
+              }}>×</button>
+            </div>
+            
+            <div style={{ padding: '1rem 1.25rem' }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
+              }}>
+                <div>
+                  <label style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    color: '#666',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Fecha y Hora</label>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: '#171717',
+                    fontWeight: 400
+                  }}>
+                    {dayNames[selectedSobrecupo.date.getDay() - 1]} {selectedSobrecupo.date.getDate()}, {selectedSobrecupo.hora}
+                  </div>
+                </div>
+                
+                <div>
+                  <label style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    color: '#666',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Clínica</label>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: '#171717',
+                    fontWeight: 400
+                  }}>{selectedSobrecupo.clinica}</div>
+                </div>
+                
+                <div>
+                  <label style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    color: '#666',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Estado</label>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: selectedSobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981',
+                    fontWeight: 500
+                  }}>
+                    {selectedSobrecupo.estado === 'disponible' ? '🟠 Disponible' : '🟢 Reservado'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {!selectedSobrecupo?.isPast && (
+              <div style={{
+                display: 'flex',
+                gap: '0.75rem',
+                padding: '0.75rem 1.25rem 1.25rem 1.25rem',
+                justifyContent: 'center'
+              }}>
+                <button onClick={handleDeleteSobrecupo} style={{
+                  flex: 1,
+                  padding: '0.625rem 1rem',
+                  borderRadius: '6px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  border: '1px solid #ef4444',
+                  fontSize: '0.875rem',
+                  fontFamily: 'inherit',
+                  background: '#ef4444',
+                  color: 'white'
+                }}>
+                  Borrar
+                </button>
+                <button onClick={handleEditSobrecupo} style={{
+                  flex: 1,
+                  padding: '0.625rem 1rem',
+                  borderRadius: '6px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  border: '1px solid #ff9500',
+                  fontSize: '0.875rem',
+                  fontFamily: 'inherit',
+                  background: '#ff9500',
+                  color: 'white'
+                }}>
+                  Editar
+                </button>
+              </div>
+            )}
+            
+            {selectedSobrecupo?.isPast && (
+              <div style={{
+                padding: '0.75rem 1.25rem 1.25rem 1.25rem',
+                textAlign: 'center'
+              }}>
+                <p style={{
+                  margin: 0,
+                  fontSize: '0.8125rem',
+                  color: '#8e8e93',
+                  fontStyle: 'italic'
+                }}>
+                  Los sobrecupos pasados solo pueden ser consultados
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       <style jsx>{`
-        .calendar-container {
-          min-height: 100vh;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          padding: 2rem;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
+        
         .calendar-header {
-          text-align: center;
-          color: white;
-          margin-bottom: 2rem;
-        }
-
-        .calendar-header h1 {
-          font-size: 2.5rem;
-          margin: 0 0 0.5rem 0;
-          font-weight: 700;
-        }
-
-        .calendar-header p {
-          font-size: 1.1rem;
-          opacity: 0.9;
-          margin: 0 0 2rem 0;
-        }
-
-        .stats-bar {
-          display: flex;
-          justify-content: center;
-          gap: 2rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .stat-item {
-          text-align: center;
-        }
-
-        .stat-number {
-          display: block;
-          font-size: 2rem;
-          font-weight: 700;
-          margin-bottom: 0.25rem;
-        }
-
-        .stat-number.orange {
-          color: #ff9500;
-        }
-
-        .stat-number.green {
-          color: #10b981;
-        }
-
-        .stat-label {
-          font-size: 0.875rem;
-          opacity: 0.8;
-        }
-
-        .legend {
-          display: flex;
-          justify-content: center;
-          gap: 1.5rem;
-          margin-bottom: 2rem;
-        }
-
-        .legend-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.875rem;
-        }
-
-        .legend-color {
-          width: 16px;
-          height: 16px;
-          border-radius: 4px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .legend-color.available {
-          background: #ff9500;
-        }
-
-        .legend-color.reserved {
-          background: #10b981;
-        }
-
-        .legend-color.empty {
-          background: rgba(255, 255, 255, 0.2);
-        }
-
-        .calendar-grid {
-          display: grid;
-          grid-template-columns: 80px repeat(7, 1fr);
-          gap: 1px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          overflow: hidden;
-          max-width: 1200px;
-          margin: 0 auto;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .time-column {
-          background: rgba(255, 255, 255, 0.95);
-        }
-
-        .day-header {
-          background: rgba(255, 255, 255, 0.95);
-          padding: 1rem;
-          text-align: center;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .day-name {
-          font-weight: 700;
-          color: #374151;
-          font-size: 0.875rem;
-          margin-bottom: 0.25rem;
-        }
-
-        .day-number {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 0.125rem;
-        }
-
-        .day-month {
-          font-size: 0.75rem;
-          color: #6b7280;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .hour-row {
-          display: contents;
-        }
-
-        .time-label {
-          background: rgba(255, 255, 255, 0.95);
-          padding: 1rem 0.5rem;
-          text-align: center;
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #374151;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .time-slot {
-          background: rgba(255, 255, 255, 0.95);
-          min-height: 60px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          position: relative;
-        }
-
-        .time-slot:hover {
-          background: rgba(255, 255, 255, 1);
-          transform: scale(1.02);
-          z-index: 10;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .time-slot.disponible {
-          background: #ff9500;
-          color: white;
-        }
-
-        .time-slot.disponible:hover {
-          background: #ff8800;
-        }
-
-        .time-slot.reservado {
-          background: #10b981;
-          color: white;
-        }
-
-        .time-slot.reservado:hover {
-          background: #059669;
-        }
-
-        .sobrecupo-info {
-          text-align: center;
-          padding: 0.5rem;
-          width: 100%;
-        }
-
-        .sobrecupo-time {
-          font-weight: 700;
-          font-size: 0.875rem;
-          margin-bottom: 0.25rem;
-        }
-
-        .sobrecupo-clinic {
-          font-size: 0.75rem;
-          opacity: 0.9;
-          margin-bottom: 0.25rem;
-        }
-
-        .sobrecupo-status {
-          font-size: 0.6875rem;
-          font-weight: 600;
-          opacity: 0.8;
-        }
-
-        /* Modal */
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          backdrop-filter: blur(4px);
-        }
-
-        .modal-content {
-          background: white;
-          border-radius: 16px;
-          width: 100%;
-          max-width: 400px;
-          margin: 1rem;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 1.5rem;
-          border-bottom: 1px solid #e5e7eb;
+          margin-bottom: 1rem;
         }
-
-        .modal-header h3 {
-          margin: 0;
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #1f2937;
+        
+        .month-name {
+          fontSize: 0.9375rem;
+          font-weight: 500;
+          color: #8e8e93;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
         }
-
-        .modal-close {
-          background: none;
-          border: none;
-          font-size: 1.5rem;
-          cursor: pointer;
-          color: #6b7280;
+        
+        .stats-container {
+          display: flex;
+          gap: 1rem;
+          fontSize: 0.8125rem;
+          color: #8e8e93;
+        }
+        
+        .stat-item {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+        }
+        
+        .stat-indicator {
+          width: 12px;
+          height: 12px;
+          border-radius: 3px;
+        }
+        
+        .stat-indicator.available {
+          background: #ff9500;
+        }
+        
+        .stat-indicator.reserved {
+          background: #10b981;
+        }
+        
+        .stat-total {
+          font-weight: 500;
+          color: #171717;
+        }
+        
+        .day-number {
+          fontSize: 1.25rem;
+          font-weight: 300;
+          color: #171717;
+          margin-bottom: 0.125rem;
+        }
+        
+        .calendar-nav-header {
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 0.5rem;
+        }
+        
+        .nav-btn {
           width: 32px;
           height: 32px;
+          border: none;
+          background: none;
+          color: #8e8e93;
+          fontSize: 1.5rem;
+          cursor: pointer;
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 50%;
-          transition: all 0.2s ease;
+          font-weight: 300;
         }
-
-        .modal-close:hover {
-          background: #f3f4f6;
-          color: #374151;
+        
+        .nav-btn-left {
+          /* Flecha izquierda en desktop */
         }
-
-        .modal-body {
-          padding: 1.5rem;
+        
+        .nav-btn-center {
+          /* Flecha del centro (oculta en desktop) */
         }
-
-        .selected-time {
-          background: #f0f9ff;
-          border: 1px solid #bae6fd;
-          border-radius: 8px;
-          padding: 1rem;
-          margin-bottom: 1.5rem;
-          text-align: center;
-          color: #0c4a6e;
+        
+        .nav-btn-right {
+          position: absolute;
+          right: 8px;
+          top: 50%;
+          transform: translateY(-50%);
         }
-
-        .form-field {
-          margin-bottom: 1rem;
-        }
-
-        .form-field label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 600;
-          color: #374151;
-          font-size: 0.875rem;
-        }
-
-        .modal-input {
-          width: 100%;
-          padding: 0.75rem;
-          border: 2px solid #e5e7eb;
-          border-radius: 8px;
-          font-size: 1rem;
-          transition: all 0.2s ease;
-        }
-
-        .modal-input:focus {
-          outline: none;
-          border-color: #667eea;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .modal-footer {
-          display: flex;
-          gap: 0.75rem;
-          padding: 1.5rem;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        .btn-secondary, .btn-primary {
-          flex: 1;
-          padding: 0.75rem 1rem;
-          border-radius: 8px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border: 2px solid transparent;
-        }
-
-        .btn-secondary {
-          background: #f3f4f6;
-          color: #374151;
-          border-color: #e5e7eb;
-        }
-
-        .btn-secondary:hover {
-          background: #e5e7eb;
-        }
-
-        .btn-primary {
-          background: linear-gradient(135deg, #667eea, #764ba2);
-          color: white;
-        }
-
-        .btn-primary:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Responsive */
+        
+        
         @media (max-width: 768px) {
-          .calendar-container {
-            padding: 1rem;
+          
+          .calendar-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 0.75rem;
           }
-
-          .calendar-grid {
-            grid-template-columns: 60px repeat(7, 1fr);
-            font-size: 0.875rem;
+          
+          .calendar-nav-header {
+            justify-content: center;
+            position: relative;
           }
-
-          .time-slot {
-            min-height: 50px;
+          
+          .nav-btn-left {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
           }
-
-          .stats-bar {
-            gap: 1rem;
+          
+          .nav-btn-center {
+            display: none;
           }
-
-          .legend {
-            gap: 1rem;
+          
+          .nav-btn-right {
+            display: none;
           }
-
-          .day-header {
-            padding: 0.75rem 0.5rem;
+          
+          
+          .month-name {
+            fontSize: 0.8125rem;
+            align-self: center;
+            order: 2;
           }
-
+          
+          .stats-container {
+            gap: 0.75rem;
+            fontSize: 0.75rem;
+            flex-wrap: wrap;
+            order: 1;
+            justify-content: center;
+          }
+          
+          .stat-item {
+            gap: 0.25rem;
+          }
+          
+          .stat-indicator {
+            width: 10px;
+            height: 10px;
+          }
+          
           .day-number {
-            font-size: 1.25rem;
-          }
-
-          .sobrecupo-info {
-            padding: 0.25rem;
-          }
-
-          .sobrecupo-time {
-            font-size: 0.75rem;
-          }
-
-          .sobrecupo-clinic {
-            font-size: 0.6875rem;
+            fontSize: 0.875rem;
+            margin-bottom: 0.0625rem;
           }
         }
       `}</style>
