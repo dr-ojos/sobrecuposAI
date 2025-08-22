@@ -90,6 +90,12 @@ export default function SobrecuposMedico() {
     return days;
   };
 
+  // Días para móvil (sin domingo)
+  const getMobileWeekDays = () => {
+    const allDays = getWeekDays();
+    return allDays.slice(0, 6); // Solo lunes a sábado (índices 0-5)
+  };
+
   const isToday = (date) => {
     const today = new Date();
     return date.getDate() === today.getDate() &&
@@ -717,7 +723,7 @@ export default function SobrecuposMedico() {
             {/* Placeholder para alinear con las horas */}
             <div className="mobile-hour-placeholder"></div>
             
-            {weekDays.map((day, index) => (
+            {getMobileWeekDays().map((day, index) => (
               <div key={day.toISOString()} className={`mobile-day-header ${
                 isToday(day) ? 'today' : isPastDate(day) ? 'past' : ''
               }`}>
@@ -732,7 +738,7 @@ export default function SobrecuposMedico() {
             {hours.map(hour => (
               <div key={hour} className="mobile-hour-row">
                 <div className="mobile-hour-label">{formatTime(hour)}</div>
-                {weekDays.map(day => {
+                {getMobileWeekDays().map(day => {
                   const slotKey = getSlotKey(day, hour);
                   const sobrecupo = sobrecupos[slotKey];
                   
@@ -1530,7 +1536,7 @@ export default function SobrecuposMedico() {
         
         .mobile-days-header {
           display: grid;
-          grid-template-columns: 50px repeat(7, 1fr);
+          grid-template-columns: 50px repeat(6, 1fr);
           background: #f8f9fa;
           border-bottom: 1px solid #e5e5e5;
         }
@@ -1586,7 +1592,7 @@ export default function SobrecuposMedico() {
         
         .mobile-hour-row {
           display: grid;
-          grid-template-columns: 50px repeat(7, 1fr);
+          grid-template-columns: 50px repeat(6, 1fr);
           border-bottom: 1px solid #f0f0f0;
         }
         
