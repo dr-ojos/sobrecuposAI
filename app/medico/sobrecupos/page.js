@@ -28,6 +28,9 @@ export default function SobrecuposMedico() {
     "18:00", "19:00"
   ];
 
+  // Estado para el dropdown de horas
+  const [showHorasDropdown, setShowHorasDropdown] = useState(false);
+
   // Funciones para manejar selección múltiple de horas
   const toggleHora = (hora) => {
     setNewSobrecupo(prev => ({
@@ -50,6 +53,20 @@ export default function SobrecuposMedico() {
       ...prev,
       horas: []
     }));
+  };
+
+  // Función para generar el texto del selector
+  const getHorasDisplayText = () => {
+    if (newSobrecupo.horas.length === 0) {
+      return "Seleccionar horarios";
+    }
+    if (newSobrecupo.horas.length === 1) {
+      return newSobrecupo.horas[0];
+    }
+    if (newSobrecupo.horas.length === horarios.length) {
+      return "Todos los horarios";
+    }
+    return `${newSobrecupo.horas.length} horarios seleccionados`;
   };
 
   useEffect(() => {
@@ -482,31 +499,96 @@ export default function SobrecuposMedico() {
                     </div>
 
                     <div className="form-field">
-                      <div className="hora-selector-header">
-                        <label className="field-label">
-                          Horarios * ({newSobrecupo.horas.length} seleccionado{newSobrecupo.horas.length !== 1 ? 's' : ''})
-                        </label>
-                        <div className="hora-selector-actions">
-                          <button type="button" onClick={selectAllHoras} className="hora-action-btn">
-                            Seleccionar todos
-                          </button>
-                          <button type="button" onClick={clearAllHoras} className="hora-action-btn clear">
-                            Limpiar
-                          </button>
+                      <label className="field-label">Horarios *</label>
+                      <div className="multi-select-container">
+                        <div 
+                          className="multi-select-input"
+                          onClick={() => setShowHorasDropdown(!showHorasDropdown)}
+                        >
+                          <span className="multi-select-text">
+                            {getHorasDisplayText()}
+                          </span>
+                          <svg 
+                            className={`multi-select-arrow ${showHorasDropdown ? 'open' : ''}`}
+                            width="20" 
+                            height="20" 
+                            viewBox="0 0 24 24" 
+                            fill="none"
+                          >
+                            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
                         </div>
-                      </div>
-                      <div className="horarios-grid">
-                        {horarios.map(hora => (
-                          <label key={hora} className={`hora-checkbox ${newSobrecupo.horas.includes(hora) ? 'selected' : ''}`}>
-                            <input
-                              type="checkbox"
-                              checked={newSobrecupo.horas.includes(hora)}
-                              onChange={() => toggleHora(hora)}
-                              className="hora-input"
-                            />
-                            <span className="hora-label">{hora}</span>
-                          </label>
-                        ))}
+
+                        {/* Pills de horas seleccionadas */}
+                        {newSobrecupo.horas.length > 0 && (
+                          <div className="selected-horas-pills">
+                            {newSobrecupo.horas.map(hora => (
+                              <span key={hora} className="hora-pill">
+                                {hora}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleHora(hora);
+                                  }}
+                                  className="hora-pill-remove"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Dropdown profesional */}
+                        {showHorasDropdown && (
+                          <div className="multi-select-dropdown">
+                            <div className="dropdown-header">
+                              <div className="dropdown-actions">
+                                <button 
+                                  type="button" 
+                                  onClick={selectAllHoras}
+                                  className="dropdown-action-btn"
+                                >
+                                  Seleccionar todos
+                                </button>
+                                <button 
+                                  type="button" 
+                                  onClick={clearAllHoras}
+                                  className="dropdown-action-btn clear"
+                                >
+                                  Limpiar
+                                </button>
+                              </div>
+                            </div>
+                            <div className="dropdown-options">
+                              {horarios.map(hora => (
+                                <label key={hora} className="dropdown-option">
+                                  <input
+                                    type="checkbox"
+                                    checked={newSobrecupo.horas.includes(hora)}
+                                    onChange={() => toggleHora(hora)}
+                                    className="dropdown-checkbox"
+                                  />
+                                  <span className="dropdown-checkmark">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                  </span>
+                                  <span className="dropdown-label">{hora}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Overlay para cerrar dropdown */}
+                        {showHorasDropdown && (
+                          <div 
+                            className="multi-select-overlay"
+                            onClick={() => setShowHorasDropdown(false)}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -918,22 +1000,126 @@ export default function SobrecuposMedico() {
           box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
         }
 
-        /* Selector de Horarios Múltiples */
-        .hora-selector-header {
+        /* Multi-Select Profesional */
+        .multi-select-container {
+          position: relative;
+        }
+
+        .multi-select-input {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          margin-bottom: 1rem;
+          justify-content: space-between;
+          padding: 0.75rem 1rem;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          background: white;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          min-height: 48px;
+        }
+
+        .multi-select-input:hover {
+          border-color: #d1d5db;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .multi-select-input:focus-within {
+          border-color: #ff9500;
+          box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
+        }
+
+        .multi-select-text {
+          color: #374151;
+          font-size: 0.875rem;
+          flex: 1;
+        }
+
+        .multi-select-arrow {
+          color: #9ca3af;
+          transition: transform 0.2s ease;
+          flex-shrink: 0;
+        }
+
+        .multi-select-arrow.open {
+          transform: rotate(180deg);
+        }
+
+        .selected-horas-pills {
+          display: flex;
           flex-wrap: wrap;
           gap: 0.5rem;
+          margin-top: 0.75rem;
         }
 
-        .hora-selector-actions {
+        .hora-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.375rem;
+          padding: 0.375rem 0.75rem;
+          background: linear-gradient(135deg, #ff9500, #ff8800);
+          color: white;
+          border-radius: 20px;
+          font-size: 0.8125rem;
+          font-weight: 500;
+          box-shadow: 0 1px 3px rgba(255, 149, 0, 0.3);
+        }
+
+        .hora-pill-remove {
+          background: none;
+          border: none;
+          color: white;
+          cursor: pointer;
+          font-size: 1.125rem;
+          line-height: 1;
+          padding: 0;
+          margin-left: 0.125rem;
+          opacity: 0.8;
+          transition: opacity 0.2s ease;
+        }
+
+        .hora-pill-remove:hover {
+          opacity: 1;
+        }
+
+        .multi-select-dropdown {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+          z-index: 1000;
+          margin-top: 0.25rem;
+          overflow: hidden;
+          animation: dropdownSlideIn 0.2s ease-out;
+        }
+
+        @keyframes dropdownSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .dropdown-header {
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid #f3f4f6;
+          background: #fafafa;
+        }
+
+        .dropdown-actions {
           display: flex;
           gap: 0.5rem;
+          justify-content: flex-end;
         }
 
-        .hora-action-btn {
+        .dropdown-action-btn {
           padding: 0.375rem 0.75rem;
           font-size: 0.75rem;
           border: 1px solid #e5e7eb;
@@ -942,93 +1128,117 @@ export default function SobrecuposMedico() {
           border-radius: 6px;
           cursor: pointer;
           transition: all 0.2s ease;
+          font-weight: 500;
         }
 
-        .hora-action-btn:hover {
+        .dropdown-action-btn:hover {
           background: #f9fafb;
           border-color: #d1d5db;
         }
 
-        .hora-action-btn.clear {
+        .dropdown-action-btn.clear {
           color: #dc2626;
           border-color: #fecaca;
         }
 
-        .hora-action-btn.clear:hover {
+        .dropdown-action-btn.clear:hover {
           background: #fef2f2;
           border-color: #f87171;
         }
 
-        .horarios-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-          gap: 0.75rem;
-          padding: 1rem;
-          background: #f9fafb;
-          border-radius: 8px;
-          border: 1px solid #e5e7eb;
+        .dropdown-options {
+          max-height: 200px;
+          overflow-y: auto;
         }
 
-        .hora-checkbox {
-          position: relative;
+        .dropdown-option {
           display: flex;
           align-items: center;
-          justify-content: center;
-          padding: 0.75rem 0.5rem;
-          background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 8px;
+          gap: 0.75rem;
+          padding: 0.625rem 1rem;
           cursor: pointer;
-          transition: all 0.2s ease;
-          user-select: none;
+          transition: background-color 0.2s ease;
+          border-bottom: 1px solid #f9fafb;
         }
 
-        .hora-checkbox:hover {
-          border-color: #ff9500;
-          background: #fff7ed;
+        .dropdown-option:hover {
+          background: #f9fafb;
         }
 
-        .hora-checkbox.selected {
-          border-color: #ff9500;
-          background: linear-gradient(135deg, #ff9500, #ff8800);
-          color: white;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
+        .dropdown-option:last-child {
+          border-bottom: none;
         }
 
-        .hora-input {
+        .dropdown-checkbox {
           display: none;
         }
 
-        .hora-label {
+        .dropdown-checkmark {
+          width: 18px;
+          height: 18px;
+          border: 2px solid #e5e7eb;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          background: white;
+          flex-shrink: 0;
+        }
+
+        .dropdown-checkbox:checked + .dropdown-checkmark {
+          background: #ff9500;
+          border-color: #ff9500;
+          color: white;
+        }
+
+        .dropdown-checkbox:checked + .dropdown-checkmark svg {
+          opacity: 1;
+        }
+
+        .dropdown-checkmark svg {
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+
+        .dropdown-label {
           font-size: 0.875rem;
+          color: #374151;
           font-weight: 500;
-          text-align: center;
+          user-select: none;
+        }
+
+        .multi-select-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 999;
         }
 
         @media (max-width: 768px) {
-          .horarios-grid {
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 0.5rem;
-            padding: 0.75rem;
+          .selected-horas-pills {
+            gap: 0.375rem;
           }
 
-          .hora-checkbox {
-            padding: 0.625rem 0.375rem;
+          .hora-pill {
+            padding: 0.3125rem 0.625rem;
+            font-size: 0.75rem;
           }
 
-          .hora-label {
+          .dropdown-actions {
+            flex-direction: column;
+            gap: 0.375rem;
+          }
+
+          .dropdown-action-btn {
+            padding: 0.5rem;
             font-size: 0.8125rem;
           }
 
-          .hora-selector-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .hora-action-btn {
-            padding: 0.3125rem 0.625rem;
-            font-size: 0.6875rem;
+          .dropdown-option {
+            padding: 0.75rem 1rem;
           }
         }
 
