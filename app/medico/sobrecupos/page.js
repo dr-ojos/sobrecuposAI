@@ -689,15 +689,15 @@ export default function SobrecuposMedico() {
           ))}
         </div>
         
-        {/* Calendario Móvil - Vista por días */}
+        {/* Calendario Móvil - Vista compacta con scroll */}
         <div className="calendar-mobile">
           {/* Navegación móvil */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '1rem',
-            padding: '0 0.5rem'
+            marginBottom: '0.75rem',
+            padding: '0'
           }}>
             <button 
               onClick={goToPreviousWeek}
@@ -705,13 +705,13 @@ export default function SobrecuposMedico() {
                 background: 'rgba(255, 149, 0, 0.1)',
                 border: '1px solid rgba(255, 149, 0, 0.3)',
                 borderRadius: '50%',
-                width: '40px',
-                height: '40px',
+                width: '32px',
+                height: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                fontSize: '1.25rem',
+                fontSize: '1rem',
                 color: '#ff9500'
               }}
             >
@@ -720,7 +720,7 @@ export default function SobrecuposMedico() {
             <div style={{
               textAlign: 'center',
               color: '#666',
-              fontSize: '0.875rem',
+              fontSize: '0.75rem',
               fontWeight: 500
             }}>
               Desliza para navegar
@@ -731,13 +731,13 @@ export default function SobrecuposMedico() {
                 background: 'rgba(255, 149, 0, 0.1)',
                 border: '1px solid rgba(255, 149, 0, 0.3)',
                 borderRadius: '50%',
-                width: '40px',
-                height: '40px',
+                width: '32px',
+                height: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                fontSize: '1.25rem',
+                fontSize: '1rem',
                 color: '#ff9500'
               }}
             >
@@ -745,14 +745,16 @@ export default function SobrecuposMedico() {
             </button>
           </div>
           
-          {/* Lista de días móvil */}
+          {/* Grid horizontal scrollable de días */}
           <div 
+            className="calendar-mobile-scroll"
             style={{
               display: 'flex',
-              gap: '1rem',
+              gap: '0.5rem',
               overflowX: 'auto',
               scrollSnapType: 'x mandatory',
-              paddingBottom: '1rem'
+              paddingBottom: '0.5rem',
+              scrollBehavior: 'smooth'
             }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -761,27 +763,30 @@ export default function SobrecuposMedico() {
             {weekDays.map((day, dayIndex) => (
               <div 
                 key={day.toISOString()}
+                className="day-column-mobile"
                 style={{
-                  minWidth: '280px',
+                  minWidth: '140px',
+                  maxWidth: '140px',
                   scrollSnapAlign: 'start',
                   background: 'white',
-                  borderRadius: '16px',
-                  padding: '1rem',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  border: isToday(day) ? '2px solid #ff9500' : '1px solid rgba(0, 0, 0, 0.1)',
-                  opacity: isPastDate(day) ? 0.7 : 1
+                  borderRadius: '12px',
+                  padding: '0.75rem',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                  border: isToday(day) ? '2px solid #ff9500' : '1px solid rgba(0, 0, 0, 0.08)',
+                  opacity: isPastDate(day) ? 0.7 : 1,
+                  flexShrink: 0
                 }}
               >
-                {/* Header del día */}
+                {/* Header compacto del día */}
                 <div style={{
                   textAlign: 'center',
-                  marginBottom: '1rem',
-                  padding: '0.75rem',
+                  marginBottom: '0.75rem',
+                  padding: '0.5rem',
                   background: isToday(day) ? 'rgba(255, 149, 0, 0.1)' : isPastDate(day) ? '#f9f9f9' : '#fafafa',
-                  borderRadius: '12px'
+                  borderRadius: '8px'
                 }}>
                   <div style={{
-                    fontSize: '0.875rem',
+                    fontSize: '0.75rem',
                     fontWeight: 500,
                     color: '#666',
                     textTransform: 'uppercase',
@@ -791,28 +796,29 @@ export default function SobrecuposMedico() {
                     {dayNames[dayIndex]}
                   </div>
                   <div style={{
-                    fontSize: '1.5rem',
-                    fontWeight: isToday(day) ? 600 : 300,
+                    fontSize: '1.25rem',
+                    fontWeight: isToday(day) ? 600 : 400,
                     color: isToday(day) ? '#ff9500' : '#171717'
                   }}>
                     {day.getDate()}
                   </div>
                   {isToday(day) && (
                     <div style={{
-                      fontSize: '0.75rem',
+                      fontSize: '0.625rem',
                       color: '#ff9500',
-                      fontWeight: 500,
-                      marginTop: '0.25rem'
+                      fontWeight: 600,
+                      marginTop: '0.125rem'
                     }}>
                       HOY
                     </div>
                   )}
                 </div>
 
-                {/* Horarios del día */}
+                {/* Grid de horas compacto */}
                 <div style={{
                   display: 'grid',
-                  gap: '0.5rem'
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '0.25rem'
                 }}>
                   {hours.map(hour => {
                     const slotKey = getSlotKey(day, hour);
@@ -823,62 +829,67 @@ export default function SobrecuposMedico() {
                         key={hour}
                         onClick={() => handleSlotClick(day, hour)}
                         style={{
+                          aspectRatio: '1',
                           display: 'flex',
                           alignItems: 'center',
-                          padding: '0.75rem',
-                          borderRadius: '12px',
+                          justifyContent: 'center',
+                          borderRadius: '6px',
                           cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
                           transition: 'all 0.2s ease',
                           background: sobrecupo 
-                            ? (sobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981')
+                            ? (sobrecupo.estado === 'disponible' ? '#ff9500' : '#d4edda')
                             : isPastDate(day) ? '#f5f5f5' : '#fafafa',
-                          color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : '#171717',
-                          border: sobrecupo ? 'none' : '1px solid #e5e5e5'
+                          border: sobrecupo ? 'none' : '1px solid #e5e5e5',
+                          position: 'relative'
                         }}
                       >
-                        <div style={{
-                          minWidth: '60px',
-                          fontSize: '0.875rem',
-                          fontWeight: 500
-                        }}>
-                          {formatTime(hour)}
-                        </div>
-                        
                         {sobrecupo ? (
-                          <div style={{ flex: 1 }}>
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
                             <div style={{
                               fontSize: '0.875rem',
-                              fontWeight: 500,
-                              marginBottom: '0.25rem'
+                              color: sobrecupo.estado === 'disponible' ? 'white' : '#28a745'
                             }}>
-                              {sobrecupo.clinica}
-                            </div>
-                            <div style={{
-                              fontSize: '0.75rem',
-                              opacity: 0.9
-                            }}>
-                              {sobrecupo.estado === 'disponible' ? '🟠 Disponible' : '🟢 Reservado'}
+                              ❤️
                             </div>
                           </div>
                         ) : !isPastDate(day) ? (
                           <div style={{
-                            flex: 1,
+                            fontSize: '0.625rem',
                             color: '#999',
-                            fontSize: '0.875rem',
-                            fontStyle: 'italic'
+                            textAlign: 'center',
+                            fontWeight: 500
                           }}>
-                            Disponible - Toca para crear
+                            {hour}
                           </div>
                         ) : (
                           <div style={{
-                            flex: 1,
+                            fontSize: '0.625rem',
                             color: '#ccc',
-                            fontSize: '0.875rem',
-                            fontStyle: 'italic'
+                            textAlign: 'center'
                           }}>
-                            Horario pasado
+                            {hour}
                           </div>
                         )}
+                        
+                        {/* Tooltip con la hora en esquina */}
+                        <div style={{
+                          position: 'absolute',
+                          top: '2px',
+                          left: '2px',
+                          fontSize: '0.5rem',
+                          color: sobrecupo 
+                            ? (sobrecupo.estado === 'disponible' ? 'rgba(255,255,255,0.8)' : 'rgba(40,167,69,0.8)')
+                            : '#999',
+                          fontWeight: 500,
+                          lineHeight: 1
+                        }}>
+                          {hour}
+                        </div>
                       </div>
                     );
                   })}
@@ -1812,26 +1823,36 @@ export default function SobrecuposMedico() {
           padding: 0 0.5rem;
         }
         
-        .calendar-mobile::-webkit-scrollbar {
-          display: none;
+        .calendar-mobile-scroll {
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 149, 0, 0.5) transparent;
         }
         
-        .calendar-mobile > div::-webkit-scrollbar {
-          height: 4px;
+        .calendar-mobile-scroll::-webkit-scrollbar {
+          height: 6px;
         }
         
-        .calendar-mobile > div::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
+        .calendar-mobile-scroll::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.05);
+          border-radius: 3px;
         }
         
-        .calendar-mobile > div::-webkit-scrollbar-thumb {
-          background: rgba(255, 149, 0, 0.5);
-          border-radius: 10px;
+        .calendar-mobile-scroll::-webkit-scrollbar-thumb {
+          background: rgba(255, 149, 0, 0.4);
+          border-radius: 3px;
         }
         
-        .calendar-mobile > div::-webkit-scrollbar-thumb:hover {
-          background: #ff9500;
+        .calendar-mobile-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 149, 0, 0.6);
+        }
+        
+        .day-column-mobile {
+          transition: transform 0.2s ease;
+        }
+        
+        .day-column-mobile:hover {
+          transform: translateY(-2px);
         }
         
         /* Mejoras adicionales para móvil */
@@ -1840,8 +1861,26 @@ export default function SobrecuposMedico() {
             padding: 0 0.25rem;
           }
           
-          .calendar-mobile .day-card {
-            min-width: 260px;
+          .day-column-mobile {
+            min-width: 130px;
+            max-width: 130px;
+            padding: 0.5rem;
+          }
+          
+          .calendar-mobile-scroll {
+            gap: 0.375rem;
+          }
+        }
+        
+        @media (max-width: 375px) {
+          .day-column-mobile {
+            min-width: 120px;
+            max-width: 120px;
+            padding: 0.375rem;
+          }
+          
+          .calendar-mobile-scroll {
+            gap: 0.25rem;
           }
         }
       `}</style>
