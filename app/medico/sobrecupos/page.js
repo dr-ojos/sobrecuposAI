@@ -777,10 +777,10 @@ export default function SobrecuposMedico() {
                     >
                       {sobrecupo ? (
                         <div className="mobile-sobrecupo-container">
-                          {/* Logo corazón de Sobrecupos */}
+                          {/* Logo corazón de Sobrecupos - MÁS GRANDE */}
                           <svg 
-                            width="18" 
-                            height="18" 
+                            width="32" 
+                            height="32" 
                             viewBox="0 0 1000 413" 
                             className="sobrecupos-heart"
                             style={{
@@ -794,13 +794,15 @@ export default function SobrecuposMedico() {
                             </g>
                           </svg>
                           
-                          {/* Check azul en esquina superior derecha */}
-                          <div className="mobile-check-badge">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                              <circle cx="12" cy="12" r="12" fill="#60a5fa"/>
-                              <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </div>
+                          {/* Check azul SOLO en reservados y más grande */}
+                          {sobrecupo.estado === 'reservado' && (
+                            <div className="mobile-check-badge">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="12" fill="#60a5fa"/>
+                                <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </div>
+                          )}
                         </div>
                       ) : !isPastDate(day) ? (
                         <span className="mobile-slot-plus">+</span>
@@ -1734,22 +1736,27 @@ export default function SobrecuposMedico() {
           justify-content: center;
           width: 100%;
           height: 100%;
+          padding: 4px; /* Espacio para mejor centrado */
         }
         
         .sobrecupos-heart {
           z-index: 1;
+          /* Centrado perfecto */
+          display: block;
         }
         
         .mobile-check-badge {
           position: absolute;
-          top: -2px;
-          right: -2px;
+          top: 2px;
+          right: 2px;
           z-index: 2;
-          width: 12px;
-          height: 12px;
+          width: 18px;
+          height: 18px;
           display: flex;
           align-items: center;
           justify-content: center;
+          /* Sombra para mejor visibilidad */
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
         }
         
         /* Mobile Breakpoint */
