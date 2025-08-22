@@ -560,17 +560,6 @@ export default function SobrecuposMedico() {
         {/* Calendario Desktop/Tablet */}
         <div 
           className="calendar-desktop"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '50px repeat(7, 1fr)',
-            gap: '0.5px',
-            background: 'rgba(0, 0, 0, 0.04)',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            border: '0.5px solid rgba(0, 0, 0, 0.1)',
-            touchAction: 'pan-x'
-          }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -1439,6 +1428,14 @@ export default function SobrecuposMedico() {
         /* Desktop y Tablet - Diseño Original */
         .calendar-desktop {
           display: grid;
+          grid-template-columns: 50px repeat(7, 1fr);
+          gap: 0.5px;
+          background: rgba(0, 0, 0, 0.04);
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 0.5px solid rgba(0, 0, 0, 0.1);
+          touch-action: pan-x;
         }
         
         .calendar-nav-header {
