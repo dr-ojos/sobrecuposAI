@@ -18,7 +18,7 @@ export default function SobrecuposMedico() {
     clinica: '',
     direccion: '',
     fecha: '',
-    hora: '',
+    horas: [], // Cambiar a array para múltiples horas
     clinicaId: ''
   });
 
@@ -27,6 +27,30 @@ export default function SobrecuposMedico() {
     "13:00", "14:00", "15:00", "16:00", "17:00", 
     "18:00", "19:00"
   ];
+
+  // Funciones para manejar selección múltiple de horas
+  const toggleHora = (hora) => {
+    setNewSobrecupo(prev => ({
+      ...prev,
+      horas: prev.horas.includes(hora) 
+        ? prev.horas.filter(h => h !== hora)
+        : [...prev.horas, hora]
+    }));
+  };
+
+  const selectAllHoras = () => {
+    setNewSobrecupo(prev => ({
+      ...prev,
+      horas: horarios
+    }));
+  };
+
+  const clearAllHoras = () => {
+    setNewSobrecupo(prev => ({
+      ...prev,
+      horas: []
+    }));
+  };
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -134,39 +158,46 @@ export default function SobrecuposMedico() {
     e.preventDefault();
     setMessage('');
 
-    if (!newSobrecupo.fecha || !newSobrecupo.hora) {
-      setMessage('❌ Fecha y hora son obligatorios');
+    if (!newSobrecupo.fecha || newSobrecupo.horas.length === 0) {
+      setMessage('❌ Fecha y al menos una hora son obligatorios');
       return;
     }
 
     try {
       const doctorData = session.user.doctorData;
       
-      const res = await fetch('/api/sobrecupos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          medico: session.user.doctorId,
-          especialidad: doctorData?.Especialidad || 'Sin especialidad',
-          clinica: newSobrecupo.clinica || 'Consulta particular',
-          direccion: newSobrecupo.direccion || 'Por definir',
-          fecha: newSobrecupo.fecha,
-          hora: newSobrecupo.hora
+      // Crear múltiples sobrecupos (uno por cada hora seleccionada)
+      const creacionPromises = newSobrecupo.horas.map(hora => 
+        fetch('/api/sobrecupos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            medico: session.user.doctorId,
+            especialidad: doctorData?.Especialidad || 'Sin especialidad',
+            clinica: newSobrecupo.clinica || 'Consulta particular',
+            direccion: newSobrecupo.direccion || 'Por definir',
+            fecha: newSobrecupo.fecha,
+            hora: hora
+          })
         })
-      });
+      );
 
-      if (res.ok) {
-        setMessage('✅ Sobrecupo creado correctamente');
+      const results = await Promise.all(creacionPromises);
+      const exitosos = results.filter(res => res.ok).length;
+      const fallidos = results.length - exitosos;
+
+      if (exitosos > 0) {
+        setMessage(`✅ ${exitosos} sobrecupo${exitosos > 1 ? 's' : ''} creado${exitosos > 1 ? 's' : ''} correctamente${fallidos > 0 ? ` (${fallidos} fallaron)` : ''}`);
         setNewSobrecupo({
           clinica: '',
           direccion: '',
           fecha: '',
-          hora: '',
+          horas: [],
           clinicaId: ''
         });
         setShowCreateForm(false);
         fetchSobrecupos();
-        setTimeout(() => setMessage(''), 3000);
+        setTimeout(() => setMessage(''), 5000);
       } else {
         setMessage('❌ Error creando sobrecupo');
       }
@@ -451,23 +482,37 @@ export default function SobrecuposMedico() {
                     </div>
 
                     <div className="form-field">
-                      <label className="field-label">Hora *</label>
-                      <select
-                        value={newSobrecupo.hora}
-                        onChange={(e) => setNewSobrecupo({...newSobrecupo, hora: e.target.value})}
-                        required
-                        className="field-input"
-                      >
-                        <option value="">Seleccionar hora</option>
+                      <div className="hora-selector-header">
+                        <label className="field-label">
+                          Horarios * ({newSobrecupo.horas.length} seleccionado{newSobrecupo.horas.length !== 1 ? 's' : ''})
+                        </label>
+                        <div className="hora-selector-actions">
+                          <button type="button" onClick={selectAllHoras} className="hora-action-btn">
+                            Seleccionar todos
+                          </button>
+                          <button type="button" onClick={clearAllHoras} className="hora-action-btn clear">
+                            Limpiar
+                          </button>
+                        </div>
+                      </div>
+                      <div className="horarios-grid">
                         {horarios.map(hora => (
-                          <option key={hora} value={hora}>{hora}</option>
+                          <label key={hora} className={`hora-checkbox ${newSobrecupo.horas.includes(hora) ? 'selected' : ''}`}>
+                            <input
+                              type="checkbox"
+                              checked={newSobrecupo.horas.includes(hora)}
+                              onChange={() => toggleHora(hora)}
+                              className="hora-input"
+                            />
+                            <span className="hora-label">{hora}</span>
+                          </label>
                         ))}
-                      </select>
+                      </div>
                     </div>
                   </div>
 
                   <button type="submit" className="submit-button">
-                    Crear Sobrecupo
+                    Crear {newSobrecupo.horas.length} Sobrecupo{newSobrecupo.horas.length !== 1 ? 's' : ''}
                   </button>
                 </form>
               </div>
@@ -871,6 +916,120 @@ export default function SobrecuposMedico() {
           background: linear-gradient(135deg, #ff8800, #ff7700);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
+        }
+
+        /* Selector de Horarios Múltiples */
+        .hora-selector-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .hora-selector-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .hora-action-btn {
+          padding: 0.375rem 0.75rem;
+          font-size: 0.75rem;
+          border: 1px solid #e5e7eb;
+          background: white;
+          color: #374151;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .hora-action-btn:hover {
+          background: #f9fafb;
+          border-color: #d1d5db;
+        }
+
+        .hora-action-btn.clear {
+          color: #dc2626;
+          border-color: #fecaca;
+        }
+
+        .hora-action-btn.clear:hover {
+          background: #fef2f2;
+          border-color: #f87171;
+        }
+
+        .horarios-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+          gap: 0.75rem;
+          padding: 1rem;
+          background: #f9fafb;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+        }
+
+        .hora-checkbox {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.75rem 0.5rem;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          user-select: none;
+        }
+
+        .hora-checkbox:hover {
+          border-color: #ff9500;
+          background: #fff7ed;
+        }
+
+        .hora-checkbox.selected {
+          border-color: #ff9500;
+          background: linear-gradient(135deg, #ff9500, #ff8800);
+          color: white;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
+        }
+
+        .hora-input {
+          display: none;
+        }
+
+        .hora-label {
+          font-size: 0.875rem;
+          font-weight: 500;
+          text-align: center;
+        }
+
+        @media (max-width: 768px) {
+          .horarios-grid {
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.5rem;
+            padding: 0.75rem;
+          }
+
+          .hora-checkbox {
+            padding: 0.625rem 0.375rem;
+          }
+
+          .hora-label {
+            font-size: 0.8125rem;
+          }
+
+          .hora-selector-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .hora-action-btn {
+            padding: 0.3125rem 0.625rem;
+            font-size: 0.6875rem;
+          }
         }
 
         /* Filters */
