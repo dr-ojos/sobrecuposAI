@@ -706,14 +706,17 @@ export default function SobrecuposMedico() {
           {/* Navegación móvil */}
           <div className="mobile-nav-header">
             <button onClick={goToPreviousWeek} className="mobile-nav-btn">‹</button>
-            <div className="mobile-week-indicator">
-              Semana {currentWeekOffset === 0 ? 'actual' : (currentWeekOffset > 0 ? `+${currentWeekOffset}` : currentWeekOffset)}
+            <div className="mobile-month-display">
+              {weekInfo.monthYear}
             </div>
             <button onClick={goToNextWeek} className="mobile-nav-btn">›</button>
           </div>
           
           {/* Header días móvil */}
           <div className="mobile-days-header">
+            {/* Placeholder para alinear con las horas */}
+            <div className="mobile-hour-placeholder"></div>
+            
             {weekDays.map((day, index) => (
               <div key={day.toISOString()} className={`mobile-day-header ${
                 isToday(day) ? 'today' : isPastDate(day) ? 'past' : ''
@@ -1518,17 +1521,23 @@ export default function SobrecuposMedico() {
           transform: scale(0.95);
         }
         
-        .mobile-week-indicator {
+        .mobile-month-display {
           font-size: 0.875rem;
-          color: #666;
-          font-weight: 500;
+          color: #171717;
+          font-weight: 600;
+          text-transform: capitalize;
         }
         
         .mobile-days-header {
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
+          grid-template-columns: 50px repeat(7, 1fr);
           background: #f8f9fa;
           border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .mobile-hour-placeholder {
+          background: #f8f9fa;
+          border-right: 1px solid #e5e5e5;
         }
         
         .mobile-day-header {
