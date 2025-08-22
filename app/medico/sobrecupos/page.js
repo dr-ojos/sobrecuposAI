@@ -500,28 +500,6 @@ export default function SobrecuposMedico() {
           fontWeight: 400
         }}>Haz clic en cualquier hora para crear un sobrecupo</p>
         
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          marginBottom: '1rem'
-        }}>
-          <button 
-            onClick={() => setShowBatchCreator(!showBatchCreator)}
-            style={{
-              padding: '0.5rem 1rem',
-              background: showBatchCreator ? '#ff9500' : 'rgba(255, 149, 0, 0.1)',
-              border: '1px solid #ff9500',
-              borderRadius: '20px',
-              color: showBatchCreator ? 'white' : '#ff9500',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            📅 {showBatchCreator ? 'Ocultar' : 'Crear'} Múltiples Horarios
-          </button>
-        </div>
 
         {message && (
           <div style={{
@@ -561,7 +539,9 @@ export default function SobrecuposMedico() {
           </div>
         </div>
         
+        {/* Calendario Desktop/Tablet */}
         <div 
+          className="calendar-desktop"
           style={{
             display: 'grid',
             gridTemplateColumns: '50px repeat(7, 1fr)',
@@ -709,255 +689,466 @@ export default function SobrecuposMedico() {
           ))}
         </div>
         
-        {/* Selector de Horarios Masivo */}
-        {showBatchCreator && (
+        {/* Calendario Móvil - Vista por días */}
+        <div className="calendar-mobile">
+          {/* Navegación móvil */}
           <div style={{
-            marginTop: '2rem',
-            background: 'white',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-            border: '1px solid rgba(0, 0, 0, 0.1)'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1rem',
+            padding: '0 0.5rem'
           }}>
-            <h3 style={{
-              margin: '0 0 1.5rem 0',
-              fontSize: '1.125rem',
-              fontWeight: 500,
-              color: '#171717',
-              textAlign: 'center'
-            }}>⚡ Crear Sobrecupos Masivos</h3>
-            
+            <button 
+              onClick={goToPreviousWeek}
+              style={{
+                background: 'rgba(255, 149, 0, 0.1)',
+                border: '1px solid rgba(255, 149, 0, 0.3)',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                color: '#ff9500'
+              }}
+            >
+              ‹
+            </button>
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: window.innerWidth > 768 ? '1fr 1fr' : '1fr',
-              gap: '1.5rem',
-              marginBottom: '1.5rem'
+              textAlign: 'center',
+              color: '#666',
+              fontSize: '0.875rem',
+              fontWeight: 500
             }}>
-              <div>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  fontWeight: 500,
-                  color: '#374151',
-                  fontSize: '0.875rem'
-                }}>Fecha *</label>
-                <input
-                  type="date"
-                  value={batchData.fecha}
-                  onChange={(e) => setBatchData(prev => ({ ...prev, fecha: e.target.value }))}
-                  min={new Date().toISOString().split('T')[0]}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '1rem',
-                    transition: 'all 0.2s ease'
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{
-                  display: 'block',
-                  marginBottom: '0.5rem',
-                  fontWeight: 500,
-                  color: '#374151',
-                  fontSize: '0.875rem'
-                }}>Clínica</label>
-                <select
-                  value={batchData.clinica}
-                  onChange={(e) => setBatchData(prev => ({ ...prev, clinica: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '2px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '1rem',
-                    background: 'white',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value="">Selecciona una clínica</option>
-                  {clinicasRegistradas.map((clinica, index) => (
-                    <option key={index} value={clinica}>
-                      {clinica}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              Desliza para navegar
             </div>
-            
-            <div>
-              <label style={{
-                display: 'block',
-                marginBottom: '0.75rem',
-                fontWeight: 500,
-                color: '#374151',
-                fontSize: '0.875rem'
-              }}>
-                Horarios * ({selectedHoras.length} seleccionado{selectedHoras.length !== 1 ? 's' : ''})
-              </label>
-              
-              {/* Pills de Selección */}
-              {selectedHoras.length > 0 && (
+            <button 
+              onClick={goToNextWeek}
+              style={{
+                background: 'rgba(255, 149, 0, 0.1)',
+                border: '1px solid rgba(255, 149, 0, 0.3)',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                color: '#ff9500'
+              }}
+            >
+              ›
+            </button>
+          </div>
+          
+          {/* Lista de días móvil */}
+          <div 
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              overflowX: 'auto',
+              scrollSnapType: 'x mandatory',
+              paddingBottom: '1rem'
+            }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {weekDays.map((day, dayIndex) => (
+              <div 
+                key={day.toISOString()}
+                style={{
+                  minWidth: '280px',
+                  scrollSnapAlign: 'start',
+                  background: 'white',
+                  borderRadius: '16px',
+                  padding: '1rem',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: isToday(day) ? '2px solid #ff9500' : '1px solid rgba(0, 0, 0, 0.1)',
+                  opacity: isPastDate(day) ? 0.7 : 1
+                }}
+              >
+                {/* Header del día */}
                 <div style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '0.5rem',
-                  marginBottom: '1rem'
+                  textAlign: 'center',
+                  marginBottom: '1rem',
+                  padding: '0.75rem',
+                  background: isToday(day) ? 'rgba(255, 149, 0, 0.1)' : isPastDate(day) ? '#f9f9f9' : '#fafafa',
+                  borderRadius: '12px'
                 }}>
-                  {selectedHoras.map(hora => (
-                    <span key={hora} style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.375rem',
-                      padding: '0.375rem 0.75rem',
-                      background: 'linear-gradient(135deg, #ff9500, #ff7b00)',
-                      color: 'white',
-                      borderRadius: '20px',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      boxShadow: '0 2px 4px rgba(255, 149, 0, 0.3)'
+                  <div style={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: '#666',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    marginBottom: '0.25rem'
+                  }}>
+                    {dayNames[dayIndex]}
+                  </div>
+                  <div style={{
+                    fontSize: '1.5rem',
+                    fontWeight: isToday(day) ? 600 : 300,
+                    color: isToday(day) ? '#ff9500' : '#171717'
+                  }}>
+                    {day.getDate()}
+                  </div>
+                  {isToday(day) && (
+                    <div style={{
+                      fontSize: '0.75rem',
+                      color: '#ff9500',
+                      fontWeight: 500,
+                      marginTop: '0.25rem'
                     }}>
-                      {hora}
-                      <button
-                        onClick={() => toggleHora(hora)}
+                      HOY
+                    </div>
+                  )}
+                </div>
+
+                {/* Horarios del día */}
+                <div style={{
+                  display: 'grid',
+                  gap: '0.5rem'
+                }}>
+                  {hours.map(hour => {
+                    const slotKey = getSlotKey(day, hour);
+                    const sobrecupo = sobrecupos[slotKey];
+                    
+                    return (
+                      <div
+                        key={hour}
+                        onClick={() => handleSlotClick(day, hour)}
                         style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'white',
-                          cursor: 'pointer',
-                          fontSize: '1.2rem',
-                          lineHeight: 1,
-                          padding: 0,
-                          opacity: 0.8
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '0.75rem',
+                          borderRadius: '12px',
+                          cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s ease',
+                          background: sobrecupo 
+                            ? (sobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981')
+                            : isPastDate(day) ? '#f5f5f5' : '#fafafa',
+                          color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : '#171717',
+                          border: sobrecupo ? 'none' : '1px solid #e5e5e5'
                         }}
                       >
-                        ×
-                      </button>
-                    </span>
-                  ))}
+                        <div style={{
+                          minWidth: '60px',
+                          fontSize: '0.875rem',
+                          fontWeight: 500
+                        }}>
+                          {formatTime(hour)}
+                        </div>
+                        
+                        {sobrecupo ? (
+                          <div style={{ flex: 1 }}>
+                            <div style={{
+                              fontSize: '0.875rem',
+                              fontWeight: 500,
+                              marginBottom: '0.25rem'
+                            }}>
+                              {sobrecupo.clinica}
+                            </div>
+                            <div style={{
+                              fontSize: '0.75rem',
+                              opacity: 0.9
+                            }}>
+                              {sobrecupo.estado === 'disponible' ? '🟠 Disponible' : '🟢 Reservado'}
+                            </div>
+                          </div>
+                        ) : !isPastDate(day) ? (
+                          <div style={{
+                            flex: 1,
+                            color: '#999',
+                            fontSize: '0.875rem',
+                            fontStyle: 'italic'
+                          }}>
+                            Disponible - Toca para crear
+                          </div>
+                        ) : (
+                          <div style={{
+                            flex: 1,
+                            color: '#ccc',
+                            fontSize: '0.875rem',
+                            fontStyle: 'italic'
+                          }}>
+                            Horario pasado
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-              
-              <div style={{
-                background: '#f8fafc',
-                border: '2px solid #e2e8f0',
-                borderRadius: '12px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
+              </div>
+            ))}
+          </div>
+        </div>
+        </div>
+        
+        {/* Botón Crear Múltiples Sobrecupos bajo el calendario */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: '1.5rem'
+        }}>
+          <button 
+            onClick={() => setShowBatchCreator(true)}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: 'linear-gradient(135deg, #ff9500, #ff7b00)',
+              border: 'none',
+              borderRadius: '12px',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 12px rgba(255, 149, 0, 0.3)'
+            }}
+          >
+            📅 Crear Múltiples Sobrecupos
+          </button>
+        </div>
+      </div>
+      
+      {/* Modal de Creación Masiva */}
+        {showBatchCreator && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)',
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '600px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)'
+          }}>
+            {/* Header del Modal */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '1.5rem',
+              borderBottom: '1px solid #e5e5e5'
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                color: '#171717'
+              }}>📅 Crear Sobrecupos</h3>
+              <button 
+                onClick={() => setShowBatchCreator(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  color: '#999',
+                  cursor: 'pointer',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
                   display: 'flex',
-                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  padding: '1rem',
-                  background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
-                  borderBottom: '1px solid #e2e8f0'
-                }}>
-                  <h4 style={{
-                    margin: 0,
-                    color: '#1e293b',
-                    fontSize: '1rem',
-                    fontWeight: 600
-                  }}>Selecciona los horarios</h4>
-                  <div style={{
-                    display: 'flex',
-                    gap: '0.5rem'
-                  }}>
-                    <button onClick={selectAllHoras} style={{
-                      padding: '0.5rem 1rem',
-                      border: 'none',
+                  justifyContent: 'center'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Contenido del Modal */}
+            <div style={{
+              padding: '1.5rem'
+            }}>
+              {/* Selectores de Fecha y Clínica */}
+              <div className="modal-form-section">
+                <div className="modal-form-field">
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: 600,
+                    color: '#374151',
+                    fontSize: '0.875rem'
+                  }}>Fecha *</label>
+                  <input
+                    type="date"
+                    value={batchData.fecha}
+                    onChange={(e) => setBatchData(prev => ({ ...prev, fecha: e.target.value }))}
+                    min={new Date().toISOString().split('T')[0]}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '2px solid #e5e7eb',
                       borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '0.875rem',
-                      background: 'linear-gradient(135deg, #ff9500, #ff7b00)',
-                      color: 'white'
-                    }}>
-                      Todos
-                    </button>
-                    <button onClick={clearAllHoras} style={{
-                      padding: '0.5rem 1rem',
-                      background: 'white',
-                      color: '#64748b',
-                      border: '2px solid #e2e8f0',
-                      borderRadius: '8px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontSize: '0.875rem'
-                    }}>
-                      Limpiar
-                    </button>
-                  </div>
+                      fontSize: '1rem',
+                      fontFamily: 'inherit'
+                    }}
+                  />
                 </div>
                 
-                <div className="horarios-grid-batch">
+                <div className="modal-form-field">
+                  <label style={{
+                    display: 'block',
+                    marginBottom: '0.5rem',
+                    fontWeight: 600,
+                    color: '#374151',
+                    fontSize: '0.875rem'
+                  }}>Clínica</label>
+                  <select
+                    value={batchData.clinica}
+                    onChange={(e) => setBatchData(prev => ({ ...prev, clinica: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '2px solid #e5e7eb',
+                      borderRadius: '8px',
+                      fontSize: '1rem',
+                      background: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="">Selecciona una clínica</option>
+                    {clinicasRegistradas.map((clinica, index) => (
+                      <option key={index} value={clinica}>
+                        {clinica}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              {/* Selector de Horarios */}
+              <div style={{
+                marginTop: '1.5rem'
+              }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '1rem',
+                  fontWeight: 600,
+                  color: '#374151',
+                  fontSize: '0.875rem'
+                }}>
+                  Horarios * ({selectedHoras.length} seleccionado{selectedHoras.length !== 1 ? 's' : ''})
+                </label>
+                
+                {/* Pills de Selección */}
+                {selectedHoras.length > 0 && (
+                  <div className="selected-pills-modal">
+                    {selectedHoras.map(hora => (
+                      <span key={hora} className="time-pill-modal">
+                        {hora}
+                        <button
+                          onClick={() => toggleHora(hora)}
+                          className="pill-remove-modal"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Botones de Control */}
+                <div style={{
+                  display: 'flex',
+                  gap: '0.75rem',
+                  marginBottom: '1rem',
+                  justifyContent: 'center'
+                }}>
+                  <button onClick={selectAllHoras} className="control-btn-modal primary">
+                    Todos
+                  </button>
+                  <button onClick={clearAllHoras} className="control-btn-modal secondary">
+                    Limpiar
+                  </button>
+                </div>
+                
+                {/* Grid de Horarios - Responsivo */}
+                <div className="horarios-grid-modal">
                   {horarios.map(hora => (
                     <div
                       key={hora}
-                      className={`horario-card-batch ${selectedHoras.includes(hora) ? 'selected' : ''}`}
+                      className={`horario-card-modal ${selectedHoras.includes(hora) ? 'selected' : ''}`}
                       onClick={() => toggleHora(hora)}
                     >
-                      <div className="horario-time-batch">{hora}</div>
-                      <div className="horario-check-batch">
-                        {selectedHoras.includes(hora) && (
+                      <div className="horario-time-modal">{hora}</div>
+                      {selectedHoras.includes(hora) && (
+                        <div className="horario-check-modal">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-            
-            <div style={{
-              display: 'flex',
-              gap: '0.75rem',
-              marginTop: '1.5rem',
-              justifyContent: 'center'
-            }}>
-              <button 
-                onClick={() => setShowBatchCreator(false)}
-                style={{
-                  flex: 1,
-                  maxWidth: '150px',
-                  padding: '0.75rem 1rem',
-                  background: '#f9f9f9',
-                  color: '#666',
-                  border: '1px solid #e5e5e5',
-                  borderRadius: '12px',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={handleBatchCreate}
-                disabled={selectedHoras.length === 0 || !batchData.fecha}
-                style={{
-                  flex: 1,
-                  maxWidth: '200px',
-                  padding: '0.75rem 1rem',
-                  background: selectedHoras.length === 0 || !batchData.fecha ? '#ccc' : 'linear-gradient(135deg, #ff9500, #ff7b00)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontWeight: 600,
-                  cursor: selectedHoras.length === 0 || !batchData.fecha ? 'not-allowed' : 'pointer',
-                  fontSize: '0.875rem',
-                  boxShadow: selectedHoras.length === 0 || !batchData.fecha ? 'none' : '0 4px 12px rgba(255, 149, 0, 0.3)'
-                }}
-              >
-                Crear {selectedHoras.length || 0} Sobrecupo{selectedHoras.length !== 1 ? 's' : ''}
-              </button>
+              
+              {/* Botones de Acción */}
+              <div style={{
+                display: 'flex',
+                gap: '0.75rem',
+                marginTop: '2rem',
+                paddingTop: '1.5rem',
+                borderTop: '1px solid #e5e5e5'
+              }}>
+                <button 
+                  onClick={() => setShowBatchCreator(false)}
+                  style={{
+                    flex: 1,
+                    padding: '0.875rem',
+                    background: '#f9f9f9',
+                    color: '#666',
+                    border: '1px solid #e5e5e5',
+                    borderRadius: '8px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleBatchCreate}
+                  disabled={selectedHoras.length === 0 || !batchData.fecha}
+                  style={{
+                    flex: 2,
+                    padding: '0.875rem',
+                    background: selectedHoras.length === 0 || !batchData.fecha ? '#ccc' : 'linear-gradient(135deg, #ff9500, #ff7b00)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 600,
+                    cursor: selectedHoras.length === 0 || !batchData.fecha ? 'not-allowed' : 'pointer',
+                    fontSize: '0.875rem',
+                    boxShadow: selectedHoras.length === 0 || !batchData.fecha ? 'none' : '0 4px 12px rgba(255, 149, 0, 0.3)'
+                  }}
+                >
+                  Crear {selectedHoras.length || 0} Sobrecupo{selectedHoras.length !== 1 ? 's' : ''}
+                </button>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
       </div>
 
       {/* Modal para crear sobrecupo */}
@@ -1360,7 +1551,23 @@ export default function SobrecuposMedico() {
           transform: translateY(-50%);
         }
         
+        /* Control de visibilidad del calendario */
+        .calendar-desktop {
+          display: grid;
+        }
+        
+        .calendar-mobile {
+          display: none;
+        }
+        
         @media (max-width: 768px) {
+          .calendar-desktop {
+            display: none;
+          }
+          
+          .calendar-mobile {
+            display: block;
+          }
           
           .calendar-header {
             flex-direction: column;
@@ -1417,15 +1624,97 @@ export default function SobrecuposMedico() {
           }
         }
         
-        /* Estilos para el selector de horarios masivo */
-        .horarios-grid-batch {
+        /* Estilos para el modal de creación masiva */
+        .modal-form-section {
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 1rem;
-          padding: 1rem;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
         }
         
-        .horario-card-batch {
+        .modal-form-field {
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .selected-pills-modal {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+        }
+        
+        .time-pill-modal {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.375rem;
+          padding: 0.375rem 0.75rem;
+          background: linear-gradient(135deg, #ff9500, #ff7b00);
+          color: white;
+          border-radius: 20px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          box-shadow: 0 2px 4px rgba(255, 149, 0, 0.3);
+        }
+        
+        .pill-remove-modal {
+          background: none;
+          border: none;
+          color: white;
+          cursor: pointer;
+          font-size: 1.2rem;
+          line-height: 1;
+          padding: 0;
+          opacity: 0.8;
+          transition: opacity 0.2s ease;
+        }
+        
+        .pill-remove-modal:hover {
+          opacity: 1;
+        }
+        
+        .control-btn-modal {
+          padding: 0.5rem 1rem;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 0.875rem;
+          transition: all 0.2s ease;
+        }
+        
+        .control-btn-modal.primary {
+          background: linear-gradient(135deg, #ff9500, #ff7b00);
+          color: white;
+          border: none;
+        }
+        
+        .control-btn-modal.primary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
+        }
+        
+        .control-btn-modal.secondary {
+          background: white;
+          color: #64748b;
+          border: 2px solid #e2e8f0;
+        }
+        
+        .control-btn-modal.secondary:hover {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+        }
+        
+        .horarios-grid-modal {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 0.75rem;
+          padding: 1rem;
+          background: #f8fafc;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+        }
+        
+        .horario-card-modal {
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1436,17 +1725,17 @@ export default function SobrecuposMedico() {
           border-radius: 12px;
           cursor: pointer;
           transition: all 0.3s ease;
-          min-height: 70px;
+          min-height: 65px;
           position: relative;
         }
         
-        .horario-card-batch:hover {
+        .horario-card-modal:hover {
           border-color: #ff9500;
           transform: translateY(-2px);
           box-shadow: 0 8px 25px rgba(255, 149, 0, 0.15);
         }
         
-        .horario-card-batch.selected {
+        .horario-card-modal.selected {
           background: linear-gradient(135deg, #ff9500, #ff7b00);
           border-color: #ff9500;
           color: white;
@@ -1454,16 +1743,16 @@ export default function SobrecuposMedico() {
           box-shadow: 0 8px 25px rgba(255, 149, 0, 0.3);
         }
         
-        .horario-time-batch {
-          font-size: 1rem;
+        .horario-time-modal {
+          font-size: 0.95rem;
           font-weight: 700;
           margin-bottom: 0.25rem;
         }
         
-        .horario-check-batch {
+        .horario-check-modal {
           position: absolute;
-          top: 0.5rem;
-          right: 0.5rem;
+          top: 0.4rem;
+          right: 0.4rem;
           width: 20px;
           height: 20px;
           display: flex;
@@ -1471,20 +1760,90 @@ export default function SobrecuposMedico() {
           justify-content: center;
         }
         
+        /* Responsive modal */
         @media (max-width: 768px) {
-          .horarios-grid-batch {
-            grid-template-columns: repeat(3, 1fr);
+          .modal-form-section {
+            grid-template-columns: 1fr;
             gap: 0.75rem;
-            padding: 0.75rem;
           }
           
-          .horario-card-batch {
-            min-height: 60px;
+          .horarios-grid-modal {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.375rem;
             padding: 0.5rem;
           }
           
-          .horario-time-batch {
-            font-size: 0.875rem;
+          .horario-card-modal {
+            min-height: 45px;
+            padding: 0.375rem;
+          }
+          
+          .horario-time-modal {
+            font-size: 0.8125rem;
+          }
+          
+          .horario-check-modal {
+            top: 0.25rem;
+            right: 0.25rem;
+            width: 16px;
+            height: 16px;
+          }
+          
+          .horario-check-modal svg {
+            width: 12px;
+            height: 12px;
+          }
+          
+          .selected-pills-modal {
+            gap: 0.25rem;
+          }
+          
+          .time-pill-modal {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+          }
+          
+          .control-btn-modal {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+          }
+        }
+        
+        /* Estilos específicos para el calendario móvil */
+        .calendar-mobile {
+          padding: 0 0.5rem;
+        }
+        
+        .calendar-mobile::-webkit-scrollbar {
+          display: none;
+        }
+        
+        .calendar-mobile > div::-webkit-scrollbar {
+          height: 4px;
+        }
+        
+        .calendar-mobile > div::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        
+        .calendar-mobile > div::-webkit-scrollbar-thumb {
+          background: rgba(255, 149, 0, 0.5);
+          border-radius: 10px;
+        }
+        
+        .calendar-mobile > div::-webkit-scrollbar-thumb:hover {
+          background: #ff9500;
+        }
+        
+        /* Mejoras adicionales para móvil */
+        @media (max-width: 480px) {
+          .calendar-mobile {
+            padding: 0 0.25rem;
+          }
+          
+          .calendar-mobile .day-card {
+            min-width: 260px;
           }
         }
       `}</style>
