@@ -913,9 +913,8 @@ export default function SobrecuposMedico() {
             📅 Crear Múltiples Sobrecupos
           </button>
         </div>
-      </div>
-      
-      {/* Modal de Creación Masiva */}
+        
+        {/* Modal de Creación Masiva */}
         {showBatchCreator && (
         <div style={{
           position: 'fixed',
@@ -1149,7 +1148,6 @@ export default function SobrecuposMedico() {
           </div>
         </div>
       )}
-      </div>
 
       {/* Modal para crear sobrecupo */}
       {showModal && (
