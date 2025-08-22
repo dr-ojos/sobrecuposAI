@@ -1108,61 +1108,71 @@ export default function SobrecuposMedico() {
         }
 
         .dropdown-header {
-          padding: 0.75rem 1rem;
-          border-bottom: 1px solid #f3f4f6;
-          background: #fafafa;
+          padding: 1rem 1.25rem;
+          border-bottom: 1px solid #e5e7eb;
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
         }
 
         .dropdown-actions {
           display: flex;
-          gap: 0.5rem;
+          gap: 0.75rem;
           justify-content: flex-end;
         }
 
         .dropdown-action-btn {
-          padding: 0.375rem 0.75rem;
-          font-size: 0.75rem;
-          border: 1px solid #e5e7eb;
+          padding: 0.625rem 1rem;
+          font-size: 0.875rem;
+          border: 1px solid #d1d5db;
           background: white;
           color: #374151;
-          border-radius: 6px;
+          border-radius: 8px;
           cursor: pointer;
           transition: all 0.2s ease;
-          font-weight: 500;
+          font-weight: 600;
+          min-width: 80px;
+          text-align: center;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         .dropdown-action-btn:hover {
           background: #f9fafb;
-          border-color: #d1d5db;
+          border-color: #9ca3af;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .dropdown-action-btn.clear {
           color: #dc2626;
-          border-color: #fecaca;
+          border-color: #f87171;
+          background: #fef2f2;
         }
 
         .dropdown-action-btn.clear:hover {
-          background: #fef2f2;
-          border-color: #f87171;
+          background: #fecaca;
+          border-color: #ef4444;
+          color: #b91c1c;
         }
 
         .dropdown-options {
-          max-height: 200px;
+          max-height: 240px;
           overflow-y: auto;
+          padding: 0.5rem 0;
         }
 
         .dropdown-option {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding: 0.625rem 1rem;
+          gap: 1rem;
+          padding: 0.875rem 1.25rem;
           cursor: pointer;
-          transition: background-color 0.2s ease;
-          border-bottom: 1px solid #f9fafb;
+          transition: all 0.2s ease;
+          border-bottom: 1px solid #f3f4f6;
+          min-height: 48px;
         }
 
         .dropdown-option:hover {
-          background: #f9fafb;
+          background: #f8fafc;
+          padding-left: 1.5rem;
         }
 
         .dropdown-option:last-child {
@@ -1174,38 +1184,49 @@ export default function SobrecuposMedico() {
         }
 
         .dropdown-checkmark {
-          width: 18px;
-          height: 18px;
-          border: 2px solid #e5e7eb;
-          border-radius: 4px;
+          width: 22px;
+          height: 22px;
+          border: 2px solid #d1d5db;
+          border-radius: 6px;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: all 0.2s ease;
           background: white;
           flex-shrink: 0;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .dropdown-option:hover .dropdown-checkmark {
+          border-color: #ff9500;
+          box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
         }
 
         .dropdown-checkbox:checked + .dropdown-checkmark {
-          background: #ff9500;
+          background: linear-gradient(135deg, #ff9500, #ff8800);
           border-color: #ff9500;
           color: white;
+          transform: scale(1.05);
+          box-shadow: 0 2px 4px rgba(255, 149, 0, 0.3);
         }
 
         .dropdown-checkbox:checked + .dropdown-checkmark svg {
           opacity: 1;
+          transform: scale(1.1);
         }
 
         .dropdown-checkmark svg {
           opacity: 0;
-          transition: opacity 0.2s ease;
+          transition: all 0.2s ease;
+          transform: scale(0.8);
         }
 
         .dropdown-label {
-          font-size: 0.875rem;
-          color: #374151;
-          font-weight: 500;
+          font-size: 1rem;
+          color: #1f2937;
+          font-weight: 600;
           user-select: none;
+          letter-spacing: 0.025em;
         }
 
         .multi-select-overlay {
@@ -1227,18 +1248,43 @@ export default function SobrecuposMedico() {
             font-size: 0.75rem;
           }
 
+          .dropdown-header {
+            padding: 1rem;
+          }
+
           .dropdown-actions {
-            flex-direction: column;
-            gap: 0.375rem;
+            flex-direction: row;
+            gap: 0.5rem;
+            justify-content: space-between;
           }
 
           .dropdown-action-btn {
-            padding: 0.5rem;
-            font-size: 0.8125rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            flex: 1;
+            min-width: auto;
           }
 
           .dropdown-option {
-            padding: 0.75rem 1rem;
+            padding: 1rem 1.25rem;
+            min-height: 52px;
+          }
+
+          .dropdown-option:hover {
+            padding-left: 1.25rem;
+          }
+
+          .dropdown-checkmark {
+            width: 24px;
+            height: 24px;
+          }
+
+          .dropdown-label {
+            font-size: 1.0625rem;
+          }
+
+          .dropdown-options {
+            max-height: 280px;
           }
         }
 
