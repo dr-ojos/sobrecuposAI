@@ -313,7 +313,7 @@ export default function MedicoInfoPage({ params }) {
                     />
                   ) : null}
                   <div className="photo-placeholder" style={{display: fields.PhotoURL ? 'none' : 'flex'}}>
-                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
@@ -1174,11 +1174,12 @@ export default function MedicoInfoPage({ params }) {
 
         .doctor-photo {
           position: relative;
-          width: 120px;
-          height: 120px;
-          border-radius: 12px;
+          width: 180px;
+          height: 180px;
+          border-radius: 16px;
           overflow: hidden;
           background: #f5f5f5;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
 
         .profile-image {
@@ -1214,12 +1215,13 @@ export default function MedicoInfoPage({ params }) {
         }
 
         .desktop-doctor-photo {
-          width: 120px;
-          height: 120px;
+          width: 200px;
+          height: 200px;
           border-radius: 50%;
           overflow: hidden;
           background: #f5f5f5;
           flex-shrink: 0;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
 
         .desktop-profile-image {
@@ -2023,8 +2025,8 @@ export default function MedicoInfoPage({ params }) {
           }
 
           .doctor-avatar {
-            width: 140px;
-            height: 140px;
+            width: 220px;
+            height: 220px;
           }
 
           .doctor-name {
@@ -2064,8 +2066,8 @@ export default function MedicoInfoPage({ params }) {
           }
 
           .doctor-avatar {
-            width: 160px;
-            height: 160px;
+            width: 250px;
+            height: 250px;
           }
 
           .doctor-name {
@@ -2747,8 +2749,8 @@ export default function MedicoInfoPage({ params }) {
         /* Very small screens */
         @media (max-width: 480px) {
           .doctor-photo {
-            width: 80px;
-            height: 80px;
+            width: 140px;
+            height: 140px;
           }
 
           .doctor-name {
