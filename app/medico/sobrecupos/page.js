@@ -160,13 +160,25 @@ export default function SobrecuposMedico() {
   const formatTime = (hour) => `${hour.toString().padStart(2, '0')}:00`;
   const getSlotKey = (date, hour) => `${formatDate(date)}-${hour}`;
 
-  const handleSlotClick = (date, hour) => {
+  const handleSlotClick = (event, date, hour) => {
+    // Prevenir propagación y comportamiento por defecto
+    event.preventDefault();
+    event.stopPropagation();
+    
     const slotKey = getSlotKey(date, hour);
     
     if (sobrecupos[slotKey]) {
-      setSelectedSobrecupo({ ...sobrecupos[slotKey], slotKey, date, hour, isPast: isPastDate(date) });
+      // Slot con sobrecupo - mostrar información
+      setSelectedSobrecupo({ 
+        ...sobrecupos[slotKey], 
+        slotKey, 
+        date, 
+        hour, 
+        isPast: isPastDate(date) 
+      });
       setShowInfoModal(true);
     } else if (!isPastDate(date)) {
+      // Slot vacío - crear sobrecupo
       setSelectedSlot({ date, hour, slotKey });
       setShowModal(true);
     }
@@ -593,16 +605,23 @@ export default function SobrecuposMedico() {
                         sobrecupo ? (sobrecupo.estado === 'disponible' ? 'available' : 'reserved') :
                         isPastDate(day) ? 'past' : 'empty'
                       }`}
-                      onClick={() => handleSlotClick(day, hour)}
+                      onClick={(event) => handleSlotClick(event, day, hour)}
                     >
                       {sobrecupo ? (
-                        <div className="slot-content">
-                          <div className="slot-time">{sobrecupo.hora}</div>
-                          <div className="slot-clinic">{sobrecupo.clinica}</div>
-                          {sobrecupo.estado === 'reservado' && (
-                            <div className="slot-status">✓ Reservado</div>
-                          )}
-                        </div>
+                        sobrecupo.estado === 'disponible' ? (
+                          <div className="slot-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="slot-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                              <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        )
                       ) : !isPastDate(day) ? (
                         <div className="slot-empty">+</div>
                       ) : null}
@@ -1305,22 +1324,29 @@ export default function SobrecuposMedico() {
         .nav-btn-mobile {
           width: 28px;
           height: 28px;
-          border: none;
+          border: 1px solid rgba(255, 149, 0, 0.3);
           background: rgba(255, 149, 0, 0.1);
           color: #ff9500;
           border-radius: 50%;
           cursor: pointer;
           font-size: 1rem;
-          font-weight: 500;
+          font-weight: 600;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s ease;
+          transition: all 0.15s ease;
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
+        }
+        
+        .nav-btn-mobile:active {
+          background: rgba(255, 149, 0, 0.3);
+          transform: scale(0.95);
         }
         
         .nav-btn-mobile:hover {
           background: rgba(255, 149, 0, 0.2);
-          transform: scale(1.1);
+          border-color: rgba(255, 149, 0, 0.5);
         }
         
         .calendar-day-header {
@@ -1387,27 +1413,39 @@ export default function SobrecuposMedico() {
         
         .calendar-slot {
           background: white;
-          min-height: 48px;
+          aspect-ratio: 1;
+          min-height: 44px;
+          max-height: 44px;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s ease;
+          transition: all 0.15s ease;
           position: relative;
+          border: 1px solid rgba(0, 0, 0, 0.02);
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
         }
         
-        .calendar-slot:hover {
+        .calendar-slot:active {
+          transform: scale(0.98);
+        }
+        
+        .calendar-slot:hover:not(.past) {
           background: rgba(255, 149, 0, 0.05);
+          border-color: rgba(255, 149, 0, 0.1);
         }
         
         .calendar-slot.available {
           background: #ff9500;
           color: white;
+          border: 1px solid #e8890a;
         }
         
         .calendar-slot.reserved {
           background: #10b981;
           color: white;
+          border: 1px solid #059669;
         }
         
         .calendar-slot.past {
@@ -1420,28 +1458,16 @@ export default function SobrecuposMedico() {
           background: rgba(255, 149, 0, 0.1);
         }
         
-        .slot-content {
-          text-align: center;
-          padding: 0.25rem;
+        .slot-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
           width: 100%;
+          height: 100%;
         }
         
-        .slot-time {
-          font-weight: 600;
-          font-size: 0.7rem;
-          margin-bottom: 0.125rem;
-        }
-        
-        .slot-clinic {
-          font-size: 0.6rem;
-          opacity: 0.9;
-          margin-bottom: 0.125rem;
-        }
-        
-        .slot-status {
-          font-size: 0.55rem;
-          font-weight: 600;
-          opacity: 0.8;
+        .slot-icon svg {
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
         }
         
         .slot-empty {
@@ -1496,6 +1522,8 @@ export default function SobrecuposMedico() {
           
           .calendar-slot {
             min-height: 36px;
+            max-height: 36px;
+            aspect-ratio: 1;
           }
           
           .slot-time {
@@ -1512,6 +1540,11 @@ export default function SobrecuposMedico() {
           
           .slot-empty {
             font-size: 1rem;
+          }
+          
+          .slot-icon svg {
+            width: 14px;
+            height: 14px;
           }
           
           .calendar-header {
@@ -1799,6 +1832,8 @@ export default function SobrecuposMedico() {
           
           .calendar-slot {
             min-height: 32px;
+            max-height: 32px;
+            aspect-ratio: 1;
           }
           
           .slot-time {
@@ -1815,6 +1850,11 @@ export default function SobrecuposMedico() {
           
           .slot-empty {
             font-size: 0.9rem;
+          }
+          
+          .slot-icon svg {
+            width: 12px;
+            height: 12px;
           }
         }
         
@@ -1862,6 +1902,8 @@ export default function SobrecuposMedico() {
           
           .calendar-slot {
             min-height: 28px;
+            max-height: 28px;
+            aspect-ratio: 1;
           }
           
           .slot-time {
@@ -1879,6 +1921,11 @@ export default function SobrecuposMedico() {
           
           .slot-empty {
             font-size: 0.8rem;
+          }
+          
+          .slot-icon svg {
+            width: 10px;
+            height: 10px;
           }
         }
       `}</style>
