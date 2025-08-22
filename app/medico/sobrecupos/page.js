@@ -776,20 +776,32 @@ export default function SobrecuposMedico() {
                       onClick={(event) => handleSlotClick(event, day, hour)}
                     >
                       {sobrecupo ? (
-                        sobrecupo.estado === 'disponible' ? (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        <div className="mobile-sobrecupo-container">
+                          {/* Logo corazón de Sobrecupos */}
+                          <svg 
+                            width="18" 
+                            height="18" 
+                            viewBox="0 0 1000 413" 
+                            className="sobrecupos-heart"
+                            style={{
+                              fill: sobrecupo.estado === 'disponible' ? '#f59e0b' : 
+                                    sobrecupo.estado === 'reservado' ? 'white' :
+                                    sobrecupo.estado === 'pending_payment' ? '#f97316' : 'white'
+                            }}
+                          >
+                            <g transform="translate(0.000000,413.000000) scale(0.100000,-0.100000)" stroke="none">
+                              <path d="M1173 2946 c-132 -32 -280 -149 -337 -267 -75 -156 -75 -342 1 -493 19 -38 117 -144 382 -411 196 -198 361 -361 366 -363 10 -2 821 806 938 935 47 52 57 69 57 99 0 51 -53 104 -105 104 -32 0 -47 -10 -123 -82 -48 -45 -139 -135 -202 -199 -63 -64 -167 -165 -230 -225 -139 -132 -189 -156 -324 -156 -167 0 -220 29 -407 219 -175 178 -194 211 -194 328 0 67 4 89 28 137 32 65 90 121 156 151 64 30 187 30 252 1 45 -21 254 -205 283 -249 14 -21 11 -26 -55 -95 l-70 -74 -102 101 c-129 127 -151 143 -194 143 -50 0 -103 -54 -103 -104 0 -33 13 -50 133 -178 168 -180 217 -206 321 -176 34 10 92 62 346 313 343 340 344 340 480 340 124 -1 219 -59 278 -170 23 -43 27 -62 27 -140 0 -78 -4 -96 -27 -140 -19 -36 -165 -188 -517 -540 -270 -269 -491 -495 -491 -500 0 -14 133 -145 146 -145 21 0 1005 1003 1035 1055 48 82 69 165 69 269 0 150 -47 268 -146 370 -100 102 -231 156 -381 156 -173 0 -259 -43 -442 -220 l-134 -129 -131 125 c-141 135 -195 173 -295 204 -73 23 -205 26 -288 6z"/>
+                            </g>
                           </svg>
-                        ) : sobrecupo.estado === 'pending_payment' ? (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                            <path d="M12 2v6l4-4-4-4z"/>
-                            <path d="M21 12a9 9 0 11-6.219-8.56"/>
-                          </svg>
-                        ) : (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                          </svg>
-                        )
+                          
+                          {/* Check azul en esquina superior derecha */}
+                          <div className="mobile-check-badge">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                              <circle cx="12" cy="12" r="12" fill="#60a5fa"/>
+                              <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                        </div>
                       ) : !isPastDate(day) ? (
                         <span className="mobile-slot-plus">+</span>
                       ) : null}
@@ -1713,6 +1725,31 @@ export default function SobrecuposMedico() {
           color: #d1d5db;
           font-weight: 300;
           opacity: 0.6;
+        }
+        
+        .mobile-sobrecupo-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+        }
+        
+        .sobrecupos-heart {
+          z-index: 1;
+        }
+        
+        .mobile-check-badge {
+          position: absolute;
+          top: -2px;
+          right: -2px;
+          z-index: 2;
+          width: 12px;
+          height: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         /* Mobile Breakpoint */
