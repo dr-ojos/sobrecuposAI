@@ -272,7 +272,8 @@ export default function SobrecuposMedico() {
   const getSobrecupoCount = () => {
     const disponibles = Object.values(sobrecupos).filter(s => s.estado === 'disponible').length;
     const reservados = Object.values(sobrecupos).filter(s => s.estado === 'reservado').length;
-    return { disponibles, reservados, total: disponibles + reservados };
+    const confirmados = Object.values(sobrecupos).filter(s => s.estado === 'confirmado').length;
+    return { disponibles, reservados, confirmados, total: disponibles + reservados + confirmados };
   };
 
   const stats = getSobrecupoCount();
@@ -551,6 +552,10 @@ export default function SobrecuposMedico() {
               <div className="stat-indicator reserved"></div>
               <span>Reservados: {stats.reservados}</span>
             </div>
+            <div className="stat-item">
+              <div className="stat-indicator confirmed"></div>
+              <span>Confirmados: {stats.confirmados}</span>
+            </div>
             <div className="stat-total">
               Total: {stats.total}
             </div>
@@ -636,7 +641,12 @@ export default function SobrecuposMedico() {
                   <div
                     key={`${day.toISOString()}-${hour}`}
                     style={{
-                      background: sobrecupo ? (sobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981') : isPastDate(day) ? '#f9f9f9' : 'white',
+                      background: sobrecupo ? (
+                        sobrecupo.estado === 'disponible' ? '#f59e0b' :    // Ámbar - Disponible
+                        sobrecupo.estado === 'reservado' ? '#10b981' :     // Verde - Reservado  
+                        sobrecupo.estado === 'confirmado' ? '#0ea5e9' :    // Azul - Confirmado
+                        '#6b7280'                                           // Gris - Otro estado
+                      ) : isPastDate(day) ? '#f9f9f9' : 'white',
                       color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : 'black',
                       minHeight: '40px',
                       cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
@@ -676,6 +686,15 @@ export default function SobrecuposMedico() {
                             opacity: 0.8
                           }}>
                             ✓ Reservado
+                          </div>
+                        )}
+                        {sobrecupo.estado === 'confirmado' && (
+                          <div style={{
+                            fontSize: '0.5625rem',
+                            fontWeight: 500,
+                            opacity: 0.8
+                          }}>
+                            ● Confirmado
                           </div>
                         )}
                       </div>
@@ -735,20 +754,23 @@ export default function SobrecuposMedico() {
                     <div
                       key={`${day.toISOString()}-${hour}`}
                       className={`mobile-slot ${
-                        sobrecupo ? (sobrecupo.estado === 'disponible' ? 'available' : 'reserved') :
-                        isPastDate(day) ? 'past' : 'empty'
+                        sobrecupo ? (
+                          sobrecupo.estado === 'disponible' ? 'available' :
+                          sobrecupo.estado === 'reservado' ? 'reserved' :
+                          sobrecupo.estado === 'confirmado' ? 'confirmed' :
+                          'other'
+                        ) : isPastDate(day) ? 'past' : 'empty'
                       }`}
                       onClick={(event) => handleSlotClick(event, day, hour)}
                     >
                       {sobrecupo ? (
                         sobrecupo.estado === 'disponible' ? (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                           </svg>
                         ) : (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                            <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                         )
                       ) : !isPastDate(day) ? (
@@ -1263,10 +1285,14 @@ export default function SobrecuposMedico() {
                   }}>Estado</label>
                   <div style={{
                     fontSize: '0.875rem',
-                    color: selectedSobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981',
+                    color: selectedSobrecupo.estado === 'disponible' ? '#f59e0b' : 
+                           selectedSobrecupo.estado === 'reservado' ? '#10b981' :
+                           selectedSobrecupo.estado === 'confirmado' ? '#0ea5e9' : '#6b7280',
                     fontWeight: 500
                   }}>
-                    {selectedSobrecupo.estado === 'disponible' ? '🟠 Disponible' : '🟢 Reservado'}
+                    {selectedSobrecupo.estado === 'disponible' ? '🟡 Disponible' : 
+                     selectedSobrecupo.estado === 'reservado' ? '🟢 Reservado' :
+                     selectedSobrecupo.estado === 'confirmado' ? '🔵 Confirmado' : '⚫ Otro'}
                   </div>
                 </div>
               </div>
@@ -1366,11 +1392,15 @@ export default function SobrecuposMedico() {
         }
         
         .stat-indicator.available {
-          background: #ff9500;
+          background: #f59e0b;
         }
         
         .stat-indicator.reserved {
           background: #10b981;
+        }
+        
+        .stat-indicator.confirmed {
+          background: #0ea5e9;
         }
         
         .stat-total {
@@ -1631,11 +1661,24 @@ export default function SobrecuposMedico() {
         }
         
         .mobile-slot.available {
-          background: #ff9500;
+          background: white;
+          border: 2px solid #f59e0b;
+          border-radius: 8px;
         }
         
         .mobile-slot.reserved {
           background: #10b981;
+          border-radius: 8px;
+        }
+        
+        .mobile-slot.confirmed {
+          background: #0ea5e9;
+          border-radius: 8px;
+        }
+        
+        .mobile-slot.other {
+          background: #6b7280;
+          border-radius: 8px;
         }
         
         .mobile-slot.past {
