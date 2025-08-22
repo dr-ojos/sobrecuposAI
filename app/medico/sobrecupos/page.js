@@ -539,154 +539,79 @@ export default function SobrecuposMedico() {
           </div>
         </div>
         
-        {/* Calendario Desktop/Tablet */}
+        {/* Calendario Profesional Responsive */}
         <div 
-          className="calendar-desktop"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '50px repeat(7, 1fr)',
-            gap: '0.5px',
-            background: 'rgba(0, 0, 0, 0.04)',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            border: '0.5px solid rgba(0, 0, 0, 0.1)',
-            touchAction: 'pan-x'
-          }}
+          className="calendar-container"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Header con días */}
-          <div className="calendar-nav-header">
-            <button onClick={goToPreviousWeek} className="nav-btn nav-btn-left">
-              ‹
-            </button>
-            <button onClick={goToNextWeek} className="nav-btn nav-btn-center">
-              ›
-            </button>
-          </div>
-          
-          {weekDays.map((day, index) => (
-            <div key={day.toISOString()} style={{
-              background: isToday(day) ? 'rgba(255, 149, 0, 0.08)' : isPastDate(day) ? '#f9f9f9' : 'white',
-              padding: '0.625rem 0.5rem',
-              textAlign: 'center',
-              borderBottom: '1px solid #e5e5e5',
-              position: 'relative',
-              border: isToday(day) ? '1px solid rgba(255, 149, 0, 0.2)' : 'none',
-              opacity: isPastDate(day) ? 0.6 : 1
-            }}>
-              <div style={{
-                fontWeight: 500,
-                color: '#171717',
-                fontSize: '0.8125rem',
-                marginBottom: '0.25rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>
-                {dayNames[index]}
-              </div>
-              <div className="day-number" style={{
-                color: isToday(day) ? '#ff9500' : '#171717',
-                fontWeight: isToday(day) ? 600 : 300
-              }}>
-                {day.getDate()}
-              </div>
-              
-              {index === 6 && (
-                <button onClick={goToNextWeek} className="nav-btn nav-btn-right">
-                  ›
-                </button>
-              )}
-              
+          {/* Header con navegación y días */}
+          <div className="calendar-header-grid">
+            <div className="calendar-nav-cell">
+              <button onClick={goToPreviousWeek} className="nav-btn nav-btn-mobile">
+                ‹
+              </button>
             </div>
-          ))}
-
-          {/* Grid de horas */}
-          {hours.map(hour => (
-            <React.Fragment key={hour}>
-              <div style={{
-                background: 'white',
-                padding: '0.625rem 0.375rem',
-                textAlign: 'center',
-                fontSize: '0.6875rem',
-                fontWeight: 400,
-                color: '#666',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderBottom: '1px solid #e5e5e5'
-              }}>
-                {formatTime(hour)}
+            
+            {weekDays.map((day, index) => (
+              <div key={day.toISOString()} className={`calendar-day-header ${
+                isToday(day) ? 'today' : isPastDate(day) ? 'past' : ''
+              }`}>
+                <div className="day-name">
+                  {dayNames[index]}
+                </div>
+                <div className="day-number">
+                  {day.getDate()}
+                </div>
               </div>
-              
-              {weekDays.map(day => {
-                const slotKey = getSlotKey(day, hour);
-                const sobrecupo = sobrecupos[slotKey];
+            ))}
+            
+            <div className="calendar-nav-cell">
+              <button onClick={goToNextWeek} className="nav-btn nav-btn-mobile">
+                ›
+              </button>
+            </div>
+          </div>
+
+          {/* Grid de horas responsive */}
+          <div className="calendar-body-grid">
+            {hours.map(hour => (
+              <div key={hour} className="calendar-hour-row">
+                <div className="hour-label">
+                  {formatTime(hour)}
+                </div>
                 
-                return (
-                  <div
-                    key={`${day.toISOString()}-${hour}`}
-                    style={{
-                      background: sobrecupo ? (sobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981') : isPastDate(day) ? '#f9f9f9' : 'white',
-                      color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : 'black',
-                      minHeight: '40px',
-                      cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderBottom: '1px solid #e5e5e5',
-                      position: 'relative',
-                      opacity: isPastDate(day) ? 0.6 : 1
-                    }}
-                    onClick={() => handleSlotClick(day, hour)}
-                  >
-                    {sobrecupo ? (
-                      <div style={{
-                        textAlign: 'center',
-                        padding: '0.25rem',
-                        width: '100%'
-                      }}>
-                        <div style={{
-                          fontWeight: 500,
-                          fontSize: '0.6875rem',
-                          marginBottom: '0.0625rem'
-                        }}>
-                          {sobrecupo.hora}
+                {weekDays.map(day => {
+                  const slotKey = getSlotKey(day, hour);
+                  const sobrecupo = sobrecupos[slotKey];
+                  
+                  return (
+                    <div
+                      key={`${day.toISOString()}-${hour}`}
+                      className={`calendar-slot ${
+                        sobrecupo ? (sobrecupo.estado === 'disponible' ? 'available' : 'reserved') :
+                        isPastDate(day) ? 'past' : 'empty'
+                      }`}
+                      onClick={() => handleSlotClick(day, hour)}
+                    >
+                      {sobrecupo ? (
+                        <div className="slot-content">
+                          <div className="slot-time">{sobrecupo.hora}</div>
+                          <div className="slot-clinic">{sobrecupo.clinica}</div>
+                          {sobrecupo.estado === 'reservado' && (
+                            <div className="slot-status">✓ Reservado</div>
+                          )}
                         </div>
-                        <div style={{
-                          fontSize: '0.625rem',
-                          opacity: 0.9,
-                          marginBottom: '0.0625rem'
-                        }}>
-                          {sobrecupo.clinica}
-                        </div>
-                        {sobrecupo.estado === 'reservado' && (
-                          <div style={{
-                            fontSize: '0.5625rem',
-                            fontWeight: 500,
-                            opacity: 0.8
-                          }}>
-                            ✓ Reservado
-                          </div>
-                        )}
-                      </div>
-                    ) : !isPastDate(day) ? (
-                      <div style={{
-                        fontSize: '1.25rem',
-                        color: '#d1d5db',
-                        fontWeight: 300,
-                        opacity: 0.6
-                      }}>
-                        +
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </React.Fragment>
-          ))}
+                      ) : !isPastDate(day) ? (
+                        <div className="slot-empty">+</div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
         
         </div>
@@ -1352,11 +1277,242 @@ export default function SobrecuposMedico() {
         }
         
         /* Control de visibilidad del calendario */
-        .calendar-desktop {
-          display: grid;
+        /* Calendario Profesional Responsive */
+        .calendar-container {
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 0.5px solid rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+          width: 100%;
         }
         
+        .calendar-header-grid {
+          display: grid;
+          grid-template-columns: 32px repeat(7, 1fr) 32px;
+          background: rgba(0, 0, 0, 0.02);
+          border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .calendar-nav-cell {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.75rem 0.25rem;
+          background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .nav-btn-mobile {
+          width: 28px;
+          height: 28px;
+          border: none;
+          background: rgba(255, 149, 0, 0.1);
+          color: #ff9500;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 1rem;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
+        
+        .nav-btn-mobile:hover {
+          background: rgba(255, 149, 0, 0.2);
+          transform: scale(1.1);
+        }
+        
+        .calendar-day-header {
+          background: white;
+          padding: 0.75rem 0.25rem;
+          text-align: center;
+          border-right: 1px solid #f0f0f0;
+          transition: all 0.2s ease;
+        }
+        
+        .calendar-day-header.today {
+          background: rgba(255, 149, 0, 0.08);
+          border-left: 2px solid #ff9500;
+          border-right: 2px solid #ff9500;
+        }
+        
+        .calendar-day-header.past {
+          background: #f9f9f9;
+          opacity: 0.6;
+        }
+        
+        .day-name {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #666;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 0.25rem;
+        }
+        
+        .day-number {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #171717;
+        }
+        
+        .calendar-day-header.today .day-number {
+          color: #ff9500;
+        }
+        
+        .calendar-body-grid {
+          display: grid;
+          gap: 1px;
+          background: rgba(0, 0, 0, 0.04);
+        }
+        
+        .calendar-hour-row {
+          display: grid;
+          grid-template-columns: 32px repeat(7, 1fr) 32px;
+          gap: 1px;
+        }
+        
+        .hour-label {
+          background: white;
+          padding: 0.75rem 0.25rem;
+          text-align: center;
+          font-size: 0.6rem;
+          font-weight: 500;
+          color: #666;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .calendar-slot {
+          background: white;
+          min-height: 48px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          position: relative;
+        }
+        
+        .calendar-slot:hover {
+          background: rgba(255, 149, 0, 0.05);
+        }
+        
+        .calendar-slot.available {
+          background: #ff9500;
+          color: white;
+        }
+        
+        .calendar-slot.reserved {
+          background: #10b981;
+          color: white;
+        }
+        
+        .calendar-slot.past {
+          background: #f9f9f9;
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+        
+        .calendar-slot.empty:hover {
+          background: rgba(255, 149, 0, 0.1);
+        }
+        
+        .slot-content {
+          text-align: center;
+          padding: 0.25rem;
+          width: 100%;
+        }
+        
+        .slot-time {
+          font-weight: 600;
+          font-size: 0.7rem;
+          margin-bottom: 0.125rem;
+        }
+        
+        .slot-clinic {
+          font-size: 0.6rem;
+          opacity: 0.9;
+          margin-bottom: 0.125rem;
+        }
+        
+        .slot-status {
+          font-size: 0.55rem;
+          font-weight: 600;
+          opacity: 0.8;
+        }
+        
+        .slot-empty {
+          font-size: 1.25rem;
+          color: #d1d5db;
+          font-weight: 300;
+          opacity: 0.6;
+        }
+        
+        /* Mobile Responsive Design */
         @media (max-width: 768px) {
+          .calendar-container {
+            margin: 0 -0.5rem;
+            border-radius: 12px;
+          }
+          
+          .calendar-header-grid {
+            grid-template-columns: 28px repeat(7, 1fr) 28px;
+          }
+          
+          .nav-btn-mobile {
+            width: 24px;
+            height: 24px;
+            font-size: 0.9rem;
+          }
+          
+          .calendar-nav-cell {
+            padding: 0.5rem 0.125rem;
+          }
+          
+          .calendar-day-header {
+            padding: 0.5rem 0.125rem;
+          }
+          
+          .day-name {
+            font-size: 0.65rem;
+            margin-bottom: 0.125rem;
+          }
+          
+          .day-number {
+            font-size: 0.9rem;
+          }
+          
+          .calendar-hour-row {
+            grid-template-columns: 28px repeat(7, 1fr) 28px;
+          }
+          
+          .hour-label {
+            padding: 0.5rem 0.125rem;
+            font-size: 0.55rem;
+          }
+          
+          .calendar-slot {
+            min-height: 36px;
+          }
+          
+          .slot-time {
+            font-size: 0.65rem;
+          }
+          
+          .slot-clinic {
+            font-size: 0.55rem;
+          }
+          
+          .slot-status {
+            font-size: 0.5rem;
+          }
+          
+          .slot-empty {
+            font-size: 1rem;
+          }
           
           .calendar-header {
             flex-direction: column;
@@ -1598,42 +1754,130 @@ export default function SobrecuposMedico() {
           }
         }
         
-        /* Mejoras responsivas para el calendario principal */
+        /* Small Mobile Devices */
         @media (max-width: 480px) {
-          .calendar-desktop {
-            gap: 0.25px;
-            border-radius: 12px;
+          .calendar-container {
+            margin: 0 -0.75rem;
+            border-radius: 8px;
           }
           
-          .calendar-desktop > div {
-            min-height: 32px;
-            font-size: 0.75rem;
-            padding: 0.4rem 0.25rem;
+          .calendar-header-grid {
+            grid-template-columns: 24px repeat(7, 1fr) 24px;
+          }
+          
+          .nav-btn-mobile {
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+          }
+          
+          .calendar-nav-cell {
+            padding: 0.375rem 0.1rem;
+          }
+          
+          .calendar-day-header {
+            padding: 0.375rem 0.1rem;
+          }
+          
+          .day-name {
+            font-size: 0.6rem;
+            margin-bottom: 0.1rem;
           }
           
           .day-number {
-            font-size: 0.875rem;
+            font-size: 0.8rem;
           }
           
-          .nav-btn {
-            width: 28px;
-            height: 28px;
-            font-size: 1.25rem;
+          .calendar-hour-row {
+            grid-template-columns: 24px repeat(7, 1fr) 24px;
+          }
+          
+          .hour-label {
+            padding: 0.375rem 0.1rem;
+            font-size: 0.5rem;
+          }
+          
+          .calendar-slot {
+            min-height: 32px;
+          }
+          
+          .slot-time {
+            font-size: 0.6rem;
+          }
+          
+          .slot-clinic {
+            font-size: 0.5rem;
+          }
+          
+          .slot-status {
+            font-size: 0.45rem;
+          }
+          
+          .slot-empty {
+            font-size: 0.9rem;
           }
         }
         
+        /* Extra Small Devices */
         @media (max-width: 375px) {
-          .calendar-desktop {
-            grid-template-columns: 40px repeat(7, 1fr);
+          .calendar-container {
+            margin: 0 -1rem;
           }
           
-          .calendar-desktop > div {
-            min-height: 28px;
-            font-size: 0.7rem;
-            padding: 0.3rem 0.2rem;
+          .calendar-header-grid {
+            grid-template-columns: 20px repeat(7, 1fr) 20px;
+          }
+          
+          .nav-btn-mobile {
+            width: 18px;
+            height: 18px;
+            font-size: 0.75rem;
+          }
+          
+          .calendar-nav-cell {
+            padding: 0.25rem 0.05rem;
+          }
+          
+          .calendar-day-header {
+            padding: 0.25rem 0.05rem;
+          }
+          
+          .day-name {
+            font-size: 0.55rem;
+            margin-bottom: 0.05rem;
           }
           
           .day-number {
+            font-size: 0.75rem;
+          }
+          
+          .calendar-hour-row {
+            grid-template-columns: 20px repeat(7, 1fr) 20px;
+          }
+          
+          .hour-label {
+            padding: 0.25rem 0.05rem;
+            font-size: 0.45rem;
+          }
+          
+          .calendar-slot {
+            min-height: 28px;
+          }
+          
+          .slot-time {
+            font-size: 0.55rem;
+          }
+          
+          .slot-clinic {
+            font-size: 0.45rem;
+            line-height: 1.2;
+          }
+          
+          .slot-status {
+            font-size: 0.4rem;
+          }
+          
+          .slot-empty {
             font-size: 0.8rem;
           }
         }
