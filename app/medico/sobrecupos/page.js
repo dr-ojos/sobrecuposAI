@@ -1,73 +1,41 @@
-// app/medico/sobrecupos/page.js
 'use client';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
 
 export default function SobrecuposMedico() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
   const [loading, setLoading] = useState(true);
-  const [sobrecupos, setSobrecupos] = useState([]);
-  const [filteredSobrecupos, setFilteredSobrecupos] = useState([]);
-  const [clinicas, setClinicas] = useState([]);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [sobrecupos, setSobrecupos] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedSobrecupo, setSelectedSobrecupo] = useState(null);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+  const [modalData, setModalData] = useState({ clinica: '' });
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
   const [message, setMessage] = useState('');
-  const [activeFilter, setActiveFilter] = useState('proximos');
-  const [newSobrecupo, setNewSobrecupo] = useState({
-    clinica: '',
-    direccion: '',
-    fecha: '',
-    horas: [], // Cambiar a array para múltiples horas
-    clinicaId: ''
-  });
+  const [showBatchCreator, setShowBatchCreator] = useState(false);
+  const [selectedHoras, setSelectedHoras] = useState([]);
+  const [batchData, setBatchData] = useState({ fecha: '', clinica: '' });
 
-  const horarios = [
-    "08:00", "09:00", "10:00", "11:00", "12:00", 
-    "13:00", "14:00", "15:00", "16:00", "17:00", 
-    "18:00", "19:00"
+  const clinicasRegistradas = [
+    'Consulta particular',
+    'Clínica Las Condes', 
+    'Clínica Alemana',
+    'Hospital Salvador',
+    'Clínica Santa María',
+    'Clínica UC'
   ];
 
-  // Estado para el dropdown de horas
-  const [showHorasDropdown, setShowHorasDropdown] = useState(false);
-
-  // Funciones para manejar selección múltiple de horas
-  const toggleHora = (hora) => {
-    setNewSobrecupo(prev => ({
-      ...prev,
-      horas: prev.horas.includes(hora) 
-        ? prev.horas.filter(h => h !== hora)
-        : [...prev.horas, hora]
-    }));
-  };
-
-  const selectAllHoras = () => {
-    setNewSobrecupo(prev => ({
-      ...prev,
-      horas: horarios
-    }));
-  };
-
-  const clearAllHoras = () => {
-    setNewSobrecupo(prev => ({
-      ...prev,
-      horas: []
-    }));
-  };
-
-  // Función para generar el texto del selector
-  const getHorasDisplayText = () => {
-    if (newSobrecupo.horas.length === 0) {
-      return "Seleccionar horarios";
-    }
-    if (newSobrecupo.horas.length === 1) {
-      return newSobrecupo.horas[0];
-    }
-    if (newSobrecupo.horas.length === horarios.length) {
-      return "Todos los horarios";
-    }
-    return `${newSobrecupo.horas.length} horarios seleccionados`;
-  };
+  const horarios = [
+    "08:00", "09:00", "10:00", "11:00", 
+    "12:00", "13:00", "14:00", "15:00", 
+    "16:00", "17:00", "18:00", "19:00"
+  ];
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -77,143 +45,166 @@ export default function SobrecuposMedico() {
     }
     if (session) {
       fetchSobrecupos();
-      fetchClinicas();
     }
   }, [session, status, router]);
-
-  useEffect(() => {
-    filterSobrecupos();
-  }, [sobrecupos, activeFilter]);
 
   const fetchSobrecupos = async () => {
     try {
       const res = await fetch(`/api/sobrecupos/medicos/${session.user.doctorId}`);
       if (res.ok) {
         const data = await res.json();
-        setSobrecupos(data);
+        // Convertir array a objeto para el calendario
+        const sobrecuposObj = {};
+        data.forEach(sobrecupo => {
+          const slotKey = `${sobrecupo.fields?.Fecha}-${sobrecupo.fields?.Hora?.split(':')[0]}`;
+          sobrecuposObj[slotKey] = {
+            id: sobrecupo.id,
+            fecha: sobrecupo.fields?.Fecha,
+            hora: sobrecupo.fields?.Hora,
+            clinica: sobrecupo.fields?.Clínica || 'Consulta particular',
+            estado: (sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true) ? 'disponible' : 'reservado'
+          };
+        });
+        setSobrecupos(sobrecuposObj);
       }
     } catch (error) {
       console.error('Error cargando sobrecupos:', error);
+      setMessage('❌ Error cargando sobrecupos');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchClinicas = async () => {
-    try {
-      const res = await fetch('/api/clinicas');
-      if (res.ok) {
-        const data = await res.json();
-        setClinicas(data);
-      }
-    } catch (error) {
-      console.error('Error cargando clínicas:', error);
-    }
-  };
-
-  const filterSobrecupos = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const getWeekDays = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - currentDay + 1 + (currentWeekOffset * 7));
     
-    let filtered = [];
-
-    switch (activeFilter) {
-      case 'proximos':
-        filtered = sobrecupos.filter(sobrecupo => {
-          const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
-          return sobrecupoDate >= today;
-        }).sort((a, b) => {
-          const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
-          const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
-          return dateA - dateB;
-        });
-        break;
-
-      case 'reservados':
-        filtered = sobrecupos.filter(sobrecupo => {
-          const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
-          const isReserved = sobrecupo.fields?.Disponible !== 'Si' && sobrecupo.fields?.Disponible !== true;
-          return sobrecupoDate >= today && isReserved;
-        }).sort((a, b) => {
-          const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
-          const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
-          return dateA - dateB;
-        });
-        break;
-
-      case 'disponibles':
-        filtered = sobrecupos.filter(sobrecupo => {
-          const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
-          const isAvailable = sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true;
-          return sobrecupoDate >= today && isAvailable;
-        }).sort((a, b) => {
-          const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
-          const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
-          return dateA - dateB;
-        });
-        break;
-
-      case 'antiguos':
-        filtered = sobrecupos.filter(sobrecupo => {
-          const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
-          return sobrecupoDate < today;
-        }).sort((a, b) => {
-          const dateA = new Date(`${a.fields?.Fecha}T${a.fields?.Hora || '00:00'}`);
-          const dateB = new Date(`${b.fields?.Fecha}T${b.fields?.Hora || '00:00'}`);
-          return dateB - dateA;
-        });
-        break;
-
-      default:
-        filtered = sobrecupos;
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      days.push(day);
     }
-
-    setFilteredSobrecupos(filtered);
+    return days;
   };
 
-  const handleCreateSobrecupo = async (e) => {
-    e.preventDefault();
-    setMessage('');
+  const isToday = (date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  };
 
-    if (!newSobrecupo.fecha || newSobrecupo.horas.length === 0) {
-      setMessage('❌ Fecha y al menos una hora son obligatorios');
-      return;
+  const isPastDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate < today;
+  };
+
+  const goToPreviousWeek = () => setCurrentWeekOffset(prev => prev - 1);
+  const goToNextWeek = () => setCurrentWeekOffset(prev => prev + 1);
+  const goToCurrentWeek = () => setCurrentWeekOffset(0);
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNextWeek();
     }
+    if (isRightSwipe) {
+      goToPreviousWeek();
+    }
+    
+    setTouchStartX(0);
+    setTouchEndX(0);
+  };
+
+  const getWeekInfo = () => {
+    const weekDays = getWeekDays();
+    const firstDay = weekDays[0];
+    const lastDay = weekDays[6];
+    
+    if (firstDay.getMonth() !== lastDay.getMonth()) {
+      return {
+        monthYear: `${firstDay.toLocaleDateString('es', { month: 'short' })} - ${lastDay.toLocaleDateString('es', { month: 'short' })} ${lastDay.getFullYear()}`
+      };
+    }
+    
+    return {
+      monthYear: `${firstDay.toLocaleDateString('es', { month: 'long' })} ${firstDay.getFullYear()}`
+    };
+  };
+
+  const weekDays = getWeekDays();
+  const weekInfo = getWeekInfo();
+  const hours = Array.from({ length: 11 }, (_, i) => i + 9);
+  const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+  const formatDate = (date) => date.toISOString().split('T')[0];
+  const formatTime = (hour) => `${hour.toString().padStart(2, '0')}:00`;
+  const getSlotKey = (date, hour) => `${formatDate(date)}-${hour}`;
+
+  const handleSlotClick = (date, hour) => {
+    const slotKey = getSlotKey(date, hour);
+    
+    if (sobrecupos[slotKey]) {
+      setSelectedSobrecupo({ ...sobrecupos[slotKey], slotKey, date, hour, isPast: isPastDate(date) });
+      setShowInfoModal(true);
+    } else if (!isPastDate(date)) {
+      setSelectedSlot({ date, hour, slotKey });
+      setShowModal(true);
+    }
+  };
+
+  const handleCreateSobrecupo = async () => {
+    if (!selectedSlot) return;
 
     try {
       const doctorData = session.user.doctorData;
       
-      // Crear múltiples sobrecupos (uno por cada hora seleccionada)
-      const creacionPromises = newSobrecupo.horas.map(hora => 
-        fetch('/api/sobrecupos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            medico: session.user.doctorId,
-            especialidad: doctorData?.Especialidad || 'Sin especialidad',
-            clinica: newSobrecupo.clinica || 'Consulta particular',
-            direccion: newSobrecupo.direccion || 'Por definir',
-            fecha: newSobrecupo.fecha,
-            hora: hora
-          })
+      const response = await fetch('/api/sobrecupos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          medico: session.user.doctorId,
+          especialidad: doctorData?.Especialidad || 'Sin especialidad',
+          clinica: modalData.clinica || 'Consulta particular',
+          direccion: 'Por definir',
+          fecha: formatDate(selectedSlot.date),
+          hora: formatTime(selectedSlot.hour)
         })
-      );
+      });
 
-      const results = await Promise.all(creacionPromises);
-      const exitosos = results.filter(res => res.ok).length;
-      const fallidos = results.length - exitosos;
-
-      if (exitosos > 0) {
-        setMessage(`✅ ${exitosos} sobrecupo${exitosos > 1 ? 's' : ''} creado${exitosos > 1 ? 's' : ''} correctamente${fallidos > 0 ? ` (${fallidos} fallaron)` : ''}`);
-        setNewSobrecupo({
-          clinica: '',
-          direccion: '',
-          fecha: '',
-          horas: [],
-          clinicaId: ''
-        });
-        setShowCreateForm(false);
-        fetchSobrecupos();
+      if (response.ok) {
+        setMessage('✅ Sobrecupo creado correctamente');
+        setSobrecupos(prev => ({
+          ...prev,
+          [selectedSlot.slotKey]: {
+            fecha: formatDate(selectedSlot.date),
+            hora: formatTime(selectedSlot.hour),
+            clinica: modalData.clinica || 'Consulta particular',
+            estado: 'disponible'
+          }
+        }));
+        setShowModal(false);
+        setSelectedSlot(null);
+        setModalData({ clinica: '' });
         setTimeout(() => setMessage(''), 5000);
       } else {
         setMessage('❌ Error creando sobrecupo');
@@ -223,59 +214,34 @@ export default function SobrecuposMedico() {
     }
   };
 
-  const handleClinicaSelect = (e) => {
-    const clinicaId = e.target.value;
-    const clinica = clinicas.find(c => c.id === clinicaId);
-    
-    if (clinica) {
-      setNewSobrecupo({
-        ...newSobrecupo,
-        clinicaId,
-        clinica: clinica.fields?.Nombre || '',
-        direccion: clinica.fields?.Direccion || ''
-      });
-    } else {
-      setNewSobrecupo({
-        ...newSobrecupo,
-        clinicaId: '',
-        clinica: '',
-        direccion: ''
-      });
-    }
-  };
-
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('es-CL', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
+  const handleEditSobrecupo = () => {
+    setSelectedSlot({
+      date: selectedSobrecupo.date,
+      hour: selectedSobrecupo.hour,
+      slotKey: selectedSobrecupo.slotKey
     });
+    setModalData({ clinica: selectedSobrecupo.clinica });
+    setShowInfoModal(false);
+    setShowModal(true);
   };
 
-  const getTimeFromNow = (dateStr, timeStr) => {
-    const now = new Date();
-    const appointmentDate = new Date(`${dateStr}T${timeStr}`);
-    const diffMs = appointmentDate - now;
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Hoy';
-    if (diffDays === 1) return 'Mañana';
-    if (diffDays < 0) return `Hace ${Math.abs(diffDays)} días`;
-    if (diffDays < 7) return `En ${diffDays} días`;
-    return `${Math.ceil(diffDays / 7)} semanas`;
-  };
-
-  const deleteSobrecupo = async (id) => {
+  const handleDeleteSobrecupo = async () => {
     if (!confirm('¿Estás seguro de eliminar este sobrecupo?')) return;
 
     try {
-      const res = await fetch(`/api/sobrecupos?id=${id}`, {
+      const response = await fetch(`/api/sobrecupos?id=${selectedSobrecupo.id}`, {
         method: 'DELETE'
       });
 
-      if (res.ok) {
+      if (response.ok) {
+        setSobrecupos(prev => {
+          const newSobrecupos = { ...prev };
+          delete newSobrecupos[selectedSobrecupo.slotKey];
+          return newSobrecupos;
+        });
+        setShowInfoModal(false);
+        setSelectedSobrecupo(null);
         setMessage('✅ Sobrecupo eliminado');
-        fetchSobrecupos();
         setTimeout(() => setMessage(''), 3000);
       } else {
         setMessage('❌ Error eliminando sobrecupo');
@@ -285,36 +251,86 @@ export default function SobrecuposMedico() {
     }
   };
 
-  const getFilterCounts = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    const proximos = sobrecupos.filter(s => {
-      const sobrecupoDate = new Date(s.fields?.Fecha);
-      return sobrecupoDate >= today;
-    }).length;
-
-    const disponibles = sobrecupos.filter(s => {
-      const sobrecupoDate = new Date(s.fields?.Fecha);
-      const isAvailable = s.fields?.Disponible === 'Si' || s.fields?.Disponible === true;
-      return sobrecupoDate >= today && isAvailable;
-    }).length;
-
-    const reservados = sobrecupos.filter(s => {
-      const sobrecupoDate = new Date(s.fields?.Fecha);
-      const isReserved = s.fields?.Disponible !== 'Si' && s.fields?.Disponible !== true;
-      return sobrecupoDate >= today && isReserved;
-    }).length;
-
-    const antiguos = sobrecupos.filter(s => {
-      const sobrecupoDate = new Date(s.fields?.Fecha);
-      return sobrecupoDate < today;
-    }).length;
-
-    return { proximos, disponibles, reservados, antiguos };
+  const getSobrecupoCount = () => {
+    const disponibles = Object.values(sobrecupos).filter(s => s.estado === 'disponible').length;
+    const reservados = Object.values(sobrecupos).filter(s => s.estado === 'reservado').length;
+    return { disponibles, reservados, total: disponibles + reservados };
   };
 
-  const counts = getFilterCounts();
+  const stats = getSobrecupoCount();
+
+  const toggleHora = (hora) => {
+    setSelectedHoras(prev => 
+      prev.includes(hora) 
+        ? prev.filter(h => h !== hora)
+        : [...prev, hora]
+    );
+  };
+
+  const selectAllHoras = () => {
+    setSelectedHoras(horarios);
+  };
+
+  const clearAllHoras = () => {
+    setSelectedHoras([]);
+  };
+
+  const getDisplayText = () => {
+    if (selectedHoras.length === 0) return "Seleccionar horarios";
+    if (selectedHoras.length === 1) return selectedHoras[0];
+    if (selectedHoras.length === horarios.length) return "Todos los horarios";
+    return `${selectedHoras.length} horarios seleccionados`;
+  };
+
+  const handleBatchCreate = async () => {
+    if (!batchData.fecha || selectedHoras.length === 0) {
+      setMessage('❌ Selecciona fecha y horarios');
+      return;
+    }
+
+    try {
+      const doctorData = session.user.doctorData;
+      const promises = selectedHoras.map(hora =>
+        fetch('/api/sobrecupos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            medico: session.user.doctorId,
+            especialidad: doctorData?.Especialidad || 'Sin especialidad',
+            clinica: batchData.clinica || 'Consulta particular',
+            direccion: 'Por definir',
+            fecha: batchData.fecha,
+            hora: hora
+          })
+        })
+      );
+
+      await Promise.all(promises);
+      setMessage(`✅ ${selectedHoras.length} sobrecupos creados correctamente`);
+      
+      // Actualizar estado local
+      const newSobrecupos = {};
+      selectedHoras.forEach(hora => {
+        const date = new Date(batchData.fecha);
+        const slotKey = `${batchData.fecha}-${parseInt(hora.split(':')[0])}`;
+        newSobrecupos[slotKey] = {
+          fecha: batchData.fecha,
+          hora: hora,
+          clinica: batchData.clinica || 'Consulta particular',
+          estado: 'disponible'
+        };
+      });
+      
+      setSobrecupos(prev => ({ ...prev, ...newSobrecupos }));
+      setShowBatchCreator(false);
+      setSelectedHoras([]);
+      setBatchData({ fecha: '', clinica: '' });
+      setTimeout(() => setMessage(''), 5000);
+      
+    } catch (error) {
+      setMessage('❌ Error creando sobrecupos');
+    }
+  };
 
   if (status === 'loading' || loading) {
     return (
@@ -418,1558 +434,1057 @@ export default function SobrecuposMedico() {
   }
 
   return (
-    <div className="page-container">
-      {/* Header minimalista estilo Apple */}
-      <header className="header">
-        <div className="header-content">
-          <div className="header-left">
-            <button onClick={() => router.back()} className="back-button">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%)', 
+      padding: '1rem',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif'
+    }}>
+      <div style={{
+        textAlign: 'center',
+        color: '#171717',
+        marginBottom: '1.5rem',
+        maxWidth: '900px',
+        margin: '0 auto 1.5rem auto'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '1rem'
+        }}>
+          <button onClick={() => router.back()} style={{
+            width: '36px',
+            height: '36px',
+            background: 'none',
+            border: '1px solid #e5e5e5',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s ease'
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          
+          {currentWeekOffset !== 0 && (
+            <button onClick={goToCurrentWeek} style={{
+              padding: '0.375rem 0.75rem',
+              background: 'rgba(255, 149, 0, 0.1)',
+              border: 'none',
+              borderRadius: '20px',
+              color: '#ff9500',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              cursor: 'pointer'
+            }}>
+              Hoy
             </button>
-            <div className="header-text">
-              <h1 className="header-title">Mis Sobrecupos</h1>
-              <span className="header-subtitle">Gestión</span>
-            </div>
-          </div>
+          )}
+        </div>
+
+        <h1 style={{
+          fontSize: '1.75rem',
+          margin: '0 0 0.5rem 0',
+          fontWeight: 200,
+          letterSpacing: '-0.6px'
+        }}>Gestiona tus Sobrecupos</h1>
+        
+        <p style={{
+          fontSize: '0.9375rem',
+          color: '#8e8e93',
+          margin: '0 0 1rem 0',
+          fontWeight: 400
+        }}>Haz clic en cualquier hora para crear un sobrecupo</p>
+        
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: '1rem'
+        }}>
           <button 
-            onClick={() => setShowCreateForm(!showCreateForm)} 
-            className="create-button"
+            onClick={() => setShowBatchCreator(!showBatchCreator)}
+            style={{
+              padding: '0.5rem 1rem',
+              background: showBatchCreator ? '#ff9500' : 'rgba(255, 149, 0, 0.1)',
+              border: '1px solid #ff9500',
+              borderRadius: '20px',
+              color: showBatchCreator ? 'white' : '#ff9500',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
           >
-            {showCreateForm ? 'Cancelar' : 'Crear Sobrecupo'}
+            📅 {showBatchCreator ? 'Ocultar' : 'Crear'} Múltiples Horarios
           </button>
         </div>
-      </header>
 
-      <main className="main-content">
-        {/* Mensaje de estado */}
         {message && (
-          <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
+          <div style={{
+            padding: '1rem',
+            borderRadius: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            textAlign: 'center',
+            marginBottom: '1rem',
+            background: message.includes('✅') ? '#f0fdf4' : '#fef2f2',
+            color: message.includes('✅') ? '#166534' : '#991b1b',
+            border: `1px solid ${message.includes('✅') ? '#bbf7d0' : '#fecaca'}`
+          }}>
             {message}
           </div>
         )}
+      </div>
 
-        {/* Hero Section */}
-        <section className="hero-section">
-          <div className="hero-content">
-            <h2 className="main-title">Gestiona tus sobrecupos</h2>
-            <p className="main-subtitle">Crea, organiza y administra tus horarios disponibles</p>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div className="calendar-header">
+          <div className="month-name">
+            {weekInfo.monthYear}
           </div>
-        </section>
-
-        {/* Formulario de creación */}
-        {showCreateForm && (
-          <section className="create-section">
-            <div className="create-container">
-              <div className="create-card">
-                <div className="card-header">
-                  <h3 className="card-title">Nuevo Sobrecupo</h3>
-                  <p className="card-subtitle">Completa la información para crear un nuevo horario disponible</p>
-                </div>
-                
-                <form onSubmit={handleCreateSobrecupo} className="create-form">
-                  <div className="form-grid">
-                    <div className="form-field">
-                      <label className="field-label">Clínica</label>
-                      <select
-                        value={newSobrecupo.clinicaId}
-                        onChange={handleClinicaSelect}
-                        className="field-input"
-                      >
-                        <option value="">Seleccionar clínica</option>
-                        {clinicas.map(clinica => (
-                          <option key={clinica.id} value={clinica.id}>
-                            {clinica.fields?.Nombre}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="form-field">
-                      <label className="field-label">Fecha *</label>
-                      <input
-                        type="date"
-                        value={newSobrecupo.fecha}
-                        onChange={(e) => setNewSobrecupo({...newSobrecupo, fecha: e.target.value})}
-                        required
-                        className="field-input"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-
-                    <div className="form-field">
-                      <label className="field-label">Horarios *</label>
-                      <div className="multi-select-container">
-                        <div 
-                          className="multi-select-input"
-                          onClick={() => setShowHorasDropdown(!showHorasDropdown)}
-                        >
-                          <span className="multi-select-text">
-                            {getHorasDisplayText()}
-                          </span>
-                          <svg 
-                            className={`multi-select-arrow ${showHorasDropdown ? 'open' : ''}`}
-                            width="20" 
-                            height="20" 
-                            viewBox="0 0 24 24" 
-                            fill="none"
-                          >
-                            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </div>
-
-                        {/* Pills de horas seleccionadas */}
-                        {newSobrecupo.horas.length > 0 && (
-                          <div className="selected-horas-pills">
-                            {newSobrecupo.horas.map(hora => (
-                              <span key={hora} className="hora-pill">
-                                {hora}
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleHora(hora);
-                                  }}
-                                  className="hora-pill-remove"
-                                >
-                                  ×
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Dropdown profesional */}
-                        {showHorasDropdown && (
-                          <div className="multi-select-dropdown">
-                            <div className="dropdown-header">
-                              <div className="dropdown-actions">
-                                <button 
-                                  type="button" 
-                                  onClick={selectAllHoras}
-                                  className="dropdown-action-btn"
-                                >
-                                  Seleccionar todos
-                                </button>
-                                <button 
-                                  type="button" 
-                                  onClick={clearAllHoras}
-                                  className="dropdown-action-btn clear"
-                                >
-                                  Limpiar
-                                </button>
-                              </div>
-                            </div>
-                            <div className="dropdown-options">
-                              {horarios.map(hora => (
-                                <label key={hora} className="dropdown-option">
-                                  <input
-                                    type="checkbox"
-                                    checked={newSobrecupo.horas.includes(hora)}
-                                    onChange={() => toggleHora(hora)}
-                                    className="dropdown-checkbox"
-                                  />
-                                  <span className="dropdown-checkmark">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                                      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                  </span>
-                                  <span className="dropdown-label">{hora}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Overlay para cerrar dropdown */}
-                        {showHorasDropdown && (
-                          <div 
-                            className="multi-select-overlay"
-                            onClick={() => setShowHorasDropdown(false)}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <button type="submit" className="submit-button">
-                    Crear {newSobrecupo.horas.length} Sobrecupo{newSobrecupo.horas.length !== 1 ? 's' : ''}
-                  </button>
-                </form>
-              </div>
+          
+          <div className="stats-container">
+            <div className="stat-item">
+              <div className="stat-indicator available"></div>
+              <span>Disponibles: {stats.disponibles}</span>
             </div>
-          </section>
-        )}
-
-        {/* Filtros */}
-        <section className="filters-section">
-          <div className="filters-container">
-            {['proximos', 'disponibles', 'reservados', 'antiguos'].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`filter-button ${activeFilter === filter ? 'active' : ''}`}
-              >
-                <div className="filter-content">
-                  <span className="filter-label">
-                    {filter === 'proximos' ? 'Próximos' : 
-                     filter === 'disponibles' ? 'Disponibles' :
-                     filter === 'reservados' ? 'Reservados' : 'Antiguos'}
-                  </span>
-                  <span className="filter-count">{counts[filter]}</span>
-                </div>
-              </button>
-            ))}
+            <div className="stat-item">
+              <div className="stat-indicator reserved"></div>
+              <span>Reservados: {stats.reservados}</span>
+            </div>
+            <div className="stat-total">
+              Total: {stats.total}
+            </div>
           </div>
-        </section>
-
-        {/* Lista de sobrecupos */}
-        <section className="results-section">
-          {filteredSobrecupos.length === 0 ? (
-            <div className="empty-container">
-              <div className="empty-icon">
-                {activeFilter === 'proximos' && '📅'}
-                {activeFilter === 'reservados' && '🎯'}
-                {activeFilter === 'antiguos' && '📋'}
+        </div>
+        
+        <div 
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '50px repeat(7, 1fr)',
+            gap: '0.5px',
+            background: 'rgba(0, 0, 0, 0.04)',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            border: '0.5px solid rgba(0, 0, 0, 0.1)',
+            touchAction: 'pan-x'
+          }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Header con días */}
+          <div className="calendar-nav-header">
+            <button onClick={goToPreviousWeek} className="nav-btn nav-btn-left">
+              ‹
+            </button>
+            <button onClick={goToNextWeek} className="nav-btn nav-btn-center">
+              ›
+            </button>
+          </div>
+          
+          {weekDays.map((day, index) => (
+            <div key={day.toISOString()} style={{
+              background: isToday(day) ? 'rgba(255, 149, 0, 0.08)' : isPastDate(day) ? '#f9f9f9' : 'white',
+              padding: '0.625rem 0.5rem',
+              textAlign: 'center',
+              borderBottom: '1px solid #e5e5e5',
+              position: 'relative',
+              border: isToday(day) ? '1px solid rgba(255, 149, 0, 0.2)' : 'none',
+              opacity: isPastDate(day) ? 0.6 : 1
+            }}>
+              <div style={{
+                fontWeight: 500,
+                color: '#171717',
+                fontSize: '0.8125rem',
+                marginBottom: '0.25rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                {dayNames[index]}
               </div>
-              <h3 className="empty-title">
-                No tienes {activeFilter === 'proximos' ? 'sobrecupos próximos' : 
-                          activeFilter === 'reservados' ? 'sobrecupos reservados' : 
-                          'sobrecupos antiguos'}
-              </h3>
-              <p className="empty-text">
-                {activeFilter === 'proximos' && 'Crea nuevos sobrecupos para que aparezcan aquí'}
-                {activeFilter === 'reservados' && 'Los sobrecupos reservados aparecerán en esta sección'}
-                {activeFilter === 'antiguos' && 'Los sobrecupos pasados se mostrarán aquí'}
-              </p>
-              {activeFilter === 'proximos' && (
-                <button 
-                  onClick={() => setShowCreateForm(true)}
-                  className="empty-button"
-                >
-                  Crear mi primer sobrecupo
+              <div className="day-number" style={{
+                color: isToday(day) ? '#ff9500' : '#171717',
+                fontWeight: isToday(day) ? 600 : 300
+              }}>
+                {day.getDate()}
+              </div>
+              
+              {index === 6 && (
+                <button onClick={goToNextWeek} className="nav-btn nav-btn-right">
+                  ›
                 </button>
               )}
+              
             </div>
-          ) : (
-            <div className="results-grid">
-              {filteredSobrecupos.map((sobrecupo, index) => (
-                <article key={sobrecupo.id || index} className="sobrecupo-card">
-                  
-                  {/* Card Header */}
-                  <div className="card-header">
-                    <div className="status-info">
-                      <div className={`status-badge ${
-                        sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true 
-                          ? 'available' : 'reserved'
-                      }`}>
-                        {sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true 
-                          ? 'Disponible' : 'Reservado'}
+          ))}
+
+          {/* Grid de horas */}
+          {hours.map(hour => (
+            <React.Fragment key={hour}>
+              <div style={{
+                background: 'white',
+                padding: '0.625rem 0.375rem',
+                textAlign: 'center',
+                fontSize: '0.6875rem',
+                fontWeight: 400,
+                color: '#666',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderBottom: '1px solid #e5e5e5'
+              }}>
+                {formatTime(hour)}
+              </div>
+              
+              {weekDays.map(day => {
+                const slotKey = getSlotKey(day, hour);
+                const sobrecupo = sobrecupos[slotKey];
+                
+                return (
+                  <div
+                    key={`${day.toISOString()}-${hour}`}
+                    style={{
+                      background: sobrecupo ? (sobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981') : isPastDate(day) ? '#f9f9f9' : 'white',
+                      color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : 'black',
+                      minHeight: '40px',
+                      cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderBottom: '1px solid #e5e5e5',
+                      position: 'relative',
+                      opacity: isPastDate(day) ? 0.6 : 1
+                    }}
+                    onClick={() => handleSlotClick(day, hour)}
+                  >
+                    {sobrecupo ? (
+                      <div style={{
+                        textAlign: 'center',
+                        padding: '0.25rem',
+                        width: '100%'
+                      }}>
+                        <div style={{
+                          fontWeight: 500,
+                          fontSize: '0.6875rem',
+                          marginBottom: '0.0625rem'
+                        }}>
+                          {sobrecupo.hora}
+                        </div>
+                        <div style={{
+                          fontSize: '0.625rem',
+                          opacity: 0.9,
+                          marginBottom: '0.0625rem'
+                        }}>
+                          {sobrecupo.clinica}
+                        </div>
+                        {sobrecupo.estado === 'reservado' && (
+                          <div style={{
+                            fontSize: '0.5625rem',
+                            fontWeight: 500,
+                            opacity: 0.8
+                          }}>
+                            ✓ Reservado
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    
-                    <button 
-                      onClick={() => deleteSobrecupo(sobrecupo.id)}
-                      className="delete-button"
-                      title="Eliminar sobrecupo"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                    ) : !isPastDate(day) ? (
+                      <div style={{
+                        fontSize: '1.25rem',
+                        color: '#d1d5db',
+                        fontWeight: 300,
+                        opacity: 0.6
+                      }}>
+                        +
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+        
+        {/* Selector de Horarios Masivo */}
+        {showBatchCreator && (
+          <div style={{
+            marginTop: '2rem',
+            background: 'white',
+            borderRadius: '16px',
+            padding: '1.5rem',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+            border: '1px solid rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{
+              margin: '0 0 1.5rem 0',
+              fontSize: '1.125rem',
+              fontWeight: 500,
+              color: '#171717',
+              textAlign: 'center'
+            }}>⚡ Crear Sobrecupos Masivos</h3>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: window.innerWidth > 768 ? '1fr 1fr' : '1fr',
+              gap: '1.5rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: 500,
+                  color: '#374151',
+                  fontSize: '0.875rem'
+                }}>Fecha *</label>
+                <input
+                  type="date"
+                  value={batchData.fecha}
+                  onChange={(e) => setBatchData(prev => ({ ...prev, fecha: e.target.value }))}
+                  min={new Date().toISOString().split('T')[0]}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    transition: 'all 0.2s ease'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.5rem',
+                  fontWeight: 500,
+                  color: '#374151',
+                  fontSize: '0.875rem'
+                }}>Clínica</label>
+                <select
+                  value={batchData.clinica}
+                  onChange={(e) => setBatchData(prev => ({ ...prev, clinica: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    background: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">Selecciona una clínica</option>
+                  {clinicasRegistradas.map((clinica, index) => (
+                    <option key={index} value={clinica}>
+                      {clinica}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div>
+              <label style={{
+                display: 'block',
+                marginBottom: '0.75rem',
+                fontWeight: 500,
+                color: '#374151',
+                fontSize: '0.875rem'
+              }}>
+                Horarios * ({selectedHoras.length} seleccionado{selectedHoras.length !== 1 ? 's' : ''})
+              </label>
+              
+              {/* Pills de Selección */}
+              {selectedHoras.length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                  marginBottom: '1rem'
+                }}>
+                  {selectedHoras.map(hora => (
+                    <span key={hora} style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
+                      padding: '0.375rem 0.75rem',
+                      background: 'linear-gradient(135deg, #ff9500, #ff7b00)',
+                      color: 'white',
+                      borderRadius: '20px',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      boxShadow: '0 2px 4px rgba(255, 149, 0, 0.3)'
+                    }}>
+                      {hora}
+                      <button
+                        onClick={() => toggleHora(hora)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'white',
+                          cursor: 'pointer',
+                          fontSize: '1.2rem',
+                          lineHeight: 1,
+                          padding: 0,
+                          opacity: 0.8
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              <div style={{
+                background: '#f8fafc',
+                border: '2px solid #e2e8f0',
+                borderRadius: '12px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '1rem',
+                  background: 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                  borderBottom: '1px solid #e2e8f0'
+                }}>
+                  <h4 style={{
+                    margin: 0,
+                    color: '#1e293b',
+                    fontSize: '1rem',
+                    fontWeight: 600
+                  }}>Selecciona los horarios</h4>
+                  <div style={{
+                    display: 'flex',
+                    gap: '0.5rem'
+                  }}>
+                    <button onClick={selectAllHoras} style={{
+                      padding: '0.5rem 1rem',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      background: 'linear-gradient(135deg, #ff9500, #ff7b00)',
+                      color: 'white'
+                    }}>
+                      Todos
+                    </button>
+                    <button onClick={clearAllHoras} style={{
+                      padding: '0.5rem 1rem',
+                      background: 'white',
+                      color: '#64748b',
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}>
+                      Limpiar
                     </button>
                   </div>
-                  
-                  {/* Card Body */}
-                  <div className="card-body">
-                    <div className="datetime-info">
-                      <div className="date-block">
-                        <span className="day">{new Date(sobrecupo.fields?.Fecha).getDate()}</span>
-                        <span className="month">
-                          {new Date(sobrecupo.fields?.Fecha).toLocaleDateString('es-CL', { month: 'short' }).toUpperCase()}
-                        </span>
-                      </div>
-                      
-                      <div className="time-details">
-                        <div className="time">{sobrecupo.fields?.Hora}</div>
-                        <div className="relative-time">
-                          {getTimeFromNow(sobrecupo.fields?.Fecha, sobrecupo.fields?.Hora)}
-                        </div>
+                </div>
+                
+                <div className="horarios-grid-batch">
+                  {horarios.map(hora => (
+                    <div
+                      key={hora}
+                      className={`horario-card-batch ${selectedHoras.includes(hora) ? 'selected' : ''}`}
+                      onClick={() => toggleHora(hora)}
+                    >
+                      <div className="horario-time-batch">{hora}</div>
+                      <div className="horario-check-batch">
+                        {selectedHoras.includes(hora) && (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
                       </div>
                     </div>
-                    
-                    <div className="location-info">
-                      <div className="clinic-name">{sobrecupo.fields?.Clínica}</div>
-                      <div className="clinic-address">{sobrecupo.fields?.Dirección}</div>
-                    </div>
-                    
-                    {sobrecupo.fields?.Nombre && (
-                      <div className="patient-info">
-                        <div className="patient-avatar">
-                          <span>{sobrecupo.fields.Nombre.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
-                        </div>
-                        <div className="patient-details">
-                          <div className="patient-header">
-                            <div className="patient-name">{sobrecupo.fields.Nombre}</div>
-                            {sobrecupo.fields?.Edad && (
-                              <div className="patient-age">{sobrecupo.fields.Edad} años</div>
-                            )}
-                          </div>
-                          
-                          {sobrecupo.fields?.['Motivo Consulta'] && (
-                            <div className="patient-reason">
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                                <path d="M9 11H3a1 1 0 00-1 1v3c0 1.66 1.34 3 3 3h1m4-6h7a1 1 0 011 1v3c0 1.66-1.34 3-3 3h-1m-4-6V7c0-1.66 1.34-3 3-3s3 1.34 3 3v4m-8 0V7c0-1.66-1.34-3-3-3S5 5.34 5 7v4" stroke="currentColor" strokeWidth="2"/>
-                              </svg>
-                              <span>{sobrecupo.fields['Motivo Consulta']}</span>
-                            </div>
-                          )}
-
-                          <div className="patient-contacts">
-                            {sobrecupo.fields?.Email && (
-                              <div className="patient-contact">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="2"/>
-                                  <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="2"/>
-                                </svg>
-                                {sobrecupo.fields.Email}
-                              </div>
-                            )}
-                            {sobrecupo.fields?.Telefono && (
-                              <div className="patient-contact">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth="2"/>
-                                </svg>
-                                {sobrecupo.fields.Telefono}
-                              </div>
-                            )}
-                          </div>
-                          <div className="confirmed-badge">Confirmado</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </article>
-              ))}
+                  ))}
+                </div>
+              </div>
             </div>
-          )}
-        </section>
-      </main>
+            
+            <div style={{
+              display: 'flex',
+              gap: '0.75rem',
+              marginTop: '1.5rem',
+              justifyContent: 'center'
+            }}>
+              <button 
+                onClick={() => setShowBatchCreator(false)}
+                style={{
+                  flex: 1,
+                  maxWidth: '150px',
+                  padding: '0.75rem 1rem',
+                  background: '#f9f9f9',
+                  color: '#666',
+                  border: '1px solid #e5e5e5',
+                  borderRadius: '12px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleBatchCreate}
+                disabled={selectedHoras.length === 0 || !batchData.fecha}
+                style={{
+                  flex: 1,
+                  maxWidth: '200px',
+                  padding: '0.75rem 1rem',
+                  background: selectedHoras.length === 0 || !batchData.fecha ? '#ccc' : 'linear-gradient(135deg, #ff9500, #ff7b00)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: 600,
+                  cursor: selectedHoras.length === 0 || !batchData.fecha ? 'not-allowed' : 'pointer',
+                  fontSize: '0.875rem',
+                  boxShadow: selectedHoras.length === 0 || !batchData.fecha ? 'none' : '0 4px 12px rgba(255, 149, 0, 0.3)'
+                }}
+              >
+                Crear {selectedHoras.length || 0} Sobrecupo{selectedHoras.length !== 1 ? 's' : ''}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
+      {/* Modal para crear sobrecupo */}
+      {showModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(23, 23, 23, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '300px',
+            margin: '1rem',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.8)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem 1.25rem',
+              borderBottom: '1px solid #e5e5e5'
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: '#171717'
+              }}>Crear Sobrecupo</h3>
+              <button onClick={() => setShowModal(false)} style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: '#6b7280',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%'
+              }}>×</button>
+            </div>
+            
+            <div style={{ padding: '1rem 1.25rem' }}>
+              <div style={{
+                background: '#fff7ed',
+                border: '1px solid #fed7aa',
+                borderRadius: '6px',
+                padding: '0.75rem',
+                marginBottom: '1.25rem',
+                textAlign: 'center',
+                color: '#9a3412',
+                fontSize: '0.875rem'
+              }}>
+                <strong>
+                  {selectedSlot && `${dayNames[selectedSlot.date.getDay() - 1]} ${selectedSlot.date.getDate()}, ${formatTime(selectedSlot.hour)}`}
+                </strong>
+              </div>
+              
+              <div style={{ marginBottom: '0.875rem' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '0.375rem',
+                  fontWeight: 500,
+                  color: '#171717',
+                  fontSize: '0.8125rem'
+                }}>Clínica</label>
+                <select
+                  value={modalData.clinica}
+                  onChange={(e) => setModalData(prev => ({ ...prev, clinica: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '0.625rem 0.75rem',
+                    border: '1px solid #e5e5e5',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    background: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">Selecciona una clínica</option>
+                  {clinicasRegistradas.map((clinica, index) => (
+                    <option key={index} value={clinica}>
+                      {clinica}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '0.75rem',
+              padding: '0.75rem 1.25rem 1.25rem 1.25rem',
+              justifyContent: 'center'
+            }}>
+              <button onClick={() => setShowModal(false)} style={{
+                flex: 1,
+                padding: '0.625rem 1rem',
+                borderRadius: '6px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                border: '1px solid #e5e5e5',
+                fontSize: '0.875rem',
+                fontFamily: 'inherit',
+                background: '#f9f9f9',
+                color: '#666'
+              }}>
+                Cancelar
+              </button>
+              <button onClick={handleCreateSobrecupo} style={{
+                flex: 1,
+                padding: '0.625rem 1rem',
+                borderRadius: '6px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                border: '1px solid #ff9500',
+                fontSize: '0.875rem',
+                fontFamily: 'inherit',
+                background: '#ff9500',
+                color: 'white'
+              }}>
+                Crear Sobrecupo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para ver información del sobrecupo */}
+      {showInfoModal && selectedSobrecupo && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(23, 23, 23, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '300px',
+            margin: '1rem',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
+            border: '1px solid rgba(255, 255, 255, 0.8)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1rem 1.25rem',
+              borderBottom: '1px solid #e5e5e5'
+            }}>
+              <h3 style={{
+                margin: 0,
+                fontSize: '1rem',
+                fontWeight: 500,
+                color: '#171717'
+              }}>Información del Sobrecupo</h3>
+              <button onClick={() => setShowInfoModal(false)} style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: '#6b7280',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%'
+              }}>×</button>
+            </div>
+            
+            <div style={{ padding: '1rem 1.25rem' }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
+              }}>
+                <div>
+                  <label style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    color: '#666',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Fecha y Hora</label>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: '#171717',
+                    fontWeight: 400
+                  }}>
+                    {selectedSobrecupo.date && dayNames[selectedSobrecupo.date.getDay() - 1]} {selectedSobrecupo.date && selectedSobrecupo.date.getDate()}, {selectedSobrecupo.hora}
+                  </div>
+                </div>
+                
+                <div>
+                  <label style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    color: '#666',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Clínica</label>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: '#171717',
+                    fontWeight: 400
+                  }}>{selectedSobrecupo.clinica}</div>
+                </div>
+                
+                <div>
+                  <label style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    color: '#666',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>Estado</label>
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: selectedSobrecupo.estado === 'disponible' ? '#ff9500' : '#10b981',
+                    fontWeight: 500
+                  }}>
+                    {selectedSobrecupo.estado === 'disponible' ? '🟠 Disponible' : '🟢 Reservado'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {!selectedSobrecupo?.isPast && (
+              <div style={{
+                display: 'flex',
+                gap: '0.75rem',
+                padding: '0.75rem 1.25rem 1.25rem 1.25rem',
+                justifyContent: 'center'
+              }}>
+                <button onClick={handleDeleteSobrecupo} style={{
+                  flex: 1,
+                  padding: '0.625rem 1rem',
+                  borderRadius: '6px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  border: '1px solid #ef4444',
+                  fontSize: '0.875rem',
+                  fontFamily: 'inherit',
+                  background: '#ef4444',
+                  color: 'white'
+                }}>
+                  Borrar
+                </button>
+                <button onClick={handleEditSobrecupo} style={{
+                  flex: 1,
+                  padding: '0.625rem 1rem',
+                  borderRadius: '6px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  border: '1px solid #ff9500',
+                  fontSize: '0.875rem',
+                  fontFamily: 'inherit',
+                  background: '#ff9500',
+                  color: 'white'
+                }}>
+                  Editar
+                </button>
+              </div>
+            )}
+            
+            {selectedSobrecupo?.isPast && (
+              <div style={{
+                padding: '0.75rem 1.25rem 1.25rem 1.25rem',
+                textAlign: 'center'
+              }}>
+                <p style={{
+                  margin: 0,
+                  fontSize: '0.8125rem',
+                  color: '#8e8e93',
+                  fontStyle: 'italic'
+                }}>
+                  Los sobrecupos pasados solo pueden ser consultados
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       <style jsx>{`
-        .page-container {
-          min-height: 100vh;
-          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 50%, #e5e5e5 100%);
-          font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        
+        .calendar-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+        
+        .month-name {
+          fontSize: 0.9375rem;
+          font-weight: 500;
+          color: #8e8e93;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+        }
+        
+        .stats-container {
+          display: flex;
+          gap: 1rem;
+          fontSize: 0.8125rem;
+          color: #8e8e93;
+        }
+        
+        .stat-item {
+          display: flex;
+          align-items: center;
+          gap: 0.375rem;
+        }
+        
+        .stat-indicator {
+          width: 12px;
+          height: 12px;
+          border-radius: 3px;
+        }
+        
+        .stat-indicator.available {
+          background: #ff9500;
+        }
+        
+        .stat-indicator.reserved {
+          background: #10b981;
+        }
+        
+        .stat-total {
+          font-weight: 500;
           color: #171717;
         }
-
-        /* Header */
-        .header {
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          background: rgba(250, 250, 250, 0.95);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-          padding: 1rem 2rem;
+        
+        .day-number {
+          fontSize: 1.25rem;
+          font-weight: 300;
+          color: #171717;
+          margin-bottom: 0.125rem;
         }
-
-        .header-content {
+        
+        .calendar-nav-header {
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
           display: flex;
           align-items: center;
           justify-content: space-between;
-          max-width: 1200px;
-          margin: 0 auto;
+          padding: 0 0.5rem;
         }
-
-        .header-left {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .back-button {
-          width: 36px;
-          height: 36px;
+        
+        .nav-btn {
+          width: 32px;
+          height: 32px;
+          border: none;
           background: none;
-          border: 1px solid #e5e5e5;
-          border-radius: 8px;
+          color: #8e8e93;
+          fontSize: 1.5rem;
           cursor: pointer;
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s ease;
-        }
-
-        .back-button:hover {
-          border-color: #171717;
-          background: #f9fafb;
-        }
-
-        .header-text {
-          display: flex;
-          align-items: baseline;
-          gap: 0.5rem;
-        }
-
-        .header-title {
-          font-size: 1.5rem;
-          font-weight: 800;
-          color: #171717;
-          margin: 0;
-        }
-
-        .header-subtitle {
-          font-size: 1rem;
           font-weight: 300;
-          color: #666;
         }
-
-        .create-button {
-          background: linear-gradient(135deg, #ff9500, #ff8800);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          padding: 0.75rem 1.5rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
+        
+        .nav-btn-left {
+          /* Flecha izquierda en desktop */
         }
-
-        .create-button:hover {
-          background: linear-gradient(135deg, #ff8800, #ff7700);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
+        
+        .nav-btn-center {
+          /* Flecha del centro (oculta en desktop) */
         }
-
-        .main-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 2rem;
-          display: flex;
-          flex-direction: column;
-          gap: 3rem;
+        
+        .nav-btn-right {
+          position: absolute;
+          right: 8px;
+          top: 50%;
+          transform: translateY(-50%);
         }
+        
+        @media (max-width: 768px) {
+          
+          .calendar-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 0.75rem;
+          }
+          
+          .month-name {
+            fontSize: 0.8125rem;
+            align-self: center;
+            order: 2;
+          }
+          
+          .stats-container {
+            gap: 0.75rem;
+            fontSize: 0.75rem;
+            flex-wrap: wrap;
+            order: 1;
+            justify-content: center;
+          }
+          
+          .stat-item {
+            gap: 0.25rem;
+          }
+          
+          .stat-indicator {
+            width: 10px;
+            height: 10px;
+          }
+          
+          .day-number {
+            fontSize: 0.875rem;
+            margin-bottom: 0.0625rem;
+          }
 
-        /* Mensaje */
-        .message {
-          padding: 1rem;
-          border-radius: 8px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          text-align: center;
+          .calendar-nav-header {
+            justify-content: center;
+            position: relative;
+          }
+          
+          .nav-btn-left {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+          }
+          
+          .nav-btn-center {
+            display: none;
+          }
+          
+          .nav-btn-right {
+            display: none;
+          }
         }
-
-        .message.success {
-          background: #f0fdf4;
-          color: #166534;
-          border: 1px solid #bbf7d0;
-        }
-
-        .message.error {
-          background: #fef2f2;
-          color: #991b1b;
-          border: 1px solid #fecaca;
-        }
-
-        /* Hero Section */
-        .hero-section {
-          text-align: center;
-        }
-
-        .hero-content {
-          max-width: 600px;
-          margin: 0 auto;
-        }
-
-        .main-title {
-          font-size: 2.5rem;
-          font-weight: 300;
-          color: #171717;
-          margin: 0 0 1rem 0;
-          letter-spacing: -1px;
-        }
-
-        .main-subtitle {
-          font-size: 1.1rem;
-          color: #666;
-          margin: 0;
-          font-weight: 400;
-        }
-
-        /* Create Section */
-        .create-section {
-          display: flex;
-          justify-content: center;
-        }
-
-        .create-container {
-          width: 100%;
-          max-width: 600px;
-        }
-
-        .create-card {
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-          border-radius: 16px;
-          padding: 2rem;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .card-header {
-          margin-bottom: 2rem;
-          text-align: center;
-        }
-
-        .card-title {
-          font-size: 1.5rem;
-          font-weight: 300;
-          color: #171717;
-          margin: 0 0 0.5rem 0;
-          letter-spacing: -0.5px;
-        }
-
-        .card-subtitle {
-          color: #666;
-          font-size: 0.875rem;
-          margin: 0;
-        }
-
-        .create-form {
-          display: flex;
-          flex-direction: column;
-          gap: 2rem;
-        }
-
-        .form-grid {
+        
+        /* Estilos para el selector de horarios masivo */
+        .horarios-grid-batch {
           display: grid;
-          gap: 1.5rem;
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1rem;
+          padding: 1rem;
         }
-
-        .form-field {
+        
+        .horario-card-batch {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .field-label {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #374151;
-        }
-
-        .field-input {
-          width: 100%;
+          align-items: center;
+          justify-content: center;
           padding: 0.75rem;
-          border: 1px solid #e5e5e5;
-          border-radius: 8px;
-          font-size: 16px;
-          outline: none;
-          transition: border-color 0.2s ease;
-          box-sizing: border-box;
           background: white;
-        }
-
-        .field-input:focus {
-          border-color: #ff9500;
-          box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
-        }
-
-        .submit-button {
-          width: 100%;
-          padding: 1rem;
-          background: linear-gradient(135deg, #ff9500, #ff8800);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 0.875rem;
-          font-weight: 500;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
           cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
-        }
-
-        .submit-button:hover {
-          background: linear-gradient(135deg, #ff8800, #ff7700);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
-        }
-
-        /* Multi-Select Profesional */
-        .multi-select-container {
+          transition: all 0.3s ease;
+          min-height: 70px;
           position: relative;
         }
-
-        .multi-select-input {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0.75rem 1rem;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          background: white;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          min-height: 48px;
-        }
-
-        .multi-select-input:hover {
-          border-color: #d1d5db;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .multi-select-input:focus-within {
+        
+        .horario-card-batch:hover {
           border-color: #ff9500;
-          box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
-        }
-
-        .multi-select-text {
-          color: #374151;
-          font-size: 0.875rem;
-          flex: 1;
-        }
-
-        .multi-select-arrow {
-          color: #9ca3af;
-          transition: transform 0.2s ease;
-          flex-shrink: 0;
-        }
-
-        .multi-select-arrow.open {
-          transform: rotate(180deg);
-        }
-
-        .selected-horas-pills {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-          margin-top: 0.75rem;
-        }
-
-        .hora-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.375rem;
-          padding: 0.375rem 0.75rem;
-          background: linear-gradient(135deg, #ff9500, #ff8800);
-          color: white;
-          border-radius: 20px;
-          font-size: 0.8125rem;
-          font-weight: 500;
-          box-shadow: 0 1px 3px rgba(255, 149, 0, 0.3);
-        }
-
-        .hora-pill-remove {
-          background: none;
-          border: none;
-          color: white;
-          cursor: pointer;
-          font-size: 1.125rem;
-          line-height: 1;
-          padding: 0;
-          margin-left: 0.125rem;
-          opacity: 0.8;
-          transition: opacity 0.2s ease;
-        }
-
-        .hora-pill-remove:hover {
-          opacity: 1;
-        }
-
-        .multi-select-dropdown {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background: white;
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-          z-index: 1000;
-          margin-top: 0.25rem;
-          overflow: hidden;
-          animation: dropdownSlideIn 0.2s ease-out;
-        }
-
-        @keyframes dropdownSlideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .dropdown-header {
-          padding: 1rem 1.25rem;
-          border-bottom: 1px solid #e5e7eb;
-          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
-        }
-
-        .dropdown-actions {
-          display: flex;
-          gap: 0.75rem;
-          justify-content: flex-end;
-        }
-
-        .dropdown-action-btn {
-          padding: 0.625rem 1rem;
-          font-size: 0.875rem;
-          border: 1px solid #d1d5db;
-          background: white;
-          color: #374151;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-weight: 600;
-          min-width: 80px;
-          text-align: center;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .dropdown-action-btn:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .dropdown-action-btn.clear {
-          color: #dc2626;
-          border-color: #f87171;
-          background: #fef2f2;
-        }
-
-        .dropdown-action-btn.clear:hover {
-          background: #fecaca;
-          border-color: #ef4444;
-          color: #b91c1c;
-        }
-
-        .dropdown-options {
-          max-height: 240px;
-          overflow-y: auto;
-          padding: 0.5rem 0;
-        }
-
-        .dropdown-option {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 0.875rem 1.25rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-bottom: 1px solid #f3f4f6;
-          min-height: 48px;
-        }
-
-        .dropdown-option:hover {
-          background: #f8fafc;
-          padding-left: 1.5rem;
-        }
-
-        .dropdown-option:last-child {
-          border-bottom: none;
-        }
-
-        .dropdown-checkbox {
-          display: none;
-        }
-
-        .dropdown-checkmark {
-          width: 22px;
-          height: 22px;
-          border: 2px solid #d1d5db;
-          border-radius: 6px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s ease;
-          background: white;
-          flex-shrink: 0;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .dropdown-option:hover .dropdown-checkmark {
-          border-color: #ff9500;
-          box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
-        }
-
-        .dropdown-checkbox:checked + .dropdown-checkmark {
-          background: linear-gradient(135deg, #ff9500, #ff8800);
-          border-color: #ff9500;
-          color: white;
-          transform: scale(1.05);
-          box-shadow: 0 2px 4px rgba(255, 149, 0, 0.3);
-        }
-
-        .dropdown-checkbox:checked + .dropdown-checkmark svg {
-          opacity: 1;
-          transform: scale(1.1);
-        }
-
-        .dropdown-checkmark svg {
-          opacity: 0;
-          transition: all 0.2s ease;
-          transform: scale(0.8);
-        }
-
-        .dropdown-label {
-          font-size: 1rem;
-          color: #1f2937;
-          font-weight: 600;
-          user-select: none;
-          letter-spacing: 0.025em;
-        }
-
-        .multi-select-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: 999;
-        }
-
-        @media (max-width: 768px) {
-          .selected-horas-pills {
-            gap: 0.375rem;
-          }
-
-          .hora-pill {
-            padding: 0.3125rem 0.625rem;
-            font-size: 0.75rem;
-          }
-
-          .dropdown-header {
-            padding: 1rem;
-          }
-
-          .dropdown-actions {
-            flex-direction: row;
-            gap: 0.5rem;
-            justify-content: space-between;
-          }
-
-          .dropdown-action-btn {
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-            flex: 1;
-            min-width: auto;
-          }
-
-          .dropdown-option {
-            padding: 1rem 1.25rem;
-            min-height: 52px;
-          }
-
-          .dropdown-option:hover {
-            padding-left: 1.25rem;
-          }
-
-          .dropdown-checkmark {
-            width: 24px;
-            height: 24px;
-          }
-
-          .dropdown-label {
-            font-size: 1.0625rem;
-          }
-
-          .dropdown-options {
-            max-height: 280px;
-          }
-        }
-
-        /* Filters */
-        .filters-section {
-          display: flex;
-          justify-content: center;
-        }
-
-        .filters-container {
-          display: flex;
-          gap: 1rem;
-          background: white;
-          padding: 0.5rem;
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .filter-button {
-          background: none;
-          border: none;
-          border-radius: 8px;
-          padding: 0.75rem 1.5rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #666;
-        }
-
-        .filter-button:hover {
-          background: #f5f5f5;
-          color: #171717;
-        }
-
-        .filter-button.active {
-          background: #171717;
-          color: white;
-        }
-
-        .filter-content {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .filter-label {
-          font-size: 0.875rem;
-        }
-
-        .filter-count {
-          background: rgba(255, 255, 255, 0.2);
-          color: white;
-          padding: 0.25rem 0.5rem;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          min-width: 20px;
-          text-align: center;
-        }
-
-        .filter-button:not(.active) .filter-count {
-          background: #f5f5f5;
-          color: #666;
-        }
-
-        /* Results Section */
-        .results-section {
-          min-height: 400px;
-        }
-
-        /* Empty State */
-        .empty-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 4rem 2rem;
-          text-align: center;
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-          border-radius: 16px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .empty-icon {
-          font-size: 4rem;
-          margin-bottom: 2rem;
-          opacity: 0.4;
-        }
-
-        .empty-title {
-          font-size: 1.5rem;
-          font-weight: 300;
-          margin: 0 0 1rem;
-          color: #171717;
-          letter-spacing: -0.5px;
-        }
-
-        .empty-text {
-          color: #666;
-          margin: 0 0 2rem;
-          font-size: 1rem;
-          font-weight: 400;
-          line-height: 1.5;
-        }
-
-        .empty-button {
-          background: linear-gradient(135deg, #ff9500, #ff8800);
-          color: white;
-          border: none;
-          border-radius: 8px;
-          padding: 0.75rem 1.5rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
-        }
-
-        .empty-button:hover {
-          background: linear-gradient(135deg, #ff8800, #ff7700);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
-        }
-
-        /* Results Grid */
-        .results-grid {
-          display: grid;
-          gap: 1.5rem;
-          grid-template-columns: 1fr;
-          place-items: center;
-        }
-
-        @media (max-width: 768px) {
-          .results-grid {
-            gap: 1rem;
-          }
-        }
-
-        .results-grid > * {
-          width: 100%;
-          max-width: 600px;
-        }
-
-        /* Sobrecupo Card */
-        .sobrecupo-card {
-          background: white;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-          border-radius: 16px;
-          overflow: hidden;
-          transition: all 0.3s ease;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
-
-        .sobrecupo-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-          border-color: rgba(0, 0, 0, 0.1);
+          box-shadow: 0 8px 25px rgba(255, 149, 0, 0.15);
         }
-
-        .card-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0.75rem 1rem;
-          border-bottom: 1px solid #f5f5f5;
+        
+        .horario-card-batch.selected {
+          background: linear-gradient(135deg, #ff9500, #ff7b00);
+          border-color: #ff9500;
+          color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(255, 149, 0, 0.3);
         }
-
-        .status-info {
-          flex: 1;
+        
+        .horario-time-batch {
+          font-size: 1rem;
+          font-weight: 700;
+          margin-bottom: 0.25rem;
         }
-
-        .status-badge {
-          padding: 0.375rem 0.75rem;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 500;
-          white-space: nowrap;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .status-badge.available {
-          background: #f0fff4;
-          color: #166534;
-          border-color: rgba(52, 199, 89, 0.1);
-        }
-
-        .status-badge.reserved {
-          background: #fff8f0;
-          color: #ea580c;
-          border-color: rgba(255, 149, 0, 0.1);
-        }
-
-        .delete-button {
-          width: 36px;
-          height: 36px;
-          background: none;
-          border: 1px solid #e5e5e5;
-          border-radius: 8px;
-          cursor: pointer;
+        
+        .horario-check-batch {
+          position: absolute;
+          top: 0.5rem;
+          right: 0.5rem;
+          width: 20px;
+          height: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s ease;
-          color: #666;
         }
-
-        .delete-button:hover {
-          border-color: #dc2626;
-          background: #fef2f2;
-          color: #dc2626;
-        }
-
-        .card-body {
-          padding: 1rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
-
-        .datetime-info {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .date-block {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          background: #171717;
-          border-radius: 8px;
-          padding: 0.75rem;
-          min-width: 48px;
-          flex-shrink: 0;
-          color: white;
-        }
-
-        .day {
-          font-size: 1.25rem;
-          font-weight: 200;
-          line-height: 1;
-          letter-spacing: -0.5px;
-        }
-
-        .month {
-          font-size: 0.625rem;
-          font-weight: 400;
-          margin-top: 0.25rem;
-          opacity: 0.8;
-          letter-spacing: 1px;
-        }
-
-        .time-details {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-        }
-
-        .time {
-          font-size: 1.125rem;
-          font-weight: 300;
-          color: #171717;
-          line-height: 1.2;
-          letter-spacing: -0.25px;
-        }
-
-        .relative-time {
-          font-size: 0.75rem;
-          color: #666;
-          font-weight: 400;
-          margin-top: 0.25rem;
-        }
-
-        .location-info {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .clinic-name {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #171717;
-        }
-
-        .clinic-address {
-          font-size: 0.8rem;
-          color: #666;
-        }
-
-        .patient-info {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.75rem;
-          padding: 0.625rem;
-          background: #fafafa;
-          border-radius: 8px;
-          border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .patient-avatar {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background: #171717;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: white;
-          flex-shrink: 0;
-        }
-
-        .patient-details {
-          display: flex;
-          flex-direction: column;
-          gap: 0.375rem;
-          flex: 1;
-          min-width: 0;
-        }
-
-        .patient-header {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          flex-wrap: wrap;
-        }
-
-        .patient-name {
-          font-size: 0.875rem;
-          color: #171717;
-          font-weight: 500;
-        }
-
-        .patient-age {
-          font-size: 0.75rem;
-          color: #666;
-          background: #f0f4ff;
-          padding: 0.125rem 0.375rem;
-          border-radius: 6px;
-          font-weight: 500;
-        }
-
-        .patient-reason {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.375rem;
-          font-size: 0.75rem;
-          color: #171717;
-          background: #fef9e7;
-          padding: 0.375rem 0.5rem;
-          border-radius: 6px;
-          border: 1px solid rgba(251, 191, 36, 0.2);
-          line-height: 1.3;
-        }
-
-        .patient-reason svg {
-          color: #f59e0b;
-          flex-shrink: 0;
-          margin-top: 0.125rem;
-        }
-
-        .patient-reason span {
-          flex: 1;
-          font-weight: 500;
-        }
-
-        .patient-contacts {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-
-        .patient-contact {
-          font-size: 0.6875rem;
-          color: #666;
-          display: flex;
-          align-items: center;
-          gap: 0.375rem;
-        }
-
-        .patient-contact svg {
-          color: #999;
-          flex-shrink: 0;
-        }
-
-        .confirmed-badge {
-          background: #f0fff4;
-          color: #166534;
-          padding: 0.25rem 0.5rem;
-          border-radius: 6px;
-          font-size: 0.625rem;
-          font-weight: 500;
-          border: 1px solid rgba(52, 199, 89, 0.1);
-          width: fit-content;
-        }
-
-        /* Responsive - Tablet */
-        @media (min-width: 768px) {
-          .header {
-            padding: 1rem 2rem;
-          }
-
-          .main-content {
-            padding: 3rem 2rem;
-          }
-
-          .main-title {
-            font-size: 3rem;
-          }
-
-          .main-subtitle {
-            font-size: 1.2rem;
-          }
-
-          .form-grid {
-            grid-template-columns: repeat(3, 1fr);
-          }
-
-          .results-grid {
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-            max-width: 1000px;
-            margin: 0 auto;
-          }
-
-          .results-grid > * {
-            max-width: 500px;
-          }
-        }
-
-        /* Responsive - Desktop */
-        @media (min-width: 1024px) {
-          .main-content {
-            gap: 4rem;
-          }
-
-          .results-grid {
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 2.5rem;
-            max-width: 1200px;
-          }
-
-          .results-grid > * {
-            max-width: 600px;
-          }
-
-          .card-header {
-            padding: 1.25rem 1.5rem;
-          }
-
-          .card-body {
-            padding: 1.5rem;
-            gap: 1.25rem;
-          }
-        }
-
-        /* Responsive - Mobile */
+        
         @media (max-width: 768px) {
-          .header {
-            padding: 1rem;
-          }
-
-          .header-content {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 1rem;
-          }
-
-          .header-left {
-            align-self: flex-start;
-          }
-
-          .create-button {
-            align-self: stretch;
-            text-align: center;
-          }
-
-          .main-content {
-            padding: 1rem;
-            gap: 1.5rem;
-          }
-
-          .main-title {
-            font-size: 2rem;
-          }
-
-          .main-subtitle {
-            font-size: 1rem;
-          }
-
-          .create-card {
-            padding: 1.5rem;
-          }
-
-          .filters-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-            width: 100%;
-            padding: 0.375rem;
-          }
-
-          .filter-button {
-            justify-content: center;
-            padding: 0.625rem 1rem;
-            font-size: 0.8125rem;
-          }
-
-          .filter-label {
-            font-size: 0.8125rem;
-          }
-
-          .filter-count {
-            font-size: 0.6875rem;
-            padding: 0.1875rem 0.375rem;
-          }
-
-          .card-header {
-            padding: 0.75rem;
-          }
-
-          .card-body {
-            padding: 0.75rem;
-            gap: 0.5rem;
-          }
-
-          .datetime-info {
-            gap: 0.5rem;
-          }
-
-          .date-block {
-            min-width: 36px;
-            padding: 0.375rem;
-          }
-
-          .day {
-            font-size: 1rem;
-          }
-
-          .month {
-            font-size: 0.5rem;
-          }
-
-          .time {
-            font-size: 0.875rem;
-          }
-
-          .relative-time {
-            font-size: 0.625rem;
-          }
-
-          .patient-info {
-            padding: 0.5rem;
-            gap: 0.5rem;
-          }
-
-          .patient-avatar {
-            width: 28px;
-            height: 28px;
-            font-size: 0.6875rem;
-          }
-
-          .clinic-name {
-            font-size: 0.75rem;
-          }
-
-          .clinic-address {
-            font-size: 0.6875rem;
-          }
-
-          .patient-contact {
-            font-size: 0.625rem;
-          }
-
-          .patient-age {
-            font-size: 0.6875rem;
-            padding: 0.1rem 0.25rem;
-          }
-
-          .patient-reason {
-            font-size: 0.6875rem;
-            padding: 0.25rem 0.375rem;
-          }
-        }
-
-        /* iPhone SE and very small devices */
-        @media (max-width: 375px) {
-          .main-title {
-            font-size: 1.75rem;
-          }
-
-          .header-content {
+          .horarios-grid-batch {
+            grid-template-columns: repeat(3, 1fr);
             gap: 0.75rem;
+            padding: 0.75rem;
           }
-
-          .header-title {
-            font-size: 1.25rem;
+          
+          .horario-card-batch {
+            min-height: 60px;
+            padding: 0.5rem;
           }
-
-          .create-button {
-            padding: 0.625rem 1rem;
-            font-size: 0.8125rem;
-          }
-
-          .card-header,
-          .card-body {
-            padding: 0.625rem;
-          }
-
-          .date-block {
-            min-width: 32px;
-            padding: 0.25rem;
-          }
-
-          .day {
+          
+          .horario-time-batch {
             font-size: 0.875rem;
-          }
-
-          .time {
-            font-size: 0.8125rem;
-          }
-
-          .patient-info {
-            padding: 0.375rem;
-          }
-
-          .patient-avatar {
-            width: 24px;
-            height: 24px;
-            font-size: 0.625rem;
-          }
-        }
-
-        /* Estados de foco */
-        .back-button:focus,
-        .create-button:focus,
-        .filter-button:focus,
-        .delete-button:focus,
-        .submit-button:focus,
-        .empty-button:focus,
-        .field-input:focus {
-          outline: 2px solid #ff9500;
-          outline-offset: 2px;
-        }
-
-        /* Modo de Alto Contraste */
-        @media (prefers-contrast: high) {
-          .page-container {
-            background: #ffffff;
-          }
-
-          .sobrecupo-card,
-          .create-card,
-          .empty-container {
-            border-color: #000000;
-            background: #ffffff;
-          }
-
-          .main-title,
-          .card-title,
-          .empty-title {
-            color: #000000;
-          }
-        }
-
-        /* Reducir Movimiento */
-        @media (prefers-reduced-motion: reduce) {
-          *,
-          *::before,
-          *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-
-        /* Safe area for iPhones with notch */
-        @supports (padding: max(0px)) {
-          .page-container {
-            padding-bottom: max(0px, env(safe-area-inset-bottom));
           }
         }
       `}</style>
