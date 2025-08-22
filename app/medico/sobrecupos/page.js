@@ -57,12 +57,28 @@ export default function SobrecuposMedico() {
         const sobrecuposObj = {};
         data.forEach(sobrecupo => {
           const slotKey = `${sobrecupo.fields?.Fecha}-${sobrecupo.fields?.Hora?.split(':')[0]}`;
+          // Mapear estados de Airtable al calendario
+          let estado = 'disponible'; // Default
+          const disponibleValue = sobrecupo.fields?.Disponible;
+          
+          if (disponibleValue === 'Si' || disponibleValue === true) {
+            estado = 'disponible';
+          } else if (disponibleValue === 'Reserva Temporal') {
+            estado = 'pending_payment'; // Nuevo estado
+          } else {
+            estado = 'reservado'; // 'No' o cualquier otro valor
+          }
+
           sobrecuposObj[slotKey] = {
             id: sobrecupo.id,
             fecha: sobrecupo.fields?.Fecha,
             hora: sobrecupo.fields?.Hora,
             clinica: sobrecupo.fields?.Clínica || 'Consulta particular',
-            estado: (sobrecupo.fields?.Disponible === 'Si' || sobrecupo.fields?.Disponible === true) ? 'disponible' : 'reservado'
+            estado: estado,
+            // Información adicional para debugging y timeout
+            paymentTimeout: sobrecupo.fields?.['Payment Timeout'],
+            sessionId: sobrecupo.fields?.['Session ID'],
+            disponibleRaw: disponibleValue
           };
         });
         setSobrecupos(sobrecuposObj);
@@ -272,8 +288,13 @@ export default function SobrecuposMedico() {
   const getSobrecupoCount = () => {
     const disponibles = Object.values(sobrecupos).filter(s => s.estado === 'disponible').length;
     const reservados = Object.values(sobrecupos).filter(s => s.estado === 'reservado').length;
-    const confirmados = Object.values(sobrecupos).filter(s => s.estado === 'confirmado').length;
-    return { disponibles, reservados, confirmados, total: disponibles + reservados + confirmados };
+    const pendientes = Object.values(sobrecupos).filter(s => s.estado === 'pending_payment').length;
+    return { 
+      disponibles, 
+      reservados, 
+      pendientes,
+      total: disponibles + reservados + pendientes 
+    };
   };
 
   const stats = getSobrecupoCount();
@@ -553,8 +574,8 @@ export default function SobrecuposMedico() {
               <span>Reservados: {stats.reservados}</span>
             </div>
             <div className="stat-item">
-              <div className="stat-indicator confirmed"></div>
-              <span>Confirmados: {stats.confirmados}</span>
+              <div className="stat-indicator pending"></div>
+              <span>Pago Pendiente: {stats.pendientes}</span>
             </div>
             <div className="stat-total">
               Total: {stats.total}
@@ -642,10 +663,10 @@ export default function SobrecuposMedico() {
                     key={`${day.toISOString()}-${hour}`}
                     style={{
                       background: sobrecupo ? (
-                        sobrecupo.estado === 'disponible' ? '#f59e0b' :    // Ámbar - Disponible
-                        sobrecupo.estado === 'reservado' ? '#10b981' :     // Verde - Reservado  
-                        sobrecupo.estado === 'confirmado' ? '#0ea5e9' :    // Azul - Confirmado
-                        '#6b7280'                                           // Gris - Otro estado
+                        sobrecupo.estado === 'disponible' ? '#f59e0b' :      // Ámbar - Disponible
+                        sobrecupo.estado === 'reservado' ? '#10b981' :       // Verde - Reservado
+                        sobrecupo.estado === 'pending_payment' ? '#f97316' : // Naranja - Pago Pendiente
+                        '#6b7280'                                             // Gris - Otro estado
                       ) : isPastDate(day) ? '#f9f9f9' : 'white',
                       color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : 'black',
                       minHeight: '40px',
@@ -686,15 +707,6 @@ export default function SobrecuposMedico() {
                             opacity: 0.8
                           }}>
                             ✓ Reservado
-                          </div>
-                        )}
-                        {sobrecupo.estado === 'confirmado' && (
-                          <div style={{
-                            fontSize: '0.5625rem',
-                            fontWeight: 500,
-                            opacity: 0.8
-                          }}>
-                            ● Confirmado
                           </div>
                         )}
                       </div>
@@ -757,7 +769,7 @@ export default function SobrecuposMedico() {
                         sobrecupo ? (
                           sobrecupo.estado === 'disponible' ? 'available' :
                           sobrecupo.estado === 'reservado' ? 'reserved' :
-                          sobrecupo.estado === 'confirmado' ? 'confirmed' :
+                          sobrecupo.estado === 'pending_payment' ? 'pending' :
                           'other'
                         ) : isPastDate(day) ? 'past' : 'empty'
                       }`}
@@ -767,6 +779,11 @@ export default function SobrecuposMedico() {
                         sobrecupo.estado === 'disponible' ? (
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                          </svg>
+                        ) : sobrecupo.estado === 'pending_payment' ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                            <path d="M12 2v6l4-4-4-4z"/>
+                            <path d="M21 12a9 9 0 11-6.219-8.56"/>
                           </svg>
                         ) : (
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -1287,12 +1304,12 @@ export default function SobrecuposMedico() {
                     fontSize: '0.875rem',
                     color: selectedSobrecupo.estado === 'disponible' ? '#f59e0b' : 
                            selectedSobrecupo.estado === 'reservado' ? '#10b981' :
-                           selectedSobrecupo.estado === 'confirmado' ? '#0ea5e9' : '#6b7280',
+                           selectedSobrecupo.estado === 'pending_payment' ? '#f97316' : '#6b7280',
                     fontWeight: 500
                   }}>
                     {selectedSobrecupo.estado === 'disponible' ? '🟡 Disponible' : 
                      selectedSobrecupo.estado === 'reservado' ? '🟢 Reservado' :
-                     selectedSobrecupo.estado === 'confirmado' ? '🔵 Confirmado' : '⚫ Otro'}
+                     selectedSobrecupo.estado === 'pending_payment' ? '🟠 Pago Pendiente' : '⚫ Otro'}
                   </div>
                 </div>
               </div>
@@ -1399,8 +1416,8 @@ export default function SobrecuposMedico() {
           background: #10b981;
         }
         
-        .stat-indicator.confirmed {
-          background: #0ea5e9;
+        .stat-indicator.pending {
+          background: #f97316;
         }
         
         .stat-total {
@@ -1671,8 +1688,8 @@ export default function SobrecuposMedico() {
           border-radius: 8px;
         }
         
-        .mobile-slot.confirmed {
-          background: #0ea5e9;
+        .mobile-slot.pending {
+          background: #f97316;
           border-radius: 8px;
         }
         

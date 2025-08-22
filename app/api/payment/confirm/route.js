@@ -196,7 +196,11 @@ export async function POST(req) {
       // Actualizar sobrecupo con datos del paciente y motivo de consulta
       const updateData = {
         fields: {
-          Disponible: "No",
+          Disponible: "No", // Confirmado y pagado
+          // Limpiar campos de timeout (ya no son necesarios)
+          "Session ID": null,
+          "Payment Timeout": null, 
+          "Reserva Timestamp": null,
           // Datos del paciente
           Nombre: String(patientData.name || '').trim(),
           Email: String(patientData.email || '').trim(),
@@ -204,7 +208,10 @@ export async function POST(req) {
           RUT: String(patientData.rut || '').trim(),
           ...(edad && edad > 0 ? { Edad: edad } : {}),
           // Motivo de consulta (mismo nombre que en tabla Pacientes)
-          ...(motivo ? { "Motivo Consulta": String(motivo).trim() } : {})
+          ...(motivo ? { "Motivo Consulta": String(motivo).trim() } : {}),
+          // Información de pago
+          "Transaction ID": transactionId,
+          "Payment Confirmed": new Date().toISOString()
         }
       };
 
