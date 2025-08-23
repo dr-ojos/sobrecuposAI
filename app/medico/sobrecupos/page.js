@@ -785,9 +785,13 @@ export default function SobrecuposMedico() {
                             height="32" 
                             className="sobrecupos-heart"
                             style={{
-                              filter: sobrecupo.estado === 'disponible' ? 'brightness(0.5) saturate(0)' : // Gris medio
-                                      sobrecupo.estado === 'reservado' ? 'none' : // Rojo original
-                                      sobrecupo.estado === 'pending_payment' ? 'hue-rotate(20deg) saturate(1.2)' : 'brightness(0) invert(1)'
+                              filter: sobrecupo.estado === 'disponible' ? 
+                                'invert(0.5) sepia(0) saturate(0) hue-rotate(0deg) brightness(0.7)' : // Gris medio
+                                      sobrecupo.estado === 'reservado' ? 
+                                'invert(0.2) sepia(1) saturate(5) hue-rotate(0deg) brightness(1.2) contrast(1.2)' : // Rojo vibrante
+                                      sobrecupo.estado === 'pending_payment' ? 
+                                'invert(0.3) sepia(1) saturate(3) hue-rotate(15deg) brightness(1.3)' : // Naranja
+                                'grayscale(100%) brightness(0.5)' // Fallback gris
                             }}
                           />
                           
