@@ -56,8 +56,28 @@ function createPaymentSummary(session: BotSession): BotResponse {
   const clinica = selectedRecord.fields?.['Clínica'] || selectedRecord.fields?.['Clinica'] || 'Clínica';
   const direccion = selectedRecord.fields?.['Dirección'] || selectedRecord.fields?.['Direccion'] || '';
 
-  // Crear URL de pago (simulada por ahora)
-  const paymentUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/pago`;
+  // Crear URL de pago con parámetros para el bot simulado
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const paymentParams = new URLSearchParams({
+    // Datos del paciente
+    patientName: patientName || '',
+    patientPhone: patientPhone || '',
+    patientEmail: patientEmail || '',
+    patientAge: session.patientAge ? session.patientAge.toString() : '',
+    // Datos de la cita
+    doctorName: doctorName,
+    specialty: session.specialty || '',
+    date: fecha,
+    time: hora,
+    clinic: clinica,
+    // Datos de pago
+    amount: '2990',
+    sessionId: sessionId,
+    // Marcadores para pago simulado del bot
+    fromChat: 'true'
+  });
+  
+  const paymentUrl = `${baseUrl}/pago?${paymentParams.toString()}`;
   
   // Actualizar sesión con URL de pago
   session.paymentUrl = paymentUrl;
