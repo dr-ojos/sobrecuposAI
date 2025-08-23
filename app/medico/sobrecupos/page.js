@@ -627,8 +627,8 @@ export default function SobrecuposMedico() {
           
           {getDesktopWeekDays().map((day, index) => (
             <div key={day.toISOString()} style={{
-              background: isToday(day) ? 'rgba(255, 149, 0, 0.08)' : isPastDate(day) ? '#f9f9f9' : 'white',
-              padding: '0.625rem 0.5rem',
+              background: isToday(day) ? 'rgba(255, 149, 0, 0.08)' : isPastDate(day) ? '#f4f4f5' : '#f8f9fa',
+              padding: '0.5rem 0.375rem',
               textAlign: 'center',
               borderBottom: '1px solid #e5e5e5',
               position: 'relative',
@@ -666,7 +666,7 @@ export default function SobrecuposMedico() {
             <React.Fragment key={hour}>
               <div style={{
                 background: 'white',
-                padding: '0.625rem 0.375rem',
+                padding: '0.5rem 0.25rem',
                 textAlign: 'center',
                 fontSize: '0.6875rem',
                 fontWeight: 400,
@@ -694,8 +694,8 @@ export default function SobrecuposMedico() {
                         '#6b7280'                                             // Gris - Otro estado
                       ) : isPastDate(day) ? '#f9f9f9' : 'white',
                       color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : 'black',
-                      minHeight: '60px',
-                      maxHeight: '60px',
+                      minHeight: '45px',
+                      maxHeight: '45px',
                       cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
