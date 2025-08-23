@@ -293,6 +293,31 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Sección Preguntas Frecuentes */}
+      <section className="faq-section">
+        <div className="faq-container">
+          <h2 className="faq-title">Preguntas frecuentes</h2>
+          <div className="faq-list">
+            <Question
+              title="¿Qué es un sobrecupo?"
+              text="Es una hora extraordinaria dentro de la agenda u horario de atención del médico(a). Que no es ofertada en agenda normal."
+            />
+            <Question
+              title="¿Seré atendido en la hora ofertada?"
+              text="La atención se concretara dentro de un rango de tiempo a la hora ofertada, dado que es una hora fuera de agenda normal. Pero el tiempo de espera será claramente menor a ir a un servicio de urgencia o esperar encontrar una hora en asentamiento normal."
+            />
+            <Question
+              title="¿El pago por sobrecupo incluye el valor de la atención médica?"
+              text="No, no incluye el valor de la consulta medica, la cual depende del convenio de seguros de salud o particular, según los valores del lugar de atención por el médico."
+            />
+            <Question
+              title="¿Sobrecupos emite licencias médicas?"
+              text="La plataforma de sobrecupos no da licencias medicas ni recetas de medicamentos. Para ello debes acudir con el medico que tomes sobrecupos y dependiendo de tu caso previa evaluación."
+            />
+          </div>
+        </div>
+      </section>
+
       <footer className="footer">
         <div className="footer-container">
           <div className="footer-content">
@@ -1314,6 +1339,78 @@ export default function Home() {
             text-align: center;
           }
         }
+
+        /* Estilos FAQ */
+        .faq-section {
+          background: linear-gradient(180deg, #fafafa 0%, #f5f5f5 100%);
+          padding: 4rem 2rem;
+          border-top: 1px solid #e5e5e5;
+        }
+
+        .faq-container {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .faq-title {
+          font-size: 2.5rem;
+          font-weight: 300;
+          text-align: center;
+          margin-bottom: 3rem;
+          color: #171717;
+          letter-spacing: -0.5px;
+        }
+
+        .faq-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .question-item {
+          margin-bottom: 0;
+        }
+
+        .question-header:hover {
+          border-color: #d1d5db !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (max-width: 768px) {
+          .faq-section {
+            padding: 3rem 1rem;
+          }
+
+          .faq-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+          }
+
+          .question-header {
+            padding: 1rem !important;
+          }
+
+          .question-content {
+            padding: 1rem !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .faq-title {
+            font-size: 1.75rem;
+          }
+        }
       `}</style>
     </main>
   );
@@ -1355,5 +1452,76 @@ function AnimatedButton({ children, onClick, primary = false }) {
     >
       {children}
     </button>
+  );
+}
+
+// Componente Question para FAQ
+function Question({ title, text }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleQuestion = () => {
+    setIsOpen(!isOpen);
+  };
+
+  return (
+    <div className="question-item">
+      <button 
+        className="question-header" 
+        onClick={toggleQuestion}
+        style={{
+          width: '100%',
+          padding: '1.25rem',
+          background: '#fff',
+          border: '1px solid #e5e5e5',
+          borderRadius: '12px',
+          textAlign: 'left',
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          transition: 'all 0.2s ease',
+          marginBottom: isOpen ? '0' : '1rem'
+        }}
+      >
+        <span style={{
+          fontSize: '1.1rem',
+          fontWeight: '600',
+          color: '#171717'
+        }}>
+          {title}
+        </span>
+        <span style={{
+          fontSize: '1.5rem',
+          color: '#666',
+          transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
+          transition: 'transform 0.2s ease'
+        }}>
+          +
+        </span>
+      </button>
+      {isOpen && (
+        <div 
+          className="question-content"
+          style={{
+            padding: '1.25rem',
+            background: '#f8f9fa',
+            border: '1px solid #e5e5e5',
+            borderTop: 'none',
+            borderRadius: '0 0 12px 12px',
+            marginBottom: '1rem',
+            animation: 'fadeIn 0.3s ease'
+          }}
+        >
+          <p style={{
+            margin: '0',
+            fontSize: '0.95rem',
+            lineHeight: '1.6',
+            color: '#555'
+          }}>
+            {text}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
