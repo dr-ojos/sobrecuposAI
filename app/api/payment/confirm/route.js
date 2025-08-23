@@ -1,11 +1,13 @@
-// API SIMPLIFICADA para confirmar pago simulado del bot
+// API para confirmar pago del bot (REAL, no simulado)
 import { NextResponse } from 'next/server';
+import { airtableService } from '../../../lib/bot/services/airtable-service';
+import { sessionManager } from '../../../lib/bot/services/session-manager';
 
 export async function POST(req) {
   try {
     const { transactionId, sessionId, paymentData, isSimulated } = await req.json();
     
-    console.log('💳 === CONFIRMANDO PAGO SIMULADO (BOT) ===');
+    console.log('💳 === CONFIRMANDO PAGO DEL BOT ===');
     console.log('📋 Transaction ID:', transactionId);
     console.log('📋 Session ID:', sessionId);
     console.log('📋 Is Simulated:', isSimulated);
@@ -18,79 +20,142 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    // Para el bot simulado, solo necesitamos simular las acciones
-    if (isSimulated) {
-      console.log('🎭 Procesando pago simulado...');
-      
-      // Simular delay de procesamiento
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // 1. Simular confirmación de reserva en Airtable
-      console.log('✅ Reserva confirmada en Airtable (simulado)');
-      
-      // 2. Simular creación de paciente
-      console.log('✅ Paciente creado/actualizado (simulado)');
-      
-      // 3. Simular envío de emails
-      console.log('📧 Enviando email al paciente (simulado):', paymentData.patientEmail);
-      console.log('📧 Enviando email al médico (simulado)');
-      
-      // 4. Simular envío de WhatsApp al médico
-      console.log('📱 Enviando WhatsApp al médico (simulado)');
-      const whatsappMessage = `
-🩺 *NUEVA RESERVA CONFIRMADA*
-
-👤 *Paciente:* ${paymentData.patientName}
-📞 *Teléfono:* ${paymentData.patientPhone}
-📧 *Email:* ${paymentData.patientEmail}
-🎂 *Edad:* ${paymentData.patientAge} años
-
-📅 *Cita programada:*
-• *Fecha:* ${paymentData.date}
-• *Hora:* ${paymentData.time}  
-• *Especialidad:* ${paymentData.specialty}
-• *Clínica:* ${paymentData.clinic}
-
-💰 *Pago confirmado:* $${paymentData.amount} CLP
-🔗 *ID:* ${transactionId}
-
-✅ La cita está confirmada y el pago procesado.
-
-_Sistema Sobrecupos_
-      `.trim();
-      
-      console.log('📱 Contenido WhatsApp simulado:', whatsappMessage.substring(0, 100) + '...');
-
-      // 5. Respuesta exitosa simulada
+    // Obtener la sesión para acceder al selectedRecord
+    const session = sessionManager.getSession(sessionId);
+    if (!session || !session.selectedRecord) {
       return NextResponse.json({
-        success: true,
-        transactionId,
-        reservationConfirmed: true,
-        emailsSent: 2, // Paciente y médico
-        whatsappSent: true,
-        message: 'Reserva confirmada exitosamente (simulado)',
-        appointmentDetails: {
-          patientName: paymentData.patientName,
-          doctorName: paymentData.doctorName,
-          specialty: paymentData.specialty,
-          date: paymentData.date,
-          time: paymentData.time,
-          clinic: paymentData.clinic
-        }
-      });
+        success: false,
+        error: 'Sesión no encontrada o sin cita seleccionada'
+      }, { status: 400 });
     }
 
-    // Si no es simulado, devolver error (requiere implementación completa)
+    const sobrecupoId = session.selectedRecord.id;
+    console.log('📋 Sobrecupo ID:', sobrecupoId);
+
+    let results = {
+      sobrecupoUpdated: false,
+      patientCreated: false,
+      emailsSent: 0,
+      whatsappSent: false
+    };
+
+    // 1. CONFIRMAR RESERVA EN AIRTABLE (REAL)
+    console.log('📅 Actualizando sobrecupo en Airtable...');
+    const sobrecupoData = {
+      Disponible: 'No',
+      // Limpiar campos de timeout
+      'Session ID': null,
+      'Payment Timeout': null,
+      'Reserva Timestamp': null,
+      // Datos del paciente
+      Nombre: paymentData.patientName,
+      Email: paymentData.patientEmail,
+      Telefono: paymentData.patientPhone,
+      RUT: paymentData.patientRut,
+      ...(paymentData.patientAge ? { Edad: parseInt(paymentData.patientAge) } : {}),
+      // Información de pago
+      'Transaction ID': transactionId,
+      'Payment Confirmed': new Date().toISOString()
+    };
+
+    results.sobrecupoUpdated = await airtableService.updateSobrecupo(sobrecupoId, sobrecupoData);
+    
+    if (!results.sobrecupoUpdated) {
+      console.error('❌ No se pudo actualizar el sobrecupo');
+      return NextResponse.json({
+        success: false,
+        error: 'Error actualizando la reserva'
+      }, { status: 500 });
+    }
+
+    console.log('✅ Sobrecupo actualizado exitosamente');
+
+    // 2. CREAR PACIENTE EN AIRTABLE (REAL)
+    console.log('👤 Creando paciente en Airtable...');
+    const patientData = {
+      Nombre: paymentData.patientName,
+      RUT: paymentData.patientRut,
+      Telefono: paymentData.patientPhone,
+      Email: paymentData.patientEmail,
+      ...(paymentData.patientAge ? { Edad: parseInt(paymentData.patientAge) } : {}),
+      'Fecha Registro': new Date().toISOString().split('T')[0],
+      'Estado Pago': 'Pagado',
+      'ID Transaccion': transactionId
+    };
+
+    const patientId = await airtableService.createPatient(patientData);
+    results.patientCreated = !!patientId;
+    
+    if (results.patientCreated) {
+      console.log('✅ Paciente creado exitosamente:', patientId);
+    } else {
+      console.log('⚠️ No se pudo crear el paciente, pero la reserva está confirmada');
+    }
+
+    // 3. ENVÍO DE EMAILS Y NOTIFICACIONES (REAL)
+    console.log('📧 Enviando emails y notificaciones...');
+    
+    // Importar servicios de email y WhatsApp
+    const { emailService } = await import('../../../lib/bot/services/email-service');
+    
+    // Enviar email de confirmación al paciente
+    const emailSent = await emailService.sendPatientConfirmation(session, transactionId);
+    if (emailSent) {
+      console.log('✅ Email enviado al paciente exitosamente');
+      results.emailsSent++;
+    } else {
+      console.log('⚠️ No se pudo enviar email al paciente');
+    }
+    
+    // Obtener ID del médico para notificación
+    const doctorId = Array.isArray(session.selectedRecord.fields?.Médico) 
+      ? session.selectedRecord.fields.Médico[0] 
+      : session.selectedRecord.fields?.Médico;
+    
+    if (doctorId) {
+      // Enviar notificación al médico (email + WhatsApp)
+      const doctorNotified = await emailService.sendDoctorNotification(session, doctorId);
+      if (doctorNotified) {
+        console.log('✅ Médico notificado exitosamente');
+        results.emailsSent++;
+        results.whatsappSent = true;
+      } else {
+        console.log('⚠️ No se pudo notificar al médico');
+      }
+    } else {
+      console.log('⚠️ No se pudo obtener ID del médico para notificación');
+    }
+
+    // Limpiar la sesión del bot (ya no es necesaria)
+    sessionManager.deleteSession(sessionId);
+    console.log('🧹 Sesión del bot limpiada');
+
+    // 4. RESPUESTA FINAL
     return NextResponse.json({
-      success: false,
-      error: 'Pago real no implementado en esta versión'
-    }, { status: 501 });
+      success: true,
+      transactionId,
+      reservationConfirmed: true,
+      sobrecupoUpdated: results.sobrecupoUpdated,
+      patientCreated: results.patientCreated,
+      emailsSent: results.emailsSent,
+      whatsappSent: results.whatsappSent,
+      message: 'Reserva confirmada exitosamente',
+      appointmentDetails: {
+        patientName: paymentData.patientName,
+        doctorName: paymentData.doctorName,
+        specialty: paymentData.specialty,
+        date: paymentData.date,
+        time: paymentData.time,
+        clinic: paymentData.clinic
+      }
+    });
 
   } catch (error) {
     console.error('❌ Error en confirmación de pago:', error);
     return NextResponse.json({
       success: false,
-      error: error.message || 'Error interno del servidor'
+      error: error.message || 'Error interno del servidor',
+      details: error.stack
     }, { status: 500 });
   }
 }
