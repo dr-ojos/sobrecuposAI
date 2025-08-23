@@ -130,6 +130,12 @@ export default function SobrecuposMedico() {
     return allDays.slice(0, 6); // Solo lunes a sábado (índices 0-5)
   };
 
+  // Días para desktop/tablet (sin domingo)
+  const getDesktopWeekDays = () => {
+    const allDays = getWeekDays();
+    return allDays.slice(0, 6); // Solo lunes a sábado (índices 0-5)
+  };
+
   const isToday = (date) => {
     const today = new Date();
     return date.getDate() === today.getDate() &&
@@ -511,7 +517,7 @@ export default function SobrecuposMedico() {
           justifyContent: 'space-between',
           marginBottom: '1rem'
         }}>
-          <button onClick={() => router.back()} style={{
+          <button onClick={() => router.push('/medico/dashboard')} style={{
             width: '36px',
             height: '36px',
             background: 'none',
@@ -524,7 +530,8 @@ export default function SobrecuposMedico() {
             transition: 'all 0.2s ease'
           }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#666" strokeWidth="2"/>
+              <polyline points="9,22 9,12 15,12 15,22" stroke="#666" strokeWidth="2"/>
             </svg>
           </button>
           
@@ -618,7 +625,7 @@ export default function SobrecuposMedico() {
             </button>
           </div>
           
-          {weekDays.map((day, index) => (
+          {getDesktopWeekDays().map((day, index) => (
             <div key={day.toISOString()} style={{
               background: isToday(day) ? 'rgba(255, 149, 0, 0.08)' : isPastDate(day) ? '#f9f9f9' : 'white',
               padding: '0.625rem 0.5rem',
@@ -672,7 +679,7 @@ export default function SobrecuposMedico() {
                 {formatTime(hour)}
               </div>
               
-              {weekDays.map(day => {
+              {getDesktopWeekDays().map(day => {
                 const slotKey = getSlotKey(day, hour);
                 const sobrecupo = sobrecupos[slotKey];
                 
@@ -687,14 +694,17 @@ export default function SobrecuposMedico() {
                         '#6b7280'                                             // Gris - Otro estado
                       ) : isPastDate(day) ? '#f9f9f9' : 'white',
                       color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : 'black',
-                      minHeight: '40px',
+                      minHeight: '60px',
+                      maxHeight: '60px',
                       cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderBottom: '1px solid #e5e5e5',
                       position: 'relative',
-                      opacity: isPastDate(day) ? 0.6 : 1
+                      opacity: isPastDate(day) ? 0.6 : 1,
+                      margin: sobrecupo ? '4px' : '0',
+                      borderRadius: sobrecupo ? '8px' : '0'
                     }}
                     onClick={(event) => handleSlotClick(event, day, hour)}
                   >
@@ -804,7 +814,7 @@ export default function SobrecuposMedico() {
                             className="sobrecupos-heart"
                             style={{
                               filter: sobrecupo.estado === 'disponible' ? 
-                                'brightness(0) saturate(100%) invert(40%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(93%) contrast(100%)' : // Gris claro
+                                'brightness(0) saturate(100%) invert(80%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(90%)' : // Gris más claro
                                       sobrecupo.estado === 'reservado' ? 
                                 'none' : // Sin filtro - mantiene el rojo original del SVG
                                       sobrecupo.estado === 'pending_payment' ? 
@@ -1516,7 +1526,7 @@ export default function SobrecuposMedico() {
         /* Desktop y Tablet - Diseño Original */
         .calendar-desktop {
           display: grid;
-          grid-template-columns: 50px repeat(7, 1fr);
+          grid-template-columns: 50px repeat(6, 1fr);
           gap: 0.5px;
           background: rgba(0, 0, 0, 0.04);
           border-radius: 16px;
@@ -1720,7 +1730,7 @@ export default function SobrecuposMedico() {
         
         .mobile-slot.available {
           background: white;
-          border: 2px solid #6b7280; /* Borde gris medio */
+          border: 2px solid #86efac; /* Borde verde claro tenue */
           border-radius: 8px;
         }
         
