@@ -694,8 +694,8 @@ export default function SobrecuposMedico() {
                         '#6b7280'                                             // Gris - Otro estado
                       ) : isPastDate(day) ? '#f9f9f9' : 'white',
                       color: sobrecupo ? 'white' : isPastDate(day) ? '#999' : 'black',
-                      minHeight: '45px',
-                      maxHeight: '45px',
+                      minHeight: '55px',
+                      maxHeight: '55px',
                       cursor: isPastDate(day) && !sobrecupo ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -711,8 +711,12 @@ export default function SobrecuposMedico() {
                     {sobrecupo ? (
                       <div style={{
                         textAlign: 'center',
-                        padding: '0.25rem',
-                        width: '100%'
+                        padding: '0.375rem',
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        gap: '0.125rem'
                       }}>
                         <div style={{
                           fontWeight: 500,
