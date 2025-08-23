@@ -18,8 +18,8 @@ export function handleNameStage(
     };
   }
 
-  // Validación básica de formato de nombre
-  if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/.test(nombre)) {
+  // Validación básica de formato de nombre (incluyendo acentos y ñ minúscula)
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]{2,50}$/.test(nombre)) {
     currentSession.attempts = (currentSession.attempts || 0) + 1;
     
     const mensajeError = currentSession.attempts >= 3 
