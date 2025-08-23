@@ -18,6 +18,35 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
+    // Si está marcado como simulado (para testing), procesar como simulación
+    // Para producción real, cambiar isSimulated a false en la página de pago
+    if (isSimulated) {
+      console.log('🎭 Procesando como pago simulado...');
+      
+      // Simular delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Respuesta simulada exitosa
+      return NextResponse.json({
+        success: true,
+        transactionId,
+        reservationConfirmed: true,
+        sobrecupoUpdated: true,
+        patientCreated: true,
+        emailsSent: 2,
+        whatsappSent: true,
+        message: 'Reserva confirmada exitosamente (simulado)',
+        appointmentDetails: {
+          patientName: paymentData.patientName,
+          doctorName: paymentData.doctorName,
+          specialty: paymentData.specialty,
+          date: paymentData.date,
+          time: paymentData.time,
+          clinic: paymentData.clinic
+        }
+      });
+    }
+
     // Importar dinámicamente los servicios TypeScript
     const { sessionManager } = await import('../../../lib/bot/services/session-manager.ts');
     
