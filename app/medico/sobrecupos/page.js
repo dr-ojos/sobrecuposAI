@@ -21,15 +21,8 @@ export default function SobrecuposMedico() {
   const [showBatchCreator, setShowBatchCreator] = useState(false);
   const [selectedHoras, setSelectedHoras] = useState([]);
   const [batchData, setBatchData] = useState({ fecha: '', clinica: '' });
-
-  const clinicasRegistradas = [
-    'Consulta particular',
-    'Clínica Las Condes', 
-    'Clínica Alemana',
-    'Hospital Salvador',
-    'Clínica Santa María',
-    'Clínica UC'
-  ];
+  const [clinicasDisponibles, setClinicasDisponibles] = useState([]);
+  const [loadingClinicas, setLoadingClinicas] = useState(false);
 
   const horarios = [
     "08:00", "09:00", "10:00", "11:00", 
@@ -45,6 +38,7 @@ export default function SobrecuposMedico() {
     }
     if (session) {
       fetchSobrecupos();
+      fetchClinicasDisponibles();
     }
   }, [session, status, router]);
 
@@ -88,6 +82,30 @@ export default function SobrecuposMedico() {
       setMessage('❌ Error cargando sobrecupos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchClinicasDisponibles = async () => {
+    try {
+      setLoadingClinicas(true);
+      const res = await fetch('/api/clinicas');
+      if (res.ok) {
+        const data = await res.json();
+        // Agregar "Consulta particular" como primera opción
+        const clinicasConParticular = [
+          { id: 'particular', fields: { Nombre: 'Consulta particular' } },
+          ...data
+        ];
+        setClinicasDisponibles(clinicasConParticular);
+      } else {
+        console.error('Error obteniendo clínicas:', res.status);
+        setMessage('⚠️ Error cargando clínicas');
+      }
+    } catch (error) {
+      console.error('Error fetching clínicas:', error);
+      setMessage('⚠️ Error de conexión con clínicas');
+    } finally {
+      setLoadingClinicas(false);
     }
   };
 
@@ -954,11 +972,15 @@ export default function SobrecuposMedico() {
                     }}
                   >
                     <option value="">Selecciona una clínica</option>
-                    {clinicasRegistradas.map((clinica, index) => (
-                      <option key={index} value={clinica}>
-                        {clinica}
-                      </option>
-                    ))}
+                    {loadingClinicas ? (
+                      <option value="">Cargando clínicas...</option>
+                    ) : (
+                      clinicasDisponibles.map((clinica) => (
+                        <option key={clinica.id} value={clinica.fields.Nombre}>
+                          {clinica.fields.Nombre}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
               </div>
@@ -1169,11 +1191,15 @@ export default function SobrecuposMedico() {
                   }}
                 >
                   <option value="">Selecciona una clínica</option>
-                  {clinicasRegistradas.map((clinica, index) => (
-                    <option key={index} value={clinica}>
-                      {clinica}
-                    </option>
-                  ))}
+                  {loadingClinicas ? (
+                    <option value="">Cargando clínicas...</option>
+                  ) : (
+                    clinicasDisponibles.map((clinica) => (
+                      <option key={clinica.id} value={clinica.fields.Nombre}>
+                        {clinica.fields.Nombre}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             </div>
