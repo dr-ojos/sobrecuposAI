@@ -43,10 +43,13 @@ export class SobrecuposBot {
     try {
       // Si hay sesión activa, procesar según el stage
       if (currentSession?.stage) {
+        console.log(`🎯 Procesando stage: ${currentSession.stage} con texto: "${text}"`);
         const response = await this.handleSessionStage(text, from, currentSession);
+        console.log(`📤 Response del stage:`, response ? 'EXISTE' : 'NULL');
         if (response) {
           return NextResponse.json(response);
         }
+        console.log(`❌ Response fue null, continuando a handleInitialMessage`);
       }
 
       // Sin sesión o stage no manejado - procesar mensaje inicial
