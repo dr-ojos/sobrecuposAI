@@ -101,8 +101,10 @@ function ChatComponent() {
     console.log('🔍 SearchParams:', searchParams.toString());
     console.log('🔍 Initial message from URL:', initialMessage);
     
-    if (initialMessage && !hasProcessedInitial) {
+    // CRÍTICO: Solo procesar cuando sessionId esté listo
+    if (initialMessage && !hasProcessedInitial && sessionId) {
       console.log('✅ Processing initial message:', initialMessage);
+      console.log('🔑 SessionId ready:', sessionId);
       setHasProcessedInitial(true);
       
       const userMsg = {
@@ -123,9 +125,13 @@ function ChatComponent() {
         processInitialMessage(initialMessage);
       }, 800);
     } else {
-      console.log('❌ No initial message or already processed:', { initialMessage, hasProcessedInitial });
+      console.log('❌ No initial message or already processed or sessionId not ready:', { 
+        initialMessage: !!initialMessage, 
+        hasProcessedInitial, 
+        sessionId: !!sessionId 
+      });
     }
-  }, [searchParams, hasProcessedInitial]);
+  }, [searchParams, hasProcessedInitial, sessionId]); // ← Agregar sessionId como dependencia
 
   const processInitialMessage = async (message) => {
     setLoading(true);
