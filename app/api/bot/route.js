@@ -40,21 +40,7 @@ export async function POST(req) {
 
     // Procesar mensaje con el bot modular
     const response = await sobrecuposBot.processMessage(message, sessionId);
-    
-    // 🔍 DEBUG: Verificar si la respuesta tiene paymentButton
-    const responseBody = await response.json();
-    console.log('🔍 DEBUG API Response:', {
-      hasText: !!responseBody.text,
-      hasSession: !!responseBody.session,
-      hasPaymentButton: !!responseBody.paymentButton,
-      paymentButton: responseBody.paymentButton
-    });
-    
-    // Recrear la response con los mismos datos
-    return new Response(JSON.stringify(responseBody), {
-      status: response.status,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return response;
     
   } catch (error) {
     console.error('❌ Error en bot route:', error);

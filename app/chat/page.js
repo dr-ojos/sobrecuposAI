@@ -424,6 +424,8 @@ function ChatComponent() {
             setMessages((msgs) => [...msgs, { 
               from: "bot", 
               text: t,
+              // 🔧 FIX: Agregar paymentButton solo al último mensaje del array
+              paymentButton: (index === data.text.length - 1) ? (data.paymentButton || null) : null,
               timestamp: new Date()
             }]);
           }, index * 400);
@@ -435,6 +437,8 @@ function ChatComponent() {
             setMessages((msgs) => [...msgs, { 
               from: "bot", 
               text: t,
+              // 🔧 FIX: Agregar paymentButton solo al último mensaje dividido
+              paymentButton: (index === parts.length - 1) ? (data.paymentButton || null) : null,
               timestamp: new Date()
             }]);
           }, index * 400);

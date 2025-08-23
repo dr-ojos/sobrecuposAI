@@ -56,13 +56,89 @@ function PagoContent() {
   }, [searchParams]);
 
   const handlePaymentSubmit = async () => {
-    addDebugLog('🟡 === INICIANDO PAGO CON FLOW.CL ===');
-    addDebugLog(`📋 Payment data: ${JSON.stringify(paymentData)}`);
-    
     if (!paymentData) {
       addDebugLog('❌ No hay datos de pago disponibles');
       return;
     }
+
+    // 🔧 PAGO SIMULADO PARA BOT CHAT
+    if (isFromChat && !paymentData.sobrecupoId) {
+      addDebugLog('🎭 === INICIANDO PAGO SIMULADO (BOT CHAT) ===');
+      setProcessing(true);
+      setPaymentStatus('processing');
+      setMessage('Procesando pago simulado...');
+
+      // Simular proceso de pago (3 segundos)
+      setTimeout(async () => {
+        try {
+          // Generar transaction ID simulado
+          const transactionId = `SIM${Date.now()}`;
+          
+          addDebugLog('✅ Pago simulado exitoso, confirmando reserva...');
+          setMessage('Confirmando reserva...');
+
+          // Confirmar reserva en backend
+          const response = await fetch('/api/payment/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              transactionId,
+              sessionId: paymentData.sessionId,
+              paymentData,
+              isSimulated: true
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            addDebugLog('🎉 Reserva confirmada exitosamente');
+            
+            // Enviar mensaje de éxito al chat padre
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'PAYMENT_SUCCESS',
+                transactionId,
+                sessionId: paymentData.sessionId,
+                reservationConfirmed: true,
+                appointmentDetails: {
+                  patientName: paymentData.patientName,
+                  doctorName: paymentData.doctorName,
+                  specialty: paymentData.specialty,
+                  date: paymentData.date,
+                  time: paymentData.time,
+                  clinic: paymentData.clinic
+                }
+              }, '*');
+              
+              addDebugLog('📨 Mensaje enviado al chat padre');
+              
+              // Cerrar popup después de un breve delay
+              setTimeout(() => {
+                window.close();
+              }, 1000);
+            }
+            
+            setPaymentStatus('success');
+            setMessage('¡Pago exitoso! La ventana se cerrará automáticamente...');
+            
+          } else {
+            throw new Error('Error confirmando reserva');
+          }
+          
+        } catch (error) {
+          addDebugLog('❌ Error en pago simulado:', error);
+          setPaymentStatus('error');
+          setMessage('Error procesando el pago simulado');
+          setProcessing(false);
+        }
+      }, 3000);
+      
+      return;
+    }
+
+    // 🔧 PAGO REAL CON FLOW.CL (reservas directas)
+    addDebugLog('🟡 === INICIANDO PAGO CON FLOW.CL ===');
+    addDebugLog(`📋 Payment data: ${JSON.stringify(paymentData)}`);
 
     addDebugLog('✅ Iniciando proceso de pago con Flow.cl...');
     setProcessing(true);

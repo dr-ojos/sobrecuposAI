@@ -91,7 +91,6 @@ export class SobrecuposBot {
         return handlePhoneStage(text, sessionId, currentSession);
         
       case 'getting-email':
-        console.log('🔍 BOT-MAIN: Procesando getting-email stage');
         return handleEmailStage(text, sessionId, currentSession);
         
       case 'pending-payment':
