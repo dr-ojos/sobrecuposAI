@@ -1,7 +1,5 @@
 // API para confirmar pago del bot (REAL, no simulado)
 import { NextResponse } from 'next/server';
-import { airtableService } from '../../../lib/bot/services/airtable-service';
-import { sessionManager } from '../../../lib/bot/services/session-manager';
 
 export async function POST(req) {
   try {
@@ -20,6 +18,9 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
+    // Importar dinámicamente los servicios TypeScript
+    const { sessionManager } = await import('../../../lib/bot/services/session-manager.ts');
+    
     // Obtener la sesión para acceder al selectedRecord
     const session = sessionManager.getSession(sessionId);
     if (!session || !session.selectedRecord) {
@@ -39,6 +40,9 @@ export async function POST(req) {
       whatsappSent: false
     };
 
+    // Importar servicio de Airtable dinámicamente
+    const { airtableService } = await import('../../../lib/bot/services/airtable-service.ts');
+    
     // 1. CONFIRMAR RESERVA EN AIRTABLE (REAL)
     console.log('📅 Actualizando sobrecupo en Airtable...');
     const sobrecupoData = {
@@ -96,7 +100,7 @@ export async function POST(req) {
     console.log('📧 Enviando emails y notificaciones...');
     
     // Importar servicios de email y WhatsApp
-    const { emailService } = await import('../../../lib/bot/services/email-service');
+    const { emailService } = await import('../../../lib/bot/services/email-service.ts');
     
     // Enviar email de confirmación al paciente
     const emailSent = await emailService.sendPatientConfirmation(session, transactionId);
