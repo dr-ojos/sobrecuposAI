@@ -37,10 +37,10 @@ export function handleEmailStage(
   }
 
   // Mostrar resumen y crear enlace de pago
-  return createPaymentSummary(updatedSession);
+  return createPaymentSummary(updatedSession, sessionId);
 }
 
-function createPaymentSummary(session: BotSession): BotResponse {
+function createPaymentSummary(session: BotSession, sessionId: string): BotResponse {
   const { patientName, selectedRecord, patientPhone, patientEmail } = session;
   
   if (!selectedRecord) {
