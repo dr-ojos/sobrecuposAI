@@ -94,6 +94,7 @@ export interface BotSession {
 export interface BotResponse {
   text: string;
   session?: BotSession;
+  sessionData?: string;  // Datos de sesión codificados para persistir en el cliente
   paymentButton?: {
     text: string;
     url: string;

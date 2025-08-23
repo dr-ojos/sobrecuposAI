@@ -39,6 +39,8 @@ export class SobrecuposBot {
     const currentSession = sessionManager.getSession(from);
     console.log(`🔍 Sesión actual: ${currentSession ? 'EXISTE' : 'NO EXISTE'}`);
     console.log(`🔍 Stage actual: ${currentSession?.stage || 'undefined'}`);
+    console.log(`🔍 SessionId usado: ${from}`);
+    console.log(`🔍 Total sesiones en memoria: ${(sessionManager as any).sessions?.size || 0}`);
 
     try {
       // Si hay sesión activa, procesar según el stage
@@ -53,6 +55,7 @@ export class SobrecuposBot {
       }
 
       // Sin sesión o stage no manejado - procesar mensaje inicial
+      console.log(`🔄 Procesando mensaje inicial para: "${text}"`);
       return NextResponse.json(await this.handleInitialMessage(text, from));
 
     } catch (error) {
