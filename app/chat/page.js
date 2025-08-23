@@ -179,7 +179,13 @@ function ChatComponent() {
           timestamp: new Date()
         }]);
       }
-      setSession(data.session || {});
+      // Solo actualizar sesión si el backend envía una nueva
+      if (data.session) {
+        console.log('🔄 Actualizando sesión con datos del backend:', data.session);
+        setSession(data.session);
+      } else {
+        console.log('📋 Backend no envió sesión, manteniendo actual:', session);
+      }
     } catch (error) {
       console.error('❌ Error processing initial message:', error);
       setIsTyping(false);
@@ -451,7 +457,13 @@ function ChatComponent() {
           timestamp: new Date()
         }]);
       }
-      setSession(data.session || {});
+      // Solo actualizar sesión si el backend envía una nueva
+      if (data.session) {
+        console.log('🔄 Actualizando sesión con datos del backend:', data.session);
+        setSession(data.session);
+      } else {
+        console.log('📋 Backend no envió sesión, manteniendo actual:', session);
+      }
     } catch (error) {
       console.error('❌ Error en sendMessage:', error);
       setIsTyping(false);
