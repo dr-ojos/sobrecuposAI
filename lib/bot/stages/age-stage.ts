@@ -1,6 +1,6 @@
 // Stage para recolectar edad y validar con médicos disponibles
 import { BotResponse, BotSession } from '../types';
-import { filterFutureDates } from '../utils';
+import { filterFutureDates, getFirstName } from '../utils';
 import { sessionManager } from '../services/session-manager';
 import { appointmentService } from '../services/appointment-service';
 import { MedicalIntelligenceService } from '../services/medical-intelligence';
@@ -42,6 +42,7 @@ export async function handleAgeStage(
 
     if (futureValidRecords.length === 0) {
       // No hay médicos que atiendan esta edad
+      const primerNombre = currentSession.firstName || getFirstName(currentSession.patientName || '');
       const ageGroup = age < 18 ? 'pediátrica' : 'adultos';
       const updatedSession = sessionManager.updateSession(sessionId, {
         stage: 'asking-for-contact-data',
@@ -49,7 +50,7 @@ export async function handleAgeStage(
       });
 
       return {
-        text: `Entiendo. Para pacientes de ${age} años, necesitamos especialistas en atención ${ageGroup}.\n\nLamentablemente no tengo disponibilidad de **${specialty}** para tu grupo de edad en este momento.\n\n¿Te gustaría que tome tus datos para contactarte cuando tengamos disponibilidad adecuada?`,
+        text: `Entiendo, ${primerNombre}. Para pacientes de ${age} años, necesitamos especialistas en atención ${ageGroup}.\n\nLamentablemente no tengo disponibilidad de **${specialty}** para tu grupo de edad en este momento.\n\n¿Te gustaría que tome tus datos para contactarte cuando tengamos disponibilidad adecuada?`,
         session: updatedSession || currentSession
       };
     }
@@ -86,10 +87,11 @@ export async function handleAgeStage(
       };
     }
 
-    // Mensaje personalizado según la edad
+    // Mensaje personalizado según la edad con primer nombre
+    const primerNombre = currentSession.firstName || getFirstName(currentSession.patientName || '');
     const ageMessage = age < 18 
-      ? `Perfecto! He encontrado especialistas que atienden pacientes jóvenes de ${age} años.`
-      : `Excelente! He encontrado especialistas disponibles para pacientes de ${age} años.`;
+      ? `¡Perfecto, ${primerNombre}! He encontrado especialistas que atienden pacientes jóvenes de ${age} años.`
+      : `¡Excelente, ${primerNombre}! He encontrado especialistas disponibles para pacientes de ${age} años.`;
 
     return {
       text: `${ageMessage}\n\n${presentation.text}`,

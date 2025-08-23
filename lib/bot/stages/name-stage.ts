@@ -1,6 +1,7 @@
 // Stage para recolectar nombre del paciente
 import { BotResponse, BotSession } from '../types';
 import { sessionManager } from '../services/session-manager';
+import { getFirstName, createFriendlyGreeting } from '../utils';
 
 export function handleNameStage(
   text: string,
@@ -32,8 +33,11 @@ export function handleNameStage(
   }
 
   // Nombre válido, transicionar a pedir RUT
+  const primerNombre = getFirstName(nombre);
+  
   const updatedSession = sessionManager.transitionToStage(sessionId, 'getting-rut', {
-    patientName: nombre
+    patientName: nombre,
+    firstName: primerNombre  // Guardamos también el primer nombre para uso futuro
   });
 
   if (!updatedSession) {
@@ -43,8 +47,11 @@ export function handleNameStage(
     };
   }
 
+  // Saludo humanizado usando solo el primer nombre
+  const saludo = createFriendlyGreeting(primerNombre);
+
   return {
-    text: `Perfecto, ${nombre}! 📋\n\nAhora necesito tu RUT para completar los datos.\nEjemplo: 12345678-9`,
+    text: `${saludo}\n\nAhora necesito tu RUT para completar los datos.\nEjemplo: 12345678-9`,
     session: updatedSession
   };
 }

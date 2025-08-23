@@ -1,6 +1,6 @@
 // Stage para recolectar teléfono del paciente
 import { BotResponse, BotSession } from '../types';
-import { validarTelefono, analizarConfusion } from '../utils';
+import { validarTelefono, analizarConfusion, getFirstName } from '../utils';
 import { sessionManager } from '../services/session-manager';
 
 export function handlePhoneStage(
@@ -36,8 +36,11 @@ export function handlePhoneStage(
     };
   }
 
+  // Mensaje humanizado con primer nombre
+  const primerNombre = currentSession.firstName || getFirstName(currentSession.patientName || '');
+  
   return {
-    text: "Perfecto! 📧\n\nAhora necesito tu correo electrónico para enviarte la confirmación.\nEjemplo: maria@gmail.com",
+    text: `¡Perfecto, ${primerNombre}! 📧\n\nAhora necesito tu correo electrónico para enviarte la confirmación.\nEjemplo: maria@gmail.com`,
     session: updatedSession
   };
 }

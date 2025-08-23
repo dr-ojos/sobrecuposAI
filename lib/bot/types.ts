@@ -69,6 +69,7 @@ export interface BotSession {
   respuestaEmpatica?: string;
   attempts: number;
   patientName?: string;
+  firstName?: string;  // Primer nombre para diálogos humanizados
   patientRut?: string;
   patientAge?: number;
   patientPhone?: string;

@@ -1,6 +1,6 @@
 // Stage para recolectar RUT del paciente
 import { BotResponse, BotSession } from '../types';
-import { validarRUT, analizarConfusion } from '../utils';
+import { validarRUT, analizarConfusion, getFirstName } from '../utils';
 import { sessionManager } from '../services/session-manager';
 
 export function handleRutStage(
@@ -36,8 +36,11 @@ export function handleRutStage(
     };
   }
 
+  // Obtener primer nombre para respuesta humanizada
+  const primerNombre = currentSession.firstName || getFirstName(currentSession.patientName || '');
+  
   return {
-    text: "Excelente! 🎂\n\nPara finalizar los datos básicos, ¿cuál es tu edad?\nEjemplo: 25",
+    text: `¡Excelente, ${primerNombre}! 🎂\n\nPara finalizar los datos básicos, ¿cuál es tu edad?\nEjemplo: 25`,
     session: updatedSession
   };
 }

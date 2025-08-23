@@ -199,3 +199,26 @@ export function analizarConfusion(input: string, expectedType: string): string {
       return "El formato no es válido.";
   }
 }
+
+// Función para extraer solo el primer nombre (más humano)
+export function getFirstName(fullName: string): string {
+  if (!fullName) return '';
+  
+  const nombres = fullName.trim().split(' ');
+  return nombres[0] || '';
+}
+
+// Función para saludar de manera humanizada
+export function createFriendlyGreeting(firstName: string): string {
+  const greetings = [
+    `¡Hola ${firstName}! 😊`,
+    `Perfecto, ${firstName}! 👍`,
+    `¡Excelente, ${firstName}! ✨`,
+    `¡Genial, ${firstName}! 🌟`,
+    `Muy bien, ${firstName}! 👌`
+  ];
+  
+  // Seleccionar saludo aleatorio para variedad
+  const randomIndex = Math.floor(Math.random() * greetings.length);
+  return greetings[randomIndex];
+}

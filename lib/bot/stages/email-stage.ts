@@ -1,6 +1,6 @@
 // Stage para recolectar email del paciente
 import { BotResponse, BotSession } from '../types';
-import { validarEmail, analizarConfusion } from '../utils';
+import { validarEmail, analizarConfusion, getFirstName } from '../utils';
 import { sessionManager } from '../services/session-manager';
 
 export function handleEmailStage(
@@ -62,7 +62,8 @@ function createPaymentSummary(session: BotSession): BotResponse {
   // Actualizar sesión con URL de pago
   session.paymentUrl = paymentUrl;
 
-  const resumen = `🎉 ¡Perfecto! He preparado tu reserva:\n\n` +
+  const primerNombre = session.firstName || getFirstName(patientName || '');
+  const resumen = `🎉 ¡Perfecto, ${primerNombre}! He preparado tu reserva:\n\n` +
     `👤 **Paciente:** ${patientName}\n` +
     `👨‍⚕️ **Médico:** Dr. ${doctorName}\n` +
     `📅 **Fecha:** ${fecha}\n` +
