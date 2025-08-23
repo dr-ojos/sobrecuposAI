@@ -332,7 +332,7 @@ export default function PerfilMedico() {
 
   return (
     <div className="page-container">
-      {/* Header minimalista estilo Apple */}
+      {/* Header con logo Sobrecupos centrado */}
       <header className="header">
         <div className="header-content">
           <div className="header-left">
@@ -345,6 +345,19 @@ export default function PerfilMedico() {
               <h1 className="header-title">Mi Perfil</h1>
               <span className="header-subtitle">Configuración</span>
             </div>
+          </div>
+          
+          {/* Logo Sobrecupos centrado y grande */}
+          <div className="header-center">
+            <img 
+              src="/sobrecuposlogo1.svg" 
+              alt="Sobrecupos Logo"
+              className="header-logo"
+            />
+          </div>
+          
+          <div className="header-right">
+            {/* Espacio para balance visual */}
           </div>
         </div>
       </header>

@@ -8,6 +8,7 @@ export default function AdminPanelPage() {
   const [doctors, setDoctors] = useState([]);
   const [clinicas, setClinicas] = useState([]);
   const [sobrecupos, setSobrecupos] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,7 +100,7 @@ export default function AdminPanelPage() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      await Promise.all([fetchDoctors(), fetchClinicas(), fetchSobrecupos()]);
+      await Promise.all([fetchDoctors(), fetchClinicas(), fetchSobrecupos(), fetchPendingRequests()]);
     } catch (error) {
       console.error('Error cargando datos:', error);
     } finally {
@@ -153,6 +154,22 @@ export default function AdminPanelPage() {
     } catch (error) {
       console.error('Error cargando sobrecupos:', error);
       setSobrecupos([]);
+    }
+  };
+
+  const fetchPendingRequests = async () => {
+    try {
+      const res = await fetch('/api/pending-requests');
+      if (res.ok) {
+        const data = await res.json();
+        setPendingRequests(Array.isArray(data) ? data : []);
+      } else {
+        console.log('No pending requests API available yet');
+        setPendingRequests([]);
+      }
+    } catch (error) {
+      console.log('Pending requests feature not implemented yet:', error);
+      setPendingRequests([]);
     }
   };
 
@@ -313,6 +330,51 @@ export default function AdminPanelPage() {
     }
   };
 
+  // Handlers para solicitudes pendientes
+  const handleNotifyWhenAvailable = (request) => {
+    const fields = request.fields;
+    setMsg(`✅ ${fields.PatientName} será notificado/a cuando haya disponibilidad de ${fields.RequestedSpecialty}`);
+    setTimeout(() => setMsg(''), 3000);
+    // TODO: Implementar lógica de notificación automática
+  };
+
+  const handleContactPatient = (request) => {
+    const fields = request.fields;
+    const phone = fields.PatientPhone;
+    const message = `Hola ${fields.PatientName}, nos contactamos desde SobrecuposIA. Tenemos novedades sobre tu solicitud de ${fields.RequestedSpecialty}.`;
+    
+    // Abrir WhatsApp Web con el mensaje predefinido
+    const whatsappUrl = `https://wa.me/${phone?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    setMsg(`📞 Contactando a ${fields.PatientName} por WhatsApp`);
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleMarkAsResolved = async (requestId) => {
+    try {
+      // TODO: Implementar API para marcar como resuelto
+      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+      setMsg('✅ Solicitud marcada como resuelta');
+    } catch (error) {
+      setMsg('❌ Error marcando solicitud como resuelta');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
+  const handleDeletePendingRequest = async (requestId) => {
+    if (!confirm('¿Estás seguro de eliminar esta solicitud pendiente?')) return;
+    
+    try {
+      // TODO: Implementar API para eliminar solicitud
+      setPendingRequests(prev => prev.filter(req => req.id !== requestId));
+      setMsg('✅ Solicitud eliminada');
+    } catch (error) {
+      setMsg('❌ Error eliminando solicitud');
+    }
+    setTimeout(() => setMsg(''), 3000);
+  };
+
   // Componente del Logo SVG de Sobrecupos
   const SobrecuposLogo = ({ size = 32, className = "" }) => (
     <svg 
@@ -411,6 +473,12 @@ export default function AdminPanelPage() {
           onClick={() => setActiveSection("sobrecupos")}
         >
           Sobrecupos
+        </button>
+        <button 
+          className={`nav-tab ${activeSection === "pending-requests" ? "active" : ""}`}
+          onClick={() => setActiveSection("pending-requests")}
+        >
+          Solicitudes Pendientes
         </button>
       </div>
 
@@ -767,6 +835,136 @@ export default function AdminPanelPage() {
                 })
               }
             </div>
+          </div>
+        )}
+
+        {/* Solicitudes Pendientes */}
+        {activeSection === "pending-requests" && (
+          <div className="list-section">
+            <div className="section-header">
+              <h2 className="section-title">Solicitudes Pendientes de Especialidades</h2>
+              <div className="pending-stats">
+                <span className="pending-count">{pendingRequests.length} solicitudes</span>
+              </div>
+            </div>
+
+            <div className="search-controls">
+              <input
+                type="text"
+                placeholder="Buscar por paciente, especialidad o motivo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <select 
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">Todas las especialidades</option>
+                {especialidades.map(esp => (
+                  <option key={esp} value={esp}>{esp}</option>
+                ))}
+              </select>
+            </div>
+
+            {pendingRequests.length === 0 ? (
+              <div className="no-data-message">
+                <div style={{marginBottom: '1rem'}}>
+                  🎉 ¡Excelente! No hay solicitudes pendientes en este momento.
+                </div>
+                <div style={{fontSize: '0.75rem', color: '#999'}}>
+                  Las solicitudes aparecerán aquí cuando los pacientes busquen especialidades no disponibles.
+                </div>
+              </div>
+            ) : (
+              <div className="pending-requests-list">
+                {pendingRequests
+                  .filter(request => {
+                    if (!request.fields) return false;
+                    const fields = request.fields;
+                    const matchesSearch = !searchTerm || 
+                      (fields.PatientName && fields.PatientName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                      (fields.RequestedSpecialty && fields.RequestedSpecialty.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                      (fields.Motivo && fields.Motivo.toLowerCase().includes(searchTerm.toLowerCase()));
+                    
+                    const matchesFilter = selectedFilter === 'all' || fields.RequestedSpecialty === selectedFilter;
+                    return matchesSearch && matchesFilter;
+                  })
+                  .map(request => {
+                    const fields = request.fields;
+                    const requestDate = new Date(fields.RequestDate);
+                    const daysSince = Math.floor((Date.now() - requestDate.getTime()) / (1000 * 60 * 60 * 24));
+                    
+                    return (
+                      <div key={request.id} className="pending-request-card">
+                        <div className="request-info">
+                          <div className="request-header">
+                            <h3 className="patient-name">
+                              👤 {fields.PatientName || 'Paciente'}
+                            </h3>
+                            <div className="request-meta">
+                              <span className="request-date">
+                                {daysSince === 0 ? 'Hoy' : daysSince === 1 ? 'Ayer' : `${daysSince} días`}
+                              </span>
+                              <span className="request-status pending">Pendiente</span>
+                            </div>
+                          </div>
+                          
+                          <div className="request-details">
+                            <div className="detail-row">
+                              <strong>Especialidad solicitada:</strong> {fields.RequestedSpecialty}
+                            </div>
+                            <div className="detail-row">
+                              <strong>Motivo:</strong> {fields.Motivo || 'No especificado'}
+                            </div>
+                            <div className="detail-row">
+                              <strong>Contacto:</strong> {fields.PatientPhone} | {fields.PatientEmail}
+                            </div>
+                            {fields.PatientAge && (
+                              <div className="detail-row">
+                                <strong>Edad:</strong> {fields.PatientAge} años
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="request-actions">
+                          <button
+                            className="action-btn notify"
+                            onClick={() => handleNotifyWhenAvailable(request)}
+                            title="Notificar cuando esté disponible"
+                          >
+                            🔔
+                          </button>
+                          <button
+                            className="action-btn contact"
+                            onClick={() => handleContactPatient(request)}
+                            title="Contactar paciente"
+                          >
+                            📞
+                          </button>
+                          <button
+                            className="action-btn resolved"
+                            onClick={() => handleMarkAsResolved(request.id)}
+                            title="Marcar como resuelto"
+                          >
+                            ✅
+                          </button>
+                          <button
+                            className="action-btn delete"
+                            onClick={() => handleDeletePendingRequest(request.id)}
+                            title="Eliminar solicitud"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                }
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1806,6 +2004,144 @@ export default function AdminPanelPage() {
           font-size: 0.75rem;
           color: #999;
           font-weight: 400;
+        }
+
+        /* Pending Requests Styles */
+        .pending-stats {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .pending-count {
+          background: #f0f9ff;
+          color: #0284c7;
+          padding: 0.25rem 0.75rem;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          font-weight: 500;
+          border: 1px solid #bae6fd;
+        }
+
+        .pending-requests-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+
+        .pending-request-card {
+          background: rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(0, 0, 0, 0.06);
+          border-left: 4px solid #f59e0b;
+          border-radius: 6px;
+          padding: 1.5rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          transition: all 0.2s ease;
+        }
+
+        .pending-request-card:hover {
+          background: white;
+          border-color: rgba(0, 0, 0, 0.1);
+          transform: translateY(-1px);
+        }
+
+        .request-info {
+          flex: 1;
+        }
+
+        .request-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        .patient-name {
+          font-size: 1rem;
+          font-weight: 500;
+          color: #171717;
+          margin: 0;
+        }
+
+        .request-meta {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+        }
+
+        .request-date {
+          font-size: 0.75rem;
+          color: #666;
+          background: #f5f5f5;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+        }
+
+        .request-status {
+          font-size: 0.75rem;
+          font-weight: 500;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .request-status.pending {
+          background: #fef3c7;
+          color: #92400e;
+          border: 1px solid #fbbf24;
+        }
+
+        .request-details {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .detail-row {
+          font-size: 0.875rem;
+          color: #374151;
+        }
+
+        .detail-row strong {
+          color: #171717;
+          font-weight: 500;
+        }
+
+        .request-actions {
+          display: flex;
+          gap: 0.5rem;
+          flex-shrink: 0;
+          margin-left: 1rem;
+        }
+
+        .action-btn.notify {
+          background: #dbeafe;
+          color: #1d4ed8;
+        }
+
+        .action-btn.notify:hover {
+          background: #bfdbfe;
+        }
+
+        .action-btn.contact {
+          background: #dcfce7;
+          color: #166534;
+        }
+
+        .action-btn.contact:hover {
+          background: #bbf7d0;
+        }
+
+        .action-btn.resolved {
+          background: #f0fdf4;
+          color: #15803d;
+        }
+
+        .action-btn.resolved:hover {
+          background: #dcfce7;
         }
 
         /* Modales */

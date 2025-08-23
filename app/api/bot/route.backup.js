@@ -22,40 +22,6 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 */
 
-// Helper para normalizar booleanos de Airtable
-function normalizeBoolean(value) {
-  if (typeof value === 'string') {
-    return value.toLowerCase() === 'si' || value.toLowerCase() === 'true';
-  }
-  return Boolean(value);
-}
-
-// Rate limiting básico
-const rateLimiter = new Map();
-
-function checkRateLimit(sessionId) {
-  const now = Date.now();
-  const attempts = rateLimiter.get(sessionId) || [];
-  const recentAttempts = attempts.filter(time => now - time < 60000); // 1 minuto
-  
-  if (recentAttempts.length > 20) {
-    return false; // Bloqueado
-  }
-  
-  rateLimiter.set(sessionId, [...recentAttempts, now]);
-  return true;
-}
-
-// Helpers para timezone centralizado
-function getChileTime(date = new Date()) {
-  return new Date(date.toLocaleString("en-US", {timeZone: "America/Santiago"}));
-}
-
-function getChileToday() {
-  const chileTime = getChileTime();
-  return new Date(chileTime.getFullYear(), chileTime.getMonth(), chileTime.getDate());
-}
-
 // Función para obtener o crear sesión
 function getOrCreateSession(sessionId, sessionData = {}) {
   if (!sessionId) {
@@ -91,7 +57,8 @@ function filterFutureDates(records) {
   const now = new Date();
   
   // Crear fecha de hoy en zona horaria de Chile
-  const today = getChileToday();
+  const chileTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Santiago"}));
+  const today = new Date(chileTime.getFullYear(), chileTime.getMonth(), chileTime.getDate());
   
   return records.filter(record => {
     const fields = record.fields || {};
@@ -114,7 +81,7 @@ function filterFutureDates(records) {
         recordDateTime.setHours(hours, minutes, 0, 0);
         
         // Comparar con hora actual en Chile
-        const currentChileTime = getChileTime(now);
+        const currentChileTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Santiago"}));
         return recordDateTime > currentChileTime;
       }
       
@@ -190,8 +157,8 @@ async function getDoctorInfoCached(doctorId, cache = new Map()) {
     console.log(`🔍 [DEBUG] Final doctor info for ${doctorId}:`, info);
     cache.set(doctorId, info);
     return info;
-  } catch (error) {
-    console.error('[BOT_ERROR] getDoctorInfo:', error.message);
+  } catch (err) {
+    console.error(`❌ Error obteniendo info del médico ${doctorId}:`, err);
     return { name: 'Doctor', atiende: 'Ambos' };
   }
 }
@@ -375,8 +342,8 @@ EVITA:
     
     const data = await response.json();
     return data.choices?.[0]?.message?.content?.trim() || getSymptomFallback(text);
-  } catch (error) {
-    console.error('[BOT_ERROR] OpenAI empathic:', error.message);
+  } catch (err) {
+    console.error("❌ Error OpenAI empático:", err);
     return getSymptomFallback(text);
   }
 }
@@ -413,10 +380,9 @@ function selectSmartAppointmentOptions(records) {
     return [morning[0], afternoon[0]];
   }
 
-  // Si todas las citas son en el mismo período (mañana o tarde), 
-  // buscar una segunda opción del día más cercano siguiente
-  const nextDayOptions = sorted.filter(r => r.fields?.Fecha !== firstDate);
-  return nextDayOptions.length > 0 ? [first, nextDayOptions[0]] : [first];
+  // Si todas las citas son en el mismo período (mañana o tarde), mostrar solo la primera
+  // No crear opciones artificiales duplicadas
+  return [first];
 }
 
 // 🎯 Función para crear presentación de opciones optimizada
@@ -771,7 +737,7 @@ async function buscarSobrecuposDeMedico(medicoId) {
     // Filtrar manualmente por médico y disponibilidad
     const sobrecuposDelMedico = allRecords.filter(record => {
       const fields = record.fields || {};
-      const disponible = normalizeBoolean(fields.Disponible);
+      const disponible = fields.Disponible === "Si";
       const medico = fields.Médico; // Campo correcto con tilde
       const tienemedico = Array.isArray(medico) && medico.includes(medicoId);
       
@@ -1225,52 +1191,13 @@ async function getEspecialidadesDisponibles() {
     
     const especialidades = [...new Set(
       records
-        .filter(r => r.fields?.Especialidad && normalizeBoolean(r.fields?.Disponible))
+        .filter(r => r.fields?.Especialidad && (r.fields?.Disponible === "Si" || r.fields?.Disponible === true))
         .map(r => r.fields.Especialidad)
     )];
 
     return especialidades;
   } catch (error) {
     console.error('Error obteniendo especialidades:', error);
-    return [];
-  }
-}
-
-// 🚀 Función para obtener sobrecupos por especialidad
-async function fetchSobrecupos(specialty) {
-  try {
-    const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
-    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
-
-    const response = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?maxRecords=100`,
-      {
-        headers: {
-          Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.log(`❌ Error response: ${response.status}`);
-      return [];
-    }
-
-    const data = await response.json();
-    const records = data.records || [];
-    
-    // Filtrar por especialidad y disponibilidad
-    const sobrecuposEspecialidad = records.filter(record => {
-      const especialidadRecord = record.fields?.Especialidad;
-      const disponible = normalizeBoolean(record.fields?.Disponible);
-      return especialidadRecord === specialty && disponible;
-    });
-
-    console.log(`📊 Sobrecupos encontrados para ${specialty}: ${sobrecuposEspecialidad.length}`);
-    return sobrecuposEspecialidad;
-  } catch (error) {
-    console.error(`❌ Error fetching sobrecupos para ${specialty}:`, error);
     return [];
   }
 }
@@ -1554,14 +1481,6 @@ export async function POST(req) {
     // Obtener o crear sesión con contexto
     const session = getOrCreateSession(sessionId, currentSession);
     
-    // Verificar rate limiting
-    if (!checkRateLimit(session.id)) {
-      return NextResponse.json({ 
-        text: "Demasiados mensajes. Espera un momento por favor.", 
-        sessionId: session.id 
-      }, { status: 429 });
-    }
-    
     // Sistema de memoria conversacional avanzado
     session.messageHistory = session.messageHistory || [];
     session.patientProfile = session.patientProfile || {};
@@ -1780,8 +1699,8 @@ Ejemplos:
           if (respuestaIA) {
             return NextResponse.json({ text: respuestaIA });
           }
-        } catch (error) {
-          console.error('[BOT_ERROR] OpenAI non-medical:', error.message);
+        } catch (err) {
+          console.error("❌ Error OpenAI para consulta no médica:", err);
         }
       }
       
@@ -2301,8 +2220,8 @@ Ejemplos:
             );
             const data = await resp.json();
             sobrecuposRecords = data.records || [];
-          } catch (error) {
-            console.error('[BOT_ERROR] Airtable query:', error.message);
+          } catch (err) {
+            console.error("❌ Error consultando Airtable:", err);
             return NextResponse.json({ text: "Error consultando disponibilidad. Intenta más tarde." });
           }
 
@@ -2315,7 +2234,7 @@ Ejemplos:
             
             return (
               (fields.Especialidad === specialty) &&
-              normalizeBoolean(fields.Disponible) &&
+              (fields.Disponible === "Si" || fields.Disponible === true) &&
               medicosIds.includes(medicoId)
             );
           });
@@ -3884,7 +3803,10 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           });
         }
         
-        // HAY sobrecupos disponibles - PRIMERO pedir datos del paciente
+        // HAY sobrecupos disponibles - mostrar opciones directamente
+        const selectedOptions = selectSmartAppointmentOptions(sobrecuposFuturos);
+        const presentation = await createOptionsPresentation(selectedOptions, specialty);
+        
         let respuestaEmpatica = "Entiendo que necesitas atención especializada.";
         if (OPENAI_API_KEY) {
           try {
@@ -3909,24 +3831,26 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             });
             const empatJson = await empatRes.json();
             respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
-          } catch (error) {
-            console.error('[BOT_ERROR] OpenAI empathic response:', error.message);
+          } catch (err) {
             respuestaEmpatica = "Entiendo que necesitas atención especializada.";
           }
         }
         
-        // Establecer stage para pedir datos del paciente
-        sessions[from] = {
-          stage: 'getting-name',
-          specialty: specialty,
+        const baseSession = {
+          specialty,
           records: sobrecuposFuturos,
           motivo: text,
-          respuestaEmpatica: respuestaEmpatica,
-          attempts: 0
+          respuestaEmpatica,
+          attempts: 0,
+          selectedOptions
         };
-        
+
+        sessions[from] = presentation.stage === 'confirming-appointment'
+          ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+          : { ...baseSession, stage: 'choosing-from-options' };
+
         return NextResponse.json({
-          text: `${respuestaEmpatica}\n\n✅ Para lo que me describes, te recomiendo ver **${specialty}** como primera opción.\n\n¡Perfecto! Tengo sobrecupos disponibles de **${specialty}**.\n\nPara continuar, necesito algunos datos:\n\n**¿Cuál es tu nombre completo?**`,
+          text: `${respuestaEmpatica}\n\n¡Perfecto! Tengo sobrecupos disponibles de **${specialty}**.\n\n${presentation.text}`,
           session: sessions[from]
         });
         
@@ -3958,8 +3882,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             });
             const empatJson = await empatRes.json();
             respuestaEmpatica = empatJson.choices?.[0]?.message?.content?.trim() || "";
-          } catch (error) {
-            console.error('[BOT_ERROR] OpenAI empathic response:', error.message);
+          } catch (err) {
             respuestaEmpatica = "Entiendo que necesitas atención especializada.";
           }
         }
@@ -4123,7 +4046,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
         const availableFiltered = sobrecuposRecords.filter(record => {
           const fields = record.fields || {};
           return fields.Especialidad === specialty && 
-                 normalizeBoolean(fields.Disponible);
+                 (fields.Disponible === "Si" || fields.Disponible === true);
         });
         console.log(`🔍 [DEBUG] Filtered by specialty principal "${specialty}": ${availableFiltered.length} records`);
 
@@ -4133,7 +4056,7 @@ Te contactaremos pronto para confirmar los detalles finales.`;
           availableAlternativa = sobrecuposRecords.filter(record => {
             const fields = record.fields || {};
             return fields.Especialidad === alternativa && 
-                   normalizeBoolean(fields.Disponible);
+                   (fields.Disponible === "Si" || fields.Disponible === true);
           });
           console.log(`🔍 [DEBUG] Filtered by specialty alternativa "${alternativa}": ${availableAlternativa.length} records`);
         }
@@ -4162,8 +4085,25 @@ Te contactaremos pronto para confirmar los detalles finales.`;
 
         // LÓGICA DE RESPUESTA SEGÚN DISPONIBILIDAD
         if (available.length > 0) {
-          // HAY DISPONIBILIDAD EN ESPECIALIDAD PRINCIPAL - PRIMERO pedir datos del paciente
+          // HAY DISPONIBILIDAD EN ESPECIALIDAD PRINCIPAL
+          const selectedOptions = selectSmartAppointmentOptions(available);
+          const presentation = await createOptionsPresentation(selectedOptions, specialty);
           
+          const baseSession = {
+            specialty,
+            records: available,
+            motivo: text,
+            respuestaEmpatica,
+            attempts: 0,
+            selectedOptions,
+            alternativeSpecialty: alternativa,
+            alternativeRecords: availableAlt
+          };
+
+          sessions[from] = presentation.stage === 'confirming-appointment'
+            ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+            : { ...baseSession, stage: 'choosing-from-options' };
+
           // Mensaje diferenciado según si hay alternativas
           let mensajeOpciones = `Para lo que me describes, te recomiendo ver **${specialty}** como primera opción.`;
           if (alternativa && availableAlt.length > 0) {
@@ -4172,20 +4112,8 @@ Te contactaremos pronto para confirmar los detalles finales.`;
             mensajeOpciones += ` Si prefieres un especialista en **${alternativa}**, puedo contactarte cuando haya disponibilidad.`;
           }
 
-          // Establecer stage para pedir datos del paciente
-          sessions[from] = {
-            stage: 'getting-name',
-            specialty,
-            records: available,
-            motivo: text,
-            respuestaEmpatica,
-            attempts: 0,
-            alternativeSpecialty: alternativa,
-            alternativeRecords: availableAlt
-          };
-
           return NextResponse.json({
-            text: `${respuestaEmpatica}\n\n✅ ${mensajeOpciones}\n\n¡Perfecto! Tengo sobrecupos disponibles de **${specialty}**.\n\nPara continuar, necesito algunos datos:\n\n**¿Cuál es tu nombre completo?**`,
+            text: `${respuestaEmpatica}\n\n✅ ${mensajeOpciones}\n\n¡Perfecto! Tengo sobrecupos disponibles de **${specialty}**:\n\n${presentation.text}`,
             session: sessions[from]
           });
           
@@ -4345,18 +4273,38 @@ Ejemplos:
               });
             }
             
-            // Establecer stage para pedir datos del paciente
-            sessions[from] = {
-              stage: 'getting-name',
-              specialty: specialty,
+            // 🆕 SELECCIÓN INTELIGENTE DE OPCIONES  
+            const selectedOptions = selectSmartAppointmentOptions(sobrecuposFuturos);
+            const first = selectedOptions[0].fields;
+            
+            // Obtener información del médico
+            const doctorId = Array.isArray(first["Médico"]) ? first["Médico"][0] : first["Médico"];
+            const doctorInfo = await getDoctorInfo(doctorId);
+            const medicoNombre = doctorInfo.name || 'Médico';
+            
+            // Formatear fecha
+            const fechaFormateada = formatSpanishDate(first.Fecha);
+            const clinica = first["Clínica"] || first["Clinica"] || "Clínica";
+            const direccion = first["Dirección"] || first["Direccion"] || "";
+            
+            // 🚀 OPTIMIZADO: Selección y presentación inteligente
+            const presentation = await createOptionsPresentation(selectedOptions, specialty);
+            
+            const baseSession = {
+              specialty,
               records: sobrecuposFuturos,
               motivo: text,
               respuestaEmpatica: "Por lo que me describes, sería recomendable que veas a un especialista.",
-              attempts: 0
+              attempts: 0,
+              selectedOptions
             };
-            
+
+            sessions[from] = presentation.stage === 'confirming-appointment'
+              ? { ...baseSession, stage: 'awaiting-confirmation', doctorInfo: presentation.doctorInfo, selectedRecord: selectedOptions[0] }
+              : { ...baseSession, stage: 'choosing-from-options' };
+
             return NextResponse.json({
-              text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\n¡Perfecto! Tengo sobrecupos disponibles de **${specialty}**.\n\nPara continuar, necesito algunos datos:\n\n**¿Cuál es tu nombre completo?**`,
+              text: `Por lo que me describes, sería recomendable que veas a un especialista en ${specialty}.\n\n${presentation.text}`,
               session: sessions[from]
             });
             
