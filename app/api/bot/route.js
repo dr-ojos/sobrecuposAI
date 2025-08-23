@@ -5,9 +5,11 @@ import { sobrecuposBot } from '../../../lib/bot/bot-main.ts';
 export async function POST(req) {
   try {
     const body = await req.json();
-    let { message, phone } = body;
+    let { message, phone, sessionId: frontendSessionId } = body;
 
     console.log('📱 Mensaje recibido:', message);
+    console.log('📋 SessionId del frontend:', frontendSessionId);
+    console.log('📋 Phone del frontend:', phone);
 
     if (!message) {
       return new Response(
@@ -21,8 +23,8 @@ export async function POST(req) {
       );
     }
 
-    // Usar phone como sessionId si está disponible, sino usar IP/user-agent como identificador
-    let sessionId = phone;
+    // PRIORIDAD: usar sessionId del frontend, luego phone, luego generar uno
+    let sessionId = frontendSessionId || phone;
     
     if (!sessionId) {
       // Usar una combinación de IP y user-agent para generar sessionId consistente
