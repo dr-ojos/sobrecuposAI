@@ -65,15 +65,21 @@ function createPaymentSummary(session: BotSession, sessionId: string): BotRespon
     patientPhone: patientPhone || '',
     patientEmail: patientEmail || '',
     patientAge: session.patientAge ? session.patientAge.toString() : '',
+    patientSex: session.patientSex || '',
     // Datos de la cita
     doctorName: doctorName,
+    doctorId: Array.isArray(selectedRecord.fields?.Médico) ? selectedRecord.fields.Médico[0] : (selectedRecord.fields?.Médico || ''),
     specialty: session.specialty || '',
     date: fecha,
     time: hora,
     clinic: clinica,
+    clinicAddress: direccion,
+    // IDs críticos para Airtable
+    sobrecupoId: selectedRecord.id || '',
     // Datos de pago
     amount: '2990',
     sessionId: sessionId,
+    motivo: session.motivo || '',
     // Marcadores para pago simulado del bot
     fromChat: 'true'
   });
