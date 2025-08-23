@@ -43,9 +43,23 @@ export class SobrecuposBot {
     console.log(`🔍 Total sesiones en memoria: ${(sessionManager as any).sessions?.size || 0}`);
 
     try {
-      // Si hay sesión activa, procesar según el stage
+      // Si hay sesión activa, verificar compatibilidad de contexto antes de procesar
       if (currentSession?.stage) {
         console.log(`🎯 Procesando stage: ${currentSession.stage} con texto: "${text}"`);
+        
+        // DETECCIÓN INTELIGENTE: Si usuario envía síntomas/especialidades en stages inapropiados, resetear
+        const isNewHealthQuery = this.detectsNewHealthQuery(text);
+        const isInappropriateStage = ['getting-rut', 'getting-age', 'getting-phone', 'getting-email'].includes(currentSession.stage);
+        
+        if (isNewHealthQuery && isInappropriateStage) {
+          console.log(`🔄 SMART RESET: Usuario envió nueva consulta médica en stage ${currentSession.stage}, reseteando sesión`);
+          console.log(`📋 Texto detectado como nueva consulta: "${text}"`);
+          
+          // Eliminar sesión actual y procesar como mensaje inicial
+          sessionManager.deleteSession(from);
+          return NextResponse.json(await this.handleInitialMessage(text, from));
+        }
+        
         const response = await this.handleSessionStage(text, from, currentSession);
         console.log(`📤 Response del stage:`, response ? 'EXISTE' : 'NULL');
         if (response) {
@@ -561,6 +575,38 @@ export class SobrecuposBot {
     return {
       text: "¡Entiendo! 😊 Soy Sobrecupos IA, tu asistente médico personal. Mi especialidad es ayudarte a encontrar citas médicas disponibles. ¿Tienes algún síntoma que te preocupe, algún problema de salud, o necesitas ver algún especialista? ✨"
     };
+  }
+
+  // Detectar si el usuario está enviando una nueva consulta médica
+  private detectsNewHealthQuery(text: string): boolean {
+    const normalizedText = text.toLowerCase().trim();
+    
+    // Patrones de síntomas comunes
+    const symptomPatterns = [
+      // Síntomas visuales
+      /\b(veo borroso|visión borrosa|no veo bien|vista borrosa|ojos|veo mal|visión)\b/,
+      // Dolor
+      /\b(duele|dolor|dolores|duelo|molestia)\b/,
+      // Síntomas generales
+      /\b(pican|picazón|me pica|arde|ardor|hinchazón|inflamado|sangra|sangrado)\b/,
+      // Problemas específicos
+      /\b(tos|fiebre|mareo|náusea|diarrea|estreñimiento|presión alta|diabetes)\b/,
+      // Partes del cuerpo
+      /\b(cabeza|cuello|espalda|brazos|piernas|pecho|estómago|barriga|corazón|pulmones)\b/,
+    ];
+    
+    // Patrones de especialidades
+    const specialtyPatterns = [
+      /\b(cardiólogo|oftalmólogo|ginecólogo|pediatra|dermatólogo|neurólogo|psiquiatra)\b/,
+      /\b(cardiología|oftalmología|ginecología|pediatría|dermatología|neurología|psiquiatría)\b/,
+      /\b(necesito|busco|quiero|tengo que ver)\s+(un|una)?\s*(médico|doctor|especialista)\b/,
+    ];
+    
+    // Verificar patrones
+    const hasSymptoms = symptomPatterns.some(pattern => pattern.test(normalizedText));
+    const hasSpecialty = specialtyPatterns.some(pattern => pattern.test(normalizedText));
+    
+    return hasSymptoms || hasSpecialty;
   }
 }
 
