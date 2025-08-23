@@ -8,6 +8,7 @@ export function handleEmailStage(
   sessionId: string,
   currentSession: BotSession
 ): BotResponse {
+  console.log('🔍 EMAIL-STAGE: Iniciando handleEmailStage');
   if (!validarEmail(text)) {
     const mensajeError = analizarConfusion(text, 'email');
     currentSession.attempts = (currentSession.attempts || 0) + 1;
@@ -37,7 +38,13 @@ export function handleEmailStage(
   }
 
   // Mostrar resumen y crear enlace de pago
-  return createPaymentSummary(updatedSession);
+  console.log('🔍 EMAIL-STAGE: Creando payment summary...');
+  const result = createPaymentSummary(updatedSession);
+  console.log('🔍 EMAIL-STAGE: Payment summary creado:', {
+    hasPaymentButton: !!result.paymentButton,
+    paymentButton: result.paymentButton
+  });
+  return result;
 }
 
 function createPaymentSummary(session: BotSession): BotResponse {
