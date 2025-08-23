@@ -61,6 +61,7 @@ function createPaymentSummary(session: BotSession, sessionId: string): BotRespon
   const paymentParams = new URLSearchParams({
     // Datos del paciente
     patientName: patientName || '',
+    patientRut: session.patientRut || '',
     patientPhone: patientPhone || '',
     patientEmail: patientEmail || '',
     patientAge: session.patientAge ? session.patientAge.toString() : '',

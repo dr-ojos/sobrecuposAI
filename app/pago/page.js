@@ -45,7 +45,12 @@ function PagoContent() {
     addDebugLog(`🔍 window.opener exists: ${!!window.opener}`);
     addDebugLog(`🔍 fromChat param: ${searchParams.get('fromChat')}`);
 
-    if (!data.sobrecupoId || !data.sessionId) {
+    // Para pago simulado del bot, solo necesitamos sessionId y que venga del chat
+    // Para pagos reales, necesitamos sobrecupoId
+    const isValidBotPayment = fromChat && data.sessionId && data.patientName;
+    const isValidRealPayment = data.sobrecupoId && data.sessionId;
+    
+    if (!isValidBotPayment && !isValidRealPayment) {
       setMessage('Enlace de pago inválido o expirado');
       setPaymentStatus('error');
     } else {
