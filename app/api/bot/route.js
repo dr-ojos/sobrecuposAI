@@ -8,7 +8,9 @@ import { detectMedicalCondition, generateMedicalResponse } from '../../../lib/me
 const sessions = {};
 const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutos
 
-// Limpiar sesiones expiradas cada 10 minutos
+// DESHABILITADO en serverless - setInterval no funciona en Vercel
+// TODO: migrar a Redis o Vercel KV para persistencia de sesiones
+/*
 setInterval(() => {
   const now = Date.now();
   Object.keys(sessions).forEach(sessionId => {
@@ -18,11 +20,12 @@ setInterval(() => {
     }
   });
 }, 10 * 60 * 1000);
+*/
 
 // Función para obtener o crear sesión
 function getOrCreateSession(sessionId, sessionData = {}) {
   if (!sessionId) {
-    sessionId = `server_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    sessionId = `server_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }
   
   if (!sessions[sessionId]) {
@@ -457,11 +460,11 @@ function validarRUT(rut) {
   if (!rut || typeof rut !== 'string') return false;
   
   const rutOriginal = rut.trim();
-  console.log('🆔 Validando RUT original:', rutOriginal);
+  console.log('🆔 Validando RUT original:', rutOriginal ? '[RUT_PROVIDED]' : '[NO_RUT]');
   
   // Limpiar RUT: eliminar puntos, guiones y espacios, convertir a mayúsculas
   rut = rut.replace(/[\.\-\s]/g, '').toUpperCase();
-  console.log('🆔 RUT limpio:', rut);
+  console.log('🆔 RUT limpio:', rut ? `[CLEAN_${rut.length}_CHARS]` : '[NO_RUT]');
   
   // Verificar formato básico: al menos 8 dígitos + dígito verificador (número o K)
   if (!/^[0-9]{7,8}[0-9K]$/.test(rut)) {
