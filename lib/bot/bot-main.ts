@@ -99,6 +99,9 @@ export class SobrecuposBot {
       case 'payment-completed':
         return await handlePaymentCompletedStage(text, sessionId, currentSession);
 
+      case 'asking-for-contact-data':
+        return this.handleContactDataStage(text, sessionId, currentSession);
+
       // TODO: Implementar stages restantes si es necesario
       case 'confirming-appointment':
       case 'completed':
@@ -121,6 +124,44 @@ export class SobrecuposBot {
       text: `Stage ${currentSession.stage} aún no migrado. Reiniciando conversación.`,
       session: sessionManager.resetSession(sessionId)
     };
+  }
+
+  // Manejar stage de solicitud de datos de contacto
+  private handleContactDataStage(
+    text: string,
+    sessionId: string,
+    currentSession: BotSession
+  ): BotResponse {
+    const respuestaContacto = text.toLowerCase().trim();
+    const specialty = currentSession.specialty;
+    
+    if (/\b(sí|si|s|yes|ok|vale|claro|perfecto)\b/i.test(respuestaContacto)) {
+      // Usuario quiere que tomemos sus datos - transicionar a getting-name
+      const updatedSession = sessionManager.transitionToStage(sessionId, 'getting-name', {
+        specialty: specialty,
+        // Mantener otros datos importantes de la sesión
+        motivo: currentSession.motivo,
+        respuestaEmpatica: currentSession.respuestaEmpatica
+      });
+
+      if (!updatedSession) {
+        return {
+          text: "Hubo un error procesando tu solicitud. Por favor intenta nuevamente.",
+          session: currentSession
+        };
+      }
+
+      return {
+        text: `Perfecto. Para avisarte cuando haya sobrecupos de **${specialty}** disponibles, necesito que me compartas tu nombre completo.`,
+        session: updatedSession
+      };
+    } else {
+      // Usuario no quiere que tomemos sus datos - finalizar conversación
+      sessionManager.deleteSession(sessionId);
+      return {
+        text: `Entendido. ¡Que te mejores pronto! Si necesitas ayuda médica en el futuro, no dudes en contactarme. 🏥`
+      };
+    }
   }
 
   // Procesar mensaje inicial (sin sesión activa)
@@ -177,13 +218,21 @@ export class SobrecuposBot {
           text, "Entiendo que necesitas atención especializada."
         );
         
-        sessionManager.createSession(sessionId, 'asking-for-contact-data', {
+        const session = sessionManager.createSession(sessionId, 'asking-for-contact-data', {
           specialty: specialty,
-          motivo: text
+          motivo: text,
+          respuestaEmpatica: respuestaEmpatica
+        });
+        
+        console.log(`🔧 Sesión creada para ${sessionId} en asking-for-contact-data:`, {
+          stage: session.stage,
+          specialty: session.specialty,
+          sessionId: sessionId
         });
         
         return {
-          text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver ${specialty}, pero lamentablemente no tengo sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`
+          text: `${respuestaEmpatica}\n\nPor lo que me describes, necesitas ver ${specialty}, pero lamentablemente no tengo sobrecupos disponibles en este momento.\n\n¿Te gustaría que te contacte cuando tengamos disponibilidad?`,
+          session: session
         };
       }
       

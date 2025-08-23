@@ -7,6 +7,8 @@ export class SessionManager {
   // Obtener sesión actual
   getSession(sessionId: string): BotSession | null {
     const session = this.sessions.get(sessionId);
+    console.log(`🔍 SessionManager.getSession(${sessionId}):`, session ? `ENCONTRADA stage=${session.stage}` : 'NO ENCONTRADA');
+    console.log(`🔍 Total sesiones en memoria: ${this.sessions.size}`);
     
     if (session) {
       // Actualizar última actividad
@@ -30,6 +32,11 @@ export class SessionManager {
     };
 
     this.sessions.set(sessionId, session);
+    console.log(`🔧 SessionManager.createSession(${sessionId}, ${stage}):`, {
+      stage: session.stage,
+      totalSessions: this.sessions.size
+    });
+    
     return session;
   }
 
@@ -63,7 +70,9 @@ export class SessionManager {
   cleanExpiredSessions(): void {
     const now = Date.now();
     
-    for (const [sessionId, session] of this.sessions.entries()) {
+    // Convertir a array para evitar problemas de iteración
+    const entries = Array.from(this.sessions.entries());
+    for (const [sessionId, session] of entries) {
       if (session.lastActivity && (now - session.lastActivity) > SESSION_TIMEOUT) {
         console.log(`🧹 Limpiando sesión expirada: ${sessionId}`);
         this.sessions.delete(sessionId);
@@ -81,7 +90,9 @@ export class SessionManager {
     let expired = 0;
     const byStage: Record<string, number> = {};
     
-    for (const session of this.sessions.values()) {
+    // Convertir a array para evitar problemas de iteración
+    const sessions = Array.from(this.sessions.values());
+    for (const session of sessions) {
       if (session.lastActivity && (now - session.lastActivity) > SESSION_TIMEOUT) {
         expired++;
       } else {
