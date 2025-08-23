@@ -29,13 +29,47 @@ function ChatComponent() {
     const savedSession = localStorage.getItem(`chatSession_${id}`);
     if (savedSession) {
       try {
-        setSession(JSON.parse(savedSession));
+        const parsedSession = JSON.parse(savedSession);
+        
+        // Verificar si la sesión es muy antigua (más de 2 horas)
+        const sessionAge = Date.now() - (parsedSession.lastActivity || 0);
+        const maxAge = 2 * 60 * 60 * 1000; // 2 horas
+        
+        if (sessionAge > maxAge) {
+          console.log('🧹 Sesión expirada, iniciando nueva conversación');
+          localStorage.removeItem(`chatSession_${id}`);
+          setSession({});
+        } else {
+          setSession(parsedSession);
+        }
       } catch (error) {
         console.error('Error recuperando sesión:', error);
         setSession({});
       }
     }
   }, []);
+
+  // Función para iniciar nueva conversación
+  const startNewConversation = () => {
+    const newId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
+    // Limpiar localStorage
+    if (sessionId) {
+      localStorage.removeItem(`chatSession_${sessionId}`);
+    }
+    localStorage.setItem('chatSessionId', newId);
+    
+    // Resetear estado
+    setSessionId(newId);
+    setSession({});
+    setMessages([{
+      from: "bot",
+      text: "Hola! Soy Sobrecupos IA. ¿En qué puedo ayudarte hoy?",
+      timestamp: new Date()
+    }]);
+    
+    console.log('🔄 Nueva conversación iniciada con ID:', newId);
+  };
 
   // Guardar sesión cuando cambie
   useEffect(() => {
@@ -537,7 +571,7 @@ function ChatComponent() {
     <main className="chat-container">
       {/* Header Minimalista */}
       <header className="chat-header">
-        <div className="header-content">
+        <div className="header-content" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%'}}>
           <div className="header-left">
             <button onClick={handleBackClick} className="back-button">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -555,6 +589,41 @@ function ChatComponent() {
                 </span>
               </div>
             </div>
+          </div>
+          
+          <div className="header-right">
+            <button 
+              onClick={startNewConversation} 
+              className="new-chat-button"
+              title="Nueva conversación"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '6px 12px',
+                backgroundColor: 'transparent',
+                border: '1px solid #e0e0e0',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                color: '#666',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = '#f5f5f5';
+                e.target.style.borderColor = '#ccc';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.borderColor = '#e0e0e0';
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Nueva</span>
+            </button>
           </div>
         </div>
       </header>
