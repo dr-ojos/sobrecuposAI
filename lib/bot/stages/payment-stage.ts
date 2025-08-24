@@ -72,7 +72,7 @@ export async function handlePaymentCompletedStage(
   return await createFinalConfirmation(currentSession);
 }
 
-async function createFinalConfirmation(session: BotSession): Promise<BotResponse> {
+export async function createFinalConfirmation(session: BotSession): Promise<BotResponse> {
   const { 
     patientName, 
     selectedRecord, 
