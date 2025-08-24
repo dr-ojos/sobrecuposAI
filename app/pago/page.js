@@ -86,6 +86,11 @@ function PagoContent() {
           setMessage('Confirmando reserva...');
 
           // Confirmar reserva en backend
+          addDebugLog('🚨 CRÍTICO: Llamando a /api/payment/confirm...');
+          console.log('🚨 PaymentData completo:', JSON.stringify(paymentData, null, 2));
+          console.log('🚨 SessionId:', paymentData.sessionId);
+          console.log('🚨 TransactionId:', transactionId);
+          
           const response = await fetch('/api/payment/confirm', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -97,9 +102,13 @@ function PagoContent() {
             })
           });
 
+          addDebugLog(`🚨 Response status: ${response.status}`);
+          addDebugLog(`🚨 Response ok: ${response.ok}`);
+          
           if (response.ok) {
             const result = await response.json();
             addDebugLog('🎉 Reserva confirmada exitosamente');
+            console.log('🎉 Resultado:', JSON.stringify(result, null, 2));
             
             // Enviar mensaje de éxito al chat padre
             if (window.opener) {
@@ -150,7 +159,9 @@ function PagoContent() {
           }
           
         } catch (error) {
-          addDebugLog('❌ Error en pago simulado:', error);
+          addDebugLog(`❌ Error en pago simulado: ${error.message}`);
+          console.error('❌ Error completo:', error);
+          console.error('❌ Stack:', error.stack);
           setPaymentStatus('error');
           setMessage('Error procesando el pago simulado');
           setProcessing(false);
