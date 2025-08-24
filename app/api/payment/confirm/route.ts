@@ -52,14 +52,18 @@ export async function POST(req) {
       if (AIRTABLE_API_KEY && AIRTABLE_BASE_ID && AIRTABLE_PATIENTS_TABLE) {
         console.log('👤 Creando paciente con campos correctos...');
         
-        // USAR SOLO CAMPOS BÁSICOS CONFIRMADOS
+        // USAR TODOS LOS CAMPOS DISPONIBLES EN TABLA PACIENTE
         const patientData = {
           Nombre: patientName,
+          Edad: patientAge,
           RUT: patientRut,
           Telefono: patientPhone,
           Email: patientEmail,
-          Edad: patientAge,
-          'Motivo Consulta': paymentData.motivo || ''
+          'Fecha Reserva': new Date().toISOString().split('T')[0],
+          'Fecha Registro': new Date().toISOString().split('T')[0],
+          'Motivo Consulta': paymentData.motivo || '',
+          'Estado Pago': 'Pagado',
+          'ID Transaccion': transactionId
         };
 
         try {
