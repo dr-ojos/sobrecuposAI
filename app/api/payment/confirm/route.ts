@@ -567,6 +567,14 @@ export async function POST(req) {
               const doctorEmail = doctorData.fields?.Email;
               const doctorWhatsApp = doctorData.fields?.WhatsApp;
               
+              console.log('🔍 === ANÁLISIS DATOS DEL MÉDICO ===');
+              console.log('🔍 doctorData completo:', JSON.stringify(doctorData, null, 2));
+              console.log('🔍 doctorData.fields:', JSON.stringify(doctorData.fields, null, 2));
+              console.log('🔍 doctorEmail extraído:', doctorEmail);
+              console.log('🔍 doctorWhatsApp extraído:', doctorWhatsApp);
+              console.log('🔍 typeof doctorEmail:', typeof doctorEmail);
+              console.log('🔍 typeof doctorWhatsApp:', typeof doctorWhatsApp);
+              console.log('🔍 === FIN ANÁLISIS MÉDICO ===');
               console.log(`👨‍⚕️ Doctor encontrado - Email: ${doctorEmail || 'No configurado'}, WhatsApp: ${doctorWhatsApp || 'No configurado'}`);
               
               // Preparar template del médico
@@ -596,6 +604,23 @@ export async function POST(req) {
               console.log('🔧 paymentData.time:', paymentData.time);
               console.log('🔧 paymentData.clinic:', paymentData.clinic);
               console.log('🔧 === FIN DATOS NOTIFICACIONES ===');
+              
+              // Validación crítica antes de NotificationService
+              console.log('🚨 === VALIDACIÓN PRE-NOTIFICACIÓN ===');
+              console.log('🚨 ¿Email disponible?:', !!doctorEmail);
+              console.log('🚨 ¿WhatsApp disponible?:', !!doctorWhatsApp);
+              console.log('🚨 ¿Al menos uno disponible?:', !!(doctorEmail || doctorWhatsApp));
+              
+              if (!doctorEmail && !doctorWhatsApp) {
+                console.error('🚨 CRÍTICO: No hay email ni WhatsApp del médico - NotificationService no enviará nada');
+              } else if (!doctorEmail) {
+                console.warn('⚠️ AVISO: Solo WhatsApp disponible, email será omitido');
+              } else if (!doctorWhatsApp) {
+                console.warn('⚠️ AVISO: Solo email disponible, WhatsApp será omitido');
+              } else {
+                console.log('✅ PERFECTO: Email y WhatsApp disponibles');
+              }
+              console.log('🚨 === FIN VALIDACIÓN ===');
               
               const { NotificationService } = require('../../../lib/notification-service.js');
               const notificationService = new NotificationService({
