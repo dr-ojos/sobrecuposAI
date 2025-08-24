@@ -84,11 +84,15 @@ export async function POST(req) {
             results.patientCreated = true;
             console.log(`✅ Paciente creado en Airtable: ${data.id}`);
             
-            // 2. ACTUALIZAR SOBRECUPO
-            if (paymentData.sobrecupoId && AIRTABLE_TABLE_ID) {
+            // 2. ACTUALIZAR SOBRECUPO EN TABLA Sobrecupostest
+            if (paymentData.sobrecupoId) {
+              console.log('📋 Actualizando sobrecupo en tabla Sobrecupostest...');
+              console.log('📋 SobrecupoId:', paymentData.sobrecupoId);
+              
               try {
+                // Usar tabla Sobrecupostest directamente
                 const sobrecupoResponse = await fetch(
-                  `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${paymentData.sobrecupoId}`,
+                  `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Sobrecupostest/${paymentData.sobrecupoId}`,
                   {
                     method: 'PATCH',
                     headers: {
@@ -97,10 +101,7 @@ export async function POST(req) {
                     },
                     body: JSON.stringify({
                       fields: {
-                        'Disponible': false,
-                        'Estado': 'Reservado',
-                        'Paciente': data.id,
-                        'Fecha Reserva': new Date().toISOString()
+                        'Disponible': 'No'
                       }
                     }),
                   }
@@ -108,7 +109,10 @@ export async function POST(req) {
 
                 if (sobrecupoResponse.ok) {
                   results.sobrecupoUpdated = true;
-                  console.log('✅ Sobrecupo actualizado');
+                  console.log('✅ Sobrecupo marcado como No disponible');
+                } else {
+                  const errorText = await sobrecupoResponse.text();
+                  console.error('❌ Error actualizando sobrecupo:', errorText);
                 }
               } catch (error) {
                 console.error('❌ Error actualizando sobrecupo:', error);
