@@ -66,8 +66,8 @@ export async function POST(req: Request) {
           // PASO 3: Buscar doctor en diferentes tablas
           console.log('🔍 PASO 3: Buscando médico en tablas...');
           const DOCTOR_TABLES = ['Doctors', 'Médicos', 'Medicos', 'Doctor'];
-          let doctorData = null;
-          let foundInTable = null;
+          let doctorData: any = null;
+          let foundInTable: string | null = null;
 
           for (const tableName of DOCTOR_TABLES) {
             try {
