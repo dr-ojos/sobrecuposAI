@@ -65,11 +65,11 @@ export async function POST(req) {
 
     // 2. PROBAR BÚSQUEDA DE MÉDICO
     log('👨‍⚕️ === PROBANDO BÚSQUEDA DE MÉDICO ===');
-    const DOCTOR_TABLES = [envVars.AIRTABLE_DOCTORS_TABLE, 'Doctors', 'Médicos', 'Medicos', 'Doctor'].filter(Boolean);
+    const DOCTOR_TABLES = [envVars.AIRTABLE_DOCTORS_TABLE, 'Doctors', 'Médicos', 'Medicos', 'Doctor'].filter(Boolean) as string[];
     log(`🔧 Tablas a probar: ${DOCTOR_TABLES.join(', ')}`);
 
     let doctorData: any = null;
-    let foundInTable = null;
+    let foundInTable: string | null = null;
 
     for (const tableName of DOCTOR_TABLES) {
       try {
