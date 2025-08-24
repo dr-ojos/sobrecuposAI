@@ -458,7 +458,7 @@ export async function POST(req) {
         direccion: paymentData.clinicAddress || '',
         especialidad: paymentData.specialty || '',
         patientRut: patientRut,
-        patientAge: patientAge,
+        patientAge: patientAge || 0,
         patientPhone: patientPhone
       };
 
@@ -509,13 +509,12 @@ export async function POST(req) {
           try {
             // Probar diferentes nombres de tabla de médicos
             const DOCTOR_TABLES = ['Doctors', 'Médicos', 'Medicos', 'Doctor'];
-            let doctorData = null;
-            let doctorResponse = null;
+            let doctorData: any = null;
             
             for (const tableName of DOCTOR_TABLES) {
               try {
                 console.log(`🔍 Intentando buscar médico en tabla: ${tableName}`);
-                doctorResponse = await fetch(
+                const doctorResponse = await fetch(
                   `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${tableName}/${doctorId}`,
                   { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
                 );
@@ -525,7 +524,7 @@ export async function POST(req) {
                   console.log(`✅ Médico encontrado en tabla: ${tableName}`);
                   break;
                 }
-              } catch (error) {
+              } catch (error: any) {
                 console.log(`❌ Tabla ${tableName} no existe o error:`, error.message);
                 continue;
               }
@@ -545,7 +544,7 @@ export async function POST(req) {
                   patientRut: patientRut,
                   patientPhone: patientPhone,
                   patientEmail: patientEmail,
-                  patientAge: patientAge,
+                  patientAge: patientAge || 0,
                   fecha: paymentData.date || '',
                   hora: paymentData.time || '',
                   especialidad: paymentData.specialty || '',
