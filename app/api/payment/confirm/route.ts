@@ -893,58 +893,135 @@ _Sistema Sobrecupos_`;
         const appointmentDateTime = `${paymentData.date} ${paymentData.time}`;
         const bookingUrl = `https://sobrecupos-ai-esb7.vercel.app/booking/${transactionId}`;
         
-        // Email profesional al médico
+        // Email profesional al médico usando plantilla de ejemplos/medico.eml
         const professionalEmailHtml = `
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Nueva Reserva Confirmada - Sistema Profesional</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuevo Sobrecupo Confirmado</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    ${SANDBOX_MODE ? '<div style="background: #ff6b6b; color: white; padding: 10px; text-align: center; font-weight: bold;">🧪 MODO SANDBOX - EMAIL DE PRUEBA</div>' : ''}
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+  ${SANDBOX_MODE ? '<div style="background: #ff6b6b; color: white; padding: 10px; text-align: center; font-weight: bold; margin-bottom: 20px;">🧪 MODO SANDBOX - EMAIL DE PRUEBA</div>' : ''}
+  
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);">
     
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h1 style="color: #dc2626; margin: 0 0 10px 0;">🏥 Nueva Reserva Confirmada</h1>
-        <p style="margin: 0; font-size: 18px; font-weight: bold;">Dr/a. ${paymentData.doctorName || 'Doctor'}</p>
-        <p style="margin: 5px 0 0 0; color: #666;">Booking ID: ${transactionId}</p>
-    </div>
-    
-    <div style="background: white; padding: 20px; border: 2px solid #dc2626; border-radius: 10px; margin-bottom: 20px;">
-        <h2 style="color: #dc2626; margin-top: 0;">📅 Detalles de la Cita</h2>
+    <!-- Content -->
+    <div style="padding: 2rem;">
+      
+      <!-- Greeting -->
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="margin: 0 0 0.5rem 0; color: #171717; font-size: 1.25rem; font-weight: 600;">
+          ¡Hola Dr/a. ${paymentData.doctorName || 'Doctor'}!
+        </h2>
+        <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">
+          Tienes un nuevo sobrecupo disponible para tu agenda.
+        </p>
+      </div>
+
+      <!-- Success Badge -->
+      <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+        <span style="color: #0369a1; font-size: 1rem; font-weight: 600;">
+          🎉 ¡Nuevo Sobrecupo Confirmado!
+        </span>
+      </div>
+
+      <!-- Appointment Details -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          📅 Detalles de la Cita
+        </h3>
         <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px 0; font-weight: bold;">Fecha y Hora:</td><td>${appointmentDateTime} (Zona: America/Santiago)</td></tr>
-            <tr><td style="padding: 8px 0; font-weight: bold;">Especialidad:</td><td>${paymentData.specialty || 'No especificada'}</td></tr>
-            <tr><td style="padding: 8px 0; font-weight: bold;">Clínica:</td><td>${paymentData.clinic || 'No especificada'}</td></tr>
-            <tr><td style="padding: 8px 0; font-weight: bold;">Precio Pagado:</td><td>$${paymentData.amount || '2990'}</td></tr>
-            ${paymentData.motivo ? `<tr><td style="padding: 8px 0; font-weight: bold;">Motivo:</td><td>${paymentData.motivo}</td></tr>` : ''}
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Fecha:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${appointmentDateTime}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Hora:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${paymentData.time || 'No especificada'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Especialidad:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${paymentData.specialty || 'No especificada'}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Clínica:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${paymentData.clinic || 'No especificada'}</td>
+          </tr>
+          ${paymentData.amount ? `<tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Precio:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">$${paymentData.amount}</td>
+          </tr>` : ''}
         </table>
-    </div>
-    
-    <div style="background: white; padding: 20px; border: 2px solid #059669; border-radius: 10px; margin-bottom: 20px;">
-        <h2 style="color: #059669; margin-top: 0;">👤 Datos del Paciente</h2>
+      </div>
+
+      <!-- Patient Details -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          👤 Datos del Paciente
+        </h3>
         <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px 0; font-weight: bold;">Nombre:</td><td>${patientName}</td></tr>
-            ${patientRut ? `<tr><td style="padding: 8px 0; font-weight: bold;">RUT:</td><td>${patientRut}</td></tr>` : ''}
-            ${patientPhone ? `<tr><td style="padding: 8px 0; font-weight: bold;">Teléfono:</td><td>${patientPhone}</td></tr>` : ''}
-            ${patientEmail ? `<tr><td style="padding: 8px 0; font-weight: bold;">Email:</td><td>${patientEmail}</td></tr>` : ''}
-            ${patientAge ? `<tr><td style="padding: 8px 0; font-weight: bold;">Edad:</td><td>${patientAge} años</td></tr>` : ''}
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Nombre:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${patientName}</td>
+          </tr>
+          ${patientRut ? `<tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">RUT:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${patientRut}</td>
+          </tr>` : ''}
+          ${patientPhone ? `<tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Teléfono:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${patientPhone}</td>
+          </tr>` : ''}
+          ${patientEmail ? `<tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Email:</td>
+            <td style="padding: 0.5rem 0; color: #0369a1; font-size: 0.9rem;">${patientEmail}</td>
+          </tr>` : ''}
+          ${patientAge ? `<tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Edad:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${patientAge} años</td>
+          </tr>` : ''}
+          ${paymentData.motivo ? `<tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Motivo:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${paymentData.motivo}</td>
+          </tr>` : ''}
         </table>
+      </div>
+
+      <!-- Status Confirmation -->
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1rem; text-align: center; margin-bottom: 1.5rem;">
+        <span style="color: #166534; font-size: 0.9rem; font-weight: 600;">
+          ✅ El paciente ha confirmado su asistencia
+        </span>
+        <br><small style="color: #666; font-size: 0.8rem;">Booking ID: ${transactionId}</small>
+      </div>
+
     </div>
-    
-    <div style="text-align: center; margin: 20px 0;">
-        <a href="${bookingUrl}" style="display: inline-block; background: #dc2626; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-            🔗 Ver Detalles de la Reserva
-        </a>
+
+    <!-- Footer -->
+    <div style="background: #f9fafb; border-top: 1px solid #e5e5e5; padding: 1.5rem; text-align: center;">
+      <p style="margin: 0 0 0.5rem 0; color: #666; font-size: 0.85rem;">
+        Este es un mensaje automático del sistema
+      </p>
+      <p style="margin: 0 0 1rem 0; color: #0369a1; font-size: 0.9rem; font-weight: 600;">
+        contacto@sobrecupos.com
+      </p>
+      
+      <!-- Sobrecupo gestionado por logo -->
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <span style="color: #666; font-size: 0.85rem;">Gestionado por</span>
+        <svg width="130" height="auto" viewBox="0 0 1000 413" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+          <g transform="translate(0.000000,413.000000) scale(0.100000,-0.100000)" stroke="none">
+            <path fill="#dc2626" d="M1173 2946 c-132 -32 -280 -149 -337 -267 -75 -156 -75 -342 1 -493 19 -38 117 -144 382 -411 196 -198 361 -361 366 -363 10 -2 821 806 938 935 47 52 57 69 57 99 0 51 -53 104 -105 104 -32 0 -47 -10 -123 -82 -48 -45 -139 -135 -202 -199 -63 -64 -167 -165 -230 -225 -139 -132 -189 -156 -324 -156 -167 0 -220 29 -407 219 -175 178 -194 211 -194 328 0 67 4 89 28 137 32 65 90 121 156 151 64 30 187 30 252 1 45 -21 254 -205 283 -249 14 -21 11 -26 -55 -95 l-70 -74 -102 101 c-129 127 -151 143 -194 143 -50 0 -103 -54 -103 -104 0 -33 13 -50 133 -178 168 -180 217 -206 321 -176 34 10 92 62 346 313 343 340 344 340 480 340 124 -1 219 -59 278 -170 23 -43 27 -62 27 -140 0 -78 -4 -96 -27 -140 -19 -36 -165 -188 -517 -540 -270 -269 -491 -495 -491 -500 0 -14 133 -145 146 -145 21 0 1005 1003 1035 1055 48 82 69 165 69 269 0 150 -47 268 -146 370 -100 102 -231 156 -381 156 -173 0 -259 -43 -442 -220 l-134 -129 -131 125 c-141 135 -195 173 -295 204 -73 23 -205 26 -288 6z"/>
+            <path fill="#171717" d="M4440 2285 l0 -485 105 0 105 0 0 30 0 31 38 -30 c135 -107 369 -24 428 152 22 65 22 169 0 234 -23 68 -83 135 -153 169 -95 47 -224 34 -290 -28 l-23 -21 0 216 0 217 -105 0 -105 0 0 -485z m411 -71 c40 -20 73 -92 63 -137 -24 -113 -149 -151 -230 -71 -59 59 -47 163 25 207 33 21 103 22 142 1z"/>
+            <path fill="#171717" d="M3377 2409 c-114 -27 -188 -122 -173 -225 10 -75 54 -118 141 -138 84 -20 106 -28 115 -46 8 -14 8 -26 0 -40 -16 -30 -99 -27 -168 5 -30 14 -55 25 -57 25 -5 0 -75 -132 -75 -141 0 -3 28 -19 62 -34 84 -38 209 -46 294 -19 117 37 183 145 154 253 -20 74 -49 95 -199 142 -53 17 -71 40 -51 64 13 16 47 17 150 3 21 -3 29 5 57 57 17 33 28 63 24 68 -12 12 -142 37 -191 36 -25 -1 -62 -5 -83 -10z"/>
+          </g>
+        </svg>
+      </div>
     </div>
-    
-    <div style="background: #fef3c7; padding: 15px; border-radius: 10px;">
-        <p style="margin: 0; font-weight: bold; color: #92400e;">✅ El paciente ha confirmado su asistencia y completado el pago.</p>
-    </div>
-    
-    <div style="text-align: center; margin-top: 20px; color: #666;">
-        <p>🚀 Sistema Profesional Sobrecupos<br>contacto@sobrecupos.com</p>
-    </div>
+
+  </div>
 </body>
 </html>`;
 
