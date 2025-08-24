@@ -208,10 +208,10 @@ const AgendarSobrecuposContent = () => {
       return;
     }
 
-    // Validar RUT (formato básico)
-    const rutRegex = /^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/;
+    // Validar RUT (formato con o sin puntos)
+    const rutRegex = /^(\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]|\d{7,8}-[\dkK])$/;
     if (!rutRegex.test(reservationData.rut)) {
-      setMessage('Por favor ingresa un RUT válido (formato: 12.345.678-9)');
+      setMessage('Por favor ingresa un RUT válido (ejemplo: 12.345.678-9 o 12345678-9)');
       return;
     }
 
@@ -898,7 +898,7 @@ const AgendarSobrecuposContent = () => {
                       value={reservationData.rut}
                       onChange={(e) => setReservationData(prev => ({ ...prev, rut: e.target.value }))}
                       className="field-input"
-                      placeholder="12.345.678-9"
+                      placeholder="12345678-9 o 12.345.678-9"
                       disabled={reservationLoading}
                       required
                     />

@@ -5,22 +5,24 @@ export async function POST(req) {
   try {
     const { 
       sobrecupoId, 
+      sessionId,
       patientData, 
       appointmentData, 
-      paymentAmount = "2990" // Precio por defecto actualizado
+      amount = "2990" // Precio por defecto actualizado
     } = await req.json();
 
-    console.log('💳 Simulando pago:', {
+    console.log('🎭 [SIMULATE] Simulando pago desde agendar:', {
       sobrecupoId,
-      amount: paymentAmount,
-      patient: patientData.name
+      sessionId,
+      amount,
+      patientName: patientData?.name
     });
 
-    // Validar datos requeridos
-    if (!sobrecupoId || !patientData || !paymentAmount) {
+    // Validar datos requeridos para simulación desde agendar
+    if (!sobrecupoId || !sessionId || !patientData?.name || !patientData?.email) {
       return NextResponse.json({
         success: false,
-        error: 'Datos incompletos para el pago'
+        error: 'Datos incompletos para la simulación de pago'
       }, { status: 400 });
     }
 
@@ -32,20 +34,25 @@ export async function POST(req) {
 
     if (paymentSuccess) {
       // Generar ID de transacción simulado
-      const transactionId = `TXN_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const transactionId = `SIM_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       
-      console.log('✅ Pago simulado exitoso:', transactionId);
+      console.log('✅ [SIMULATE] Pago simulado exitoso:', transactionId);
+
+      // Construir URL de retorno para el flujo desde agendar
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'https://sobrecupos-ai-esb7.vercel.app';
+      const returnUrl = `${baseUrl}/reserva-exitosa?transactionId=${transactionId}&sessionId=${sessionId}&simulated=true`;
 
       return NextResponse.json({
         success: true,
         transactionId,
+        url: returnUrl, // URL para redirección
         paymentDetails: {
-          amount: paymentAmount,
+          amount,
           currency: 'CLP',
-          method: 'Tarjeta simulada',
+          method: 'Pago simulado (Demo)',
           timestamp: new Date().toISOString()
         },
-        message: '¡Pago procesado exitosamente!'
+        message: '¡Simulación de pago exitosa!'
       });
 
     } else {

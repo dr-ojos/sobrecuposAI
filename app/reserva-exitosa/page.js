@@ -6,9 +6,65 @@ function ReservaExitosaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [reservaData, setReservaData] = useState(null);
+  const [confirmingReservation, setConfirmingReservation] = useState(false);
+  const [confirmationError, setConfirmationError] = useState(null);
 
   useEffect(() => {
-    // Obtener datos de la reserva desde URL params
+    const transactionId = searchParams.get('transactionId');
+    const sessionId = searchParams.get('sessionId');
+    const isSimulated = searchParams.get('simulated') === 'true';
+
+    // Si es un pago simulado desde agendar, confirmar automáticamente
+    if (transactionId && sessionId && isSimulated) {
+      console.log('🎭 Confirmación automática de pago simulado:', {
+        transactionId,
+        sessionId
+      });
+
+      setConfirmingReservation(true);
+      
+      // Confirmar en el backend
+      const confirmReservation = async () => {
+        try {
+          const response = await fetch('/api/payment/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              transactionId,
+              sessionId,
+              paymentData: {
+                // Datos básicos para la confirmación
+                patientName: searchParams.get('patient') || 'Paciente',
+                doctorName: searchParams.get('doctor') || 'Doctor',
+                specialty: searchParams.get('specialty') || 'Medicina General',
+                date: searchParams.get('date') || new Date().toLocaleDateString(),
+                time: searchParams.get('time') || '10:00 AM',
+                clinic: searchParams.get('clinic') || 'Clínica',
+                amount: searchParams.get('amount') || '2990'
+              },
+              isSimulated: true
+            })
+          });
+
+          if (response.ok) {
+            console.log('✅ Reserva confirmada automáticamente');
+            // Continuar con el flujo normal
+          } else {
+            console.error('❌ Error confirmando reserva automática');
+            setConfirmationError('Error confirmando la reserva automáticamente');
+          }
+        } catch (error) {
+          console.error('❌ Error en confirmación automática:', error);
+          setConfirmationError('Error de conexión al confirmar reserva');
+        } finally {
+          setConfirmingReservation(false);
+        }
+      };
+
+      confirmReservation();
+    }
+
+    // Obtener datos de la reserva desde URL params (compatibilidad con flujo anterior)
     const data = {
       doctorName: searchParams.get('doctor') || 'Doctor',
       specialty: searchParams.get('specialty') || 'Especialidad',
@@ -16,8 +72,9 @@ function ReservaExitosaContent() {
       time: searchParams.get('time') || 'Hora',
       clinic: searchParams.get('clinic') || 'Clínica',
       patientName: searchParams.get('patient') || 'Paciente',
-      transactionId: searchParams.get('transactionId') || 'N/A',
-      amount: searchParams.get('amount') || '2990'
+      transactionId: transactionId || 'N/A',
+      amount: searchParams.get('amount') || '2990',
+      isSimulated: isSimulated
     };
     
     setReservaData(data);
@@ -33,6 +90,33 @@ function ReservaExitosaContent() {
         <div className="loading">
           <div className="spinner"></div>
           <p>Cargando confirmación...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (confirmingReservation) {
+    return (
+      <div className="container">
+        <div className="loading">
+          <div className="spinner"></div>
+          <h2>Confirmando tu reserva...</h2>
+          <p>Procesando pago y notificando al médico</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (confirmationError) {
+    return (
+      <div className="container">
+        <div className="loading error-state">
+          <div className="error-icon">⚠️</div>
+          <h2>Error en la confirmación</h2>
+          <p>{confirmationError}</p>
+          <button onClick={() => router.push('/')} className="back-button">
+            Volver al inicio
+          </button>
         </div>
       </div>
     );
@@ -67,6 +151,11 @@ function ReservaExitosaContent() {
         
         {/* Success Message */}
         <div className="success-container">
+          {reservaData.isSimulated && (
+            <div className="simulation-badge">
+              🎭 PAGO SIMULADO (DEMO)
+            </div>
+          )}
           <div className="success-icon">✅</div>
           <h1 className="success-title">¡Reserva Exitosa!</h1>
           <p className="success-subtitle">Tu sobrecupo ha sido reservado correctamente</p>
@@ -205,6 +294,26 @@ function ReservaExitosaContent() {
         .success-container {
           text-align: center;
           margin-bottom: 2rem;
+          position: relative;
+        }
+
+        .simulation-badge {
+          background: #ff6b6b;
+          color: white;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          display: inline-block;
+          margin-bottom: 1rem;
+          animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
         }
 
         .success-icon {
