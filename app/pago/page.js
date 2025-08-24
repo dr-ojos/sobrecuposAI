@@ -67,7 +67,7 @@ function PagoContent() {
     }
 
     // 🔧 PAGO SIMULADO PARA BOT CHAT
-    if (isFromChat && !paymentData.sobrecupoId) {
+    if (isFromChat) {
       addDebugLog('🎭 === INICIANDO PAGO SIMULADO (BOT CHAT) ===');
       setProcessing(true);
       setPaymentStatus('processing');

@@ -56,7 +56,7 @@ export async function POST(req) {
                   'RUT': paymentData.patientRut,
                   'Telefono': paymentData.patientPhone,
                   'Email': paymentData.patientEmail,
-                  'Edad': paymentData.patientAge,
+                  'Edad': parseInt(paymentData.patientAge) || null,
                   'Transaction ID': transactionId,
                   'Fecha Reserva': new Date().toISOString().split('T')[0],
                   'Estado': 'Confirmado',
