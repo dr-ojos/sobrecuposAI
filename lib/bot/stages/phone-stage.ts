@@ -36,11 +36,8 @@ export function handlePhoneStage(
     };
   }
 
-  // Mensaje humanizado con primer nombre
-  const primerNombre = currentSession.firstName || getFirstName(currentSession.patientName || '');
-  
   return {
-    text: `¡Perfecto, ${primerNombre}! 📧\n\nAhora necesito tu correo electrónico para enviarte la confirmación.\nEjemplo: maria@gmail.com`,
+    text: `Perfecto! 📧\n\nAhora necesito tu correo electrónico para enviarte la confirmación.\nEjemplo: maria@gmail.com`,
     session: updatedSession
   };
 }

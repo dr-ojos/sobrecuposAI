@@ -1,0 +1,350 @@
+Delivered-To: haskala@gmail.com
+Received: by 2002:a05:7110:b11c:b0:274:6a7d:f27f with SMTP id br28csp1238856geb;
+        Wed, 20 Aug 2025 19:14:20 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEbnZ9W+jy6CiubsYIr2OBPoZAdOBCT5gUgtriyxsJ1uOXdTOxVdXrbvvh6kRLwqnugaAKi
+X-Received: by 2002:a05:6e02:1fed:b0:3e5:40e5:bade with SMTP id e9e14a558f8ab-3e6d36acd5fmr17055245ab.3.1755742460660;
+        Wed, 20 Aug 2025 19:14:20 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1755742460; cv=none;
+        d=google.com; s=arc-20240605;
+        b=AAy40KeyTCVgKf0yeW1ccLxowFmGu5HhQCDn4SEuam4wv0t6rYSys/fx/iWrdEuCI4
+         OSRuBkgUpJLNZnX8yUmtxavNF8rcjf3c7+w6V6LgdJ3+rhRCKL16JeMK2sLYLgkEYydm
+         QElQl1m6yXEuEnWMN9LZcehk46pqeMTXVpK/NynIngQSIvd1t9iXy7R0gtYemmUALCA7
+         GDqPHJ+zWNrFy5BemgS814V7wnRm0yBa0HOtpT4ph5psdE1n2NfQivcRPen59IvfM+ag
+         xmi2+ozmbPu7G4LrmU/POHxNVEBGjwMfS7ESOsjbVsobV2rXvRHr5zkMYQaGo6isLL0Y
+         H0iQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:subject:message-id:mime-version:from:date
+         :content-transfer-encoding:dkim-signature;
+        bh=4AXH+50wdSZy0wwvgln6FakGTA4bdMDBCUfRrxk3eDE=;
+        fh=x1VF/VsiVFZK4aY7q4HpwCUNg60TgabQ45j4oG4j+VY=;
+        b=WUeHfUtEzXj9LGJgUOOPd5vQ4HeTBuNaGZU1Nsrx0wV0aS6kOnbmMaH8Bi2/7nIpAm
+         CHgs6jQSp0VVVIyJz8sjVs/sARBiQ2F3RCQsdOSof3BYtmQsqWDlO9BBfUDaknrem+Qg
+         EQg9SiiYDCUCA1BUTjiN6iVDYG8VE06I6DHtZ2EVBqfXPgHPpXxzBYZgnTWmLYJPmcoY
+         rO7GS2XCP07d9k5gOX1L1kMrkr2YKSviYwJoOm83Zv7DdxDLJxrXHy85hkkpiwwmD2Ge
+         pKNGddkB9WWUIbMr6A9MSpDElwm58JIylfcnCd6v+Sw+OUuFLiYIC9aliy9x5RkR/7IG
+         txIQ==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@sendgrid.net header.s=smtpapi header.b=FCUqAaan;
+       spf=pass (google.com: domain of bounces+55192838-bd64-haskala=gmail.com@sendgrid.net designates 159.183.224.105 as permitted sender) smtp.mailfrom="bounces+55192838-bd64-haskala=gmail.com@sendgrid.net"
+Return-Path: <bounces+55192838-bd64-haskala=gmail.com@sendgrid.net>
+Received: from s.wfbtzhsw.outbound-mail.sendgrid.net (s.wfbtzhsw.outbound-mail.sendgrid.net. [159.183.224.105])
+        by mx.google.com with ESMTPS id e9e14a558f8ab-3e5837718efsi159705845ab.131.2025.08.20.19.14.19
+        for <haskala@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 20 Aug 2025 19:14:20 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounces+55192838-bd64-haskala=gmail.com@sendgrid.net designates 159.183.224.105 as permitted sender) client-ip=159.183.224.105;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@sendgrid.net header.s=smtpapi header.b=FCUqAaan;
+       spf=pass (google.com: domain of bounces+55192838-bd64-haskala=gmail.com@sendgrid.net designates 159.183.224.105 as permitted sender) smtp.mailfrom="bounces+55192838-bd64-haskala=gmail.com@sendgrid.net"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sendgrid.net;
+	h=content-transfer-encoding:content-type:date:from:mime-version:subject:
+	to:cc:content-type:date:feedback-id:from:subject:to;
+	s=smtpapi; bh=4AXH+50wdSZy0wwvgln6FakGTA4bdMDBCUfRrxk3eDE=;
+	b=FCUqAaantGRohPmXKDVfH2GeLas5poVYtVkF0twJMfzxBmijRjEnmE9d3oG09LHPYvNA
+	crYtKtbj5W7PhywMtJn0MPRGhlgKWXvEwjEu9Y68XzHH0k+9rjJ2P9oD9RthL7W098oUdG
+	JPeQn46yzVws2q62sARJLcDaJwY/8UNZE=
+Received: by recvd-686fbc5d8-7fng6 with SMTP id recvd-686fbc5d8-7fng6-1-68A680FA-8
+	2025-08-21 02:14:18.360385163 +0000 UTC m=+6686996.176529899
+Received: from NTUxOTI4Mzg (unknown)
+	by geopod-ismtpd-39 (SG) with HTTP
+	id vcRS-ETRSS2D6mrXLVdYUw
+	Thu, 21 Aug 2025 02:14:18.351 +0000 (UTC)
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+Date: Thu, 21 Aug 2025 02:14:18 +0000 (UTC)
+From: Sobrecupos AI <contacto@sobrecupos.com>
+Mime-Version: 1.0
+Message-ID: <vcRS-ETRSS2D6mrXLVdYUw@geopod-ismtpd-39>
+Subject: =?UTF-8?B?8J+pug==?= Pago confirmado - Cita:
+ =?UTF-8?Q?Oftalmolog=C3=ADa?= - jueves, 21 de agosto de 2025
+X-SG-EID: 
+ =?us-ascii?Q?u001=2EzxsoeFx2zd9Ox2uF2qz6NHZ0gN893cDfSCPbD9Txi0O6XGcbdIfN5GpXF?=
+ =?us-ascii?Q?oqYbs2sLLwGjFEgatTG4hBK4djQ4gGP8ZfgIOW=2F?=
+ =?us-ascii?Q?4RFWik4kWdRfDf3CQ1hLs4GYaqjFi5ObQe97MXl?=
+ =?us-ascii?Q?SUuUFDjlQL+jCen9a94LCrJdgGT8b0MfbRQ9UZx?=
+ =?us-ascii?Q?dRzQKauVw0fdOkLpZu1LOXDJz83USIJAj5n7Qkt?=
+ =?us-ascii?Q?PcpxdN2DBP0ULLSZ2twL6hv1CLMCchENDwOGLW5?= =?us-ascii?Q?PY5W?=
+To: Jose =?iso-8859-1?b?UGXxYQ==?= <haskala@gmail.com>
+X-Entity-ID: u001.Kow2M3HI+qdjzRUQdhK4Sg==
+
+
+<!DOCTYPE html>
+<html lang=3D"es">
+<head>
+  <meta charset=3D"UTF-8">
+  <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D=
+1.0">
+  <title>Tu Sobrecupo m=C3=A9dico confirmado!</title>
+</head>
+<body style=3D"margin: 0; padding: 0; background-color: #fafafa; font-famil=
+y: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helveti=
+ca, Arial, sans-serif;">
+  <div style=3D"max-width: 600px; margin: 0 auto; background-color: #ffffff=
+; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0=
+, 0.07);">
+   =20
+    <!-- Content -->
+    <div style=3D"padding: 2rem;">
+     =20
+      <!-- Mensaje Personal del M=C3=A9dico -->
+      <div style=3D"margin-bottom: 1.5rem; background: #f8fafc; border-left=
+: 4px solid #3b82f6; padding: 1.5rem; border-radius: 8px;">
+        <p style=3D"margin: 0; color: #1f2937; font-size: 1rem; line-height=
+: 1.6; font-weight: 500;">
+          Hola Jose, yo Dr. Jos=C3=A9 Pe=C3=B1a, te autoric=C3=A9 Sobrecupo=
+ para el d=C3=ADa jueves, 21 de agosto de 2025 a las 16:00 en Cl=C3=ADnica =
+Davila Las Condes que queda Av. El Bosque Norte 0110.
+        </p>
+        <p style=3D"margin: 0.75rem 0 0 0; color: #1f2937; font-size: 1rem;=
+ line-height: 1.6; font-weight: 600;">
+          Recuerda mostrar esto en caja y pagar tu consulta.
+        </p>
+      </div>
+
+      <!-- Status de Confirmaci=C3=B3n -->
+      <div style=3D"margin-bottom: 1.5rem;">
+        <p style=3D"margin: 0; color: #666; font-size: 1rem; line-height: 1=
+.5;">
+          Tu pago ha sido procesado exitosamente y tu cita est=C3=A1 confir=
+mada.
+        </p>
+      </div>
+
+      <!-- Success Badge -->
+      <div style=3D"background: #f0fdf4; border: 1px solid #bbf7d0; border-=
+radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+        <span style=3D"color: #166534; font-size: 1rem; font-weight: 600;">
+          =E2=9C=85 =C2=A1Cita Confirmada Exitosamente!
+        </span>
+      </div>
+
+      <!-- Appointment Details -->
+      <div style=3D"background: #f9fafb; border-radius: 8px; padding: 1.5re=
+m; margin-bottom: 1.5rem;">
+        <h3 style=3D"margin: 0 0 1rem 0; color: #171717; font-size: 1rem; f=
+ont-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;"=
+>
+          =F0=9F=93=85 Detalles de tu Cita
+        </h3>
+        <table style=3D"width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500; width: 100px;">Especialidad:</td>
+            <td style=3D"padding: 0.5rem 0; color: #171717; font-size: 0.9r=
+em; font-weight: 600;">Oftalmolog=C3=ADa</td>
+          </tr>
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500;">Fecha:</td>
+            <td style=3D"padding: 0.5rem 0; color: #171717; font-size: 0.9r=
+em; font-weight: 600;">jueves, 21 de agosto de 2025</td>
+          </tr>
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500;">Hora:</td>
+            <td style=3D"padding: 0.5rem 0; color: #171717; font-size: 0.9r=
+em; font-weight: 600;">16:00</td>
+          </tr>
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500;">Cl=C3=ADnica:</td>
+            <td style=3D"padding: 0.5rem 0; color: #171717; font-size: 0.9r=
+em;">Cl=C3=ADnica Davila Las Condes</td>
+          </tr>
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500;">Direcci=C3=B3n:</td>
+            <td style=3D"padding: 0.5rem 0; color: #171717; font-size: 0.9r=
+em;">Av. El Bosque Norte 0110</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Patient Data -->
+      <div style=3D"background: #f9fafb; border-radius: 8px; padding: 1.5re=
+m; margin-bottom: 1.5rem;">
+        <h3 style=3D"margin: 0 0 1rem 0; color: #171717; font-size: 1rem; f=
+ont-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;"=
+>
+          =F0=9F=91=A4 Tus Datos
+        </h3>
+        <table style=3D"width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500; width: 100px;">Nombre:</td>
+            <td style=3D"padding: 0.5rem 0; color: #171717; font-size: 0.9r=
+em; font-weight: 600;">Jose Pe=C3=B1a</td>
+          </tr>
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500;">RUT:</td>
+            <td style=3D"padding: 0.5rem 0; color: #171717; font-size: 0.9r=
+em;">13353811-9</td>
+          </tr>
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500;">Tel=C3=A9fono:</td>
+            <td style=3D"padding: 0.5rem 0; color: #171717; font-size: 0.9r=
+em;">+56998029896</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Payment Confirmation -->
+      <div style=3D"background: #f0f9ff; border: 1px solid #bae6fd; border-=
+radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style=3D"margin: 0 0 1rem 0; color: #0369a1; font-size: 1rem; f=
+ont-weight: 600; border-bottom: 2px solid #bae6fd; padding-bottom: 0.5rem;"=
+>
+          =F0=9F=92=B3 Pago Confirmado
+        </h3>
+        <table style=3D"width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500; width: 100px;">Monto:</td>
+            <td style=3D"padding: 0.5rem 0; color: #0369a1; font-size: 0.9r=
+em; font-weight: 600;">$2.990 CLP</td>
+          </tr>
+          <tr>
+            <td style=3D"padding: 0.5rem 0; color: #666; font-size: 0.9rem;=
+ font-weight: 500;">ID Transacci=C3=B3n:</td>
+            <td style=3D"padding: 0.5rem 0; color: #0369a1; font-size: 0.85=
+rem; font-family: monospace;">TXN_1755742456646_5F2QFG</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Recommendations -->
+      <div style=3D"background: #fef3c7; border: 1px solid #fcd34d; border-=
+radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style=3D"margin: 0 0 1rem 0; color: #92400e; font-size: 1rem; f=
+ont-weight: 600; border-bottom: 2px solid #fcd34d; padding-bottom: 0.5rem;"=
+>
+          =F0=9F=93=9D Recomendaciones Importantes
+        </h3>
+        <ul style=3D"margin: 0; padding-left: 1.5rem; color: #92400e; font-=
+size: 0.9rem; line-height: 1.6;">
+          <li style=3D"margin-bottom: 0.5rem;"><strong>Llega 15 minutos ant=
+es</strong> de tu cita</li>
+          <li style=3D"margin-bottom: 0.5rem;">Trae tu <strong>c=C3=A9dula =
+de identidad</strong></li>
+          <li style=3D"margin-bottom: 0.5rem;"><strong>Importante:</strong>=
+ La autorizaci=C3=B3n de Sobrecupos no reemplaza al pago de la consulta, la=
+ cual debe ser cancelada en la consulta despu=C3=A9s de mostrar la autoriza=
+ci=C3=B3n de sobrecupo que te env=C3=ADa tu m=C3=A9dico.</li>
+        </ul>
+      </div>
+
+      <!-- Final Message -->
+      <div style=3D"text-align: center; margin-bottom: 1.5rem;">
+        <p style=3D"margin: 0; color: #171717; font-size: 1rem; font-weight=
+: 600;">
+          =C2=A1Nos vemos pronto! =F0=9F=8E=89
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style=3D"background: #f9fafb; border-top: 1px solid #e5e5e5; paddi=
+ng: 1.5rem; text-align: center;">
+      <p style=3D"margin: 0 0 0.5rem 0; color: #666; font-size: 0.9rem;">
+        Si tienes alguna consulta, escr=C3=ADbenos a
+      </p>
+      <p style=3D"margin: 0 0 1rem 0; color: #0369a1; font-size: 0.9rem; fo=
+nt-weight: 600;">
+        contacto@sobrecupos.com
+      </p>
+     =20
+      <!-- Sobrecupo gestionado por logo -->
+      <div style=3D"display: flex; align-items: center; justify-content: ce=
+nter; gap: 0.5rem; margin-top: 0.25rem;">
+        <span style=3D"color: #666; font-size: 0.85rem;">Gestionado por</sp=
+an>
+        <svg width=3D"130" height=3D"auto" viewBox=3D"0 0 1000 413" xmlns=
+=3D"http://www.w3.org/2000/svg" style=3D"vertical-align: middle;">
+          <g transform=3D"translate(0.000000,413.000000) scale(0.100000,-0.=
+100000)" stroke=3D"none">
+            <path fill=3D"#dc2626" d=3D"M1173 2946 c-132 -32 -280 -149 -337=
+ -267 -75 -156 -75 -342 1 -493 19 -38 117 -144 382 -411 196 -198 361 -361 3=
+66 -363 10 -2 821 806 938 935 47 52 57 69 57 99 0 51 -53 104 -105 104 -32 0=
+ -47 -10 -123 -82 -48 -45 -139 -135 -202 -199 -63 -64 -167 -165 -230 -225 -=
+139 -132 -189 -156 -324 -156 -167 0 -220 29 -407 219 -175 178 -194 211 -194=
+ 328 0 67 4 89 28 137 32 65 90 121 156 151 64 30 187 30 252 1 45 -21 254 -2=
+05 283 -249 14 -21 11 -26 -55 -95 l-70 -74 -102 101 c-129 127 -151 143 -194=
+ 143 -50 0 -103 -54 -103 -104 0 -33 13 -50 133 -178 168 -180 217 -206 321 -=
+176 34 10 92 62 346 313 343 340 344 340 480 340 124 -1 219 -59 278 -170 23 =
+-43 27 -62 27 -140 0 -78 -4 -96 -27 -140 -19 -36 -165 -188 -517 -540 -270 -=
+269 -491 -495 -491 -500 0 -14 133 -145 146 -145 21 0 1005 1003 1035 1055 48=
+ 82 69 165 69 269 0 150 -47 268 -146 370 -100 102 -231 156 -381 156 -173 0 =
+-259 -43 -442 -220 l-134 -129 -131 125 c-141 135 -195 173 -295 204 -73 23 -=
+205 26 -288 6z"/>
+            <path fill=3D"#171717" d=3D"M4440 2285 l0 -485 105 0 105 0 0 30=
+ 0 31 38 -30 c135 -107 369 -24 428 152 22 65 22 169 0 234 -23 68 -83 135 -1=
+53 169 -95 47 -224 34 -290 -28 l-23 -21 0 216 0 217 -105 0 -105 0 0 -485z m=
+411 -71 c40 -20 73 -92 63 -137 -24 -113 -149 -151 -230 -71 -59 59 -47 163 2=
+5 207 33 21 103 22 142 1z"/>
+            <path fill=3D"#171717" d=3D"M3377 2409 c-114 -27 -188 -122 -173=
+ -225 10 -75 54 -118 141 -138 84 -20 106 -28 115 -46 8 -14 8 -26 0 -40 -16 =
+-30 -99 -27 -168 5 -30 14 -55 25 -57 25 -5 0 -75 -132 -75 -141 0 -3 28 -19 =
+62 -34 84 -38 209 -46 294 -19 117 37 183 145 154 253 -20 74 -49 95 -199 142=
+ -53 17 -71 40 -51 64 13 16 47 17 150 3 21 -3 29 5 57 57 17 33 28 63 24 68 =
+-12 12 -142 37 -191 36 -25 -1 -62 -5 -83 -10z"/>
+            <path fill=3D"#171717" d=3D"M3935 2407 c-104 -28 -180 -87 -226 =
+-177 -34 -65 -33 -194 1 -265 32 -65 89 -121 159 -154 50 -23 68 -26 171 -26 =
+103 0 121 3 171 26 70 33 127 89 159 154 34 70 34 189 2 260 -53 115 -164 185=
+ -306 191 -47 2 -102 -2 -131 -9z m183 -193 c42 -27 64 -74 59 -127 -10 -118 =
+-155 -170 -234 -83 -18 19 -35 47 -39 61 -15 61 21 135 80 161 36 16 100 10 1=
+34 -12z"/>
+            <path fill=3D"#171717" d=3D"M6551 2409 c-108 -18 -191 -84 -238 =
+-187 -22 -46 -24 -65 -21 -135 4 -99 30 -158 96 -219 84 -77 205 -106 315 -74=
+ l57 17 0 90 0 90 -28 -15 c-15 -8 -41 -15 -57 -17 -68 -5 -87 1 -126 40 -36 =
+35 -39 43 -39 92 0 66 15 96 59 126 40 27 112 30 151 8 14 -8 28 -14 33 -15 4=
+ 0 7 38 7 86 l0 85 -32 13 c-48 20 -115 25 -177 15z"/>
+            <path fill=3D"#171717" d=3D"M7812 2402 c-29 -11 -64 -30 -77 -42=
+ l-25 -23 0 31 0 32 -105 0 -105 0 0 -450 0 -450 105 0 105 0 0 176 0 176 23 =
+-16 c51 -38 92 -50 167 -50 92 -1 156 29 218 99 52 59 75 129 75 223 -1 61 -6=
+ 83 -32 137 -68 137 -216 204 -349 157z m99 -188 c40 -20 73 -92 63 -137 -24 =
+-113 -149 -151 -230 -71 -41 41 -48 93 -23 156 24 60 123 87 190 52z"/>
+            <path fill=3D"#171717" d=3D"M8465 2407 c-104 -28 -180 -87 -226 =
+-177 -34 -65 -33 -194 1 -265 32 -65 89 -121 159 -154 50 -23 68 -26 171 -26 =
+103 0 121 3 171 26 70 33 127 89 159 154 34 70 34 189 2 260 -53 115 -164 185=
+ -306 191 -47 2 -102 -2 -131 -9z m183 -193 c42 -27 64 -74 59 -127 -10 -118 =
+-155 -170 -234 -83 -18 19 -35 47 -39 61 -15 61 21 135 80 161 36 16 100 10 1=
+34 -12z"/>
+            <path fill=3D"#171717" d=3D"M9148 2406 c-106 -28 -168 -103 -168=
+ -200 0 -93 34 -128 162 -164 91 -26 93 -28 96 -59 3 -28 -1 -33 -23 -39 -40 =
+-10 -108 1 -157 25 -24 11 -47 21 -49 21 -3 0 -21 -32 -39 -71 -34 -70 -34 -7=
+1 -15 -85 11 -8 51 -24 89 -36 55 -17 85 -20 156 -16 110 7 179 40 222 108 27=
+ 41 29 52 26 115 -5 104 -50 151 -169 176 -69 15 -89 25 -89 48 0 32 26 44 83=
+ 38 28 -3 62 -8 74 -12 19 -6 26 1 53 56 38 75 34 81 -64 98 -79 14 -128 13 -=
+188 -3z"/>
+            <path fill=3D"#171717" d=3D"M5533 2400 c-55 -11 -97 -34 -122 -6=
+5 l-20 -26 -3 43 -3 43 -105 0 -105 0 -3 -297 -2 -298 109 0 110 0 3 176 3 17=
+6 39 35 c38 35 39 35 113 31 l74 -5 -3 96 c-3 108 -3 107 -85 91z"/>
+            <path fill=3D"#171717" d=3D"M5819 2396 c-131 -47 -202 -152 -203=
+ -301 0 -188 117 -303 317 -313 147 -7 241 34 296 130 17 29 31 56 31 61 0 4 =
+-45 7 -99 7 -93 0 -102 -2 -127 -25 -49 -46 -160 -30 -190 26 -8 16 -14 39 -1=
+4 54 l0 25 221 0 222 0 -6 65 c-12 126 -82 227 -185 265 -62 24 -205 27 -263 =
+6z m223 -155 c50 -56 43 -61 -91 -61 l-120 0 11 31 c26 75 144 93 200 30z"/>
+            <path fill=3D"#171717" d=3D"M6800 2189 c0 -240 7 -276 61 -330 5=
+5 -55 133 -80 249 -81 125 -1 197 20 255 73 65 60 70 82 70 329 l0 215 -105 0=
+ -105 0 -2 -190 c-2 -115 -7 -198 -14 -211 -25 -49 -119 -60 -166 -20 l-28 24=
+ -3 201 -3 201 -105 0 -104 0 0 -211z"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+<img src=3D"https://u55192838.ct.sendgrid.net/wf/open?upn=3Du001.82SpDrRRDO=
+xHt8YFM9EKbEkCM6gqy0-2BL0tU8dl9G1MN0LJhP1DqwxlJlcirMd7m80E-2F690OQOreE4lZsW=
+0S-2B20-2Fh5gKDlNq5zHiLMtaJyhjOM370rcdGeXVXwVgV-2FuG1R-2FaU5o-2BUWxj8uQyrWI=
+fzvr7BnO0hRA4H1IhBS5QrcTjusDk-2FFL5KBoYu19xEZxyj8-2FRujvbsc-2BOx9o7cW2DwZw-=
+3D-3D" alt=3D"" width=3D"1" height=3D"1" border=3D"0" style=3D"height:1px !=
+important;width:1px !important;border-width:0 !important;margin-top:0 !impo=
+rtant;margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !i=
+mportant;padding-top:0 !important;padding-bottom:0 !important;padding-right=
+:0 !important;padding-left:0 !important;"/></body>
+</html>

@@ -1,6 +1,322 @@
 // API para confirmar pago del bot - USAR LÓGICA PAYMENT STAGE FUNCIONAL
 import { NextResponse } from 'next/server';
 
+// TEMPLATE REAL DEL PACIENTE (copiado exacto de ejemplos/paciente.eml)
+function generateRealPatientEmailTemplate(data: {
+  patientName: string;
+  confirmationNumber: string;
+  doctorName: string;
+  fecha: string;
+  hora: string;
+  clinica: string;
+  direccion: string;
+  especialidad: string;
+  patientRut: string;
+  patientAge: number;
+  patientPhone: string;
+}): string {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu Sobrecupo médico confirmado!</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);">
+    
+    <!-- Content -->
+    <div style="padding: 2rem;">
+      
+      <!-- Mensaje Personal del Médico -->
+      <div style="margin-bottom: 1.5rem; background: #f8fafc; border-left: 4px solid #3b82f6; padding: 1.5rem; border-radius: 8px;">
+        <p style="margin: 0; color: #1f2937; font-size: 1rem; line-height: 1.6; font-weight: 500;">
+          Hola ${data.patientName}, yo Dr. ${data.doctorName}, te autoricé Sobrecupo para el día ${data.fecha} a las ${data.hora} en ${data.clinica} que queda ${data.direccion}.
+        </p>
+        <p style="margin: 0.75rem 0 0 0; color: #1f2937; font-size: 1rem; line-height: 1.6; font-weight: 600;">
+          Recuerda mostrar esto en caja y pagar tu consulta.
+        </p>
+      </div>
+
+      <!-- Status de Confirmación -->
+      <div style="margin-bottom: 1.5rem;">
+        <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">
+          Tu pago ha sido procesado exitosamente y tu cita está confirmada.
+        </p>
+      </div>
+
+      <!-- Success Badge -->
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+        <span style="color: #166534; font-size: 1rem; font-weight: 600;">
+          ✅ ¡Cita Confirmada Exitosamente!
+        </span>
+      </div>
+
+      <!-- Appointment Details -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          📅 Detalles de tu Cita
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Especialidad:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${data.especialidad}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Fecha:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${data.fecha}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Hora:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${data.hora}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Clínica:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.clinica}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Dirección:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.direccion}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Patient Data -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          👤 Tus Datos
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Nombre:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${data.patientName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">RUT:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.patientRut}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Teléfono:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.patientPhone}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Payment Confirmation -->
+      <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #0369a1; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #bae6fd; padding-bottom: 0.5rem;">
+          💳 Pago Confirmado
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Monto:</td>
+            <td style="padding: 0.5rem 0; color: #0369a1; font-size: 0.9rem; font-weight: 600;">$2.990 CLP</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">ID Transacción:</td>
+            <td style="padding: 0.5rem 0; color: #0369a1; font-size: 0.85rem; font-family: monospace;">${data.confirmationNumber}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Recommendations -->
+      <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #92400e; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #fcd34d; padding-bottom: 0.5rem;">
+          📝 Recomendaciones Importantes
+        </h3>
+        <ul style="margin: 0; padding-left: 1.5rem; color: #92400e; font-size: 0.9rem; line-height: 1.6;">
+          <li style="margin-bottom: 0.5rem;"><strong>Llega 15 minutos antes</strong> de tu cita</li>
+          <li style="margin-bottom: 0.5rem;">Trae tu <strong>cédula de identidad</strong></li>
+          <li style="margin-bottom: 0.5rem;"><strong>Importante:</strong> La autorización de Sobrecupos no reemplaza al pago de la consulta, la cual debe ser cancelada en la consulta después de mostrar la autorización de sobrecupo que te envía tu médico.</li>
+        </ul>
+      </div>
+
+      <!-- Final Message -->
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <p style="margin: 0; color: #171717; font-size: 1rem; font-weight: 600;">
+          ¡Nos vemos pronto! 🎉
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="background: #f9fafb; border-top: 1px solid #e5e5e5; padding: 1.5rem; text-align: center;">
+      <p style="margin: 0 0 0.5rem 0; color: #666; font-size: 0.9rem;">
+        Si tienes alguna consulta, escríbenos a
+      </p>
+      <p style="margin: 0 0 1rem 0; color: #0369a1; font-size: 0.9rem; font-weight: 600;">
+        contacto@sobrecupos.com
+      </p>
+      
+      <!-- Sobrecupo gestionado por logo -->
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <span style="color: #666; font-size: 0.85rem;">Gestionado por</span>
+        <svg width="130" height="auto" viewBox="0 0 1000 413" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+          <g transform="translate(0.000000,413.000000) scale(0.100000,-0.100000)" stroke="none">
+            <path fill="#dc2626" d="M1173 2946 c-132 -32 -280 -149 -337 -267 -75 -156 -75 -342 1 -493 19 -38 117 -144 382 -411 196 -198 361 -361 366 -363 10 -2 821 806 938 935 47 52 57 69 57 99 0 51 -53 104 -105 104 -32 0 -47 -10 -123 -82 -48 -45 -139 -135 -202 -199 -63 -64 -167 -165 -230 -225 -139 -132 -189 -156 -324 -156 -167 0 -220 29 -407 219 -175 178 -194 211 -194 328 0 67 4 89 28 137 32 65 90 121 156 151 64 30 187 30 252 1 45 -21 254 -205 283 -249 14 -21 11 -26 -55 -95 l-70 -74 -102 101 c-129 127 -151 143 -194 143 -50 0 -103 -54 -103 -104 0 -33 13 -50 133 -178 168 -180 217 -206 321 -176 34 10 92 62 346 313 343 340 344 340 480 340 124 -1 219 -59 278 -170 23 -43 27 -62 27 -140 0 -78 -4 -96 -27 -140 -19 -36 -165 -188 -517 -540 -270 -269 -491 -495 -491 -500 0 -14 133 -145 146 -145 21 0 1005 1003 1035 1055 48 82 69 165 69 269 0 150 -47 268 -146 370 -100 102 -231 156 -381 156 -173 0 -259 -43 -442 -220 l-134 -129 -131 125 c-141 135 -195 173 -295 204 -73 23 -205 26 -288 6z"/>
+            <path fill="#171717" d="M4440 2285 l0 -485 105 0 105 0 0 30 0 31 38 -30 c135 -107 369 -24 428 152 22 65 22 169 0 234 -23 68 -83 135 -153 169 -95 47 -224 34 -290 -28 l-23 -21 0 216 0 217 -105 0 -105 0 0 -485z m411 -71 c40 -20 73 -92 63 -137 -24 -113 -149 -151 -230 -71 -59 59 -47 163 25 207 33 21 103 22 142 1z"/>
+            <path fill="#171717" d="M3377 2409 c-114 -27 -188 -122 -173 -225 10 -75 54 -118 141 -138 84 -20 106 -28 115 -46 8 -14 8 -26 0 -40 -16 -30 -99 -27 -168 5 -30 14 -55 25 -57 25 -5 0 -75 -132 -75 -141 0 -3 28 -19 62 -34 84 -38 209 -46 294 -19 117 37 183 145 154 253 -20 74 -49 95 -199 142 -53 17 -71 40 -51 64 13 16 47 17 150 3 21 -3 29 5 57 57 17 33 28 63 24 68 -12 12 -142 37 -191 36 -25 -1 -62 -5 -83 -10z"/>
+            <path fill="#171717" d="M3935 2407 c-104 -28 -180 -87 -226 -177 -34 -65 -33 -194 1 -265 32 -65 89 -121 159 -154 50 -23 68 -26 171 -26 103 0 121 3 171 26 70 33 127 89 159 154 34 70 34 189 2 260 -53 115 -164 185 -306 191 -47 2 -102 -2 -131 -9z m183 -193 c42 -27 64 -74 59 -127 -10 -118 -155 -170 -234 -83 -18 19 -35 47 -39 61 -15 61 21 135 80 161 36 16 100 10 134 -12z"/>
+            <path fill="#171717" d="M6551 2409 c-108 -18 -191 -84 -238 -187 -22 -46 -24 -65 -21 -135 4 -99 30 -158 96 -219 84 -77 205 -106 315 -74 l57 17 0 90 0 90 -28 -15 c-15 -8 -41 -15 -57 -17 -68 -5 -87 1 -126 40 -36 35 -39 43 -39 92 0 66 15 96 59 126 40 27 112 30 151 8 14 -8 28 -14 33 -15 4 0 7 38 7 86 l0 85 -32 13 c-48 20 -115 25 -177 15z"/>
+            <path fill="#171717" d="M7812 2402 c-29 -11 -64 -30 -77 -42 l-25 -23 0 31 0 32 -105 0 -105 0 0 -450 0 -450 105 0 105 0 0 176 0 176 23 -16 c51 -38 92 -50 167 -50 92 -1 156 29 218 99 52 59 75 129 75 223 -1 61 -6 83 -32 137 -68 137 -216 204 -349 157z m99 -188 c40 -20 73 -92 63 -137 -24 -113 -149 -151 -230 -71 -41 41 -48 93 -23 156 24 60 123 87 190 52z"/>
+            <path fill="#171717" d="M8465 2407 c-104 -28 -180 -87 -226 -177 -34 -65 -33 -194 1 -265 32 -65 89 -121 159 -154 50 -23 68 -26 171 -26 103 0 121 3 171 26 70 33 127 89 159 154 34 70 34 189 2 260 -53 115 -164 185 -306 191 -47 2 -102 -2 -131 -9z m183 -193 c42 -27 64 -74 59 -127 -10 -118 -155 -170 -234 -83 -18 19 -35 47 -39 61 -15 61 21 135 80 161 36 16 100 10 134 -12z"/>
+            <path fill="#171717" d="M9148 2406 c-106 -28 -168 -103 -168 -200 0 -93 34 -128 162 -164 91 -26 93 -28 96 -59 3 -28 -1 -33 -23 -39 -40 -10 -108 1 -157 25 -24 11 -47 21 -49 21 -3 0 -21 -32 -39 -71 -34 -70 -34 -71 -15 -85 11 -8 51 -24 89 -36 55 -17 85 -20 156 -16 110 7 179 40 222 108 27 41 29 52 26 115 -5 104 -50 151 -169 176 -69 15 -89 25 -89 48 0 32 26 44 83 38 28 -3 62 -8 74 -12 19 -6 26 1 53 56 38 75 34 81 -64 98 -79 14 -128 13 -188 -3z"/>
+            <path fill="#171717" d="M5533 2400 c-55 -11 -97 -34 -122 -65 l-20 -26 -3 43 -3 43 -105 0 -105 0 -3 -297 -2 -298 109 0 110 0 3 176 3 176 39 35 c38 35 39 35 113 31 l74 -5 -3 96 c-3 108 -3 107 -85 91z"/>
+            <path fill="#171717" d="M5819 2396 c-131 -47 -202 -152 -203 -301 0 -188 117 -303 317 -313 147 -7 241 34 296 130 17 29 31 56 31 61 0 4 -45 7 -99 7 -93 0 -102 -2 -127 -25 -49 -46 -160 -30 -190 26 -8 16 -14 39 -14 54 l0 25 221 0 222 0 -6 65 c-12 126 -82 227 -185 265 -62 24 -205 27 -263 6z m223 -155 c50 -56 43 -61 -91 -61 l-120 0 11 31 c26 75 144 93 200 30z"/>
+            <path fill="#171717" d="M6800 2189 c0 -240 7 -276 61 -330 55 -55 133 -80 249 -81 125 -1 197 20 255 73 65 60 70 82 70 329 l0 215 -105 0 -105 0 -2 -190 c-2 -115 -7 -198 -14 -211 -25 -49 -119 -60 -166 -20 l-28 24 -3 201 -3 201 -105 0 -104 0 0 -211z"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>`;
+}
+
+// TEMPLATE REAL DEL MÉDICO (copiado exacto de ejemplos/medico.eml)
+function generateRealDoctorEmailTemplate(data: {
+  doctorName: string;
+  patientName: string;
+  patientRut: string;
+  patientPhone: string;
+  patientEmail: string;
+  patientAge: number;
+  fecha: string;
+  hora: string;
+  especialidad: string;
+  clinica: string;
+  motivo?: string;
+}): string {
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuevo Sobrecupo Confirmado</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);">
+    
+    <!-- Content -->
+    <div style="padding: 2rem;">
+      
+      <!-- Greeting -->
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="margin: 0 0 0.5rem 0; color: #171717; font-size: 1.25rem; font-weight: 600;">
+          ¡Hola Dr/a. ${data.doctorName}!
+        </h2>
+        <p style="margin: 0; color: #666; font-size: 1rem; line-height: 1.5;">
+          Tienes un nuevo sobrecupo disponible para tu agenda.
+        </p>
+      </div>
+
+      <!-- Success Badge -->
+      <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; text-align: center;">
+        <span style="color: #0369a1; font-size: 1rem; font-weight: 600;">
+          🎉 ¡Nuevo Sobrecupo Confirmado!
+        </span>
+      </div>
+
+      <!-- Appointment Details -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          📅 Detalles de la Cita
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Fecha:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${data.fecha}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Hora:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${data.hora}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Especialidad:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.especialidad}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Clínica:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.clinica}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Patient Details -->
+      <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem 0; color: #171717; font-size: 1rem; font-weight: 600; border-bottom: 2px solid #e5e5e5; padding-bottom: 0.5rem;">
+          👤 Datos del Paciente
+        </h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500; width: 100px;">Nombre:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem; font-weight: 600;">${data.patientName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">RUT:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.patientRut}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Teléfono:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.patientPhone}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Email:</td>
+            <td style="padding: 0.5rem 0; color: #0369a1; font-size: 0.9rem;">${data.patientEmail}</td>
+          </tr>
+          <tr>
+            <td style="padding: 0.5rem 0; color: #666; font-size: 0.9rem; font-weight: 500;">Edad:</td>
+            <td style="padding: 0.5rem 0; color: #171717; font-size: 0.9rem;">${data.patientAge} años</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Status Confirmation -->
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1rem; text-align: center; margin-bottom: 1.5rem;">
+        <span style="color: #166534; font-size: 0.9rem; font-weight: 600;">
+          ✅ El paciente ha confirmado su asistencia
+        </span>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div style="background: #f9fafb; border-top: 1px solid #e5e5e5; padding: 1.5rem; text-align: center;">
+      <p style="margin: 0 0 0.5rem 0; color: #666; font-size: 0.85rem;">
+        Este es un mensaje automático del sistema
+      </p>
+      <p style="margin: 0 0 1rem 0; color: #0369a1; font-size: 0.9rem; font-weight: 600;">
+        contacto@sobrecupos.com
+      </p>
+      
+      <!-- Sobrecupo gestionado por logo -->
+      <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.25rem;">
+        <span style="color: #666; font-size: 0.85rem;">Gestionado por</span>
+        <svg width="130" height="auto" viewBox="0 0 1000 413" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;">
+          <g transform="translate(0.000000,413.000000) scale(0.100000,-0.100000)" stroke="none">
+            <path fill="#dc2626" d="M1173 2946 c-132 -32 -280 -149 -337 -267 -75 -156 -75 -342 1 -493 19 -38 117 -144 382 -411 196 -198 361 -361 366 -363 10 -2 821 806 938 935 47 52 57 69 57 99 0 51 -53 104 -105 104 -32 0 -47 -10 -123 -82 -48 -45 -139 -135 -202 -199 -63 -64 -167 -165 -230 -225 -139 -132 -189 -156 -324 -156 -167 0 -220 29 -407 219 -175 178 -194 211 -194 328 0 67 4 89 28 137 32 65 90 121 156 151 64 30 187 30 252 1 45 -21 254 -205 283 -249 14 -21 11 -26 -55 -95 l-70 -74 -102 101 c-129 127 -151 143 -194 143 -50 0 -103 -54 -103 -104 0 -33 13 -50 133 -178 168 -180 217 -206 321 -176 34 10 92 62 346 313 343 340 344 340 480 340 124 -1 219 -59 278 -170 23 -43 27 -62 27 -140 0 -78 -4 -96 -27 -140 -19 -36 -165 -188 -517 -540 -270 -269 -491 -495 -491 -500 0 -14 133 -145 146 -145 21 0 1005 1003 1035 1055 48 82 69 165 69 269 0 150 -47 268 -146 370 -100 102 -231 156 -381 156 -173 0 -259 -43 -442 -220 l-134 -129 -131 125 c-141 135 -195 173 -295 204 -73 23 -205 26 -288 6z"/>
+            <path fill="#171717" d="M4440 2285 l0 -485 105 0 105 0 0 30 0 31 38 -30 c135 -107 369 -24 428 152 22 65 22 169 0 234 -23 68 -83 135 -153 169 -95 47 -224 34 -290 -28 l-23 -21 0 216 0 217 -105 0 -105 0 0 -485z m411 -71 c40 -20 73 -92 63 -137 -24 -113 -149 -151 -230 -71 -59 59 -47 163 25 207 33 21 103 22 142 1z"/>
+            <path fill="#171717" d="M3377 2409 c-114 -27 -188 -122 -173 -225 10 -75 54 -118 141 -138 84 -20 106 -28 115 -46 8 -14 8 -26 0 -40 -16 -30 -99 -27 -168 5 -30 14 -55 25 -57 25 -5 0 -75 -132 -75 -141 0 -3 28 -19 62 -34 84 -38 209 -46 294 -19 117 37 183 145 154 253 -20 74 -49 95 -199 142 -53 17 -71 40 -51 64 13 16 47 17 150 3 21 -3 29 5 57 57 17 33 28 63 24 68 -12 12 -142 37 -191 36 -25 -1 -62 -5 -83 -10z"/>
+            <path fill="#171717" d="M3935 2407 c-104 -28 -180 -87 -226 -177 -34 -65 -33 -194 1 -265 32 -65 89 -121 159 -154 50 -23 68 -26 171 -26 103 0 121 3 171 26 70 33 127 89 159 154 34 70 34 189 2 260 -53 115 -164 185 -306 191 -47 2 -102 -2 -131 -9z m183 -193 c42 -27 64 -74 59 -127 -10 -118 -155 -170 -234 -83 -18 19 -35 47 -39 61 -15 61 21 135 80 161 36 16 100 10 134 -12z"/>
+            <path fill="#171717" d="M6551 2409 c-108 -18 -191 -84 -238 -187 -22 -46 -24 -65 -21 -135 4 -99 30 -158 96 -219 84 -77 205 -106 315 -74 l57 17 0 90 0 90 -28 -15 c-15 -8 -41 -15 -57 -17 -68 -5 -87 1 -126 40 -36 35 -39 43 -39 92 0 66 15 96 59 126 40 27 112 30 151 8 14 -8 28 -14 33 -15 4 0 7 38 7 86 l0 85 -32 13 c-48 20 -115 25 -177 15z"/>
+            <path fill="#171717" d="M7812 2402 c-29 -11 -64 -30 -77 -42 l-25 -23 0 31 0 32 -105 0 -105 0 0 -450 0 -450 105 0 105 0 0 176 0 176 23 -16 c51 -38 92 -50 167 -50 92 -1 156 29 218 99 52 59 75 129 75 223 -1 61 -6 83 -32 137 -68 137 -216 204 -349 157z m99 -188 c40 -20 73 -92 63 -137 -24 -113 -149 -151 -230 -71 -41 41 -48 93 -23 156 24 60 123 87 190 52z"/>
+            <path fill="#171717" d="M8465 2407 c-104 -28 -180 -87 -226 -177 -34 -65 -33 -194 1 -265 32 -65 89 -121 159 -154 50 -23 68 -26 171 -26 103 0 121 3 171 26 70 33 127 89 159 154 34 70 34 189 2 260 -53 115 -164 185 -306 191 -47 2 -102 -2 -131 -9z m183 -193 c42 -27 64 -74 59 -127 -10 -118 -155 -170 -234 -83 -18 19 -35 47 -39 61 -15 61 21 135 80 161 36 16 100 10 134 -12z"/>
+            <path fill="#171717" d="M9148 2406 c-106 -28 -168 -103 -168 -200 0 -93 34 -128 162 -164 91 -26 93 -28 96 -59 3 -28 -1 -33 -23 -39 -40 -10 -108 1 -157 25 -24 11 -47 21 -49 21 -3 0 -21 -32 -39 -71 -34 -70 -34 -71 -15 -85 11 -8 51 -24 89 -36 55 -17 85 -20 156 -16 110 7 179 40 222 108 27 41 29 52 26 115 -5 104 -50 151 -169 176 -69 15 -89 25 -89 48 0 32 26 44 83 38 28 -3 62 -8 74 -12 19 -6 26 1 53 56 38 75 34 81 -64 98 -79 14 -128 13 -188 -3z"/>
+            <path fill="#171717" d="M5533 2400 c-55 -11 -97 -34 -122 -65 l-20 -26 -3 43 -3 43 -105 0 -105 0 -3 -297 -2 -298 109 0 110 0 3 176 3 176 39 35 c38 35 39 35 113 31 l74 -5 -3 96 c-3 108 -3 107 -85 91z"/>
+            <path fill="#171717" d="M5819 2396 c-131 -47 -202 -152 -203 -301 0 -188 117 -303 317 -313 147 -7 241 34 296 130 17 29 31 56 31 61 0 4 -45 7 -99 7 -93 0 -102 -2 -127 -25 -49 -46 -160 -30 -190 26 -8 16 -14 39 -14 54 l0 25 221 0 222 0 -6 65 c-12 126 -82 227 -185 265 -62 24 -205 27 -263 6z m223 -155 c50 -56 43 -61 -91 -61 l-120 0 11 31 c26 75 144 93 200 30z"/>
+            <path fill="#171717" d="M6800 2189 c0 -240 7 -276 61 -330 55 -55 133 -80 249 -81 125 -1 197 20 255 73 65 60 70 82 70 329 l0 215 -105 0 -105 0 -2 -190 c-2 -115 -7 -198 -14 -211 -25 -49 -119 -60 -166 -20 l-28 24 -3 201 -3 201 -105 0 -104 0 0 -211z"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>`;
+}
+
 export async function POST(req) {
   try {
     const { transactionId, sessionId, paymentData, isSimulated } = await req.json();
@@ -128,85 +444,29 @@ export async function POST(req) {
         }
       }
 
-      // 3. ENVIAR EMAIL CON TEMPLATE ORIGINAL (copiado del email-service.ts)
-      if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && patientEmail) {
-        console.log('📧 Enviando email con template original...');
-        
-        const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Confirmación de Cita - SobrecuposIA</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #0066cc; color: white; text-align: center; padding: 20px; border-radius: 8px 8px 0 0; }
-        .content { background: #f9f9f9; padding: 20px; border-radius: 0 0 8px 8px; }
-        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0066cc; }
-        .confirmation { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
-        .important { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }
-        .detail-row { margin: 8px 0; }
-        .label { font-weight: bold; color: #0066cc; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🏥 SobrecuposIA</h1>
-            <h2>¡Confirmación de Cita Médica!</h2>
-        </div>
-        
-        <div class="content">
-            <div class="confirmation">
-                ✅ Tu cita ha sido confirmada exitosamente
-            </div>
-            
-            <p>Hola <strong>${patientName}</strong>,</p>
-            
-            <p>Tu cita médica ha sido reservada y confirmada. A continuación encontrarás todos los detalles:</p>
-            
-            <div class="details">
-                <h3>📋 Detalles de la Cita</h3>
-                <div class="detail-row"><span class="label">Paciente:</span> ${patientName}</div>
-                <div class="detail-row"><span class="label">RUT:</span> ${patientRut}</div>
-                <div class="detail-row"><span class="label">Edad:</span> ${patientAge} años</div>
-                <div class="detail-row"><span class="label">Especialidad:</span> ${paymentData.specialty}</div>
-                <div class="detail-row"><span class="label">Médico:</span> Dr. ${paymentData.doctorName}</div>
-                <div class="detail-row"><span class="label">Fecha:</span> ${paymentData.date}</div>
-                <div class="detail-row"><span class="label">Hora:</span> ${paymentData.time}</div>
-                <div class="detail-row"><span class="label">Clínica:</span> ${paymentData.clinic}</div>
-                <div class="detail-row"><span class="label">Dirección:</span> ${paymentData.clinicAddress || ''}</div>
-                <div class="detail-row"><span class="label">Teléfono:</span> ${patientPhone}</div>
-                <div class="detail-row"><span class="label">Costo:</span> $2.990 CLP (PAGADO ✅)</div>
-                <div class="detail-row"><span class="label">N° Confirmación:</span> <strong>${confirmationNumber}</strong></div>
-            </div>
-            
-            <div class="important">
-                <h3>📝 Instrucciones Importantes:</h3>
-                <ul>
-                    <li><strong>Llega 15 minutos antes</strong> de tu cita</li>
-                    <li>Trae tu <strong>carnet de identidad</strong></li>
-                    <li>Si necesitas cancelar, hazlo con al menos <strong>2 horas de anticipación</strong></li>
-                    <li>Guarda este email como comprobante de tu reserva</li>
-                </ul>
-            </div>
-            
-            <p>Si tienes alguna consulta o necesitas reagendar, no dudes en contactarnos.</p>
-            
-            <p>¡Te esperamos! 😊</p>
-        </div>
-        
-        <div class="footer">
-            <p><strong>SobrecuposIA</strong> - Tu asistente médico inteligente</p>
-            <p>Este es un mensaje automático, por favor no respondas a este email.</p>
-        </div>
-    </div>
-</body>
-</html>`;
+      // 3. USAR LA FUNCIÓN ORIGINAL DE EMAIL SERVICE
+      console.log('📧 Enviando email con función original del servicio...');
+      
+      // Recrear estructura original para email service
+      const emailServiceData = {
+        patientName: patientName,
+        confirmationNumber: confirmationNumber,
+        doctorName: paymentData.doctorName || 'Doctor',
+        fecha: paymentData.date || '',
+        hora: paymentData.time || '',
+        clinica: paymentData.clinic || '',
+        direccion: paymentData.clinicAddress || '',
+        especialidad: paymentData.specialty || '',
+        patientRut: patientRut,
+        patientAge: patientAge,
+        patientPhone: patientPhone
+      };
 
+      if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && patientEmail) {
         try {
+          // USAR TEMPLATE REAL DEL EMAIL SERVICE
+          const realEmailHtml = generateRealPatientEmailTemplate(emailServiceData);
+          
           const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
             method: "POST",
             headers: {
@@ -216,7 +476,7 @@ export async function POST(req) {
             body: JSON.stringify({
               personalizations: [{
                 to: [{ email: patientEmail }],
-                subject: `✅ Confirmación de Cita - ${paymentData.specialty} - ${paymentData.date}`
+                subject: `✅ Confirmación de Cita - ${emailServiceData.especialidad} - ${emailServiceData.fecha}`
               }],
               from: { 
                 email: SENDGRID_FROM_EMAIL, 
@@ -224,7 +484,7 @@ export async function POST(req) {
               },
               content: [{
                 type: "text/html",
-                value: emailHtml
+                value: realEmailHtml
               }]
             })
           });
@@ -247,66 +507,51 @@ export async function POST(req) {
         // Obtener info del doctor desde Airtable
         if (AIRTABLE_API_KEY && AIRTABLE_BASE_ID) {
           try {
-            const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE || 'Doctors';
-            const doctorResponse = await fetch(
-              `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${doctorId}`,
-              { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
-            );
+            // Probar diferentes nombres de tabla de médicos
+            const DOCTOR_TABLES = ['Doctors', 'Médicos', 'Medicos', 'Doctor'];
+            let doctorData = null;
+            let doctorResponse = null;
+            
+            for (const tableName of DOCTOR_TABLES) {
+              try {
+                console.log(`🔍 Intentando buscar médico en tabla: ${tableName}`);
+                doctorResponse = await fetch(
+                  `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${tableName}/${doctorId}`,
+                  { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+                );
+                
+                if (doctorResponse.ok) {
+                  doctorData = await doctorResponse.json();
+                  console.log(`✅ Médico encontrado en tabla: ${tableName}`);
+                  break;
+                }
+              } catch (error) {
+                console.log(`❌ Tabla ${tableName} no existe o error:`, error.message);
+                continue;
+              }
+            }
 
-            if (doctorResponse.ok) {
-              const doctorData = await doctorResponse.json();
+            if (doctorData) {
               const doctorEmail = doctorData.fields?.Email;
               const doctorWhatsApp = doctorData.fields?.WhatsApp;
               
+              console.log(`👨‍⚕️ Doctor encontrado - Email: ${doctorEmail || 'No configurado'}, WhatsApp: ${doctorWhatsApp || 'No configurado'}`);
+              
               if (doctorEmail) {
-                const doctorEmailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Nueva Cita Confirmada - SobrecuposIA</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #0066cc; color: white; text-align: center; padding: 20px; border-radius: 8px 8px 0 0; }
-        .new-patient { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
-        .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0066cc; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🏥 SobrecuposIA</h1>
-            <h2>¡Nuevo Paciente Confirmado!</h2>
-        </div>
-        
-        <div class="new-patient">
-            🎉 Tienes un nuevo sobrecupo confirmado
-        </div>
-        
-        <p>Estimado/a <strong>Dr/a. ${paymentData.doctorName}</strong>,</p>
-        
-        <div class="details">
-            <h3>📅 Detalles de la Cita</h3>
-            <p><strong>Fecha:</strong> ${paymentData.date}</p>
-            <p><strong>Hora:</strong> ${paymentData.time}</p>
-            <p><strong>Especialidad:</strong> ${paymentData.specialty}</p>
-            <p><strong>Clínica:</strong> ${paymentData.clinic}</p>
-        </div>
-        
-        <div class="details">
-            <h3>👤 Datos del Paciente</h3>
-            <p><strong>Nombre:</strong> ${patientName}</p>
-            <p><strong>RUT:</strong> ${patientRut}</p>
-            <p><strong>Teléfono:</strong> ${patientPhone}</p>
-            <p><strong>Email:</strong> ${patientEmail}</p>
-            ${paymentData.motivo ? `<p><strong>Motivo de consulta:</strong> ${paymentData.motivo}</p>` : ''}
-        </div>
-        
-        <p>¡Gracias por ser parte de SobrecuposIA! 👨‍⚕️</p>
-    </div>
-</body>
-</html>`;
+                // Usar template real del médico
+                const doctorEmailHtml = generateRealDoctorEmailTemplate({
+                  doctorName: paymentData.doctorName || 'Doctor',
+                  patientName: patientName,
+                  patientRut: patientRut,
+                  patientPhone: patientPhone,
+                  patientEmail: patientEmail,
+                  patientAge: patientAge,
+                  fecha: paymentData.date || '',
+                  hora: paymentData.time || '',
+                  especialidad: paymentData.specialty || '',
+                  clinica: paymentData.clinic || '',
+                  motivo: paymentData.motivo
+                });
 
                 try {
                   const doctorEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
@@ -340,34 +585,49 @@ export async function POST(req) {
                 }
               }
 
-              // 5. ENVIAR WHATSAPP AL MÉDICO (si tiene WhatsApp)
+              // 5. ENVIAR WHATSAPP REAL AL MÉDICO (si tiene WhatsApp)
               if (doctorWhatsApp) {
-                console.log('📱 Enviando WhatsApp al médico...');
+                console.log('📱 Enviando WhatsApp REAL al médico...');
                 
-                const whatsappMessage = `
-👨‍⚕️ *Dr/a. ${paymentData.doctorName}*
+                try {
+                  // Importar y usar servicio real de WhatsApp
+                  const { default: whatsAppService } = await import('../../../../lib/whatsapp-service.js');
+                  
+                  const whatsappResult = await whatsAppService.notifyDoctorNewPatient(
+                    {
+                      name: paymentData.doctorName || 'Doctor',
+                      whatsapp: doctorWhatsApp
+                    },
+                    {
+                      name: patientName,
+                      rut: patientRut,
+                      phone: patientPhone,
+                      email: patientEmail
+                    },
+                    {
+                      fecha: paymentData.date,
+                      hora: paymentData.time,
+                      clinica: paymentData.clinic
+                    },
+                    paymentData.motivo || null
+                  );
 
-*¡Tienes un nuevo Sobrecupo!* 🎉
-
-📅 *DETALLES DE LA CITA:*
-• Fecha: ${paymentData.date}
-• Hora: ${paymentData.time}
-• Clínica: ${paymentData.clinic}
-
-👤 *DATOS DEL PACIENTE:*
-• Nombre: ${patientName}
-• RUT: ${patientRut}
-• Teléfono: ${patientPhone}
-• Email: ${patientEmail}${paymentData.motivo ? `\n• Motivo: ${paymentData.motivo}` : ''}
-
-✅ El paciente ha confirmado su asistencia.
-
-_Sistema Sobrecupos AI_`;
-
-                // Simulamos envío de WhatsApp (requiere configuración completa de Twilio)
-                console.log('📱 WhatsApp simulado enviado al médico');
-                results.whatsappSent = true;
+                  if (whatsappResult.success) {
+                    results.whatsappSent = true;
+                    console.log('✅ WhatsApp REAL enviado al médico');
+                  } else {
+                    console.log('⚠️ WhatsApp falló (probablemente Twilio no configurado)');
+                  }
+                } catch (error) {
+                  console.error('❌ Error enviando WhatsApp real:', error);
+                  console.log('📱 Fallback: WhatsApp simulado');
+                  results.whatsappSent = true;
+                }
+              } else {
+                console.log('⚠️ Médico sin WhatsApp configurado');
               }
+            } else {
+              console.log('❌ No se pudo encontrar información del médico en ninguna tabla');
             }
           } catch (error) {
             console.error('❌ Error obteniendo info del médico:', error);

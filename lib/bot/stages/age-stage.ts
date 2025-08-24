@@ -87,11 +87,10 @@ export async function handleAgeStage(
       };
     }
 
-    // Mensaje personalizado según la edad con primer nombre
-    const primerNombre = currentSession.firstName || getFirstName(currentSession.patientName || '');
+    // Mensaje según la edad
     const ageMessage = age < 18 
-      ? `¡Perfecto, ${primerNombre}! He encontrado especialistas que atienden pacientes jóvenes de ${age} años.`
-      : `¡Excelente, ${primerNombre}! He encontrado especialistas disponibles para pacientes de ${age} años.`;
+      ? `¡Perfecto! He encontrado especialistas que atienden pacientes jóvenes de ${age} años.`
+      : `¡Excelente! He encontrado especialistas disponibles para pacientes de ${age} años.`;
 
     return {
       text: `${ageMessage}\n\n${presentation.text}`,

@@ -40,7 +40,7 @@ export function handleRutStage(
   const primerNombre = currentSession.firstName || getFirstName(currentSession.patientName || '');
   
   return {
-    text: `¡Excelente, ${primerNombre}! 🎂\n\nPara finalizar los datos básicos, ¿cuál es tu edad?\nEjemplo: 25`,
+    text: `Perfecto! 🎂\n\nPara finalizar los datos básicos, ¿cuál es tu edad?\nEjemplo: 25`,
     session: updatedSession
   };
 }
