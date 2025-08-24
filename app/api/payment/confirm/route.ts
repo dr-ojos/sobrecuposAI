@@ -326,6 +326,17 @@ export async function POST(req) {
     console.log('📋 Session ID:', sessionId);
     console.log('📋 Is Simulated:', isSimulated);
     console.log('📋 Payment Data:', paymentData);
+    
+    // 🚨 DEBUG CRÍTICO PARA PRODUCCIÓN
+    console.log('🔧 === VARIABLES DE ENTORNO DEBUG ===');
+    console.log('🔧 AIRTABLE_API_KEY presente:', !!process.env.AIRTABLE_API_KEY);
+    console.log('🔧 AIRTABLE_BASE_ID:', process.env.AIRTABLE_BASE_ID);
+    console.log('🔧 AIRTABLE_PATIENTS_TABLE:', process.env.AIRTABLE_PATIENTS_TABLE);
+    console.log('🔧 SENDGRID_API_KEY presente:', !!process.env.SENDGRID_API_KEY);
+    console.log('🔧 SENDGRID_FROM_EMAIL:', process.env.SENDGRID_FROM_EMAIL);
+    console.log('🔧 TWILIO_ACCOUNT_SID presente:', !!process.env.TWILIO_ACCOUNT_SID);
+    console.log('🔧 TWILIO_AUTH_TOKEN presente:', !!process.env.TWILIO_AUTH_TOKEN);
+    console.log('🔧 TWILIO_WHATSAPP_NUMBER:', process.env.TWILIO_WHATSAPP_NUMBER);
 
     if (!transactionId || !sessionId || !paymentData) {
       return NextResponse.json({
@@ -507,8 +518,13 @@ export async function POST(req) {
         // Obtener info del doctor desde Airtable
         if (AIRTABLE_API_KEY && AIRTABLE_BASE_ID) {
           try {
-            // Probar diferentes nombres de tabla de médicos
-            const DOCTOR_TABLES = ['Doctors', 'Médicos', 'Medicos', 'Doctor'];
+            // Usar variable de entorno + probar diferentes nombres de tabla  
+            const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
+            const DOCTOR_TABLES = [AIRTABLE_DOCTORS_TABLE, 'Doctors', 'Médicos', 'Medicos', 'Doctor'].filter(Boolean);
+            
+            console.log('🔧 AIRTABLE_DOCTORS_TABLE env var:', AIRTABLE_DOCTORS_TABLE);
+            console.log('🔧 Tablas de médicos a probar:', DOCTOR_TABLES);
+            console.log('🔧 DoctorId a buscar:', doctorId);
             let doctorData: any = null;
             
             for (const tableName of DOCTOR_TABLES) {
@@ -519,13 +535,19 @@ export async function POST(req) {
                   { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
                 );
                 
+                const responseText = await doctorResponse.text();
+                console.log(`🔧 Respuesta de tabla ${tableName} (${doctorResponse.status}):`, responseText.substring(0, 200) + '...');
+                
                 if (doctorResponse.ok) {
-                  doctorData = await doctorResponse.json();
+                  doctorData = JSON.parse(responseText);
                   console.log(`✅ Médico encontrado en tabla: ${tableName}`);
+                  console.log(`🔧 Datos del médico:`, JSON.stringify(doctorData.fields, null, 2));
                   break;
+                } else {
+                  console.log(`❌ Error ${doctorResponse.status} en tabla ${tableName}:`, responseText);
                 }
               } catch (error: any) {
-                console.log(`❌ Tabla ${tableName} no existe o error:`, error.message);
+                console.log(`❌ Excepción en tabla ${tableName}:`, error.message);
                 continue;
               }
             }
@@ -537,6 +559,8 @@ export async function POST(req) {
               console.log(`👨‍⚕️ Doctor encontrado - Email: ${doctorEmail || 'No configurado'}, WhatsApp: ${doctorWhatsApp || 'No configurado'}`);
               
               if (doctorEmail) {
+                console.log('🔧 Preparando email para médico:', doctorEmail);
+                
                 // Usar template real del médico
                 const doctorEmailHtml = generateRealDoctorEmailTemplate({
                   doctorName: paymentData.doctorName || 'Doctor',
@@ -553,6 +577,7 @@ export async function POST(req) {
                 });
 
                 try {
+                  console.log('📧 Enviando email a médico via SendGrid...');
                   const doctorEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
                     method: "POST", 
                     headers: {
@@ -575,22 +600,32 @@ export async function POST(req) {
                     })
                   });
 
+                  const responseText = await doctorEmailResponse.text();
+                  console.log(`📧 SendGrid respuesta (${doctorEmailResponse.status}):`, responseText);
+
                   if (doctorEmailResponse.ok) {
                     results.emailsSent += 1;
-                    console.log('✅ Email enviado al médico');
+                    console.log('✅ Email enviado al médico exitosamente');
+                  } else {
+                    console.error('❌ SendGrid falló:', responseText);
                   }
                 } catch (error) {
                   console.error('❌ Error enviando email al médico:', error);
                 }
+              } else {
+                console.log('⚠️ Médico sin email configurado');
               }
 
               // 5. ENVIAR WHATSAPP REAL AL MÉDICO (si tiene WhatsApp)
               if (doctorWhatsApp) {
                 console.log('📱 Enviando WhatsApp REAL al médico...');
+                console.log('🔧 WhatsApp número:', doctorWhatsApp);
                 
                 try {
                   // Importar y usar servicio real de WhatsApp
+                  console.log('📱 Importando servicio WhatsApp...');
                   const { default: whatsAppService } = await import('../../../../lib/whatsapp-service.js');
+                  console.log('📱 Servicio WhatsApp importado exitosamente');
                   
                   const whatsappResult = await whatsAppService.notifyDoctorNewPatient(
                     {
@@ -611,14 +646,17 @@ export async function POST(req) {
                     paymentData.motivo || null
                   );
 
+                  console.log('📱 Resultado WhatsApp:', JSON.stringify(whatsappResult, null, 2));
+
                   if (whatsappResult.success) {
                     results.whatsappSent = true;
-                    console.log('✅ WhatsApp REAL enviado al médico');
+                    console.log('✅ WhatsApp REAL enviado al médico exitosamente');
                   } else {
-                    console.log('⚠️ WhatsApp falló (probablemente Twilio no configurado)');
+                    console.log('⚠️ WhatsApp falló:', whatsappResult.error || 'Error desconocido');
                   }
                 } catch (error) {
-                  console.error('❌ Error enviando WhatsApp real:', error);
+                  console.error('❌ Error crítico enviando WhatsApp:', error);
+                  console.error('❌ Stack trace:', error.stack);
                   console.log('📱 Fallback: WhatsApp simulado');
                   results.whatsappSent = true;
                 }
