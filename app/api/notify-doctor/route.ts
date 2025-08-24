@@ -120,7 +120,7 @@ export async function POST(req: Request) {
     console.log('📧 Doctor WhatsApp:', doctorWhatsapp);
     console.log('📧 Paciente:', patientName);
 
-    const results = {
+    const results: any = {
       emailSent: false,
       whatsappSent: false,
       emailError: null,

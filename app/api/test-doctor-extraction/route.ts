@@ -69,7 +69,7 @@ export async function POST() {
     console.log('  - Datos completos:', doctorData.fields);
     
     // TEST DIRECTO DE EMAIL AL MÉDICO
-    let emailTestResult = null;
+    let emailTestResult: any = null;
     if (doctorEmail) {
       const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
       const SENDGRID_FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL;
