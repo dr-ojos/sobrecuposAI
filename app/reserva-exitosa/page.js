@@ -56,7 +56,19 @@ function ReservaExitosaContent() {
 
           if (response.ok) {
             console.log('✅ Reserva confirmada automáticamente');
-            // Continuar con el flujo normal
+            
+            // Si viene de popup (agendar), cerrar ventana automáticamente después de unos segundos
+            if (window.opener) {
+              console.log('🔒 Ventana popup detectada - cerrando automáticamente...');
+              setTimeout(() => {
+                try {
+                  window.close();
+                  console.log('✅ Ventana cerrada exitosamente');
+                } catch (error) {
+                  console.error('❌ Error cerrando ventana:', error);
+                }
+              }, 3000); // 3 segundos para que el usuario vea el éxito
+            }
           } else {
             console.error('❌ Error confirmando reserva automática');
             setConfirmationError('Error confirmando la reserva automáticamente');

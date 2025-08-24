@@ -848,6 +848,7 @@ _Sistema Sobrecupos_`;
     // INTEGRACIÓN NUEVA: Sistema profesional de notificaciones médicas (EMBEBIDO)
     try {
       console.log('🚀 === INICIANDO SISTEMA PROFESIONAL DE NOTIFICACIONES MÉDICAS ===');
+      console.log('🚀 Contexto:', isSimulated ? 'PAGO SIMULADO' : 'PAGO REAL');
       
       // Sistema profesional SIEMPRE ACTIVO - sin variables adicionales requeridas
       const FEATURE_ENABLED = true; // Siempre activo
@@ -855,6 +856,7 @@ _Sistema Sobrecupos_`;
       
       console.log('🔧 Sistema profesional: SIEMPRE ACTIVO');
       console.log('🔧 Sandbox mode (auto):', SANDBOX_MODE);
+      console.log('🔧 Pago simulado:', isSimulated);
       
       // Buscar datos del médico para el sistema profesional
       let professionalDoctorEmail: string | null = null;
@@ -864,33 +866,59 @@ _Sistema Sobrecupos_`;
       console.log('🔧 Extrayendo datos del médico para sistema profesional');
       
       try {
+        console.log('🔍 === EXTRACCIÓN DE DOCTOR (SISTEMA PROFESIONAL) ===');
+        console.log('🔍 paymentData.sobrecupoId:', paymentData.sobrecupoId);
+        console.log('🔍 paymentData.doctorId inicial:', paymentData.doctorId);
+        
         let realDoctorId = paymentData.doctorId || '';
         
         if (paymentData.sobrecupoId) {
+          console.log('🔍 Extrayendo doctor desde sobrecupo...');
           const sobrecupoResponse = await fetch(
             `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Sobrecupos/${paymentData.sobrecupoId}`,
             { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
           );
+          console.log('🔍 Sobrecupo response status:', sobrecupoResponse.status);
+          
           if (sobrecupoResponse.ok) {
             const sobrecupoData = await sobrecupoResponse.json();
+            console.log('🔍 Sobrecupo data:', sobrecupoData);
             const extractedDoctorId = sobrecupoData.fields?.Médico?.[0];
+            console.log('🔍 Doctor ID extraído:', extractedDoctorId);
             if (extractedDoctorId) realDoctorId = extractedDoctorId;
+          } else {
+            console.error('❌ Error obteniendo sobrecupo:', sobrecupoResponse.status);
           }
+        } else {
+          console.warn('⚠️ Sin sobrecupoId para extraer doctor');
         }
+        
+        console.log('🔍 Doctor ID final para usar:', realDoctorId);
         
         if (realDoctorId) {
           const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
+          console.log('🔍 Obteniendo datos del médico desde tabla:', AIRTABLE_DOCTORS_TABLE);
+          console.log('🔍 Doctor ID a buscar:', realDoctorId);
+          
           const doctorResponse = await fetch(
             `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${realDoctorId}`,
             { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
           );
           
+          console.log('🔍 Doctor response status:', doctorResponse.status);
+          
           if (doctorResponse.ok) {
             const doctorData = await doctorResponse.json();
+            console.log('🔍 Doctor data obtenido:', doctorData);
             professionalDoctorEmail = doctorData.fields?.Email || null;
             professionalDoctorWhatsApp = doctorData.fields?.WhatsApp || null;
-            console.log('🔧 Doctor extraído para sistema profesional:', professionalDoctorEmail);
+            console.log('🔍 Email extraído:', professionalDoctorEmail);
+            console.log('🔍 WhatsApp extraído:', professionalDoctorWhatsApp);
+          } else {
+            console.error('❌ Error obteniendo datos del médico:', doctorResponse.status);
           }
+        } else {
+          console.warn('⚠️ Sin realDoctorId - no se pueden obtener datos del médico');
         }
       } catch (extractionError: any) {
         console.warn('⚠️ Error extrayendo médico para sistema profesional:', extractionError.message);
@@ -1171,6 +1199,7 @@ _🚀 Sistema Profesional Sobrecupos_`;
         }
         
         console.log('📊 Sistema profesional completado:', {
+          isSimulated: isSimulated,
           emailSent: professionalEmailSent,
           whatsappAttempted: !!professionalDoctorWhatsApp,
           recipientEmail: recipientEmail,
