@@ -17,6 +17,11 @@ function PagoContent() {
   const addDebugLog = (message) => {
     console.log(message);
   };
+  
+  // LOG INMEDIATO PARA DEBUG
+  console.log('🚨 PAGO COMPONENT LOADED');
+  console.log('🚨 React and JavaScript are working');
+  console.log('🚨 Location:', window.location.href);
 
   useEffect(() => {
     // Obtener datos del pago desde URL params
@@ -41,11 +46,22 @@ function PagoContent() {
 
     // Detectar si viene del chat o directamente
     const fromChatParam = searchParams.get('fromChat');
-    const fromChat = fromChatParam === 'true' || (fromChatParam === null && window.opener);
+    let fromChat = fromChatParam === 'true';
+    
+    try {
+      fromChat = fromChatParam === 'true' || (fromChatParam === null && !!window.opener);
+    } catch (error) {
+      console.log('❌ Error checking window.opener:', error);
+      fromChat = fromChatParam === 'true';
+    }
     setIsFromChat(fromChat);
     
     addDebugLog(`🔍 Detectado origen: ${fromChat ? 'CHAT' : 'DIRECTO'}`);
-    addDebugLog(`🔍 window.opener exists: ${!!window.opener}`);
+    try {
+      addDebugLog(`🔍 window.opener exists: ${!!window.opener}`);
+    } catch (error) {
+      addDebugLog(`🔍 window.opener error: ${error.message}`);
+    }
     addDebugLog(`🔍 fromChat param: ${searchParams.get('fromChat')}`);
 
     // Para pago simulado del bot, solo necesitamos sessionId y que venga del chat
