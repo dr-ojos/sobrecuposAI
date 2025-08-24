@@ -541,19 +541,54 @@ export async function POST(req) {
         if (AIRTABLE_API_KEY && AIRTABLE_BASE_ID) {
           try {
             // Usar variable de entorno + probar diferentes nombres de tabla  
+            console.log('🔧 === BUSCANDO SOBRECUPO PARA EXTRAER DOCTOR REAL ===');
+            console.log('🔧 paymentData.sobrecupoId:', paymentData.sobrecupoId);
+            
+            // PASO 1: Buscar el sobrecupo para obtener el doctorId real
+            let realDoctorId = doctorId; // fallback al original
+            
+            if (paymentData.sobrecupoId) {
+              try {
+                const sobrecupoResponse = await fetch(
+                  `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Sobrecupos/${paymentData.sobrecupoId}`,
+                  { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+                );
+                
+                if (sobrecupoResponse.ok) {
+                  const sobrecupoData = await sobrecupoResponse.json();
+                  const extractedDoctorId = sobrecupoData.fields?.Médico?.[0];
+                  if (extractedDoctorId) {
+                    realDoctorId = extractedDoctorId;
+                    console.log('✅ Sobrecupo encontrado, doctorId real extraído:', realDoctorId);
+                  } else {
+                    console.log('⚠️ Sobrecupo encontrado pero sin campo Médico');
+                  }
+                } else {
+                  console.log('❌ No se encontró sobrecupo, usando doctorId original');
+                }
+              } catch (error: any) {
+                console.log('❌ Error buscando sobrecupo:', error.message);
+              }
+            } else {
+              console.log('⚠️ No hay sobrecupoId, usando doctorId directo');
+            }
+            
+            console.log('🎯 DoctorId final a usar:', realDoctorId);
+            console.log('🎯 DoctorId original era:', doctorId);
+            
+            // PASO 2: Buscar médico con el ID real
             const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
             const DOCTOR_TABLES = [AIRTABLE_DOCTORS_TABLE, 'Doctors', 'Médicos', 'Medicos', 'Doctor'].filter(Boolean);
             
             console.log('🔧 AIRTABLE_DOCTORS_TABLE env var:', AIRTABLE_DOCTORS_TABLE);
             console.log('🔧 Tablas de médicos a probar:', DOCTOR_TABLES);
-            console.log('🔧 DoctorId a buscar:', doctorId);
             let doctorData: any = null;
             
             for (const tableName of DOCTOR_TABLES) {
               try {
                 console.log(`🔍 Intentando buscar médico en tabla: ${tableName}`);
                 const doctorResponse = await fetch(
-                  `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${tableName}/${doctorId}`,
+                  `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${tableName}/${realDoctorId}`,
                   { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
                 );
                 
