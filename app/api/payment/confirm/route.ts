@@ -387,8 +387,13 @@ export async function POST(req) {
 
     try {
       // 1. CREAR PACIENTE CON CAMPOS CORRECTOS (copiado de payment-stage.ts líneas 126-143)
+      if (isSimulated) {
+        console.log('🎭 === PAGO SIMULADO DETECTADO ===');
+        console.log('🎭 Procesando registro de paciente simulado...');
+      }
+      
       if (AIRTABLE_API_KEY && AIRTABLE_BASE_ID && AIRTABLE_PATIENTS_TABLE) {
-        console.log('👤 Creando paciente con campos correctos...');
+        console.log('👤 Creando paciente con campos correctos...', isSimulated ? '(SIMULADO)' : '(REAL)');
         
         // USAR TODOS LOS CAMPOS DISPONIBLES EN TABLA PACIENTE
         const patientData = {
@@ -400,9 +405,11 @@ export async function POST(req) {
           'Fecha Reserva': new Date().toISOString().split('T')[0],
           'Fecha Registro': new Date().toISOString().split('T')[0],
           'Motivo Consulta': paymentData.motivo || '',
-          'Estado Pago': 'Pagado',
+          'Estado Pago': isSimulated ? 'Pagado (Simulado)' : 'Pagado',
           'ID Transaccion': transactionId
         };
+        
+        console.log('📋 Datos del paciente a crear:', patientData);
 
         try {
           const response = await fetch(
@@ -420,7 +427,7 @@ export async function POST(req) {
           if (response.ok) {
             const data = await response.json();
             results.patientCreated = true;
-            console.log(`✅ Paciente creado en Airtable: ${data.id}`);
+            console.log(`✅ Paciente creado en Airtable: ${data.id}`, isSimulated ? '(SIMULADO)' : '(REAL)');
             
             // 2. ACTUALIZAR SOBRECUPO EN TABLA Sobrecupostest
             if (paymentData.sobrecupoId) {
@@ -464,6 +471,11 @@ export async function POST(req) {
         } catch (error) {
           console.error('❌ Error en request de Airtable:', error);
         }
+      } else {
+        console.warn('⚠️ Variables de Airtable no configuradas - omitiendo creación de paciente');
+        console.warn('⚠️ AIRTABLE_API_KEY presente:', !!AIRTABLE_API_KEY);
+        console.warn('⚠️ AIRTABLE_BASE_ID presente:', !!AIRTABLE_BASE_ID);
+        console.warn('⚠️ AIRTABLE_PATIENTS_TABLE presente:', !!AIRTABLE_PATIENTS_TABLE);
       }
 
       // 3. USAR LA FUNCIÓN ORIGINAL DE EMAIL SERVICE
@@ -485,6 +497,7 @@ export async function POST(req) {
       };
 
       if (SENDGRID_API_KEY && SENDGRID_FROM_EMAIL && patientEmail) {
+        console.log('📧 Enviando email al paciente...', patientEmail, isSimulated ? '(SIMULADO)' : '(REAL)');
         try {
           // USAR TEMPLATE REAL DEL EMAIL SERVICE
           const realEmailHtml = generateRealPatientEmailTemplate(emailServiceData);

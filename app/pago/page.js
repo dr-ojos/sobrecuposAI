@@ -238,14 +238,20 @@ function PagoContent() {
             sessionId: paymentData.sessionId,
             patientData: {
               name: paymentData.patientName,
-              email: paymentData.patientEmail
+              email: paymentData.patientEmail,
+              rut: paymentData.patientRut,
+              age: paymentData.patientAge,
+              phone: paymentData.patientPhone
             },
             appointmentData: {
               doctor: paymentData.doctorName,
+              doctorId: paymentData.doctorId,
               specialty: paymentData.specialty,
               date: paymentData.date,
               time: paymentData.time,
-              clinic: paymentData.clinic
+              clinic: paymentData.clinic,
+              clinicAddress: paymentData.clinicAddress,
+              motivo: paymentData.motivo
             },
             amount: paymentData.amount
           })

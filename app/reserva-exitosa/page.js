@@ -33,14 +33,22 @@ function ReservaExitosaContent() {
               transactionId,
               sessionId,
               paymentData: {
-                // Datos básicos para la confirmación
+                // Datos completos para la confirmación
+                sobrecupoId: searchParams.get('sobrecupoId') || '',
+                doctorId: searchParams.get('doctorId') || '',
                 patientName: searchParams.get('patient') || 'Paciente',
+                patientEmail: searchParams.get('patientEmail') || '',
+                patientRut: searchParams.get('patientRut') || '',
+                patientAge: searchParams.get('patientAge') || '',
+                patientPhone: searchParams.get('patientPhone') || '',
                 doctorName: searchParams.get('doctor') || 'Doctor',
                 specialty: searchParams.get('specialty') || 'Medicina General',
                 date: searchParams.get('date') || new Date().toLocaleDateString(),
                 time: searchParams.get('time') || '10:00 AM',
                 clinic: searchParams.get('clinic') || 'Clínica',
-                amount: searchParams.get('amount') || '2990'
+                clinicAddress: searchParams.get('clinicAddress') || '',
+                amount: searchParams.get('amount') || '2990',
+                motivo: searchParams.get('motivo') || ''
               },
               isSimulated: true
             })

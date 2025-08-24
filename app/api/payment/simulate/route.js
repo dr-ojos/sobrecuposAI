@@ -38,9 +38,32 @@ export async function POST(req) {
       
       console.log('✅ [SIMULATE] Pago simulado exitoso:', transactionId);
 
-      // Construir URL de retorno para el flujo desde agendar
+      // Construir URL de retorno con todos los datos necesarios para confirmar la reserva
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'https://sobrecupos-ai-esb7.vercel.app';
-      const returnUrl = `${baseUrl}/reserva-exitosa?transactionId=${transactionId}&sessionId=${sessionId}&simulated=true`;
+      const params = new URLSearchParams({
+        transactionId,
+        sessionId,
+        simulated: 'true',
+        // Datos del paciente
+        patient: patientData.name,
+        patientEmail: patientData.email || '',
+        patientRut: patientData.rut || '',
+        patientAge: patientData.age || '',
+        patientPhone: patientData.phone || '',
+        // Datos de la cita
+        doctor: appointmentData?.doctor || '',
+        doctorId: appointmentData?.doctorId || '',
+        specialty: appointmentData?.specialty || '',
+        date: appointmentData?.date || '',
+        time: appointmentData?.time || '',
+        clinic: appointmentData?.clinic || '',
+        clinicAddress: appointmentData?.clinicAddress || '',
+        // Datos del pago
+        amount,
+        sobrecupoId,
+        motivo: appointmentData?.motivo || ''
+      });
+      const returnUrl = `${baseUrl}/reserva-exitosa?${params.toString()}`;
 
       return NextResponse.json({
         success: true,
