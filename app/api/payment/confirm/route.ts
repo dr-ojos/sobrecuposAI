@@ -326,6 +326,12 @@ export async function POST(req) {
     console.log('📋 Session ID:', sessionId);
     console.log('📋 Is Simulated:', isSimulated);
     console.log('📋 Payment Data:', paymentData);
+    console.log('🚨 === DOCTOR ID CRÍTICO ===');
+    console.log('🚨 paymentData.doctorId:', paymentData.doctorId);
+    console.log('🚨 typeof paymentData.doctorId:', typeof paymentData.doctorId);
+    console.log('🚨 doctorId length:', paymentData.doctorId?.length);
+    console.log('🚨 doctorId válido (rec...):', paymentData.doctorId?.startsWith('rec'));
+    console.log('🚨 === FIN DOCTOR ID ===');
     
     // 🚨 DEBUG CRÍTICO PARA PRODUCCIÓN
     console.log('🔧 === VARIABLES DE ENTORNO DEBUG ===');
@@ -355,6 +361,11 @@ export async function POST(req) {
     const patientPhone = paymentData.patientPhone || '';
     const patientEmail = paymentData.patientEmail || '';
     const doctorId = paymentData.doctorId;
+    
+    console.log('🚨 === EXTRACCIÓN DOCTOR ID ===');
+    console.log('🚨 doctorId final extraído:', doctorId);
+    console.log('🚨 será usado para búsqueda:', !!doctorId);
+    console.log('🚨 === FIN EXTRACCIÓN ===');
     
     // Generar número de confirmación
     const confirmationNumber = `SC${Date.now().toString().slice(-6)}`;
