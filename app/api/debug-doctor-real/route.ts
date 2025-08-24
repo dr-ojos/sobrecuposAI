@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
     const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER;
 
-    const diagnosis = {
+    const diagnosis: any = {
       step1_sobrecupo: null,
       step2_doctor_extraction: null,
       step3_doctor_lookup: null,
