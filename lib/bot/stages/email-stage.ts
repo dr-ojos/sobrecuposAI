@@ -98,7 +98,7 @@ function createPaymentSummary(session: BotSession, sessionId: string): BotRespon
     `📍 **Dirección:** ${direccion}\n` +
     `📧 **Email:** ${patientEmail}\n` +
     `📞 **Teléfono:** ${patientPhone}\n\n` +
-    `💰 **Valor:** $2.990 CLP\n\n` +
+    `💰 **Valor de la autorización de Sobrecupo:** $2.990\n\n` +
     `🔗 Para confirmar tu reserva, completa el pago haciendo clic en el siguiente enlace:`;
 
   return {

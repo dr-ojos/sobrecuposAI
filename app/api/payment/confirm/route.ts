@@ -584,137 +584,49 @@ export async function POST(req) {
                 motivo: paymentData.motivo
               });
 
-              // 5. ENVÍO ROBUSTO DE NOTIFICACIONES CON REINTENTOS
-              console.log('🎯 Iniciando notificaciones robustas...');
+              // 5. USAR NOTIFICATION SERVICE ROBUSTO
+              console.log('🎯 Usando NotificationService robusto con reintentos automáticos...');
+              
+              const { NotificationService } = require('../../../lib/notification-service.js');
+              const notificationService = new NotificationService({
+                maxRetries: 3,
+                retryDelay: 2000
+              });
 
-              // EMAIL CON REINTENTOS
-              if (doctorEmail) {
-                console.log('📧 Enviando email con múltiples intentos...');
-                let emailSent = false;
-                
-                for (let attempt = 1; attempt <= 3; attempt++) {
-                  try {
-                    console.log(`📧 Intento ${attempt}/3 de email a: ${doctorEmail}`);
-                    
-                    const doctorEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
-                      method: "POST", 
-                      headers: {
-                        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        personalizations: [{
-                          to: [{ email: doctorEmail }],
-                          subject: `Nueva Cita Confirmada - ${patientName} - ${paymentData.date}`
-                        }],
-                        from: { 
-                          email: SENDGRID_FROM_EMAIL, 
-                          name: "Sistema Sobrecupos" 
-                        },
-                        reply_to: {
-                          email: SENDGRID_FROM_EMAIL,
-                          name: "Sistema Sobrecupos"
-                        },
-                        categories: ["medical-notification", "doctor-appointment", `attempt-${attempt}`],
-                        custom_args: {
-                          "notification_type": "doctor_appointment",
-                          "patient_name": patientName,
-                          "doctor_id": doctorId,
-                          "attempt": attempt.toString(),
-                          "timestamp": new Date().toISOString()
-                        },
-                        content: [{
-                          type: "text/html",
-                          value: doctorEmailHtml
-                        }]
-                      })
-                    });
+              const notificationResult = await notificationService.notifyDoctorWithFallback(
+                {
+                  name: paymentData.doctorName || 'Doctor',
+                  email: doctorEmail,
+                  whatsapp: doctorWhatsApp
+                },
+                {
+                  name: patientName,
+                  rut: patientRut,
+                  phone: patientPhone,
+                  email: patientEmail
+                },
+                {
+                  fecha: paymentData.date || '',
+                  hora: paymentData.time || '',
+                  clinica: paymentData.clinic || ''
+                },
+                doctorEmailHtml,
+                paymentData.motivo
+              );
 
-                    const responseText = await doctorEmailResponse.text();
-                    
-                    if (doctorEmailResponse.ok) {
-                      results.emailsSent += 1;
-                      emailSent = true;
-                      console.log(`✅ Email enviado exitosamente en intento ${attempt}`);
-                      break;
-                    } else {
-                      console.log(`❌ Intento ${attempt} falló (${doctorEmailResponse.status}): ${responseText}`);
-                    }
-                    
-                  } catch (error) {
-                    console.log(`❌ Intento ${attempt} excepción:`, error.message);
-                  }
-                  
-                  // Esperar 2 segundos antes del siguiente intento
-                  if (attempt < 3) {
-                    console.log('⏳ Esperando 2 segundos antes del siguiente intento...');
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                  }
-                }
-                
-                if (!emailSent) {
-                  console.error('❌ Email falló después de 3 intentos');
-                }
-              } else {
-                console.log('⚠️ Médico sin email configurado');
+              // Actualizar resultados basado en el NotificationService
+              if (notificationResult.emailResult.success) {
+                results.emailsSent += 1;
+              }
+              if (notificationResult.whatsappResult.success) {
+                results.whatsappSent = true;
               }
 
-              // WHATSAPP CON REINTENTOS
-              if (doctorWhatsApp) {
-                console.log('📱 Enviando WhatsApp con múltiples intentos...');
-                let whatsappSent = false;
-                
-                for (let attempt = 1; attempt <= 3; attempt++) {
-                  try {
-                    console.log(`📱 Intento ${attempt}/3 de WhatsApp a: ${doctorWhatsApp}`);
-                    
-                    const { default: whatsAppService } = await import('../../../../lib/whatsapp-service.js');
-                    const whatsappResult = await whatsAppService.notifyDoctorNewPatient(
-                      {
-                        name: paymentData.doctorName || 'Doctor',
-                        whatsapp: doctorWhatsApp
-                      },
-                      {
-                        name: patientName,
-                        rut: patientRut,
-                        phone: patientPhone,
-                        email: patientEmail
-                      },
-                      {
-                        fecha: paymentData.date,
-                        hora: paymentData.time,
-                        clinica: paymentData.clinic
-                      },
-                      paymentData.motivo || null
-                    );
-
-                    if (whatsappResult.success) {
-                      results.whatsappSent = true;
-                      whatsappSent = true;
-                      console.log(`✅ WhatsApp enviado exitosamente en intento ${attempt}`);
-                      console.log(`📱 Message ID: ${whatsappResult.messageId}`);
-                      break;
-                    } else {
-                      console.log(`❌ Intento ${attempt} falló: ${whatsappResult.error}`);
-                    }
-                    
-                  } catch (error) {
-                    console.log(`❌ Intento ${attempt} excepción:`, error.message);
-                  }
-                  
-                  // Esperar 2 segundos antes del siguiente intento
-                  if (attempt < 3) {
-                    console.log('⏳ Esperando 2 segundos antes del siguiente intento...');
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                  }
-                }
-                
-                if (!whatsappSent) {
-                  console.error('❌ WhatsApp falló después de 3 intentos');
-                }
-              } else {
-                console.log('⚠️ Médico sin WhatsApp configurado');
-              }
+              console.log('📊 Resultado de notificaciones:', {
+                email: notificationResult.emailResult.success ? '✅' : '❌',
+                whatsapp: notificationResult.whatsappResult.success ? '✅' : '❌',
+                overallSuccess: notificationResult.overallSuccess ? '✅' : '❌'
+              });
             } else {
               console.log('❌ No se pudo encontrar información del médico en ninguna tabla');
             }
