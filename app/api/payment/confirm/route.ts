@@ -832,6 +832,43 @@ _Sistema Sobrecupos_`;
     
     console.log('✅ Pago confirmado exitosamente con servicios originales');
     
+    // INTEGRACIÓN NUEVA: Sistema profesional de notificaciones médicas
+    try {
+      console.log('🚀 === INICIANDO SISTEMA PROFESIONAL DE NOTIFICACIONES MÉDICAS ===');
+      
+      const { BookingService } = await import('../../lib/services/booking-service');
+      const bookingService = new BookingService();
+      
+      const bookingResult = await bookingService.processPaymentConfirmation({
+        transactionId,
+        sessionId,
+        paymentData,
+        isSimulated
+      });
+      
+      console.log('📊 Resultado sistema profesional:', {
+        success: bookingResult.success,
+        bookingConfirmed: bookingResult.bookingConfirmed,
+        doctorNotified: bookingResult.doctorNotified,
+        errors: bookingResult.errors
+      });
+      
+      // Actualizar métricas con el resultado del sistema profesional
+      if (bookingResult.notificationResult?.emailSent) {
+        console.log('✅ Sistema profesional: Email al médico enviado');
+      }
+      if (bookingResult.notificationResult?.whatsappSent) {
+        results.whatsappSent = true;
+        console.log('✅ Sistema profesional: WhatsApp al médico enviado');
+      }
+      
+    } catch (professionalError: any) {
+      console.error('❌ Error en sistema profesional de notificaciones:', professionalError.message);
+      // No afectar el flujo principal si falla el sistema profesional
+    }
+    
+    console.log('🏁 === FIN SISTEMA PROFESIONAL ===');
+    
     // Respuesta exitosa
     return NextResponse.json({
       success: true,
