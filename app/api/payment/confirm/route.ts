@@ -836,13 +836,15 @@ _Sistema Sobrecupos_`;
     try {
       console.log('🚀 === INICIANDO SISTEMA PROFESIONAL DE NOTIFICACIONES MÉDICAS ===');
       
-      const FEATURE_ENABLED = process.env.FEATURE_NOTIFY_DOCTOR === 'true';
-      const SANDBOX_MODE = process.env.NOTIFY_SANDBOX === '1';
+      // Sistema profesional SIEMPRE ACTIVO - sin variables adicionales requeridas
+      const FEATURE_ENABLED = true; // Siempre activo
+      const SANDBOX_MODE = process.env.NODE_ENV !== 'production'; // Auto-detectar modo
       
-      console.log('🔧 Feature enabled:', FEATURE_ENABLED);
-      console.log('🔧 Sandbox mode:', SANDBOX_MODE);
+      console.log('🔧 Sistema profesional: SIEMPRE ACTIVO');
+      console.log('🔧 Sandbox mode (auto):', SANDBOX_MODE);
+      console.log('🔧 Doctor email disponible:', !!doctorEmail);
       
-      if (FEATURE_ENABLED && doctorEmail) {
+      if (doctorEmail) {
         console.log('📧 Enviando notificación profesional al médico:', doctorEmail);
         
         // Formatear fecha y hora profesional
@@ -906,7 +908,7 @@ _Sistema Sobrecupos_`;
 
         // Enviar email profesional con reintentos
         let professionalEmailSent = false;
-        const recipientEmail = SANDBOX_MODE ? (process.env.SANDBOX_EMAIL || 'joseandres@outlook.com') : doctorEmail;
+        const recipientEmail = SANDBOX_MODE ? 'joseandres@outlook.com' : doctorEmail; // En sandbox siempre a tu email
         
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
@@ -996,7 +998,7 @@ Dr/a. ${paymentData.doctorName || 'Doctor'}
 _🚀 Sistema Profesional Sobrecupos_`;
 
             const recipientPhone = SANDBOX_MODE ? 
-              (process.env.SANDBOX_PHONE || '+56912345678') : 
+              '+56912345678' : // En sandbox siempre a número de prueba
               doctorWhatsApp.replace(/\D/g, '').startsWith('56') ? '+' + doctorWhatsApp.replace(/\D/g, '') : '+56' + doctorWhatsApp.replace(/\D/g, '');
 
             try {
@@ -1044,7 +1046,9 @@ _🚀 Sistema Profesional Sobrecupos_`;
         });
         
       } else {
-        console.log('⚠️ Sistema profesional:', !FEATURE_ENABLED ? 'Deshabilitado (FEATURE_NOTIFY_DOCTOR)' : 'Sin email del médico');
+        console.log('⚠️ Sistema profesional: Sin email del médico - No se puede enviar notificación');
+        console.log('⚠️ DoctorEmail obtenido:', doctorEmail);
+        console.log('⚠️ DoctorWhatsApp obtenido:', doctorWhatsApp);
       }
       
     } catch (professionalError: any) {
