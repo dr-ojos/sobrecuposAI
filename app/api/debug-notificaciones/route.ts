@@ -1,14 +1,20 @@
 // API de diagnóstico completo para notificaciones
 import { NextResponse } from 'next/server';
 
+interface LogEntry {
+  mensaje: string;
+  tipo: 'info' | 'error' | 'warning';
+  timestamp: string;
+}
+
 export async function POST(req) {
   const diagnostico = {
     timestamp: new Date().toISOString(),
-    etapas: [],
-    errores: [],
-    warnings: [],
+    etapas: [] as LogEntry[],
+    errores: [] as LogEntry[],
+    warnings: [] as LogEntry[],
     success: false,
-    resultadoFinal: null
+    resultadoFinal: null as any
   };
 
   function log(mensaje: string, tipo: 'info' | 'error' | 'warning' = 'info') {
