@@ -28,12 +28,15 @@ function PagoContent() {
       patientEmail: searchParams.get('patientEmail'),
       patientAge: searchParams.get('patientAge'),
       doctorName: searchParams.get('doctorName'),
+      doctorId: searchParams.get('doctorId'),
       specialty: searchParams.get('specialty'),
       date: searchParams.get('date'),
       time: searchParams.get('time'),
       clinic: searchParams.get('clinic'),
+      clinicAddress: searchParams.get('clinicAddress'),
       amount: searchParams.get('amount') || '2990',
-      sessionId: searchParams.get('sessionId')
+      sessionId: searchParams.get('sessionId'),
+      motivo: searchParams.get('motivo')
     };
 
     // Detectar si viene del chat o directamente
