@@ -228,6 +228,12 @@ const AgendarSobrecuposContent = () => {
     try {
       console.log('🎯 Creando enlace de pago...');
       
+      // Validar datos del sobrecupo seleccionado
+      if (!selectedSobrecupo || !selectedSobrecupo.id) {
+        setMessage('Error: No se ha seleccionado un sobrecupo válido');
+        return;
+      }
+      
       // Usar datos reales proporcionados por el usuario
       const userData = {
         nombre: reservationData.nombre.trim(),
@@ -239,30 +245,66 @@ const AgendarSobrecuposContent = () => {
         motivoConsulta: reservationData.motivoConsulta.trim() || 'Consulta general'
       };
       
+      const paymentPayload = {
+        sobrecupoId: selectedSobrecupo.id,
+        patientName: `${userData.nombre} ${userData.apellidos}`.trim(),
+        patientRut: userData.rut,
+        patientPhone: userData.telefono,
+        patientEmail: userData.email,
+        patientAge: userData.edad,
+        doctorName: selectedSobrecupo.fields?.Médico || 'Doctor no disponible',
+        specialty: selectedSobrecupo.fields?.Especialidad || 'Especialidad no disponible',
+        date: selectedSobrecupo.fields?.Fecha || 'Fecha no disponible',
+        time: selectedSobrecupo.fields?.Hora || 'Hora no disponible',
+        clinic: selectedSobrecupo.fields?.Clínica || 'Clínica no disponible',
+        amount: "2990", // Precio estándar
+        motivo: userData.motivoConsulta, // Motivo de la consulta del usuario
+        fromChat: false, // 🆕 MARCAR ORIGEN COMO RESERVA DIRECTA
+        sessionId: `direct-booking-demo-${Date.now()}` // ID de sesión único
+      };
+      
+      // Validar campos requeridos antes de enviar
+      const requiredFields = {
+        sobrecupoId: 'ID del sobrecupo',
+        patientName: 'Nombre del paciente',
+        patientRut: 'RUT del paciente',
+        patientPhone: 'Teléfono del paciente',
+        patientEmail: 'Email del paciente',
+        patientAge: 'Edad del paciente',
+        doctorName: 'Nombre del médico',
+        specialty: 'Especialidad',
+        date: 'Fecha',
+        time: 'Hora',
+        clinic: 'Clínica',
+        sessionId: 'ID de sesión'
+      };
+      
+      for (const [field, label] of Object.entries(requiredFields)) {
+        if (!paymentPayload[field] || paymentPayload[field].toString().trim() === '') {
+          console.error(`❌ Campo faltante: ${field} (${label})`);
+          setMessage(`Error: Falta ${label}. Por favor recarga la página e intenta nuevamente.`);
+          return;
+        }
+      }
+      
+      console.log('📤 Payload enviado:', JSON.stringify(paymentPayload, null, 2));
+      
       // Crear enlace de pago (mismo flujo que el chatbot)
       const paymentResponse = await fetch('/api/payment/create-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          sobrecupoId: selectedSobrecupo.id,
-          patientName: `${userData.nombre} ${userData.apellidos}`.trim(),
-          patientRut: userData.rut,
-          patientPhone: userData.telefono,
-          patientEmail: userData.email,
-          patientAge: userData.edad,
-          doctorName: selectedSobrecupo.fields.Médico,
-          specialty: selectedSobrecupo.fields.Especialidad,
-          date: selectedSobrecupo.fields.Fecha,
-          time: selectedSobrecupo.fields.Hora,
-          clinic: selectedSobrecupo.fields.Clínica,
-          amount: "2990", // Precio estándar
-          motivo: userData.motivoConsulta, // Motivo de la consulta del usuario
-          fromChat: false, // 🆕 MARCAR ORIGEN COMO RESERVA DIRECTA
-          sessionId: `direct-booking-demo-${Date.now()}` // ID de sesión único
-        })
+        body: JSON.stringify(paymentPayload)
       });
+
+      // Verificar si la respuesta es exitosa
+      if (!paymentResponse.ok) {
+        const errorText = await paymentResponse.text();
+        console.error('❌ HTTP Error:', paymentResponse.status, errorText);
+        setMessage(`Error HTTP ${paymentResponse.status}: ${errorText.slice(0, 100)}`);
+        return;
+      }
 
       const paymentResult = await paymentResponse.json();
 
@@ -285,12 +327,13 @@ const AgendarSobrecuposContent = () => {
         // Redirigir a página de pago
         window.location.href = paymentResult.shortUrl;
       } else {
+        console.error('❌ Payment error:', paymentResult);
         setMessage(paymentResult.error || 'Error creando el enlace de pago. Intenta nuevamente.');
       }
       
     } catch (error) {
-      console.error('❌ Error:', error);
-      setMessage('Error de conexión. Intenta nuevamente.');
+      console.error('❌ Network Error:', error);
+      setMessage(`Error de conexión: ${error.message}`);
     } finally {
       setReservationLoading(false);
       setTimeout(() => setMessage(''), 5000);
