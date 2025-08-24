@@ -487,11 +487,22 @@ export async function POST(req) {
             body: JSON.stringify({
               personalizations: [{
                 to: [{ email: patientEmail }],
-                subject: `✅ Confirmación de Cita - ${emailServiceData.especialidad} - ${emailServiceData.fecha}`
+                subject: `Confirmacion de Cita - ${emailServiceData.especialidad} - ${emailServiceData.fecha}`
               }],
               from: { 
                 email: SENDGRID_FROM_EMAIL, 
-                name: "SobrecuposIA" 
+                name: "Sistema Sobrecupos" 
+              },
+              reply_to: {
+                email: SENDGRID_FROM_EMAIL,
+                name: "Sistema Sobrecupos"
+              },
+              // Configuraciones anti-spam
+              categories: ["medical-notification", "patient-confirmation"],
+              custom_args: {
+                "notification_type": "patient_confirmation",
+                "patient_name": patientName,
+                "doctor_name": emailServiceData.doctorName
               },
               content: [{
                 type: "text/html",
@@ -558,107 +569,148 @@ export async function POST(req) {
               
               console.log(`👨‍⚕️ Doctor encontrado - Email: ${doctorEmail || 'No configurado'}, WhatsApp: ${doctorWhatsApp || 'No configurado'}`);
               
+              // Preparar template del médico
+              const doctorEmailHtml = generateRealDoctorEmailTemplate({
+                doctorName: paymentData.doctorName || 'Doctor',
+                patientName: patientName,
+                patientRut: patientRut,
+                patientPhone: patientPhone,
+                patientEmail: patientEmail,
+                patientAge: patientAge || 0,
+                fecha: paymentData.date || '',
+                hora: paymentData.time || '',
+                especialidad: paymentData.specialty || '',
+                clinica: paymentData.clinic || '',
+                motivo: paymentData.motivo
+              });
+
+              // 5. ENVÍO ROBUSTO DE NOTIFICACIONES CON REINTENTOS
+              console.log('🎯 Iniciando notificaciones robustas...');
+
+              // EMAIL CON REINTENTOS
               if (doctorEmail) {
-                console.log('🔧 Preparando email para médico:', doctorEmail);
+                console.log('📧 Enviando email con múltiples intentos...');
+                let emailSent = false;
                 
-                // Usar template real del médico
-                const doctorEmailHtml = generateRealDoctorEmailTemplate({
-                  doctorName: paymentData.doctorName || 'Doctor',
-                  patientName: patientName,
-                  patientRut: patientRut,
-                  patientPhone: patientPhone,
-                  patientEmail: patientEmail,
-                  patientAge: patientAge || 0,
-                  fecha: paymentData.date || '',
-                  hora: paymentData.time || '',
-                  especialidad: paymentData.specialty || '',
-                  clinica: paymentData.clinic || '',
-                  motivo: paymentData.motivo
-                });
-
-                try {
-                  console.log('📧 Enviando email a médico via SendGrid...');
-                  const doctorEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
-                    method: "POST", 
-                    headers: {
-                      'Authorization': `Bearer ${SENDGRID_API_KEY}`,
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      personalizations: [{
-                        to: [{ email: doctorEmail }],
-                        subject: `🏥 Nueva Cita Confirmada - ${patientName} - ${paymentData.date}`
-                      }],
-                      from: { 
-                        email: SENDGRID_FROM_EMAIL, 
-                        name: "SobrecuposIA" 
+                for (let attempt = 1; attempt <= 3; attempt++) {
+                  try {
+                    console.log(`📧 Intento ${attempt}/3 de email a: ${doctorEmail}`);
+                    
+                    const doctorEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+                      method: "POST", 
+                      headers: {
+                        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+                        'Content-Type': 'application/json',
                       },
-                      content: [{
-                        type: "text/html",
-                        value: doctorEmailHtml
-                      }]
-                    })
-                  });
+                      body: JSON.stringify({
+                        personalizations: [{
+                          to: [{ email: doctorEmail }],
+                          subject: `Nueva Cita Confirmada - ${patientName} - ${paymentData.date}`
+                        }],
+                        from: { 
+                          email: SENDGRID_FROM_EMAIL, 
+                          name: "Sistema Sobrecupos" 
+                        },
+                        reply_to: {
+                          email: SENDGRID_FROM_EMAIL,
+                          name: "Sistema Sobrecupos"
+                        },
+                        categories: ["medical-notification", "doctor-appointment", `attempt-${attempt}`],
+                        custom_args: {
+                          "notification_type": "doctor_appointment",
+                          "patient_name": patientName,
+                          "doctor_id": doctorId,
+                          "attempt": attempt.toString(),
+                          "timestamp": new Date().toISOString()
+                        },
+                        content: [{
+                          type: "text/html",
+                          value: doctorEmailHtml
+                        }]
+                      })
+                    });
 
-                  const responseText = await doctorEmailResponse.text();
-                  console.log(`📧 SendGrid respuesta (${doctorEmailResponse.status}):`, responseText);
-
-                  if (doctorEmailResponse.ok) {
-                    results.emailsSent += 1;
-                    console.log('✅ Email enviado al médico exitosamente');
-                  } else {
-                    console.error('❌ SendGrid falló:', responseText);
+                    const responseText = await doctorEmailResponse.text();
+                    
+                    if (doctorEmailResponse.ok) {
+                      results.emailsSent += 1;
+                      emailSent = true;
+                      console.log(`✅ Email enviado exitosamente en intento ${attempt}`);
+                      break;
+                    } else {
+                      console.log(`❌ Intento ${attempt} falló (${doctorEmailResponse.status}): ${responseText}`);
+                    }
+                    
+                  } catch (error) {
+                    console.log(`❌ Intento ${attempt} excepción:`, error.message);
                   }
-                } catch (error) {
-                  console.error('❌ Error enviando email al médico:', error);
+                  
+                  // Esperar 2 segundos antes del siguiente intento
+                  if (attempt < 3) {
+                    console.log('⏳ Esperando 2 segundos antes del siguiente intento...');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                  }
+                }
+                
+                if (!emailSent) {
+                  console.error('❌ Email falló después de 3 intentos');
                 }
               } else {
                 console.log('⚠️ Médico sin email configurado');
               }
 
-              // 5. ENVIAR WHATSAPP REAL AL MÉDICO (si tiene WhatsApp)
+              // WHATSAPP CON REINTENTOS
               if (doctorWhatsApp) {
-                console.log('📱 Enviando WhatsApp REAL al médico...');
-                console.log('🔧 WhatsApp número:', doctorWhatsApp);
+                console.log('📱 Enviando WhatsApp con múltiples intentos...');
+                let whatsappSent = false;
                 
-                try {
-                  // Importar y usar servicio real de WhatsApp
-                  console.log('📱 Importando servicio WhatsApp...');
-                  const { default: whatsAppService } = await import('../../../../lib/whatsapp-service.js');
-                  console.log('📱 Servicio WhatsApp importado exitosamente');
-                  
-                  const whatsappResult = await whatsAppService.notifyDoctorNewPatient(
-                    {
-                      name: paymentData.doctorName || 'Doctor',
-                      whatsapp: doctorWhatsApp
-                    },
-                    {
-                      name: patientName,
-                      rut: patientRut,
-                      phone: patientPhone,
-                      email: patientEmail
-                    },
-                    {
-                      fecha: paymentData.date,
-                      hora: paymentData.time,
-                      clinica: paymentData.clinic
-                    },
-                    paymentData.motivo || null
-                  );
+                for (let attempt = 1; attempt <= 3; attempt++) {
+                  try {
+                    console.log(`📱 Intento ${attempt}/3 de WhatsApp a: ${doctorWhatsApp}`);
+                    
+                    const { default: whatsAppService } = await import('../../../../lib/whatsapp-service.js');
+                    const whatsappResult = await whatsAppService.notifyDoctorNewPatient(
+                      {
+                        name: paymentData.doctorName || 'Doctor',
+                        whatsapp: doctorWhatsApp
+                      },
+                      {
+                        name: patientName,
+                        rut: patientRut,
+                        phone: patientPhone,
+                        email: patientEmail
+                      },
+                      {
+                        fecha: paymentData.date,
+                        hora: paymentData.time,
+                        clinica: paymentData.clinic
+                      },
+                      paymentData.motivo || null
+                    );
 
-                  console.log('📱 Resultado WhatsApp:', JSON.stringify(whatsappResult, null, 2));
-
-                  if (whatsappResult.success) {
-                    results.whatsappSent = true;
-                    console.log('✅ WhatsApp REAL enviado al médico exitosamente');
-                  } else {
-                    console.log('⚠️ WhatsApp falló:', whatsappResult.error || 'Error desconocido');
+                    if (whatsappResult.success) {
+                      results.whatsappSent = true;
+                      whatsappSent = true;
+                      console.log(`✅ WhatsApp enviado exitosamente en intento ${attempt}`);
+                      console.log(`📱 Message ID: ${whatsappResult.messageId}`);
+                      break;
+                    } else {
+                      console.log(`❌ Intento ${attempt} falló: ${whatsappResult.error}`);
+                    }
+                    
+                  } catch (error) {
+                    console.log(`❌ Intento ${attempt} excepción:`, error.message);
                   }
-                } catch (error) {
-                  console.error('❌ Error crítico enviando WhatsApp:', error);
-                  console.error('❌ Stack trace:', error.stack);
-                  console.log('📱 Fallback: WhatsApp simulado');
-                  results.whatsappSent = true;
+                  
+                  // Esperar 2 segundos antes del siguiente intento
+                  if (attempt < 3) {
+                    console.log('⏳ Esperando 2 segundos antes del siguiente intento...');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                  }
+                }
+                
+                if (!whatsappSent) {
+                  console.error('❌ WhatsApp falló después de 3 intentos');
                 }
               } else {
                 console.log('⚠️ Médico sin WhatsApp configurado');
