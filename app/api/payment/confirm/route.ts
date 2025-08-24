@@ -638,60 +638,174 @@ export async function POST(req) {
                 motivo: paymentData.motivo
               });
 
-              // 5. USAR NUEVO SISTEMA DE NOTIFICACIONES MÉDICAS
-              console.log('🚀 Usando nuevo sistema de notificaciones médicas...');
+              // 5. SISTEMA DIRECTO DE NOTIFICACIONES MÉDICAS (INCORPORADO)
+              console.log('🚀 Enviando notificaciones médicas directamente...');
               
               if (doctorEmail || doctorWhatsApp) {
-                try {
-                  const notificationPayload = {
-                    doctorEmail: doctorEmail,
-                    doctorWhatsapp: doctorWhatsApp,
-                    doctorName: paymentData.doctorName || 'Doctor',
-                    patientName: patientName,
-                    patientRut: patientRut,
-                    patientPhone: patientPhone,
-                    patientEmail: patientEmail,
-                    patientAge: patientAge || 0,
-                    fecha: paymentData.date || '',
-                    hora: paymentData.time || '',
-                    especialidad: paymentData.specialty || '',
-                    clinica: paymentData.clinic || '',
-                    motivo: paymentData.motivo
-                  };
-
-                  console.log('📧 Enviando notificación al médico con payload:', JSON.stringify(notificationPayload, null, 2));
-
-                  const notificationResponse = await fetch('https://sobrecupos-ai-esb7.vercel.app/api/notify-doctor', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(notificationPayload)
-                  });
-
-                  if (notificationResponse.ok) {
-                    const notificationResult = await notificationResponse.json();
-                    console.log('✅ Respuesta de notificación médica:', notificationResult);
+                // ENVIAR EMAIL AL MÉDICO
+                if (doctorEmail && SENDGRID_API_KEY && SENDGRID_FROM_EMAIL) {
+                  try {
+                    console.log('📧 Enviando email directo al médico:', doctorEmail);
                     
-                    if (notificationResult.results.emailSent) {
+                    const doctorEmailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Reserva de Sobrecupo</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h1 style="color: #dc2626; margin: 0 0 10px 0;">🏥 Nueva Reserva de Sobrecupo</h1>
+        <p style="margin: 0; font-size: 18px; font-weight: bold;">Dr/a. ${paymentData.doctorName || 'Doctor'}</p>
+    </div>
+    
+    <div style="background: white; padding: 20px; border: 2px solid #dc2626; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: #dc2626; margin-top: 0;">📅 Detalles de la Cita</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px 0; font-weight: bold;">Fecha:</td><td>${paymentData.date || 'No especificada'}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Hora:</td><td>${paymentData.time || 'No especificada'}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Especialidad:</td><td>${paymentData.specialty || 'No especificada'}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Clínica:</td><td>${paymentData.clinic || 'No especificada'}</td></tr>
+        </table>
+    </div>
+    
+    <div style="background: white; padding: 20px; border: 2px solid #059669; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: #059669; margin-top: 0;">👤 Datos del Paciente</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px 0; font-weight: bold;">Nombre:</td><td>${patientName}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">RUT:</td><td>${patientRut || 'No proporcionado'}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Teléfono:</td><td>${patientPhone || 'No proporcionado'}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Email:</td><td>${patientEmail || 'No proporcionado'}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Edad:</td><td>${patientAge || 0} años</td></tr>
+            ${paymentData.motivo ? `<tr><td style="padding: 8px 0; font-weight: bold;">Motivo:</td><td>${paymentData.motivo}</td></tr>` : ''}
+        </table>
+    </div>
+    
+    <div style="background: #fef3c7; padding: 15px; border-radius: 10px;">
+        <p style="margin: 0; font-weight: bold; color: #92400e;">✅ El paciente ha confirmado su asistencia y pagado la consulta.</p>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px; color: #666;">
+        <p>Sistema Sobrecupos - contacto@sobrecupos.com</p>
+    </div>
+</body>
+</html>`;
+
+                    const emailPayload = {
+                      personalizations: [{
+                        to: [{ email: doctorEmail }],
+                        subject: `🏥 Nueva Reserva - ${patientName} - ${paymentData.date} ${paymentData.time}`
+                      }],
+                      from: { 
+                        email: SENDGRID_FROM_EMAIL, 
+                        name: "Sistema Sobrecupos" 
+                      },
+                      content: [{
+                        type: "text/html",
+                        value: doctorEmailHtml
+                      }],
+                      categories: ["doctor-notification"]
+                    };
+
+                    const emailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+                      method: "POST",
+                      headers: {
+                        'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(emailPayload)
+                    });
+
+                    if (emailResponse.ok) {
+                      console.log('✅ Email directo al médico enviado correctamente');
                       results.emailsSent += 1;
-                      console.log('✅ Email al médico enviado correctamente');
+                    } else {
+                      const errorText = await emailResponse.text();
+                      console.error('❌ Error enviando email directo al médico:', errorText);
                     }
-                    if (notificationResult.results.whatsappSent) {
-                      results.whatsappSent = true;
-                      console.log('✅ WhatsApp al médico enviado correctamente');
-                    }
-                    
-                    if (notificationResult.results.emailError) {
-                      console.log('⚠️ Error en email médico:', notificationResult.results.emailError);
-                    }
-                    if (notificationResult.results.whatsappError) {
-                      console.log('⚠️ Error en WhatsApp médico:', notificationResult.results.whatsappError);
+
+                  } catch (error: any) {
+                    console.error('❌ Excepción enviando email directo al médico:', error);
+                  }
+                }
+
+                // ENVIAR WHATSAPP AL MÉDICO
+                if (doctorWhatsApp) {
+                  const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+                  const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+                  const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER;
+
+                  if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_WHATSAPP_NUMBER) {
+                    try {
+                      console.log('📱 Enviando WhatsApp directo al médico:', doctorWhatsApp);
+
+                      const whatsappMessage = `🏥 *Nueva Reserva de Sobrecupo*
+
+Dr/a. ${paymentData.doctorName || 'Doctor'}
+
+📅 *Detalles de la Cita:*
+• Fecha: ${paymentData.date}
+• Hora: ${paymentData.time}
+• Especialidad: ${paymentData.specialty}
+• Clínica: ${paymentData.clinic}
+
+👤 *Datos del Paciente:*
+• Nombre: ${patientName}
+• RUT: ${patientRut}
+• Teléfono: ${patientPhone}
+• Email: ${patientEmail}
+• Edad: ${patientAge} años
+${paymentData.motivo ? `• Motivo: ${paymentData.motivo}` : ''}
+
+✅ El paciente ha confirmado su asistencia y pagado la consulta.
+
+_Sistema Sobrecupos_`;
+
+                      let doctorWhatsAppFormatted = doctorWhatsApp.replace(/\D/g, '');
+                      if (!doctorWhatsAppFormatted.startsWith('56')) {
+                        doctorWhatsAppFormatted = '56' + doctorWhatsAppFormatted;
+                      }
+                      const toNumber = `whatsapp:+${doctorWhatsAppFormatted}`;
+                      const fromNumber = `whatsapp:${TWILIO_WHATSAPP_NUMBER}`;
+
+                      console.log('📱 WhatsApp desde:', fromNumber, 'hacia:', toNumber);
+
+                      const whatsappPayload = {
+                        From: fromNumber,
+                        To: toNumber,
+                        Body: whatsappMessage
+                      };
+
+                      const auth = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64');
+
+                      const whatsappResponse = await fetch(
+                        `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+                        {
+                          method: 'POST',
+                          headers: {
+                            'Authorization': `Basic ${auth}`,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                          },
+                          body: new URLSearchParams(whatsappPayload).toString()
+                        }
+                      );
+
+                      if (whatsappResponse.ok) {
+                        const whatsappResult = await whatsappResponse.json();
+                        console.log('✅ WhatsApp directo al médico enviado:', whatsappResult.sid);
+                        results.whatsappSent = true;
+                      } else {
+                        const errorText = await whatsappResponse.text();
+                        console.error('❌ Error enviando WhatsApp directo al médico:', errorText);
+                      }
+
+                    } catch (error: any) {
+                      console.error('❌ Excepción enviando WhatsApp directo al médico:', error);
                     }
                   } else {
-                    const errorText = await notificationResponse.text();
-                    console.error('❌ Error en API de notificación médica:', errorText);
+                    console.log('⚠️ Credenciales de Twilio no configuradas para WhatsApp');
                   }
-                } catch (notificationError: any) {
-                  console.error('❌ Excepción en notificación médica:', notificationError.message);
                 }
               } else {
                 console.log('⚠️ No hay email ni WhatsApp del médico - omitiendo notificaciones');
