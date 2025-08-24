@@ -832,39 +832,224 @@ _Sistema Sobrecupos_`;
     
     console.log('✅ Pago confirmado exitosamente con servicios originales');
     
-    // INTEGRACIÓN NUEVA: Sistema profesional de notificaciones médicas
+    // INTEGRACIÓN NUEVA: Sistema profesional de notificaciones médicas (EMBEBIDO)
     try {
       console.log('🚀 === INICIANDO SISTEMA PROFESIONAL DE NOTIFICACIONES MÉDICAS ===');
       
-      const { BookingService } = await import('../../lib/services/booking-service');
-      const bookingService = new BookingService();
+      const FEATURE_ENABLED = process.env.FEATURE_NOTIFY_DOCTOR === 'true';
+      const SANDBOX_MODE = process.env.NOTIFY_SANDBOX === '1';
       
-      const bookingResult = await bookingService.processPaymentConfirmation({
-        transactionId,
-        sessionId,
-        paymentData,
-        isSimulated
-      });
+      console.log('🔧 Feature enabled:', FEATURE_ENABLED);
+      console.log('🔧 Sandbox mode:', SANDBOX_MODE);
       
-      console.log('📊 Resultado sistema profesional:', {
-        success: bookingResult.success,
-        bookingConfirmed: bookingResult.bookingConfirmed,
-        doctorNotified: bookingResult.doctorNotified,
-        errors: bookingResult.errors
-      });
-      
-      // Actualizar métricas con el resultado del sistema profesional
-      if (bookingResult.notificationResult?.emailSent) {
-        console.log('✅ Sistema profesional: Email al médico enviado');
-      }
-      if (bookingResult.notificationResult?.whatsappSent) {
-        results.whatsappSent = true;
-        console.log('✅ Sistema profesional: WhatsApp al médico enviado');
+      if (FEATURE_ENABLED && doctorEmail) {
+        console.log('📧 Enviando notificación profesional al médico:', doctorEmail);
+        
+        // Formatear fecha y hora profesional
+        const appointmentDateTime = `${paymentData.date} ${paymentData.time}`;
+        const bookingUrl = `https://sobrecupos-ai-esb7.vercel.app/booking/${transactionId}`;
+        
+        // Email profesional al médico
+        const professionalEmailHtml = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Reserva Confirmada - Sistema Profesional</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    ${SANDBOX_MODE ? '<div style="background: #ff6b6b; color: white; padding: 10px; text-align: center; font-weight: bold;">🧪 MODO SANDBOX - EMAIL DE PRUEBA</div>' : ''}
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h1 style="color: #dc2626; margin: 0 0 10px 0;">🏥 Nueva Reserva Confirmada</h1>
+        <p style="margin: 0; font-size: 18px; font-weight: bold;">Dr/a. ${paymentData.doctorName || 'Doctor'}</p>
+        <p style="margin: 5px 0 0 0; color: #666;">Booking ID: ${transactionId}</p>
+    </div>
+    
+    <div style="background: white; padding: 20px; border: 2px solid #dc2626; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: #dc2626; margin-top: 0;">📅 Detalles de la Cita</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px 0; font-weight: bold;">Fecha y Hora:</td><td>${appointmentDateTime} (Zona: America/Santiago)</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Especialidad:</td><td>${paymentData.specialty || 'No especificada'}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Clínica:</td><td>${paymentData.clinic || 'No especificada'}</td></tr>
+            <tr><td style="padding: 8px 0; font-weight: bold;">Precio Pagado:</td><td>$${paymentData.amount || '2990'}</td></tr>
+            ${paymentData.motivo ? `<tr><td style="padding: 8px 0; font-weight: bold;">Motivo:</td><td>${paymentData.motivo}</td></tr>` : ''}
+        </table>
+    </div>
+    
+    <div style="background: white; padding: 20px; border: 2px solid #059669; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="color: #059669; margin-top: 0;">👤 Datos del Paciente</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px 0; font-weight: bold;">Nombre:</td><td>${patientName}</td></tr>
+            ${patientRut ? `<tr><td style="padding: 8px 0; font-weight: bold;">RUT:</td><td>${patientRut}</td></tr>` : ''}
+            ${patientPhone ? `<tr><td style="padding: 8px 0; font-weight: bold;">Teléfono:</td><td>${patientPhone}</td></tr>` : ''}
+            ${patientEmail ? `<tr><td style="padding: 8px 0; font-weight: bold;">Email:</td><td>${patientEmail}</td></tr>` : ''}
+            ${patientAge ? `<tr><td style="padding: 8px 0; font-weight: bold;">Edad:</td><td>${patientAge} años</td></tr>` : ''}
+        </table>
+    </div>
+    
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="${bookingUrl}" style="display: inline-block; background: #dc2626; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+            🔗 Ver Detalles de la Reserva
+        </a>
+    </div>
+    
+    <div style="background: #fef3c7; padding: 15px; border-radius: 10px;">
+        <p style="margin: 0; font-weight: bold; color: #92400e;">✅ El paciente ha confirmado su asistencia y completado el pago.</p>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px; color: #666;">
+        <p>🚀 Sistema Profesional Sobrecupos<br>contacto@sobrecupos.com</p>
+    </div>
+</body>
+</html>`;
+
+        // Enviar email profesional con reintentos
+        let professionalEmailSent = false;
+        const recipientEmail = SANDBOX_MODE ? (process.env.SANDBOX_EMAIL || 'joseandres@outlook.com') : doctorEmail;
+        
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            console.log(`📧 Sistema profesional - Intento ${attempt}/3 al médico: ${recipientEmail}`);
+            
+            const professionalEmailPayload = {
+              personalizations: [{
+                to: [{ email: recipientEmail }],
+                subject: `🏥 Nueva Reserva Confirmada - ${patientName} - ${appointmentDateTime}`
+              }],
+              from: {
+                email: SENDGRID_FROM_EMAIL,
+                name: "Sistema Profesional Sobrecupos"
+              },
+              content: [{
+                type: "text/html",
+                value: professionalEmailHtml
+              }],
+              categories: ["doctor-notification-professional"],
+              custom_args: {
+                booking_id: transactionId,
+                system: "professional",
+                sandbox_mode: SANDBOX_MODE.toString(),
+                attempt: attempt.toString()
+              }
+            };
+
+            const professionalResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+              method: "POST",
+              headers: {
+                'Authorization': `Bearer ${SENDGRID_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(professionalEmailPayload)
+            });
+
+            if (professionalResponse.ok) {
+              const messageId = professionalResponse.headers.get('X-Message-Id');
+              console.log(`✅ Sistema profesional: Email enviado exitosamente (MessageID: ${messageId})`);
+              professionalEmailSent = true;
+              results.emailsSent += 1; // Incrementar contador
+              break;
+            } else {
+              const errorText = await professionalResponse.text();
+              console.warn(`⚠️ Sistema profesional - Email falló intento ${attempt}: ${professionalResponse.status} - ${errorText}`);
+              
+              if (professionalResponse.status >= 400 && professionalResponse.status < 500) {
+                console.error(`❌ Error permanente en sistema profesional: ${professionalResponse.status}`);
+                break; // No reintentar errores 4xx
+              }
+              
+              if (attempt < 3) await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+            }
+          } catch (emailError: any) {
+            console.error(`❌ Excepción en sistema profesional intento ${attempt}:`, emailError.message);
+            if (attempt < 3) await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+          }
+        }
+        
+        // WhatsApp profesional al médico (si existe)
+        if (doctorWhatsApp) {
+          console.log('📱 Enviando WhatsApp profesional al médico:', doctorWhatsApp);
+          
+          const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+          const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+          const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER;
+          
+          if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_WHATSAPP_NUMBER) {
+            const professionalWhatsAppMessage = `${SANDBOX_MODE ? '🧪 *MODO SANDBOX*\n\n' : ''}🏥 *Nueva Reserva Confirmada - Sistema Profesional*
+
+Dr/a. ${paymentData.doctorName || 'Doctor'}
+📋 Booking ID: ${transactionId}
+
+📅 *Detalles:*
+• ${appointmentDateTime} (Chile)
+• ${paymentData.specialty || 'Consulta'}
+• ${paymentData.clinic || 'Clínica'}
+• Precio: $${paymentData.amount || '2990'}
+
+👤 *Paciente:*
+• ${patientName}${patientRut ? `\n• RUT: ${patientRut}` : ''}${patientPhone ? `\n• 📞 ${patientPhone}` : ''}${paymentData.motivo ? `\n• Motivo: ${paymentData.motivo}` : ''}
+
+✅ Pago confirmado y paciente registrado
+
+🔗 Detalles: ${bookingUrl}
+
+_🚀 Sistema Profesional Sobrecupos_`;
+
+            const recipientPhone = SANDBOX_MODE ? 
+              (process.env.SANDBOX_PHONE || '+56912345678') : 
+              doctorWhatsApp.replace(/\D/g, '').startsWith('56') ? '+' + doctorWhatsApp.replace(/\D/g, '') : '+56' + doctorWhatsApp.replace(/\D/g, '');
+
+            try {
+              const whatsappPayload = {
+                From: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
+                To: `whatsapp:${recipientPhone}`,
+                Body: professionalWhatsAppMessage
+              };
+
+              const auth = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64');
+
+              const whatsappResponse = await fetch(
+                `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Basic ${auth}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: new URLSearchParams(whatsappPayload).toString()
+                }
+              );
+
+              if (whatsappResponse.ok) {
+                const result = await whatsappResponse.json();
+                console.log(`✅ Sistema profesional: WhatsApp enviado (SID: ${result.sid})`);
+                results.whatsappSent = true;
+              } else {
+                const errorText = await whatsappResponse.text();
+                console.error(`❌ Sistema profesional WhatsApp falló:`, errorText);
+              }
+            } catch (whatsappError: any) {
+              console.error(`❌ Excepción WhatsApp profesional:`, whatsappError.message);
+            }
+          } else {
+            console.warn('⚠️ Credenciales Twilio no configuradas para WhatsApp profesional');
+          }
+        }
+        
+        console.log('📊 Sistema profesional completado:', {
+          emailSent: professionalEmailSent,
+          whatsappAttempted: !!doctorWhatsApp,
+          recipientEmail: recipientEmail,
+          sandboxMode: SANDBOX_MODE
+        });
+        
+      } else {
+        console.log('⚠️ Sistema profesional:', !FEATURE_ENABLED ? 'Deshabilitado (FEATURE_NOTIFY_DOCTOR)' : 'Sin email del médico');
       }
       
     } catch (professionalError: any) {
       console.error('❌ Error en sistema profesional de notificaciones:', professionalError.message);
-      // No afectar el flujo principal si falla el sistema profesional
+      console.error('❌ Stack:', professionalError.stack);
     }
     
     console.log('🏁 === FIN SISTEMA PROFESIONAL ===');
