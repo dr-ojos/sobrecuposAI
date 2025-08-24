@@ -586,6 +586,16 @@ export async function POST(req) {
 
               // 5. USAR NOTIFICATION SERVICE ROBUSTO
               console.log('🎯 Usando NotificationService robusto con reintentos automáticos...');
+              console.log('🔧 === DATOS PARA NOTIFICACIONES ===');
+              console.log('🔧 doctorEmail:', doctorEmail);
+              console.log('🔧 doctorWhatsApp:', doctorWhatsApp);
+              console.log('🔧 paymentData.doctorName:', paymentData.doctorName);
+              console.log('🔧 patientName:', patientName);
+              console.log('🔧 paymentData.motivo:', paymentData.motivo);
+              console.log('🔧 paymentData.date:', paymentData.date);
+              console.log('🔧 paymentData.time:', paymentData.time);
+              console.log('🔧 paymentData.clinic:', paymentData.clinic);
+              console.log('🔧 === FIN DATOS NOTIFICACIONES ===');
               
               const { NotificationService } = require('../../../lib/notification-service.js');
               const notificationService = new NotificationService({
@@ -593,7 +603,10 @@ export async function POST(req) {
                 retryDelay: 2000
               });
 
-              const notificationResult = await notificationService.notifyDoctorWithFallback(
+              let notificationResult;
+              try {
+                console.log('🚀 Iniciando notificación al médico...');
+                notificationResult = await notificationService.notifyDoctorWithFallback(
                 {
                   name: paymentData.doctorName || 'Doctor',
                   email: doctorEmail,
@@ -613,6 +626,17 @@ export async function POST(req) {
                 doctorEmailHtml,
                 paymentData.motivo
               );
+              console.log('✅ NotificationService completado sin errores');
+              } catch (notificationError) {
+                console.error('❌ Error en NotificationService:', notificationError);
+                console.error('❌ Error stack:', notificationError.stack);
+                // Crear resultado de error
+                notificationResult = {
+                  emailResult: { success: false, attempts: 0, lastError: notificationError.message },
+                  whatsappResult: { success: false, attempts: 0, lastError: notificationError.message },
+                  overallSuccess: false
+                };
+              }
 
               // Actualizar resultados basado en el NotificationService
               if (notificationResult.emailResult.success) {
@@ -622,6 +646,11 @@ export async function POST(req) {
                 results.whatsappSent = true;
               }
 
+              console.log('📊 === RESULTADO DETALLADO NOTIFICACIONES ===');
+              console.log('📊 Email result:', JSON.stringify(notificationResult.emailResult, null, 2));
+              console.log('📊 WhatsApp result:', JSON.stringify(notificationResult.whatsappResult, null, 2));
+              console.log('📊 Overall success:', notificationResult.overallSuccess);
+              console.log('📊 === FIN RESULTADO NOTIFICACIONES ===');
               console.log('📊 Resultado de notificaciones:', {
                 email: notificationResult.emailResult.success ? '✅' : '❌',
                 whatsapp: notificationResult.whatsappResult.success ? '✅' : '❌',
