@@ -1,7 +1,7 @@
 // Servicio profesional de notificaciones médicas con idempotencia y reintentos
 // Respeta convenciones existentes del proyecto SobrecuposIA
 
-interface DoctorNotificationPayload {
+export interface DoctorNotificationPayload {
   bookingId: string;
   doctorName: string;
   doctorEmail?: string;

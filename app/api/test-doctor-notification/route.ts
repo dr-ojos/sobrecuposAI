@@ -8,8 +8,8 @@ export async function POST(req: Request) {
     const results = {
       emailSent: false,
       whatsappSent: false,
-      emailError: null,
-      whatsappError: null
+      emailError: null as string | null,
+      whatsappError: null as string | null
     };
 
     // Datos de test

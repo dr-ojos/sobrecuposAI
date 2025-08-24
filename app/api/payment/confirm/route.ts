@@ -842,10 +842,52 @@ _Sistema Sobrecupos_`;
       
       console.log('🔧 Sistema profesional: SIEMPRE ACTIVO');
       console.log('🔧 Sandbox mode (auto):', SANDBOX_MODE);
-      console.log('🔧 Doctor email disponible:', !!doctorEmail);
       
-      if (doctorEmail) {
-        console.log('📧 Enviando notificación profesional al médico:', doctorEmail);
+      // Buscar datos del médico para el sistema profesional
+      let professionalDoctorEmail: string | null = null;
+      let professionalDoctorWhatsApp: string | null = null;
+      
+      // Extraer datos del médico directamente para el sistema profesional
+      console.log('🔧 Extrayendo datos del médico para sistema profesional');
+      
+      try {
+        let realDoctorId = paymentData.doctorId || '';
+        
+        if (paymentData.sobrecupoId) {
+          const sobrecupoResponse = await fetch(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Sobrecupos/${paymentData.sobrecupoId}`,
+            { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+          );
+          if (sobrecupoResponse.ok) {
+            const sobrecupoData = await sobrecupoResponse.json();
+            const extractedDoctorId = sobrecupoData.fields?.Médico?.[0];
+            if (extractedDoctorId) realDoctorId = extractedDoctorId;
+          }
+        }
+        
+        if (realDoctorId) {
+          const AIRTABLE_DOCTORS_TABLE = process.env.AIRTABLE_DOCTORS_TABLE;
+          const doctorResponse = await fetch(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_DOCTORS_TABLE}/${realDoctorId}`,
+            { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
+          );
+          
+          if (doctorResponse.ok) {
+            const doctorData = await doctorResponse.json();
+            professionalDoctorEmail = doctorData.fields?.Email || null;
+            professionalDoctorWhatsApp = doctorData.fields?.WhatsApp || null;
+            console.log('🔧 Doctor extraído para sistema profesional:', professionalDoctorEmail);
+          }
+        }
+      } catch (extractionError: any) {
+        console.warn('⚠️ Error extrayendo médico para sistema profesional:', extractionError.message);
+      }
+      
+      console.log('🔧 Doctor email disponible:', !!professionalDoctorEmail);
+      console.log('🔧 Doctor WhatsApp disponible:', !!professionalDoctorWhatsApp);
+      
+      if (professionalDoctorEmail) {
+        console.log('📧 Enviando notificación profesional al médico:', professionalDoctorEmail);
         
         // Formatear fecha y hora profesional
         const appointmentDateTime = `${paymentData.date} ${paymentData.time}`;
@@ -908,7 +950,7 @@ _Sistema Sobrecupos_`;
 
         // Enviar email profesional con reintentos
         let professionalEmailSent = false;
-        const recipientEmail = SANDBOX_MODE ? 'joseandres@outlook.com' : doctorEmail; // En sandbox siempre a tu email
+        const recipientEmail = SANDBOX_MODE ? 'joseandres@outlook.com' : professionalDoctorEmail; // En sandbox siempre a tu email
         
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
@@ -969,8 +1011,8 @@ _Sistema Sobrecupos_`;
         }
         
         // WhatsApp profesional al médico (si existe)
-        if (doctorWhatsApp) {
-          console.log('📱 Enviando WhatsApp profesional al médico:', doctorWhatsApp);
+        if (professionalDoctorWhatsApp) {
+          console.log('📱 Enviando WhatsApp profesional al médico:', professionalDoctorWhatsApp);
           
           const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
           const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
@@ -999,7 +1041,7 @@ _🚀 Sistema Profesional Sobrecupos_`;
 
             const recipientPhone = SANDBOX_MODE ? 
               '+56912345678' : // En sandbox siempre a número de prueba
-              doctorWhatsApp.replace(/\D/g, '').startsWith('56') ? '+' + doctorWhatsApp.replace(/\D/g, '') : '+56' + doctorWhatsApp.replace(/\D/g, '');
+              professionalDoctorWhatsApp.replace(/\D/g, '').startsWith('56') ? '+' + professionalDoctorWhatsApp.replace(/\D/g, '') : '+56' + professionalDoctorWhatsApp.replace(/\D/g, '');
 
             try {
               const whatsappPayload = {
@@ -1040,15 +1082,15 @@ _🚀 Sistema Profesional Sobrecupos_`;
         
         console.log('📊 Sistema profesional completado:', {
           emailSent: professionalEmailSent,
-          whatsappAttempted: !!doctorWhatsApp,
+          whatsappAttempted: !!professionalDoctorWhatsApp,
           recipientEmail: recipientEmail,
           sandboxMode: SANDBOX_MODE
         });
         
       } else {
         console.log('⚠️ Sistema profesional: Sin email del médico - No se puede enviar notificación');
-        console.log('⚠️ DoctorEmail obtenido:', doctorEmail);
-        console.log('⚠️ DoctorWhatsApp obtenido:', doctorWhatsApp);
+        console.log('⚠️ DoctorEmail obtenido:', professionalDoctorEmail);
+        console.log('⚠️ DoctorWhatsApp obtenido:', professionalDoctorWhatsApp);
       }
       
     } catch (professionalError: any) {
