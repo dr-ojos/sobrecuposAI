@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function DebugDoctorNotifications() {
   const [result, setResult] = useState(null);
@@ -12,6 +12,15 @@ export default function DebugDoctorNotifications() {
     patientName: 'Juan Pérez Test',
     motivo: 'Test de notificaciones del sistema'
   });
+
+  useEffect(() => {
+    // Auto-llenar doctorId si viene en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const doctorId = urlParams.get('doctorId');
+    if (doctorId) {
+      setFormData(prev => ({ ...prev, doctorId }));
+    }
+  }, []);
 
   const handleTest = async () => {
     setLoading(true);
