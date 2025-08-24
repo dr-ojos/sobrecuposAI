@@ -638,95 +638,69 @@ export async function POST(req) {
                 motivo: paymentData.motivo
               });
 
-              // 5. USAR NOTIFICATION SERVICE ROBUSTO
-              console.log('🎯 Usando NotificationService robusto con reintentos automáticos...');
-              console.log('🔧 === DATOS PARA NOTIFICACIONES ===');
-              console.log('🔧 doctorEmail:', doctorEmail);
-              console.log('🔧 doctorWhatsApp:', doctorWhatsApp);
-              console.log('🔧 paymentData.doctorName:', paymentData.doctorName);
-              console.log('🔧 patientName:', patientName);
-              console.log('🔧 paymentData.motivo:', paymentData.motivo);
-              console.log('🔧 paymentData.date:', paymentData.date);
-              console.log('🔧 paymentData.time:', paymentData.time);
-              console.log('🔧 paymentData.clinic:', paymentData.clinic);
-              console.log('🔧 === FIN DATOS NOTIFICACIONES ===');
+              // 5. USAR NUEVO SISTEMA DE NOTIFICACIONES MÉDICAS
+              console.log('🚀 Usando nuevo sistema de notificaciones médicas...');
               
-              // Validación crítica antes de NotificationService
-              console.log('🚨 === VALIDACIÓN PRE-NOTIFICACIÓN ===');
-              console.log('🚨 ¿Email disponible?:', !!doctorEmail);
-              console.log('🚨 ¿WhatsApp disponible?:', !!doctorWhatsApp);
-              console.log('🚨 ¿Al menos uno disponible?:', !!(doctorEmail || doctorWhatsApp));
-              
-              if (!doctorEmail && !doctorWhatsApp) {
-                console.error('🚨 CRÍTICO: No hay email ni WhatsApp del médico - NotificationService no enviará nada');
-              } else if (!doctorEmail) {
-                console.warn('⚠️ AVISO: Solo WhatsApp disponible, email será omitido');
-              } else if (!doctorWhatsApp) {
-                console.warn('⚠️ AVISO: Solo email disponible, WhatsApp será omitido');
+              if (doctorEmail || doctorWhatsApp) {
+                try {
+                  const notificationPayload = {
+                    doctorEmail: doctorEmail,
+                    doctorWhatsapp: doctorWhatsApp,
+                    doctorName: paymentData.doctorName || 'Doctor',
+                    patientName: patientName,
+                    patientRut: patientRut,
+                    patientPhone: patientPhone,
+                    patientEmail: patientEmail,
+                    patientAge: patientAge || 0,
+                    fecha: paymentData.date || '',
+                    hora: paymentData.time || '',
+                    especialidad: paymentData.specialty || '',
+                    clinica: paymentData.clinic || '',
+                    motivo: paymentData.motivo
+                  };
+
+                  console.log('📧 Enviando notificación al médico con payload:', JSON.stringify(notificationPayload, null, 2));
+
+                  const notificationResponse = await fetch('https://sobrecupos-ai-esb7.vercel.app/api/notify-doctor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(notificationPayload)
+                  });
+
+                  if (notificationResponse.ok) {
+                    const notificationResult = await notificationResponse.json();
+                    console.log('✅ Respuesta de notificación médica:', notificationResult);
+                    
+                    if (notificationResult.results.emailSent) {
+                      results.emailsSent += 1;
+                      console.log('✅ Email al médico enviado correctamente');
+                    }
+                    if (notificationResult.results.whatsappSent) {
+                      results.whatsappSent = true;
+                      console.log('✅ WhatsApp al médico enviado correctamente');
+                    }
+                    
+                    if (notificationResult.results.emailError) {
+                      console.log('⚠️ Error en email médico:', notificationResult.results.emailError);
+                    }
+                    if (notificationResult.results.whatsappError) {
+                      console.log('⚠️ Error en WhatsApp médico:', notificationResult.results.whatsappError);
+                    }
+                  } else {
+                    const errorText = await notificationResponse.text();
+                    console.error('❌ Error en API de notificación médica:', errorText);
+                  }
+                } catch (notificationError: any) {
+                  console.error('❌ Excepción en notificación médica:', notificationError.message);
+                }
               } else {
-                console.log('✅ PERFECTO: Email y WhatsApp disponibles');
-              }
-              console.log('🚨 === FIN VALIDACIÓN ===');
-              
-              const { NotificationService } = require('../../../lib/notification-service.js');
-              const notificationService = new NotificationService({
-                maxRetries: 3,
-                retryDelay: 2000
-              });
-
-              let notificationResult;
-              try {
-                console.log('🚀 Iniciando notificación al médico...');
-                notificationResult = await notificationService.notifyDoctorWithFallback(
-                {
-                  name: paymentData.doctorName || 'Doctor',
-                  email: doctorEmail,
-                  whatsapp: doctorWhatsApp
-                },
-                {
-                  name: patientName,
-                  rut: patientRut,
-                  phone: patientPhone,
-                  email: patientEmail
-                },
-                {
-                  fecha: paymentData.date || '',
-                  hora: paymentData.time || '',
-                  clinica: paymentData.clinic || ''
-                },
-                doctorEmailHtml,
-                paymentData.motivo
-              );
-              console.log('✅ NotificationService completado sin errores');
-              } catch (notificationError) {
-                console.error('❌ Error en NotificationService:', notificationError);
-                console.error('❌ Error stack:', notificationError.stack);
-                // Crear resultado de error
-                notificationResult = {
-                  emailResult: { success: false, attempts: 0, lastError: notificationError.message },
-                  whatsappResult: { success: false, attempts: 0, lastError: notificationError.message },
-                  overallSuccess: false
-                };
-              }
-
-              // Actualizar resultados basado en el NotificationService
-              if (notificationResult.emailResult.success) {
-                results.emailsSent += 1;
-              }
-              if (notificationResult.whatsappResult.success) {
-                results.whatsappSent = true;
+                console.log('⚠️ No hay email ni WhatsApp del médico - omitiendo notificaciones');
               }
 
               console.log('📊 === RESULTADO DETALLADO NOTIFICACIONES ===');
-              console.log('📊 Email result:', JSON.stringify(notificationResult.emailResult, null, 2));
-              console.log('📊 WhatsApp result:', JSON.stringify(notificationResult.whatsappResult, null, 2));
-              console.log('📊 Overall success:', notificationResult.overallSuccess);
+              console.log('📊 Emails enviados (total):', results.emailsSent);
+              console.log('📊 WhatsApp enviado:', results.whatsappSent);
               console.log('📊 === FIN RESULTADO NOTIFICACIONES ===');
-              console.log('📊 Resultado de notificaciones:', {
-                email: notificationResult.emailResult.success ? '✅' : '❌',
-                whatsapp: notificationResult.whatsappResult.success ? '✅' : '❌',
-                overallSuccess: notificationResult.overallSuccess ? '✅' : '❌'
-              });
             } else {
               console.log('❌ No se pudo encontrar información del médico en ninguna tabla');
             }
