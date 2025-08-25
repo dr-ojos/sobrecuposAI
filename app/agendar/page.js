@@ -259,7 +259,7 @@ const AgendarSobrecuposContent = () => {
         clinic: selectedSobrecupo.fields?.Clínica || 'Clínica no disponible',
         amount: "2990", // Precio estándar
         motivo: userData.motivoConsulta, // Motivo de la consulta del usuario
-        fromChat: false, // 🆕 MARCAR ORIGEN COMO RESERVA DIRECTA
+        fromChat: true, // 🆕 USAR MISMO FLUJO QUE CHATBOT (FUNCIONA)
         sessionId: `direct-booking-demo-${Date.now()}` // ID de sesión único
       };
       
