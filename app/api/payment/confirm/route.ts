@@ -563,7 +563,7 @@ export async function POST(req) {
             if (paymentData.sobrecupoId) {
               try {
                 const sobrecupoResponse = await fetch(
-                  `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Sobrecupos/${paymentData.sobrecupoId}`,
+                  `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/SobrecuposTest/${paymentData.sobrecupoId}`,
                   { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
                 );
                 
@@ -878,7 +878,7 @@ _Sistema Sobrecupos_`;
         if (paymentData.sobrecupoId) {
           console.log('🔍 Extrayendo doctor desde sobrecupo...');
           const sobrecupoResponse = await fetch(
-            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Sobrecupos/${paymentData.sobrecupoId}`,
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/SobrecuposTest/${paymentData.sobrecupoId}`,
             { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
           );
           console.log('🔍 Sobrecupo response status:', sobrecupoResponse.status);
