@@ -126,8 +126,12 @@ function PagoContent() {
             addDebugLog('🎉 Reserva confirmada exitosamente');
             console.log('🎉 Resultado:', JSON.stringify(result, null, 2));
             
-            // Enviar mensaje de éxito al chat padre
-            if (window.opener) {
+            // Detectar el origen real (no solo fromChat param)
+            const isRealChatbot = paymentData.sessionId && paymentData.sessionId.includes('session');
+            const isDirectBooking = paymentData.sessionId && paymentData.sessionId.includes('direct-booking');
+            
+            if (isRealChatbot && window.opener) {
+              // Es chatbot real - enviar mensaje al padre y cerrar
               window.opener.postMessage({
                 type: 'PAYMENT_SUCCESS',
                 transactionId,
@@ -147,28 +151,27 @@ function PagoContent() {
               
               // Cerrar popup después de un breve delay
               setTimeout(() => {
-                addDebugLog('🔒 Intentando cerrar ventana...');
                 try {
                   window.close();
-                  addDebugLog('✅ window.close() ejecutado');
                 } catch (error) {
-                  addDebugLog('❌ Error cerrando ventana:', error);
-                  // Si no puede cerrar, mostrar instrucción
                   setMessage('¡Pago exitoso! Puedes cerrar esta ventana manualmente.');
                 }
-                
-                // Fallback: si la ventana no se cerró después de 2 segundos
-                setTimeout(() => {
-                  if (!window.closed) {
-                    addDebugLog('⚠️ Ventana no se cerró automáticamente');
-                    setMessage('¡Pago exitoso! Puedes cerrar esta ventana.');
-                  }
-                }, 2000);
               }, 1500);
+            } else if (isDirectBooking) {
+              // Es reserva directa - redirigir a página principal después de mostrar éxito
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 3000);
             }
             
             setPaymentStatus('success');
-            setMessage('¡Pago exitoso! La ventana se cerrará automáticamente...');
+            if (isRealChatbot) {
+              setMessage('¡Pago exitoso! La ventana se cerrará automáticamente...');
+            } else if (isDirectBooking) {
+              setMessage('¡Pago exitoso! Redirigiendo a página principal...');
+            } else {
+              setMessage('¡Pago exitoso!');
+            }
             
           } else {
             throw new Error('Error confirmando reserva');
