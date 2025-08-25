@@ -41,11 +41,13 @@ export default function PaymentRedirectPage() {
             patientEmail: data.patientEmail || '',
             patientAge: data.patientAge || '',
             doctorName: data.doctorName || '',
+            doctorId: data.doctorId || '', // 🆕 ID del médico para notificaciones
             specialty: data.specialty || '',
             date: data.date || '',
             time: data.time || '',
             clinic: data.clinic || '',
             amount: data.amount || '2990',
+            motivo: data.motivo || '', // 🆕 Motivo de consulta
             sessionId: data.sessionId || '',
             fromChat: data.fromChat !== undefined ? data.fromChat : true // 🆕 INCLUIR ORIGEN REAL
           });
