@@ -148,9 +148,10 @@ export default function AdminPanelPage() {
 
   const fetchSobrecupos = async () => {
     try {
-      const res = await fetch('/api/sobrecupos');
+      const res = await fetch('/api/firebase/sobrecupos'); // 🔥 Usar Firebase
       const data = await res.json();
-      setSobrecupos(Array.isArray(data) ? data : []);
+      // Firebase devuelve data.records
+      setSobrecupos(data.success && Array.isArray(data.records) ? data.records : []);
     } catch (error) {
       console.error('Error cargando sobrecupos:', error);
       setSobrecupos([]);
@@ -159,10 +160,11 @@ export default function AdminPanelPage() {
 
   const fetchPendingRequests = async () => {
     try {
-      const res = await fetch('/api/pending-requests');
+      const res = await fetch('/api/firebase/pending-requests'); // 🔥 Usar Firebase
       if (res.ok) {
         const data = await res.json();
-        setPendingRequests(Array.isArray(data) ? data : []);
+        // Firebase devuelve data.records
+        setPendingRequests(data.success && Array.isArray(data.records) ? data.records : []);
       } else {
         console.log('No pending requests API available yet');
         setPendingRequests([]);
@@ -265,7 +267,7 @@ export default function AdminPanelPage() {
         return;
       }
 
-      const res = await fetch('/api/sobrecupos', {
+      const res = await fetch('/api/firebase/sobrecupos', { // 🔥 Usar Firebase
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sobrecupoForm)

@@ -156,17 +156,21 @@ function MedicoDashboard() {
     }
 
     try {
-      const sobrecuposUrl = `/api/sobrecupos/medicos/${session.user.doctorId}`;
-      const res = await fetch(sobrecuposUrl);
+      // 🔥 Usar Firebase - obtener todos los sobrecupos y filtrar por médico
+      const res = await fetch('/api/firebase/sobrecupos');
       
       if (res.ok) {
-        const data = await res.json();
+        const response = await res.json();
+        const data = response.success ? response.records : [];
         
-        // Filtrar solo sobrecupos futuros (desde hoy)
+        // 🔥 Filtrar por médico actual y sobrecupos futuros
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
         const futureSobrecupos = data.filter(sobrecupo => {
+          const doctorIds = sobrecupo.fields?.Médico || [];
+          const hasDoctorId = doctorIds.includes(session.user.doctorId);
+          if (!hasDoctorId) return false;
           const sobrecupoDate = new Date(sobrecupo.fields?.Fecha);
           return sobrecupoDate >= today;
         });
