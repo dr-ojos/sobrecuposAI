@@ -253,6 +253,7 @@ const AgendarSobrecuposContent = () => {
         patientEmail: userData.email,
         patientAge: userData.edad,
         doctorName: selectedSobrecupo.fields?.Médico || 'Doctor no disponible',
+        doctorId: selectedSobrecupo.fields?.MédicoID?.[0] || null, // 🆕 ID del médico para notificaciones
         specialty: selectedSobrecupo.fields?.Especialidad || 'Especialidad no disponible',
         date: selectedSobrecupo.fields?.Fecha || 'Fecha no disponible',
         time: selectedSobrecupo.fields?.Hora || 'Hora no disponible',
