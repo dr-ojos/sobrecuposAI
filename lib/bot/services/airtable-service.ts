@@ -16,7 +16,7 @@ export class AirtableService {
     this.config = {
       apiKey: process.env.AIRTABLE_API_KEY!,
       baseId: process.env.AIRTABLE_BASE_ID!,
-      tableId: process.env.AIRTABLE_TABLE_ID!,
+      tableId: 'SobrecuposTest', // Usar tabla correcta
       doctorsTable: process.env.AIRTABLE_DOCTORS_TABLE!,
       patientsTable: process.env.AIRTABLE_PATIENTS_TABLE!,
     };

@@ -8,7 +8,7 @@ export async function POST(req) {
     // 2. Verificar variables de entorno
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
+    const AIRTABLE_TABLE_ID = 'SobrecuposTest'; // Usar tabla correcta
 
     if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
       console.error('❌ Faltan variables de entorno');
@@ -134,7 +134,7 @@ export async function GET() {
   try {
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
+    const AIRTABLE_TABLE_ID = 'SobrecuposTest'; // Usar tabla correcta
 
     if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
       return NextResponse.json(
@@ -199,7 +199,7 @@ export async function DELETE(req) {
 
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
+    const AIRTABLE_TABLE_ID = 'SobrecuposTest'; // Usar tabla correcta
 
     const res = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${id}`,
