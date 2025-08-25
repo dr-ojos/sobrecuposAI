@@ -252,8 +252,8 @@ const AgendarSobrecuposContent = () => {
         patientPhone: userData.telefono,
         patientEmail: userData.email,
         patientAge: userData.edad,
-        doctorName: selectedSobrecupo.fields?.Médico || 'Doctor no disponible',
-        doctorId: selectedSobrecupo.fields?.MédicoID?.[0] || null, // 🆕 ID del médico para notificaciones
+        doctorName: selectedSobrecupo.fields?.['Name (from Médico)']?.[0] || 'Doctor no disponible',
+        doctorId: Array.isArray(selectedSobrecupo.fields?.Médico) ? selectedSobrecupo.fields.Médico[0] : selectedSobrecupo.fields?.Médico || null, // 🆕 ID del médico para notificaciones
         specialty: selectedSobrecupo.fields?.Especialidad || 'Especialidad no disponible',
         date: selectedSobrecupo.fields?.Fecha || 'Fecha no disponible',
         time: selectedSobrecupo.fields?.Hora || 'Hora no disponible',
@@ -755,15 +755,15 @@ const AgendarSobrecuposContent = () => {
                     <div className="card-header">
                       <div className="doctor-info">
                         <div className="doctor-avatar">
-                          {sobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                          {sobrecupo.fields?.['Name (from Médico)']?.[0]?.split(' ').map(n => n[0]).join('').substring(0, 2)}
                         </div>
                         <div className="doctor-details">
                           <h3 className="doctor-name">
                             <button
-                              onClick={() => router.push(`/medico-info/${encodeURIComponent(sobrecupo.fields.Médico)}`)}
+                              onClick={() => router.push(`/medico-info/${encodeURIComponent(sobrecupo.fields?.['Name (from Médico)']?.[0] || 'Doctor')}`)}
                               className="doctor-name-button"
                             >
-                              {sobrecupo.fields.Médico}
+                              {sobrecupo.fields?.['Name (from Médico)']?.[0] || 'Doctor'}
                             </button>
                           </h3>
                           <p className="doctor-specialty">
@@ -850,10 +850,10 @@ const AgendarSobrecuposContent = () => {
               {/* Resumen de la cita */}
               <div className="appointment-summary">
                 <div className="summary-avatar">
-                  {selectedSobrecupo.fields.Médico?.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                  {selectedSobrecupo.fields?.['Name (from Médico)']?.[0]?.split(' ').map(n => n[0]).join('').substring(0, 2)}
                 </div>
                 <div className="summary-details">
-                  <div className="summary-doctor">{selectedSobrecupo.fields.Médico}</div>
+                  <div className="summary-doctor">{selectedSobrecupo.fields?.['Name (from Médico)']?.[0] || 'Doctor'}</div>
                   <div className="summary-specialty">{selectedSobrecupo.fields.Especialidad}</div>
                   <div className="summary-clinic">{selectedSobrecupo.fields.Clínica}</div>
                   <div className="summary-datetime">
