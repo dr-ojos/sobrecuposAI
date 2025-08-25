@@ -1,5 +1,6 @@
-// Servicio para todas las operaciones con Airtable
+// Servicio para todas las operaciones con Firebase (anteriormente Airtable)
 import { AirtableRecord, DoctorInfo, ProcessedDoctorInfo } from '../types';
+import { firebaseService } from '../../firebase/firestore-service';
 
 interface AirtableConfig {
   apiKey: string;
@@ -30,25 +31,16 @@ export class AirtableService {
     return Boolean(value);
   }
 
-  // Obtener todos los sobrecupos
+  // Obtener todos los sobrecupos (ahora desde Firebase)
   async fetchAllSobrecupos(): Promise<AirtableRecord[]> {
     try {
-      const response = await fetch(
-        `https://api.airtable.com/v0/${this.config.baseId}/${this.config.tableId}?maxRecords=100`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.config.apiKey}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        console.log(`❌ Error response: ${response.status}`);
-        return [];
-      }
-
-      const data = await response.json();
-      return data.records || [];
+      console.log('🔥 Obteniendo sobrecupos desde Firebase...');
+      
+      // Usar Firebase en lugar de Airtable
+      const sobrecupos = await firebaseService.fetchAllSobrecupos();
+      
+      console.log(`✅ Firebase: ${sobrecupos.length} sobrecupos obtenidos`);
+      return sobrecupos;
     } catch (error) {
       console.error('❌ Error fetching all sobrecupos:', error);
       return [];
