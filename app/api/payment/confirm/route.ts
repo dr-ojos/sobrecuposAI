@@ -626,7 +626,9 @@ export async function POST(req) {
               const doctorEmail = doctorData.fields?.Email;
               const doctorWhatsApp = doctorData.fields?.WhatsApp;
               
-              console.log('🔍 === ANÁLISIS DATOS DEL MÉDICO ===');
+              console.log('🔍 === ANÁLISIS DATOS DEL MÉDICO (SISTEMA ORIGINAL) ===');
+              console.log('🔍 ORIGINAL - doctorEmail:', doctorEmail);
+              console.log('🔍 ORIGINAL - doctorWhatsApp:', doctorWhatsApp);
               console.log('🔍 doctorData completo:', JSON.stringify(doctorData, null, 2));
               console.log('🔍 doctorData.fields:', JSON.stringify(doctorData.fields, null, 2));
               console.log('🔍 doctorEmail extraído:', doctorEmail);
@@ -744,6 +746,7 @@ export async function POST(req) {
                 }
 
                 // ENVIAR WHATSAPP AL MÉDICO
+                console.log('🔍 SISTEMA ORIGINAL WHATSAPP - Verificando:', doctorWhatsApp);
                 if (doctorWhatsApp) {
                   const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
                   const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
@@ -852,7 +855,7 @@ _Sistema Sobrecupos_`;
       
       // Sistema profesional SIEMPRE ACTIVO - sin variables adicionales requeridas
       const FEATURE_ENABLED = true; // Siempre activo
-      const SANDBOX_MODE = process.env.NODE_ENV !== 'production'; // Auto-detectar modo
+      const SANDBOX_MODE = false; // DESACTIVADO - Enviar a médicos reales
       
       console.log('🔧 Sistema profesional: SIEMPRE ACTIVO');
       console.log('🔧 Sandbox mode (auto):', SANDBOX_MODE);
@@ -1128,75 +1131,7 @@ _Sistema Sobrecupos_`;
           }
         }
         
-        // WhatsApp profesional al médico (si existe)
-        if (professionalDoctorWhatsApp) {
-          console.log('📱 Enviando WhatsApp profesional al médico:', professionalDoctorWhatsApp);
-          
-          const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
-          const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
-          const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER;
-          
-          if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_WHATSAPP_NUMBER) {
-            const professionalWhatsAppMessage = `${SANDBOX_MODE ? '🧪 *MODO SANDBOX*\n\n' : ''}🏥 *Nueva Reserva Confirmada - Sistema Profesional*
-
-Dr/a. ${paymentData.doctorName || 'Doctor'}
-📋 Booking ID: ${transactionId}
-
-📅 *Detalles:*
-• ${appointmentDateTime} (Chile)
-• ${paymentData.specialty || 'Consulta'}
-• ${paymentData.clinic || 'Clínica'}
-• Precio: $${paymentData.amount || '2990'}
-
-👤 *Paciente:*
-• ${patientName}${patientRut ? `\n• RUT: ${patientRut}` : ''}${patientPhone ? `\n• 📞 ${patientPhone}` : ''}${paymentData.motivo ? `\n• Motivo: ${paymentData.motivo}` : ''}
-
-✅ Pago confirmado y paciente registrado
-
-🔗 Detalles: ${bookingUrl}
-
-_🚀 Sistema Profesional Sobrecupos_`;
-
-            const recipientPhone = SANDBOX_MODE ? 
-              '+56912345678' : // En sandbox siempre a número de prueba
-              professionalDoctorWhatsApp.replace(/\D/g, '').startsWith('56') ? '+' + professionalDoctorWhatsApp.replace(/\D/g, '') : '+56' + professionalDoctorWhatsApp.replace(/\D/g, '');
-
-            try {
-              const whatsappPayload = {
-                From: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
-                To: `whatsapp:${recipientPhone}`,
-                Body: professionalWhatsAppMessage
-              };
-
-              const auth = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64');
-
-              const whatsappResponse = await fetch(
-                `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `Basic ${auth}`,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                  },
-                  body: new URLSearchParams(whatsappPayload).toString()
-                }
-              );
-
-              if (whatsappResponse.ok) {
-                const result = await whatsappResponse.json();
-                console.log(`✅ Sistema profesional: WhatsApp enviado (SID: ${result.sid})`);
-                results.whatsappSent = true;
-              } else {
-                const errorText = await whatsappResponse.text();
-                console.error(`❌ Sistema profesional WhatsApp falló:`, errorText);
-              }
-            } catch (whatsappError: any) {
-              console.error(`❌ Excepción WhatsApp profesional:`, whatsappError.message);
-            }
-          } else {
-            console.warn('⚠️ Credenciales Twilio no configuradas para WhatsApp profesional');
-          }
-        }
+        // NOTA: WhatsApp ya enviado por sistema original (línea ~810) - no duplicar
         
         console.log('📊 Sistema profesional completado:', {
           isSimulated: isSimulated,
