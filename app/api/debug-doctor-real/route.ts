@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     console.log('🔍 PASO 1: Obteniendo sobrecupo...');
     try {
       const sobrecupoResponse = await fetch(
-        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Sobrecupos/${sobrecupoId}`,
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/SobrecuposTest/${sobrecupoId}`,
         { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
       );
 

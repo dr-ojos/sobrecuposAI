@@ -153,7 +153,7 @@ export class BookingService {
         console.log(`${logPrefix} 🔍 Extrayendo doctorId desde sobrecupo: ${bookingData.paymentData.sobrecupoId}`);
         
         const sobrecupoResponse = await fetch(
-          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Sobrecupos/${bookingData.paymentData.sobrecupoId}`,
+          `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/SobrecuposTest/${bookingData.paymentData.sobrecupoId}`,
           { headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` } }
         );
 
